@@ -1,0 +1,244 @@
+/*
+	Тестирование регистрации коопераций.
+
+	Суть теста:
+		Создается и регистрируется кооперация,
+		агент этой кооперации имеет несколько состояний,
+		в которых он подписывается на сообщение,
+		а в своем начальном событии отписывается от него.
+*/
+
+#include <iostream>
+#include <exception>
+#include <stdexcept>
+
+#include <so_5/rt/h/rt.hpp>
+#include <so_5/api/h/api.hpp>
+
+struct test_message
+	:
+		public so_5::rt::message_t
+{
+	test_message() {}
+	virtual ~test_message(){}
+
+};
+
+class test_agent_t
+	:
+		public so_5::rt::agent_t
+{
+		typedef so_5::rt::agent_t base_type_t;
+		const so_5::rt::state_t m_first_state;
+		const so_5::rt::state_t m_second_state;
+		const so_5::rt::state_t m_third_state;
+
+	public:
+		test_agent_t(
+			so_5::rt::so_environment_t & env )
+			:
+				base_type_t( env ),
+				m_first_state( self_ptr() ),
+				m_second_state( self_ptr() ),
+				m_third_state( self_ptr() ),
+				m_test_mbox( so_environment().create_local_mbox() )
+		{}
+
+		virtual ~test_agent_t()
+		{}
+
+		virtual void
+		so_define_agent();
+
+		virtual void
+		so_evt_start();
+
+		void
+		evt_in_state_default(
+			const so_5::rt::event_data_t< test_message > & );
+
+		void
+		evt_in_state_1(
+			const so_5::rt::event_data_t< test_message > & );
+
+		void
+		evt_in_state_2(
+			const so_5::rt::event_data_t< test_message > & );
+
+		void
+		evt_in_state_3(
+			const so_5::rt::event_data_t< test_message > & );
+
+		// Количество вызовов обработчика событий.
+		static int m_handler_in_state_default_calls;
+		static int m_handler_in_state_1_calls;
+		static int m_handler_in_state_2_calls;
+		static int m_handler_in_state_3_calls;
+
+	private:
+		so_5::rt::mbox_ref_t m_test_mbox;
+};
+
+int test_agent_t::m_handler_in_state_default_calls = 0;
+int test_agent_t::m_handler_in_state_1_calls = 0;
+int test_agent_t::m_handler_in_state_2_calls = 0;
+int test_agent_t::m_handler_in_state_3_calls = 0;
+
+char g_agent_num = '0';
+void
+test_agent_t::so_define_agent()
+{
+	++g_agent_num;
+
+	// Подписываемся на сообщение в состоянии по умолчанию.
+	so_subscribe( m_test_mbox )
+		.in( so_default_state() )
+			.event(
+				&test_agent_t::evt_in_state_default,
+				so_5::THROW_ON_ERROR );
+
+	// В первом состоянии.
+	so_subscribe( m_test_mbox )
+		.in( m_first_state )
+			.event(
+				&test_agent_t::evt_in_state_1,
+				so_5::THROW_ON_ERROR );
+
+	// Во втором состоянии.
+	so_subscribe( m_test_mbox )
+		.in( m_second_state )
+			.event(
+				&test_agent_t::evt_in_state_2,
+				so_5::THROW_ON_ERROR );
+
+	// В третьем состоянии.
+	so_subscribe( m_test_mbox )
+		.in( m_third_state )
+			.event(
+				&test_agent_t::evt_in_state_3,
+				so_5::THROW_ON_ERROR );
+}
+
+void
+test_agent_t::so_evt_start()
+{
+	// Отписываемся от сообщения в состоянии по умолчанию.
+	so_unsubscribe( m_test_mbox )
+		.in( so_default_state() )
+			.event(
+				&test_agent_t::evt_in_state_default,
+				so_5::THROW_ON_ERROR );
+
+	// В первом состоянии.
+	so_unsubscribe( m_test_mbox )
+		.in( m_first_state )
+			.event(
+				&test_agent_t::evt_in_state_1,
+				so_5::THROW_ON_ERROR );
+
+	// Во втором состоянии не отписываемся.
+
+	// В третьем состоянии.
+	so_unsubscribe( m_test_mbox )
+		.in( m_third_state )
+			.event(
+				&test_agent_t::evt_in_state_3,
+				so_5::THROW_ON_ERROR );
+
+	m_test_mbox->deliver_message< test_message >();
+
+	// Меняем состояние.
+	so_change_state( m_second_state, so_5::THROW_ON_ERROR );
+}
+
+void
+test_agent_t::evt_in_state_default(
+	const so_5::rt::event_data_t< test_message > & )
+{
+	// Этот обработчик не должен вызываться.
+	++m_handler_in_state_default_calls;
+}
+
+void
+test_agent_t::evt_in_state_1(
+	const so_5::rt::event_data_t< test_message > & )
+{
+	// Этот обработчик не должен вызываться.
+	++m_handler_in_state_1_calls;
+}
+
+void
+test_agent_t::evt_in_state_2(
+	const so_5::rt::event_data_t< test_message > & )
+{
+	++m_handler_in_state_2_calls;
+	if( 4 == m_handler_in_state_2_calls )
+		so_environment().stop();
+}
+
+void
+test_agent_t::evt_in_state_3(
+	const so_5::rt::event_data_t< test_message > & )
+{
+	// Этот обработчик не должен вызываться.
+	++m_handler_in_state_3_calls;
+}
+
+void
+init( so_5::rt::so_environment_t & env )
+{
+	so_5::rt::agent_coop_unique_ptr_t coop =
+		env.create_coop( "test_coop" );
+
+	coop->add_agent( so_5::rt::agent_ref_t(
+		new test_agent_t( env ) ) );
+	coop->add_agent( so_5::rt::agent_ref_t(
+		new test_agent_t( env ) ) );
+	coop->add_agent( so_5::rt::agent_ref_t(
+		new test_agent_t( env ) ) );
+	coop->add_agent( so_5::rt::agent_ref_t(
+		new test_agent_t( env ) ) );
+
+	env.register_coop(
+		std::move( coop ),
+		so_5::THROW_ON_ERROR );
+}
+
+int
+main( int argc, char * argv[] )
+{
+	try
+	{
+		so_5::api::run_so_environment(
+			&init,
+			so_5::rt::so_environment_params_t()
+				.mbox_mutex_pool_size( 4 )
+				.agent_event_queue_mutex_pool_size( 4 ) );
+
+		if( test_agent_t::m_handler_in_state_default_calls != 0 ||
+			test_agent_t::m_handler_in_state_1_calls != 0 ||
+			test_agent_t::m_handler_in_state_2_calls != 4 ||
+			test_agent_t::m_handler_in_state_3_calls != 0 )
+		{
+			std::cerr
+				<< "test_agent_t::m_handler_in_state_default_calls = "
+				<< test_agent_t::m_handler_in_state_default_calls << "\n"
+				<< "test_agent_t::m_handler_in_state_1_calls = "
+				<< test_agent_t::m_handler_in_state_1_calls << "\n"
+				<< "test_agent_t::m_handler_in_state_2_calls = "
+				<< test_agent_t::m_handler_in_state_2_calls << "\n"
+				<< "test_agent_t::m_handler_in_state_3_calls = "
+				<< test_agent_t::m_handler_in_state_3_calls << "\n";
+
+			throw std::runtime_error( "handler calls count error" );
+		}
+
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}

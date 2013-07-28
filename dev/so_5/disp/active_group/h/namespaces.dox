@@ -1,0 +1,14 @@
+namespace so_5
+{
+
+namespace disp
+{
+
+//! Диспетчер событий активных групп.
+namespace active_group
+{
+}
+
+}
+
+}

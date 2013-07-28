@@ -1,0 +1,9 @@
+namespace so_5
+{
+
+//! SObjectizer run-time.
+namespace rt
+{
+}
+
+}

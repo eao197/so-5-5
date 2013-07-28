@@ -1,0 +1,13 @@
+namespace mbapi_4
+{
+
+namespace comm
+{
+//! Внутренние детали коммуникационного уровеня mbapi_4.
+namespace impl
+{
+} /* namespace impl */
+
+} /* namespace comm */
+
+}

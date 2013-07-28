@@ -1,0 +1,14 @@
+namespace so_5_transport
+{
+
+namespace socket
+{
+
+//! Детали реализации SObjectizer 5 Transport на основе сокетов.
+namespace impl
+{
+}
+
+}
+
+}

@@ -1,0 +1,10 @@
+namespace so_5
+{
+
+//! Диспетчеры событий.
+namespace disp
+{
+
+}
+
+}

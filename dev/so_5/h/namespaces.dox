@@ -1,0 +1,4 @@
+//! Основное пространство имен SObjectizer.
+namespace so_5
+{
+}

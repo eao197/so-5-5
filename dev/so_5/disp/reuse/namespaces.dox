@@ -1,0 +1,17 @@
+namespace so_5
+{
+
+namespace disp
+{
+
+//! Используемая всеми диспетчерами функциональность.
+namespace reuse
+{
+
+
+}
+
+
+}
+
+}

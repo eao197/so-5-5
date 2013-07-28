@@ -1,0 +1,10 @@
+namespace so_5
+{
+
+//! Инфраструктуруа таймерных событий.
+namespace timer_thread
+{
+}
+
+
+}

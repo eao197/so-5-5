@@ -1,0 +1,223 @@
+/*
+	SObjectizer 5.
+*/
+
+#include <exception>
+#include <so_5/h/exception.hpp>
+
+#include <so_5/rt/impl/h/so_environment_impl.hpp>
+#include <so_5/rt/h/so_environment.hpp>
+
+#include <so_5/rt/h/agent.hpp>
+
+#include <so_5/rt/h/agent_coop.hpp>
+
+namespace so_5
+{
+
+namespace rt
+{
+
+agent_coop_t::agent_coop_t(
+	const nonempty_name_t & name,
+	disp_binder_unique_ptr_t & coop_disp_binder,
+	impl::so_environment_impl_t & env_impl )
+	:
+		m_coop_name( name.query_name() ),
+		m_lock( env_impl.create_agent_coop_mutex() ),
+		m_agents_are_undefined( false ),
+		m_coop_disp_binder( coop_disp_binder.release() ),
+		m_so_environment_impl( env_impl ),
+		m_working_agents_count( 0 )
+{
+}
+
+agent_coop_unique_ptr_t
+agent_coop_t::create_coop(
+	const nonempty_name_t & name,
+	disp_binder_unique_ptr_t & coop_disp_binder,
+	impl::so_environment_impl_t & env_impl )
+{
+	return agent_coop_unique_ptr_t( new agent_coop_t(
+		name, coop_disp_binder, env_impl ) );
+}
+
+agent_coop_t::~agent_coop_t()
+{
+	m_so_environment_impl.destroy_agent_coop_mutex( m_lock );
+}
+
+const std::string &
+agent_coop_t::query_coop_name() const
+{
+	return m_coop_name;
+}
+
+
+ret_code_t
+agent_coop_t::add_agent(
+	const agent_ref_t & agent_ref )
+{
+	m_agent_array.push_back(
+		agent_with_disp_binder_t( agent_ref, m_coop_disp_binder ) );
+
+	return 0;
+}
+
+ret_code_t
+agent_coop_t::add_agent(
+	const agent_ref_t & agent_ref,
+	disp_binder_unique_ptr_t disp_binder )
+{
+	disp_binder_ref_t dbinder( disp_binder.release() );
+
+	if( nullptr == dbinder.get() || nullptr == agent_ref.get() )
+		throw exception_t(
+			"zero ptr to agent or disp binder",
+			rc_coop_has_references_to_null_agents_or_binders );
+
+	m_agent_array.push_back(
+		agent_with_disp_binder_t( agent_ref, dbinder ) );
+
+	return 0;
+}
+
+void
+agent_coop_t::bind_agents_to_coop()
+{
+	agent_array_t::iterator it = m_agent_array.begin();
+	agent_array_t::iterator it_end = m_agent_array.end();
+
+	for(; it != it_end; ++it )
+	{
+		it->m_agent_ref->bind_to_coop( *this );
+	}
+}
+
+void
+agent_coop_t::define_all_agents()
+{
+	agent_array_t::iterator it = m_agent_array.begin();
+	agent_array_t::iterator it_end = m_agent_array.end();
+
+	try
+	{
+		for(; it != it_end; ++it )
+		{
+			it->m_agent_ref->define_agent();
+		}
+	}
+	catch( const std::exception & ex )
+	{
+		undefine_some_agents( it );
+		throw;
+	}
+}
+
+void
+agent_coop_t::undefine_all_agents()
+{
+	undefine_some_agents( m_agent_array.end() );
+}
+
+void
+agent_coop_t::undefine_some_agents(
+	agent_array_t::iterator it )
+{
+	{
+		// ¬ыставл€ем флаг, что агенты кооперации разопределены.
+		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+		m_agents_are_undefined = true;
+	}
+
+	agent_array_t::iterator it_begin = m_agent_array.begin();
+
+	// ≈сли ошибка выскочила не на первом агенте,
+	// то надо вызывать so_undefine_agent() дл€ всех предшественников.
+
+	if( it != it_begin )
+		do
+		{
+			// ¬з€ть предшествующий агент
+			--it;
+			it->m_agent_ref->undefine_agent();
+		} while( it != it_begin );
+}
+
+void
+agent_coop_t::bind_agents_to_disp()
+{
+	agent_array_t::iterator it;
+	agent_array_t::iterator it_begin = m_agent_array.begin();
+	agent_array_t::iterator it_end = m_agent_array.end();
+
+	try
+	{
+		for( it = it_begin; it != it_end; ++it )
+		{
+			it->m_binder->bind_agent(
+				m_so_environment_impl, it->m_agent_ref );
+		}
+	}
+	catch( const std::exception & ex )
+	{
+		unbind_agents_to_disp( it );
+
+		// “.к. все агенты к этому времени были определены,
+		// то перед тем как бросать исключение
+		// разопределим всех агентов.
+		undefine_all_agents();
+
+		throw;
+	}
+
+	// ≈сли все агенты кооперации зарегистрировались нормально,
+	// то устанавливаем колличество активных агентов.
+	m_working_agents_count = m_agent_array.size();
+}
+
+inline void
+agent_coop_t::unbind_agents_to_disp(
+	agent_array_t::iterator it )
+{
+	agent_array_t::iterator it_begin = m_agent_array.begin();
+
+	// ≈сли ошибка выскочила не на первом агенте,
+	// то надо удалить прив€зки агентов, которые успешно прошли
+	// дл€ агентов сто€щих до него.
+	if( it != it_begin )
+		do
+		{
+			// ¬з€ть предшествующий агент
+			--it;
+
+			// ќтв€зать.
+			it->m_binder->unbind_agent(
+				m_so_environment_impl, it->m_agent_ref );
+
+		} while( it != it_begin );
+}
+
+void
+agent_coop_t::agent_finished()
+{
+	// ≈сли мы вызваны из того агента, который последний
+	// из работающих, то извещаем среду SO, что эту кооперацию
+	// нужно уничтожить.
+	if( 0 == --m_working_agents_count )
+	{
+		m_so_environment_impl.ready_to_deregister_notify( this );
+	}
+}
+
+void
+agent_coop_t::final_deregister_coop()
+{
+	unbind_agents_to_disp( m_agent_array.end() );
+
+	m_so_environment_impl.final_deregister_coop( m_coop_name );
+}
+
+} /* namespace rt */
+
+} /* namespace so_5 */

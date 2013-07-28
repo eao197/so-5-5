@@ -1,0 +1,8 @@
+namespace so_5_transport
+{
+//! Реализация транспортного слоя SObjectizer на основе сокетов.
+namespace socket
+{
+} /* namespace socket */
+
+}

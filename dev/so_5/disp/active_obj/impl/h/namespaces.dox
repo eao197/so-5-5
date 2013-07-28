@@ -1,0 +1,20 @@
+namespace so_5
+{
+
+namespace disp
+{
+
+namespace active_obj
+{
+
+//! Реализация диспетчера событий активных объектов.
+namespace impl
+{
+
+}
+
+}
+
+}
+
+}

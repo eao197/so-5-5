@@ -1,0 +1,15 @@
+namespace so_5
+{
+
+namespace disp
+{
+
+//! Диспетчер событий одной нити.
+namespace one_thread
+{
+
+}
+
+}
+
+}

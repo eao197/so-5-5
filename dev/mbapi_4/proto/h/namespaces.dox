@@ -1,0 +1,7 @@
+namespace mbapi_4
+{
+//! Сообщения протокола mbapi_4.
+namespace proto
+{
+} /* namespace proto */
+}

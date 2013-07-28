@@ -1,0 +1,9 @@
+namespace mbapi_4
+{
+
+//! ¬нутренн€€ реализаци€ mbapi_4.
+namespace impl
+{
+} /* namespace impl */
+
+}

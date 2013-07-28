@@ -1,0 +1,19 @@
+namespace so_5
+{
+
+namespace rt
+{
+
+namespace impl
+{
+
+//! Функциональность для дерегистрации коопераций.
+namespace coop_dereg
+{
+}
+
+}
+
+}
+
+}

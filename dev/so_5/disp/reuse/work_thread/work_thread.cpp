@@ -1,0 +1,288 @@
+/*
+	SObjectizer 5.
+*/
+
+#include <iostream>
+
+#include <cpp_util_2/h/lexcast.hpp>
+
+#include <ace/Guard_T.h>
+#include <ace/Thread_Manager.h>
+
+#include <so_5/h/log_err.hpp>
+
+#include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/event_exception_handler.hpp>
+#include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
+
+namespace so_5
+{
+
+namespace disp
+{
+
+namespace reuse
+{
+
+namespace work_thread
+{
+
+//
+// demand_queue
+//
+demand_queue_t::demand_queue_t()
+	:
+		m_not_empty( m_lock )
+{
+}
+
+demand_queue_t::~demand_queue_t()
+{
+	m_demands.clear();
+}
+
+void
+demand_queue_t::push(
+	const so_5::rt::agent_ref_t & agent_ref,
+	unsigned int event_cnt )
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+
+	// Если надо обслуживать.
+	if( m_in_service )
+	{
+		const bool demands_empty_before_service = m_demands.empty();
+
+		// Нужно ли добавлять отдельную заявку в очередь?
+		// Считаем что нужно.
+		bool create_new_demand_needed = true;
+
+		// Если очередь не пустая и
+		if( !demands_empty_before_service )
+		{
+			// если агент совпадает с агентом,
+			// который находится в конце очереди,
+			// то просто увеличим количество вызываемых
+			// событий в заявке для этого агента.
+			demand_t & dmnd = m_demands.back();
+			if( agent_ref == dmnd.m_agent_ref )
+			{
+				dmnd.m_event_cnt += event_cnt;
+				create_new_demand_needed = false;
+			}
+		}
+
+		if( create_new_demand_needed )
+		{
+			m_demands.push_back( demand_t( agent_ref, event_cnt ) );
+		}
+
+		if( demands_empty_before_service )
+		{
+			// Если к началу добавления, кто-то нас ждал,
+			// потому что очередь была пустой -
+			// надо просигналить, что в очереди появились элементы.
+			m_not_empty.signal();
+		}
+	}
+}
+
+int
+demand_queue_t::pop(
+	demand_container_t & demands )
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+
+	while( true )
+	{
+		if( m_in_service && !m_demands.empty() )
+		{
+			// Забираем все имеющиеся заявки.
+			demands.swap( m_demands );
+			break;
+		}
+		else if( !m_in_service )
+			// Нужно завершать работу.
+			return shutting_down;
+		else
+		{
+			// Нужно ждать наступления
+			// какого-нибудь события.
+			m_not_empty.wait();
+		}
+	}
+
+	return demand_extracted;
+}
+
+void
+demand_queue_t::start_service()
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+
+	// Выставляем флаг - начать работу очереди.
+	m_in_service = true;
+}
+
+void
+demand_queue_t::stop_service()
+{
+	bool need_signal_not_empty;
+	{
+		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+
+		// Выставляем флаг - прекратить работу очереди.
+		m_in_service = false;
+		need_signal_not_empty = m_demands.empty();
+	}
+
+	// Если кто-то ждет - сигналим.
+	if( need_signal_not_empty)
+		m_not_empty.signal();
+}
+
+void
+demand_queue_t::clear()
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	m_demands.clear();
+}
+
+//
+// work_thread_t
+//
+
+work_thread_t::work_thread_t(
+	rt::dispatcher_t & disp )
+	:
+		m_disp( disp )
+{
+}
+
+work_thread_t::~work_thread_t()
+{
+}
+
+void
+work_thread_t::put_event_execution_request(
+	const so_5::rt::agent_ref_t & agent_ref,
+	unsigned int event_count )
+{
+	// Переправляем вызов очереди.
+	m_queue.push( agent_ref, event_count );
+}
+
+void
+work_thread_t::start()
+{
+	// Выставляем очереди флаг, что надо работать.
+	m_queue.start_service();
+	m_continue_work = WORK_THREAD_CONTINUE;
+
+	SO_5_ABORT_ON_ACE_ERROR(
+		ACE_Thread_Manager::instance()->spawn(
+			entry_point,
+			this,
+			THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED,
+			&m_tid ) );
+}
+
+void
+work_thread_t::shutdown()
+{
+	// Выставляем флаг, что надо заканчивать работу.
+	m_continue_work = WORK_THREAD_STOP;
+	m_queue.stop_service();
+}
+
+void
+work_thread_t::wait()
+{
+	ACE_Thread_Manager::instance()->join( m_tid );
+
+	m_queue.clear();
+}
+
+void
+work_thread_t::body()
+{
+	// Заявки для исполнения.
+	demand_container_t demands;
+
+	int result = demand_queue_t::no_demands;
+
+	while( m_continue_work.value() == WORK_THREAD_CONTINUE )
+	{
+		try
+		{
+			while( m_continue_work.value() == WORK_THREAD_CONTINUE )
+			{
+				// Если в локальной очереди пусто,
+				// то берем из m_queue.
+				if( demands.empty() )
+					result = m_queue.pop( demands );
+
+				// Пока есть что обрабатывать - обрабатываем.
+				if( demand_queue_t::demand_extracted == result )
+					serve_demands_block( demands );
+			}
+		}
+		catch( const std::exception & ex )
+		{
+			//Обрабатываем исключение.
+			handle_exception(
+				ex,
+				demands.front().m_agent_ref );
+		}
+	}
+}
+
+void
+work_thread_t::handle_exception(
+	const std::exception & ex,
+	const so_5::rt::agent_ref_t & a_exception_producer )
+{
+	rt::event_exception_response_action_unique_ptr_t
+		response_action =
+			m_disp.query_disp_evt_except_handler().handle_exception(
+				ex,
+				a_exception_producer->so_coop_name() );
+
+	response_action->respond_to_exception();
+}
+
+inline void
+work_thread_t::serve_demands_block(
+	demand_container_t & demands )
+{
+	size_t demands_size_counter = demands.size();
+	while( demands_size_counter-- )
+	{
+		demand_t & demand = demands.front();
+		while( demand.m_event_cnt-- )
+		{
+			so_5::rt::agent_t::call_next_event(
+				*demand.m_agent_ref );
+		}
+		demands.pop_front();
+	}
+}
+
+ACE_THR_FUNC_RETURN
+work_thread_t::entry_point( void * self_object )
+{
+	work_thread_t * work_thread =
+		reinterpret_cast<work_thread_t *>( self_object );
+
+	work_thread->body();
+
+	return 0;
+}
+
+} /* namespace work_thread */
+
+} /* namespace reuse */
+
+} /* namespace disp */
+
+} /* namespace so_5 */

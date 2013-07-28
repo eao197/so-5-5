@@ -1,0 +1,4 @@
+//! Основное пространство транспортного  SObjectizer.
+namespace so_5_transport
+{
+}

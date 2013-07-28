@@ -1,0 +1,20 @@
+namespace so_5
+{
+
+namespace timer_thread
+{
+
+namespace ace_timer_queue_adapter
+{
+
+//! Реализация адоптации таймерной нити ACE.
+namespace impl
+{
+}
+
+}
+
+}
+
+
+}

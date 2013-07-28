@@ -1,0 +1,14 @@
+namespace so_5
+{
+
+namespace rt
+{
+
+//! Реализация SObjectizer run-time.
+namespace impl
+{
+}
+
+}
+
+}
