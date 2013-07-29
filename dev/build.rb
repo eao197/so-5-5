@@ -6,6 +6,10 @@ Mxx_ru::setup_target(
 		toolset.force_cpp0x_std
 		global_include_path "."
 
+		if toolset.name == 'gcc' && toolset.tag('gcc_port', 'unix') == 'cygwin'
+			global_define "ACE_HAS_CUSTOM_EXPORT_MACROS=0"
+		end
+
 		default_runtime_mode( MxxRu::Cpp::RUNTIME_RELEASE )
 		MxxRu::enable_show_brief
 
