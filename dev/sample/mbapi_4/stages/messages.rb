@@ -3,6 +3,7 @@ require 'rubygems'
 gem 'Mxx_ru', '>= 1.3.0'
 
 require 'mxx_ru/cpp'
+require 'oess_2/util_cpp_serializer2/gen.rb'
 
 MxxRu::Cpp::lib_target {
 
