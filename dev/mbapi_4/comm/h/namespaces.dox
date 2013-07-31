@@ -1,9 +1,0 @@
-namespace mbapi_4
-{
-
-//! Коммуникационный уровень mbapi_4.
-namespace comm
-{
-} /* namespace comm */
-
-}
