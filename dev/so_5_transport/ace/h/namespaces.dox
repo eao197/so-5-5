@@ -1,9 +1,0 @@
-namespace so_5_transport
-{
-
-//! Обертки над кассами ACE_Reactor для SObjectizer 5 Transport.
-namespace ace
-{
-}
-
-}
