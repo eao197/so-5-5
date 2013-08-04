@@ -223,7 +223,7 @@ mbox_t::deliver_message(
 	std::unique_ptr< MESSAGE > & msg_unique_ptr )
 {
 	deliver_message(
-		quick_typeid_t< MESSAGE >::m_type_wrapper,
+		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t( msg_unique_ptr.release() ) );
 }
 
@@ -233,7 +233,7 @@ mbox_t::deliver_message(
 	std::unique_ptr< MESSAGE > && msg_unique_ptr )
 {
 	deliver_message(
-		quick_typeid_t< MESSAGE >::m_type_wrapper,
+		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t( msg_unique_ptr.release() ) );
 }
 
@@ -242,7 +242,7 @@ void
 mbox_t::deliver_message()
 {
 	deliver_message(
-		quick_typeid_t< MESSAGE >::m_type_wrapper,
+		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t() );
 }
 

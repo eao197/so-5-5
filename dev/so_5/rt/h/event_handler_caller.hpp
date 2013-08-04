@@ -121,7 +121,7 @@ class real_event_handler_caller_t
 		virtual type_wrapper_t
 		type_wrapper() const
 		{
-			return quick_typeid_t< MESSAGE >::m_type_wrapper;
+			return type_wrapper_t( typeid( MESSAGE ) );
 		}
 
 		//! Значение для сравнения.
@@ -215,7 +215,7 @@ class not_null_data_real_event_handler_caller_t
 		virtual type_wrapper_t
 		type_wrapper() const
 		{
-			return quick_typeid_t< MESSAGE >::m_type_wrapper;
+			return type_wrapper_t( typeid( MESSAGE ) );
 		}
 
 		//! Значение для сравнения.

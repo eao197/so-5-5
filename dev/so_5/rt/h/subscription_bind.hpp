@@ -133,7 +133,7 @@ class SO_5_TYPE subscription_bind_t
 					m_state ) );
 
 			return create_event_subscription(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				m_mbox_ref,
 				event_handler_caller_ref,
 				throwing_strategy );
@@ -174,7 +174,7 @@ class SO_5_TYPE subscription_bind_t
 					m_state ) );
 
 			return create_event_subscription(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				m_mbox_ref,
 				event_handler_caller_ref,
 				throwing_strategy );
@@ -260,7 +260,7 @@ class SO_5_TYPE subscription_unbind_t
 					m_state ) );
 
 			return destroy_event_subscription(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				m_mbox_ref,
 				event_handler_caller_ref,
 				throwing_strategy );
@@ -302,7 +302,7 @@ class SO_5_TYPE subscription_unbind_t
 					m_state ) );
 
 			return destroy_event_subscription(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				m_mbox_ref,
 				event_handler_caller_ref,
 				throwing_strategy );

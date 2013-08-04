@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Обертка на std::type_info.
+	\brief Wrapper for std::type_info.
 */
 
 #if !defined( _SO_5__RT__TYPE_WRAPPER_HPP_ )
@@ -26,16 +26,16 @@ namespace rt
 //
 
 /*!
-	Вспомогательный класс - обертка на std::type_info типов сообщений,
-	который определяет оператор сравнения.
+	Wrapper class for std::type_info that adds 
+	compare operators to it.
 
-	Также используется инфраструктурой слоев SObjectizer.
+	Also used for implementing layers feature.
 */
 class SO_5_TYPE type_wrapper_t
 {
 	public:
 		type_wrapper_t(
-			//! Информация о типе сообщения.
+			//! Message type.
 			const std::type_info & type_info );
 
 		type_wrapper_t &
@@ -44,10 +44,10 @@ class SO_5_TYPE type_wrapper_t
 
 		~type_wrapper_t();
 
-		//! Оператор сравнения для использования
-		//! в качестве ключа в std::map.
-		/*! Cравнивает std::type_info *,
-			которые храняться в m_type_info.
+		//! The less operator, that makes it possible to
+		//! use the class as std::map key.
+		/*! 
+			Comparison uses m_type_info of objects.
 		*/
 		inline bool
 		operator < (
@@ -58,46 +58,24 @@ class SO_5_TYPE type_wrapper_t
 				typeid_wrapper.m_type_info->name() ) < 0;
 		}
 
-		bool
+		inline bool
 		operator == (
 			const type_wrapper_t & typeid_wrapper ) const
 		{
 			return *m_type_info == *typeid_wrapper.m_type_info;
 		}
 
-		//! Получить информацию о типе сообщения
-		const std::type_info &
-		query_type_info() const;
+		//! Access type_info.
+		inline const std::type_info &
+		query_type_info() const
+		{
+			return *m_type_info;
+		}
 
 	private:
-		//! Информация о типе сообщения.
-		/*!
-			При сравнении различных типов, под обертками
-			они сравниваются через адреса их std::type_info,
-			т.е. m_type_info.
-		*/
+		//! Runtime typy info.
 		const std::type_info * m_type_info;
 };
-
-//
-// quick_typeid_t
-//
-
-//! Класс для оптимизации получения обертки на тип сообщения из
-//! шаблонных методов.
-template <class MESSAGE >
-class quick_typeid_t
-{
-	public:
-		//! Обертка на тип сообщения.
-		static const type_wrapper_t m_type_wrapper;
-};
-
-// Инициализация обертки, которая происходит 1 раз.
-template <class MESSAGE >
-const type_wrapper_t
-	quick_typeid_t< MESSAGE >::m_type_wrapper =
-		type_wrapper_t( typeid( MESSAGE ) );
 
 } /* namespace rt */
 

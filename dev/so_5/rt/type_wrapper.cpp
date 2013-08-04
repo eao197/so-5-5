@@ -29,7 +29,6 @@ type_wrapper_t::~type_wrapper_t()
 
 type_wrapper_t &
 type_wrapper_t::operator = (
-	//! Информация о типе сообщения.
 	const type_wrapper_t & type_wrapper )
 {
 	if( &type_wrapper != this )
@@ -38,12 +37,6 @@ type_wrapper_t::operator = (
 	}
 
 	return *this;
-}
-
-const std::type_info &
-type_wrapper_t::query_type_info() const
-{
-	return *m_type_info;
 }
 
 } /* namespace rt */

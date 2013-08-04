@@ -27,7 +27,7 @@ namespace impl
 
 typed_layer_ref_t::typed_layer_ref_t()
 	:
-		m_true_type( quick_typeid_t< int >::m_type_wrapper )
+		m_true_type( type_wrapper_t( typeid( int ) ) )
 {
 }
 

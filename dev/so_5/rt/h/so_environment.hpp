@@ -148,7 +148,7 @@ class SO_5_TYPE so_environment_params_t
 				so_layer_unique_ptr_t ptr( layer_ptr.release() );
 
 				add_layer(
-					quick_typeid_t< SO_LAYER >::m_type_wrapper,
+					type_wrapper_t( typeid( SO_LAYER ) ),
 					std::move( ptr ) );
 			}
 
@@ -538,7 +538,7 @@ class SO_5_TYPE so_environment_t
 			unsigned int period_msec )
 		{
 			return schedule_timer(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
 				delay_msec,
@@ -560,7 +560,7 @@ class SO_5_TYPE so_environment_t
 			unsigned int period_msec )
 		{
 			return schedule_timer(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
 				delay_msec,
@@ -580,7 +580,7 @@ class SO_5_TYPE so_environment_t
 			unsigned int period_msec )
 		{
 			return schedule_timer(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t(),
 				mbox,
 				delay_msec,
@@ -600,7 +600,7 @@ class SO_5_TYPE so_environment_t
 			unsigned int delay_msec )
 		{
 			single_timer(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
 				delay_msec );
@@ -617,7 +617,7 @@ class SO_5_TYPE so_environment_t
 			unsigned int delay_msec )
 		{
 			single_timer(
-				quick_typeid_t< MESSAGE >::m_type_wrapper,
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t(),
 				mbox,
 				delay_msec );
@@ -638,7 +638,7 @@ class SO_5_TYPE so_environment_t
 			so_layer_t * layer = static_cast< so_layer_t* >( (SO_LAYER *)0 );
 
 			layer = query_layer(
-				quick_typeid_t< SO_LAYER >::m_type_wrapper );
+				type_wrapper_t( typeid( SO_LAYER ) ) );
 
 			if( layer )
 				return dynamic_cast< SO_LAYER * >( layer );
@@ -659,7 +659,7 @@ class SO_5_TYPE so_environment_t
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 		{
 			return add_extra_layer(
-				quick_typeid_t< SO_LAYER >::m_type_wrapper,
+				type_wrapper_t( typeid( SO_LAYER ) ),
 				so_layer_ref_t( layer_ptr.release() ),
 				throwing_strategy );
 		}
