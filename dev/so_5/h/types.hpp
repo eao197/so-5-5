@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Различные псевдонимы типов.
+	\brief Various typedefs.
 */
 
 #if !defined( _SO_5__TYPES_HPP_ )
@@ -15,12 +15,12 @@
 namespace so_5
 {
 
-//! Тип атамарного счетчика.
+//! Atomic counter type.
 typedef ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long>
 	atomic_counter_t;
 
 
-//! Тип атамарного флага.
+//! Atomic flag type.
 typedef ACE_Atomic_Op<ACE_Thread_Mutex, unsigned long>
 	atomic_flag_t;
 }

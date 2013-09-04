@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Флаги, которые определяют, как реагировать на ошибки.
+	\brief Error handling flags definition.
 */
 
 #if !defined( _SO_5__THROWING_STRATEGY_HPP_ )
@@ -17,16 +17,17 @@ namespace so_5
 // throwing_strategy_t
 //
 
-//! Флаги, которые указывают, что делать в случае ошибок
-//! в работе некоторых методов классов SObjrctizer.
+//! Flags to indicate desired action in case of errors inside
+//! some of SObjectizer functions/methods.
 enum throwing_strategy_t
 {
-	//! Бросать исключение в случае возникновения ошибки.
+	//! An exception should be thrown in case of error.
 	THROW_ON_ERROR,
-	//! При возникновении ошибки, сообщать о ней через код возврата.
+	//! Do not throw exception but return error code instead.
 	DO_NOT_THROW_ON_ERROR
 };
 
 } /* namespace so_5  */
 
 #endif
+

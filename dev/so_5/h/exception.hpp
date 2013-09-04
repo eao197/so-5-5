@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс исключений SObjectizer.
+	\brief An exception class.
 */
 
 #if !defined( _SO_5__EXCEPTION_HPP_ )
@@ -23,12 +23,12 @@ namespace so_5
 // exception_t
 //
 
-//! Базовый класс исключений SObjectizer.
+//! The base class for all SObjectizer exceptions.
 class SO_5_TYPE exception_t
 	:
 		public std::runtime_error
 {
-		//! Псевдоним базового класса.
+		//! Typedef for base type.
 		typedef std::runtime_error base_type_t;
 	public:
 		exception_t(
@@ -36,15 +36,16 @@ class SO_5_TYPE exception_t
 			ret_code_t error_code );
 		virtual ~exception_t() throw();
 
-		//! Код ошибки.
+		//! Error code getter.
 		ret_code_t
 		error_code() const;
 
 	private:
-		//! Код ошибки.
+		//! Error code.
 		ret_code_t m_error_code;
 };
 
 } /* namespace so_5 */
 
 #endif
+

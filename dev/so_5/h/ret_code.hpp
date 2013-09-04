@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Коды ошибок.
+	\brief Error codes.
 */
 
 #if !defined( _SO_5__RET_CODE_HPP_ )
@@ -17,157 +17,155 @@
 namespace so_5
 {
 
-//! Код возврата основных API-функций и методов.
+//! Type for return codes of API functions and methods.
 typedef int ret_code_t;
 
 //
-// Стандартные коды ошибок
+// Standard error codes.
 //
 
-//! Ошибка запуска so_environment.
+//! so_environment launch failed.
 const int rc_environment_error = 1;
 
-//! \name Ошибки методов агента.
+//! \name Error codes for agent's methods.
 //! \{
 
-//! Переход к неизвестному состоянию агента.
+//! Trying to switch to unknown state.
 const int rc_agent_unknown_state = 10;
 
-//! Агент уже привязан к среде SO.
+//! Agent is already bound for SObjectizer environment.
 const int rc_agent_is_already_bind_to_env = 11;
 
-//! Агент уже привязан к диспетчеру.
+//! Agent is already bound to dispatcher.
 const int rc_agent_is_already_bind_to_disp = 12;
 
-//! Диспетчер с заданным именем не найден.
+//! Dispatcher with that name is not found.
 const int rc_named_disp_not_found = 13;
 
-//! Агент не привязан к кооперации.
+//! Agent is not bound to a cooperation.
 const int rc_agent_has_no_cooperation = 14;
 
-//! Агент не может быть преведен к заданному типу.
+//! It is impossible to make cast to that type.
 const int rc_agent_incompatible_type_conversion = 15;
 
 //! \}
 
-//! Ошибки кооперации агентов.
+//! \name Error codes for cooperations of agents.
 //! \{
 
-//! Передан нулевой указатель.
+//! A zero pointer detected.
 const int rc_zero_ptr_to_coop = 20;
 
-//! Кооперация с таким именем уже зарегистрирована.
+//! Not unique name for cooperation.
 const int rc_coop_with_specified_name_is_already_registered = 21;
 
-//! Кооперация содержит пустые ссылки на агент или привязку к диспетчеру.
+//! Cooperation has null reference to an agent or dispatcher binding.
 const int rc_coop_has_references_to_null_agents_or_binders = 22;
 
-//! Дерегистрируемая кооперация с заданным именем не найдена.
+//! There is no registered cooperation with that name.
 const int rc_coop_has_not_found_among_registered_coop = 23;
 
-//! Кооперация не мождет быть зарегистрирована.
+//! Cooperation couldn't be registered.
 const int rc_coop_define_agent_failed = 24;
 
 //! \}
 
 
-//! \name Ошибки диспетчера.
+//! \name Error codes for dispatchers.
 //! \{
 
-//! Не удалось запустить диспетчер.
+//! Unable to start dispatcher.
 const int rc_disp_start_failed = 30;
 
-//! Не удалось создать диспетчер.
+//! Unable to create dispatcher.
 const int rc_disp_create_failed = 31;
 
-//! Привязка агента и его реальный тип не совпадают.
+//! Required and actual types of binding dispatcher in not the same.
 const int rc_disp_type_mismatch = 32;
 
 //! \}
 
-//! \name Ошибки регистрации обработчиков
-//! событий и перехватчиков сообщений.
+//! \name Error codes for event handlers and message interceptors registration
 //! \{
 
-//! Регистрация обработчика события на тип сообщения, mbox и
-//! состояние для которых уже зарегистрирован обработчик.
+//! A handler for that event/mbox/state is already registered.
 const int rc_evt_handler_already_provided = 40;
 
-//! Дерегистрация обработчика на тип сообщения, mbox и
-//! состояние, которого нет в списке зарегистрированных.
+//! A handler for that event/mbox/state is not registered and cannot be
+//! deregistered.
 const int rc_no_event_handler_provided = 41;
 
-//! Деригистрация обработчика на тип сообщения, mbox и
-//! состояние, которого есть в списке состояний, но сам обработчик
-//! другой нежели указанный в параметрах.
+//! Unable to deregister that handler.
+/*!
+ * There is a handler for event/mbox/state but is is another handler.
+ * Not the one specified for deregistration.
+ */
 const int rc_event_handler_match_error = 42;
 
-//! Агент не является владельцем состояния,
-//! которое указано при регистрации.
+//! Agent doesn't own that state.
 const int rc_agent_is_not_the_state_owner = 43;
 
-//! Регистрация перехватчика события на тип сообщения, mbox и
-//! состояние для которых уже зарегистрирован обработчик.
+//! An interceptor for event/mbox/state is already registered.
 const int rc_intercept_handler_already_provided = 44;
 
-//! Деригистрация перехватчика на тип сообщения, mbox и
-//! состояние, которого нет в списке зарегистрированных.
+//! An interceptor for event/mbox/state is not registered and
+//! cannot be deregistered.
 const int rc_no_interception_handler_provided = 45;
 
-//! Деригистрация перехватчика на тип сообщения, mbox и
-//! состояние, которого есть в списке состояний, но сам обработчик
-//! другой нежели указанный в параметрах.
+//! Unable to deregister that interceptor.
+/*!
+ * There is an interceptor for event/mbox/state but is is another handler.
+ * Not the one specified for deregistration.
+ */
 const int rc_interception_handler_match_error = 46;
 //! \}
 
-//! \name Ошибки mbox-ов.
+//! \name Error codes for mboxes.
 //! \{
 
-//! Регистрация именованного mbox-а с именем, которое уже есть.
+//! Not unique mbox name.
 const int rc_mbox_duplicating_name = 80;
 
-//! Не удается найти именованный mbox.
+//! The name of mbox is unknown.
 const int rc_mbox_unable_to_find_mbox = 81;
 //! \}
 
-//! \name Ошибки работы отложенных или периодических сообщений.
+//! \name Error codes for delayed or repeated events.
 //! \{
 
-//! Не удается запланировать таймерное событие.
+//! Unable to schedule timer event.
 const int rc_unable_to_schedule_timer_act = 90;
 //! \}
 
-//! \name Ошибки работы cо слоем.
+//! \name Error codes for layers.
 //! \{
 
-//! Слой не привязан к среде SObjectizer.
+//! The layer is not bound to SObjectizer environment.
 const int rc_layer_not_binded_to_so_env = 100;
 
-//! Попытка добавить дополнительный слой
-//! по нулевому указателю.
+//! Unable to bind layer by null pointer to it.
 const int rc_trying_to_add_nullptr_extra_layer = 101;
 
-//! Попытка добавить дополнительный слой,
-//! который уже находиться в списке слоев по умолчанию.
+//! The layer is already bound to SObjectizer environment as a default layer.
 const int rc_trying_to_add_extra_layer_that_already_exists_in_default_list = 102;
 
-//! Попытка добавить дополнительный слой,
-//! который уже находиться в списке дополнительных слоев.
+//! The layer is already bound to SObjectizer environment as an extra layer.
 const int rc_trying_to_add_extra_layer_that_already_exists_in_extra_list = 103;
 
-//! Попытка инициализировать слой прошла неудачно.
+//! Layer initialization failed.
 const int rc_unable_to_start_extra_layer = 104;
 
-//! Слой заданного типа не существует.
+//! A layer with the type specified doesn't exist.
 const int rc_layer_does_not_exist = 105;
 //! \}
 
-//! \name Ошибки общего плана.
+//! \name Common error codes.
 //! \{
 
-//! Пустое имя ( mbox-а, кооперации ).
+//! Empty name doesn't allowed.
 const int rc_empty_name = 500;
 
+//! Unclassified error.
 const int rc_unexpected_error = 0xFFFFFF;
 //! \}
 
