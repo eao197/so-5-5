@@ -22,10 +22,6 @@ MxxRu::Cpp::dll_target {
 	# ./
 	cpp_source( "exception.cpp" )
 
-	# API.
-	sources_root( "api" ) {
-		cpp_source( "api.cpp" )
-	}
 	# util.
 	sources_root( "util" ) {
 		cpp_source( "apply_throwing_strategy.cpp" )

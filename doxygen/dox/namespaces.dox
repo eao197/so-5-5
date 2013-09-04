@@ -1,14 +1,21 @@
 /*!
- * Main SObjectizer-5 namespace
+ * \brief Main SObjectizer-5 namespace
  */
 namespace so_5
 {
 
 	/*!
-	 * Public API functions of SObjectizer-5.
+	 * \brief Public API functions of SObjectizer-5.
 	 */
 	namespace api
 	{
+		/*!
+		 * \brief Internal implemetation details of public API functions.
+		 */
+		namespace impl
+		{
+		} /* namespace so_5::api::impl */
+
 	} /* namespace so_5::api */
 
 } /* namespace so_5 */

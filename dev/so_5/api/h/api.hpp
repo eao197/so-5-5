@@ -20,31 +20,56 @@
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/throwing_strategy.hpp>
 
+#include <so_5/rt/h/so_environment.hpp>
+
 namespace so_5
 {
-
-namespace rt
-{
-
-class so_environment_t;
-class so_environment_params_t;
-
-} /* namespace rt */
-
 
 namespace api
 {
 
-#if defined( SO_5__PLATFORM_REQUIRES_CDECL )
-	#define SO_5_MODULE_CALLING_CONVENTION __cdecl
-#else
-	#define SO_5_MODULE_CALLING_CONVENTION
-#endif
+namespace impl
+{
+
+//! Auxiliary class for SObjectizer launcing.
+/*!
+ * It is used as wrapper on various types of initialization routines.
+ */
+template< class INIT >
+class so_quick_environment_t
+	:
+		public so_5::rt::so_environment_t
+{
+		typedef so_5::rt::so_environment_t base_type_t;
+
+	public:
+		so_quick_environment_t(
+			//! Initialization routine.
+			INIT init,
+			//! SObjectizer Environment parameters.
+			const so_5::rt::so_environment_params_t & env_params )
+			:
+				base_type_t( env_params ),
+				m_init( init )
+		{}
+		virtual ~so_quick_environment_t()
+		{}
+
+		virtual void
+		init()
+		{
+			m_init( *this );
+		}
+
+	private:
+		//! Initialization routine;
+		INIT m_init;
+};
+
+} /* namespace impl */
 
 //! Typedef for a simple SObjectizer-initialization function.
-typedef
-	void
-	(SO_5_MODULE_CALLING_CONVENTION *pfn_so_environment_init_t)(
+typedef void (*pfn_so_environment_init_t)(
 		so_5::rt::so_environment_t & );
 
 //! Launch SObjectizer Environment with arguments.
@@ -78,14 +103,21 @@ main( int argc, char * argv[] )
 }
 \endcode
 */
-SO_5_EXPORT_FUNC_SPEC( so_5::ret_code_t )
+inline so_5::ret_code_t
 run_so_environment(
 	//! Pointer to initialization routine.
 	pfn_so_environment_init_t init_func,
 	//! Environment's parameters.
 	const so_5::rt::so_environment_params_t & env_params,
 	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR );
+	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+{
+	impl::so_quick_environment_t< decltype(init_func) > env(
+			init_func,
+			env_params );
+
+	return env.run( throwing_strategy );
+}
 
 //! Launch SObjectizer Environment with default arguments.
 /*!
@@ -121,49 +153,111 @@ main( int argc, char * argv[] )
 }
 \endcode
 */
-SO_5_EXPORT_FUNC_SPEC( so_5::ret_code_t )
+inline so_5::ret_code_t
 run_so_environment(
 	//! Pointer to initialization routine.
 	pfn_so_environment_init_t init_func,
 	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR );
-
-//! Interface for calling SObjectizer Environment initialization routine.
-class SO_5_TYPE env_init_caller_base_t
+	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 {
-	public:
+	return run_so_environment(
+			init_func,
+			so_5::rt::so_environment_params_t(),
+			throwing_strategy );
+}
 
-		virtual ~env_init_caller_base_t();
-
-		virtual void
-		call( so_5::rt::so_environment_t & ) = 0;
-};
-
-//! Launch SObjectizer Environment with default parameters.
+//! Launch SObjectizer Environment with parametrized initialization routine
+//! and Enviroment parameters.
 /*!
- * Does SObjectizer initialization via env_init_caller_base_t.
- *
- * It is used by run_so_environment_with_parameter() and
- * run_so_environment_on_object().
- */
-SO_5_EXPORT_FUNC_SPEC( so_5::ret_code_t )
-run_so_environment(
-	env_init_caller_base_t & init_caller,
-	throwing_strategy_t throwing_strategy );
 
-//! Launch SObjectizer with arguments.
-/*!
- * Does SObjectizer initialization via env_init_caller_base_t.
- */
-SO_5_EXPORT_FUNC_SPEC( so_5::ret_code_t )
-run_so_environment(
-	env_init_caller_base_t & init_caller,
+Allows to pass additional argument to initialization process.
+\code
+void
+init(
+	so_5::rt::so_environment_t & env,
+	const std::string & server_addr )
+{
+	// Make cooperation.
+	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
+		so_5::rt::nonempty_name_t( "test_server_application" ),
+		so_5::disp::active_obj::create_disp_binder(
+			"active_obj" ) );
+
+	so_5_transport::socket::acceptor_controller_creator_t
+		acceptor_creator( env );
+
+	using so_5_transport::a_server_transport_agent_t;
+	std::unique_ptr< a_server_transport_agent_t > ta(
+		new a_server_transport_agent_t(
+			env,
+			acceptor_creator.create( server_addr ) ) );
+
+	so_5::rt::agent_ref_t serv(
+		new a_main_t( env, ta->query_notificator_mbox() ) );
+
+	coop->add_agent( serv );
+	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
+
+	// Register cooperation.
+	so_5::ret_code_t rc = env.register_coop( coop );
+
+	// Error handling and program termination should be handled here.
+}
+
+// ...
+
+int
+main( int argc, char ** argv )
+{
+	if( 2 == argc )
+	{
+		std::string server_addr( argv[ 1 ] );
+
+		return so_5::api::run_so_environment_with_parameter(
+			&init,
+			server_addr,
+			so_5::rt::so_environment_params_t()
+				.add_named_dispatcher(
+					so_5::rt::nonempty_name_t( "active_obj" ),
+					so_5::disp::active_obj::create_disp() )
+				.add_layer(
+					std::unique_ptr< so_5_transport::reactor_layer_t >(
+						new so_5_transport::reactor_layer_t ) ) );
+	}
+	else
+		std::cerr << "sample.server <port>" << std::endl;
+
+	return 0;
+}
+\endcode
+*/
+template< class INIT, class PARAM_TYPE >
+so_5::ret_code_t
+run_so_environment_with_parameter(
+	//! Initialization routine.
+	/*!
+		Should has prototype: <i>void init( env, my_param )</i>.
+	*/
+	INIT init_func,
+	//! Initialization routine argument.
+	const PARAM_TYPE & param,
+	//! SObjectizer Environment parameters.
 	const so_5::rt::so_environment_params_t & env_params,
-	throwing_strategy_t throwing_strategy );
+	//! Exception strategy.
+	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+{
+	auto init = [init_func, param]( so_5::rt::so_environment_t & env ) {
+			init_func( env, param );
+		};
 
-//! Template-based implementation of env_init_caller_base for
-//! user supplied initialization routine.
+	impl::so_quick_environment_t< decltype(init) > env(
+			init,
+			env_params );
 
+	return env.run( throwing_strategy );
+}
+
+//! Launch SObjectizer Environment with parametrized initialization routine.
 /*!
 
 Allows to pass additional argument to initialization process.
@@ -228,86 +322,26 @@ main( int argc, char ** argv )
 \endcode
 */
 
-template< class PARAM_TYPE >
-class env_init_with_param_caller_t
-	:
-		public env_init_caller_base_t
-{
-	public:
-		//! Typedef for initialization routine.
-		typedef void
-		(SO_5_MODULE_CALLING_CONVENTION *INIT_FUNC_T)(
-			so_5::rt::so_environment_t &, const PARAM_TYPE & );
-
-		env_init_with_param_caller_t(
-			INIT_FUNC_T init_func,
-			const PARAM_TYPE & param )
-			:
-				m_init_func( init_func ),
-				m_param( param )
-		{}
-
-		virtual ~env_init_with_param_caller_t()
-		{}
-
-		virtual void
-		call( so_5::rt::so_environment_t & env )
-		{
-			(*m_init_func)( env, m_param );
-		}
-
-	private:
-		INIT_FUNC_T m_init_func;
-		const PARAM_TYPE m_param;
-};
-
-//! Launch SObjectizer Environment with parametrized initialization routine.
-template< class PARAM_TYPE >
+template< class INIT, class PARAM_TYPE >
 so_5::ret_code_t
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
 		Should has prototype: <i>void init( env, my_param )</i>.
 	*/
-	typename env_init_with_param_caller_t< PARAM_TYPE >::INIT_FUNC_T
-		init_func,
+	INIT init_func,
 	//! Initialization routine argument.
 	const PARAM_TYPE & param,
 	//! Exception strategy.
 	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 {
-	env_init_with_param_caller_t< PARAM_TYPE >
-		env_init_caller( init_func, param );
-
-	return run_so_environment( env_init_caller, throwing_strategy );
+	return run_so_environment_with_parameter( init_func, param,
+			so_5::rt::so_environment_params_t(),
+			throwing_strategy );
 }
 
-//! Launch SObjectizer Environment with parametrized initialization routine
-//! and Enviroment parameters.
-template< class PARAM_TYPE >
-so_5::ret_code_t
-run_so_environment_with_parameter(
-	//! Initialization routine.
-	/*!
-		Should has prototype: <i>void init( env, my_param )</i>.
-	*/
-	typename env_init_with_param_caller_t< PARAM_TYPE >::INIT_FUNC_T
-		init_func,
-	//! Initialization routine argument.
-	const PARAM_TYPE & param,
-	//! SObjectizer Environment parameters.
-	const so_5::rt::so_environment_params_t & env_params,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
-{
-	env_init_with_param_caller_t< PARAM_TYPE >
-		env_init_caller( init_func, param );
-
-	return run_so_environment( env_init_caller, env_params, throwing_strategy );
-}
-
-//! Implementation of env_init_caller_base for the case when
-//! initialization routine is a non-static class method.
+//! Launch SObjectizer Environment by a class method and with
+//! specified Environment parameters.
 /*!
 
 Example:
@@ -380,75 +414,44 @@ main( int argc, char ** argv )
 }
 \endcode
 */
-template< class OBJECT >
-class env_init_as_method_caller_t
-	:
-		public env_init_caller_base_t
-{
-	public:
-		typedef void
-		(OBJECT::*INIT_METHOD_T)(
-			so_5::rt::so_environment_t & );
-
-		env_init_as_method_caller_t(
-			OBJECT & obj,
-			INIT_METHOD_T init_func )
-			:
-				m_obj( obj ),
-				m_init_func( init_func )
-		{}
-
-		virtual ~env_init_as_method_caller_t()
-		{}
-
-		virtual void
-		call( so_5::rt::so_environment_t & env )
-		{
-			(m_obj.*m_init_func)( env );
-		}
-
-	private:
-		OBJECT m_obj;
-		INIT_METHOD_T m_init_func;
-};
-
-//! Launch SObjectizer Environment by a class method.
-template< class OBJECT >
+template< class OBJECT, class METHOD >
 so_5::ret_code_t
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
 	//! initialization routine.
 	OBJECT & obj,
 	//! Initialization routine.
-	typename env_init_as_method_caller_t< OBJECT >::INIT_METHOD_T init_func,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
-{
-	env_init_as_method_caller_t< OBJECT >
-		env_init_caller( obj, init_func );
-
-	return run_so_environment( env_init_caller, throwing_strategy );
-}
-
-//! Launch SObjectizer Environment by a class method and with
-//! specified Environment parameters.
-template< class OBJECT >
-so_5::ret_code_t
-run_so_environment_on_object(
-	//! Initialization object. Its method should be used as
-	//! initialization routine.
-	OBJECT & obj,
-	//! Initialization routine.
-	typename env_init_as_method_caller_t< OBJECT >::INIT_METHOD_T init_func,
+	METHOD init_func,
 	//! SObjectizer Environment parameters.
 	const so_5::rt::so_environment_params_t & env_params,
 	//! Exception strategy.
 	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 {
-	env_init_as_method_caller_t< OBJECT >
-		env_init_caller( obj, init_func );
+	auto init = [obj, init_func]( so_5::rt::so_environment_t & env ) {
+			(obj::*init_func)( env );
+		};
 
-	return run_so_environment( env_init_caller, env_params, throwing_strategy );
+	impl::so_quick_environment_t< decltype(init) > env( init, env_params );
+
+	return env.run( throwing_strategy );
+}
+
+//! Launch SObjectizer Environment by a class method.
+template< class OBJECT, class METHOD >
+so_5::ret_code_t
+run_so_environment_on_object(
+	//! Initialization object. Its method should be used as
+	//! initialization routine.
+	OBJECT & obj,
+	//! Initialization routine.
+	METHOD init_func,
+	//! Exception strategy.
+	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+{
+	return run_so_environment_on_object(
+			obj, method,
+			so_5::rt::so_environment_params_t,
+			throwing_strategy );
 }
 
 } /* namespace api */
