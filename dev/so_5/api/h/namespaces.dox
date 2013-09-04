@@ -1,8 +1,0 @@
-namespace so_5
-{
-//! API для запуска SObjectizer.
-namespace api
-{
-}
-
-}

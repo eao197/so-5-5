@@ -15,11 +15,10 @@ namespace api
 namespace
 {
 
-//! Вспомогательный класс для запуска SObjectizer.
+//! Auxiliary class for SObjectizer launcing.
 /*!
-	Служит оберткой над функцией инициализации
-	SObjectizer.
-*/
+ * It is used as wrapper on initialization routine.
+ */
 class so_quick_environment_t
 	:
 		public so_5::rt::so_environment_t
@@ -28,9 +27,9 @@ class so_quick_environment_t
 
 	public:
 		so_quick_environment_t(
-			//! Указатель на инициализирующую функцию.
+			//! Initialization routine.
 			pfn_so_environment_init_t init_func,
-			//! Параметры создания SObjectizer.
+			//! SObjectizer Environment parameters.
 			const so_5::rt::so_environment_params_t & env_params )
 			:
 				base_type_t( env_params ),
@@ -83,10 +82,11 @@ env_init_caller_base_t::~env_init_caller_base_t()
 namespace
 {
 
-//! Вспомогательный класс для запуска SObjectizer.
+//! Auxiliary class for SObjectizer launcing.
 /*!
-	Служит оберткой над инициализатором env_init_caller_base_t.
-*/
+ * It is used as wrapper on SObjectizer initializer (which is
+ * implemented via env_init_caller_base_t)
+ */
 class so_quick_paramed_environment_t
 	:
 		public so_5::rt::so_environment_t
@@ -95,9 +95,9 @@ class so_quick_paramed_environment_t
 
 	public:
 		so_quick_paramed_environment_t(
-			//! Объект который инициализирует SObjectizer.
+			//! Initialization interface.
 			env_init_caller_base_t & init_caller,
-			//! Параметры SObjectizer.
+			//! SObjectizer Environment parameters.
 			const so_5::rt::so_environment_params_t & env_params )
 			:
 				base_type_t( env_params ),

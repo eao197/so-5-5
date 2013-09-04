@@ -1,0 +1,17 @@
+/*!
+ * Main SObjectizer-5 namespace
+ */
+namespace so_5
+{
+
+	/*!
+	 * Public API functions of SObjectizer-5.
+	 */
+	namespace api
+	{
+	} /* namespace so_5::api */
+
+} /* namespace so_5 */
+
+// vim:ft=cpp.doxygen
+
