@@ -48,25 +48,21 @@ demand_queue_t::push(
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// Если надо обслуживать.
 	if( m_in_service )
 	{
 		const bool demands_empty_before_service = m_demands.empty();
 
-		// Нужно ли добавлять отдельную заявку в очередь?
-		// Считаем что нужно.
+		// Assume that new demand should be added to queue.
 		bool create_new_demand_needed = true;
 
-		// Если очередь не пустая и
+		// Is queue was not empty...
 		if( !demands_empty_before_service )
 		{
-			// если агент совпадает с агентом,
-			// который находится в конце очереди,
-			// то просто увеличим количество вызываемых
-			// событий в заявке для этого агента.
+			// ...and last demand in queue is for the same agent...
 			demand_t & dmnd = m_demands.back();
 			if( agent_ref == dmnd.m_agent_ref )
 			{
+				// ... then only demand counter should be incremented.
 				dmnd.m_event_cnt += event_cnt;
 				create_new_demand_needed = false;
 			}
@@ -79,9 +75,8 @@ demand_queue_t::push(
 
 		if( demands_empty_before_service )
 		{
-			// Если к началу добавления, кто-то нас ждал,
-			// потому что очередь была пустой -
-			// надо просигналить, что в очереди появились элементы.
+			// May be someone is waiting...
+			// It should be informed about new demands.
 			m_not_empty.signal();
 		}
 	}
@@ -97,17 +92,15 @@ demand_queue_t::pop(
 	{
 		if( m_in_service && !m_demands.empty() )
 		{
-			// Забираем все имеющиеся заявки.
 			demands.swap( m_demands );
 			break;
 		}
 		else if( !m_in_service )
-			// Нужно завершать работу.
 			return shutting_down;
 		else
 		{
-			// Нужно ждать наступления
-			// какого-нибудь события.
+			// Queue is empty. We should wait for a demand or
+			// shutdown signal.
 			m_not_empty.wait();
 		}
 	}
@@ -120,24 +113,24 @@ demand_queue_t::start_service()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// Выставляем флаг - начать работу очереди.
 	m_in_service = true;
 }
 
 void
 demand_queue_t::stop_service()
 {
-	bool need_signal_not_empty;
+	bool is_someone_waiting_us = false;
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-		// Выставляем флаг - прекратить работу очереди.
 		m_in_service = false;
-		need_signal_not_empty = m_demands.empty();
+		// If demands queue is empty then someone is waiting
+		// for new demands inside pop().
+		is_someone_waiting_us = m_demands.empty();
 	}
 
-	// Если кто-то ждет - сигналим.
-	if( need_signal_not_empty)
+	// In case if someone is waiting.
+	if( is_someone_waiting_us )
 		m_not_empty.signal();
 }
 
@@ -168,14 +161,13 @@ work_thread_t::put_event_execution_request(
 	const so_5::rt::agent_ref_t & agent_ref,
 	unsigned int event_count )
 {
-	// Переправляем вызов очереди.
+	// Demands queue should serve this call.
 	m_queue.push( agent_ref, event_count );
 }
 
 void
 work_thread_t::start()
 {
-	// Выставляем очереди флаг, что надо работать.
 	m_queue.start_service();
 	m_continue_work = WORK_THREAD_CONTINUE;
 
@@ -190,7 +182,6 @@ work_thread_t::start()
 void
 work_thread_t::shutdown()
 {
-	// Выставляем флаг, что надо заканчивать работу.
 	m_continue_work = WORK_THREAD_STOP;
 	m_queue.stop_service();
 }
@@ -206,7 +197,7 @@ work_thread_t::wait()
 void
 work_thread_t::body()
 {
-	// Заявки для исполнения.
+	// Local demands queue.
 	demand_container_t demands;
 
 	int result = demand_queue_t::no_demands;
@@ -217,19 +208,20 @@ work_thread_t::body()
 		{
 			while( m_continue_work.value() == WORK_THREAD_CONTINUE )
 			{
-				// Если в локальной очереди пусто,
-				// то берем из m_queue.
+				// If local queue is empty then we should try
+				// to get new demands.
 				if( demands.empty() )
 					result = m_queue.pop( demands );
 
-				// Пока есть что обрабатывать - обрабатываем.
+				// Serve demands if any.
 				if( demand_queue_t::demand_extracted == result )
 					serve_demands_block( demands );
 			}
 		}
 		catch( const std::exception & ex )
 		{
-			//Обрабатываем исключение.
+			// Exception should be processed.
+//FIXME: is it possible that exception would be caught when demands is empty?
 			handle_exception(
 				ex,
 				demands.front().m_agent_ref );
@@ -286,3 +278,4 @@ work_thread_t::entry_point( void * self_object )
 } /* namespace disp */
 
 } /* namespace so_5 */
+

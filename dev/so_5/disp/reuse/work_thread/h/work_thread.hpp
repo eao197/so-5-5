@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Рабочая нить.
+	\brief Working thread for dispatchers.
 */
 
 #if !defined( _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_ )
@@ -35,13 +35,13 @@ namespace work_thread
 // demand_t
 //
 
-//! Тип элемента списка заявок.
+//! Element of queue of demands to process agent events.
 struct demand_t
 {
-	//! Агент события которого надо исполнить.
+	//! Agent which events should be dispatched.
 	so_5::rt::agent_ref_t m_agent_ref;
 
-	//! Количество событий которые надо исполнить.
+	//! Count of events to dispatch.
 	unsigned int m_event_cnt;
 
 	demand_t()
@@ -50,9 +50,9 @@ struct demand_t
 	{}
 
 	demand_t(
-		//! Агент у которого надо выполнить события.
+		//! Agent which events should be dispatched.
 		const so_5::rt::agent_ref_t & agent_ref,
-		//! Количество выполняемых для агента событий.
+		//! Count of events to dispatch.
 		unsigned int event_cnt )
 		:
 			m_agent_ref( agent_ref ),
@@ -60,20 +60,18 @@ struct demand_t
 	{}
 };
 
-//! Тип для контейнера очереди заявок на выполнение событий.
+//! Typedef for demands queue container.
 typedef std::deque< demand_t > demand_container_t;
 
 //
 // demand_queue_t
 //
 
-//! Очередь заявок.
+//! Queue of demands to process agent events.
 /*!
-	Так же хранит признак необходимости завершения
-	работы.
+	Have shutdown flag inside.
 
-	Предназначена для использования несколькими
-	нитями одновременно.
+	Thread safe and indendent to use by several concurrent threads.
 */
 class demand_queue_t
 {
@@ -81,62 +79,62 @@ class demand_queue_t
 		demand_queue_t();
 		~demand_queue_t();
 
-		//! Поместить заявку на исполнение событий в очередь.
+		//! Put demand into queue.
 		void
 		push(
-			//! Агент у которого надо выполнить события.
+			//! Agent which events should be dispatched.
 			const so_5::rt::agent_ref_t & agent_ref,
-			//! Количество выполняемых для агента событий.
+			//! Count of events to dispatch.
 			unsigned int event_cnt );
 
 		enum
 		{
-			//! Была извлечена заявка.
+			//! Demand has been extracted
 			demand_extracted = 1,
-			//! Заявка не была извлечена, т.к.
-			//! выставлен признак завершения работы.
+			//! Demand has not been extracted because of shutdown.
 			shutting_down = 2,
-			//! Заявка не была извлечена, т.к. в очереди нет заявок.
+			//! Demand has not been extracted because demand queue is empty.
 			no_demands = 3
 		};
 
-		//! Взять имеющиеся заявки.
+		//! Try to extract demands from queue.
 		/*!
-			Если заявок в очереди нет, то текущая нить
-			засыпает до появления заявок в очереди, либо
-			до выставления признака завершения работы.
+			If there is no demands in queue then current thread
+			will sleep until:
+			- demand put in queue;
+			- shutdown signal.
 		*/
 		int
 		pop(
-			/*! Приемник зaявок. */
+			/*! Receiver for extracted demands. */
 			demand_container_t & queue_item );
 
-		//! Начать обслуживание заявок.
+		//! Start demands processing.
 		void
 		start_service();
 
-		//! Остановить обслуживание заявок.
+		//! Stop demands processing.
 		void
 		stop_service();
 
-		//! Отчистить очередь.
+		//! Clear demands queue.
 		void
 		clear();
 
 	private:
-		//! Контейнер очереди.
+		//! Demand queue.
 		demand_container_t m_demands;
 
-		//! Синхронизация.
+		//! \name Objects for thread safety.
 		//! \{
 		ACE_Thread_Mutex m_lock;
 		ACE_Condition_Thread_Mutex m_not_empty;
 		//! \}
 
-		//! Флаг - обслуживать ли клиентов очереди?.
-		/*! Принимает значения:
-			true - надо продолжать работу - обслуживать методы push/pop.
-			false - прекратить обслуживание.
+		//! Service flag.
+		/*!
+			true -- should do the service, methods push/pop should work.
+			false -- service should be stopped.
 		*/
 		bool m_in_service;
 };
@@ -145,12 +143,12 @@ class demand_queue_t
 // work_thread_t
 //
 
-//!	Класс рабочей нити.
+//! Working thread.
 /*!
-	Рабочая нить должна использоваться в составе какого-либо
-	диспетчера. При этом время жизни объекта-диспетчера должно
-	превышать время жизни объекта-нити.
-*/
+ * Working thread should be used inside some dispatcher.
+ * And life time of dispatcher object should be longer than
+ * life time of working thread object.
+ */
 class work_thread_t
 {
 	public:
@@ -159,86 +157,83 @@ class work_thread_t
 
 		~work_thread_t();
 
-		//! Поставить запрос на выполнение события агентом.
-		//! Т.е. запланировать вызов события агента.
+		//! Shedule event for agent.
 		void
 		put_event_execution_request(
-			//! Агент событие которого надо запланировать.
+			//! Agent for which events should be sheduled.
 			const so_5::rt::agent_ref_t & agent_ref,
-			//! Количество событий,
-			//! которые должны произайти у этого агента.
+			//! Count of events to be scheduled.
 			unsigned int event_count );
 
-		//! Запустить нить.
+		//! Start working thread.
 		void
 		start();
 
-		//! Дать сигнал к останову работы.
+		//! Send shutdown signal to working thread.
 		void
 		shutdown();
 
-		//! Ожидать завершения работы.
+		//! Wait full stop of working thread.
 		/*!
-			После останова нити удаляются все,
-			оставшиеся не обработанными, заявки.
-		*/
+		 * All non-processed demands from queue will be destroyed
+		 * after stop of working thread.
+		 */
 		void
 		wait();
 
 	protected:
-		//! Основное тело циклической работы.
+		//! Main working thread body.
 		void
 		body();
 
-		//! Обработка исключения.
+		//! Exception handler.
 		void
 		handle_exception(
-			//! Отловленное исключение выброшенное из обрабтчика
-			//! какого-либо события.
+			//! Raised and caught exception.
 			const std::exception & ex,
-			//! Агент чей обработчик выбросил исключение.
+			//! Agent who is the producer of the exception.
 			const so_5::rt::agent_ref_t & a_exception_producer );
 
-		//! Обслужить блок заявок.
+		//! Handle a bunch of demands.
 		void
 		serve_demands_block(
-			//! Список заявок для обслуживания.
+			//! Bunch of demands to be processed.
 			demand_container_t & executed_demands );
 
-		//! Точка входа в нить для ACE_Thread_Manager.
+		//! Thread entry point for ACE_Thread_Manager.
 		static ACE_THR_FUNC_RETURN
 		entry_point( void * self_object );
 
 	private:
-		//! Очередь заявок для данной рабочей нити.
+		//! Demands queue.
 		demand_queue_t m_queue;
 
-		//! Тип флага - продолжать выполнять работу?
+		//! Thread status flag.
 		enum
 		{
-			//! 0 - нет, не продолжать.
+			//! 0 - thread execution should be stopped.
 			WORK_THREAD_STOP = 0,
-			//! 1 - да, продолжать.
+			//! 1 - thread execution should be continued.
 			WORK_THREAD_CONTINUE = 1
 		};
 
-		//! Флаг - продолжать выполнять работу?
-		/*! Может принимать значения:
-			WORK_THREAD_STOP, WORK_THREAD_CONTINUE
-		*/
+		//! Thread status flag.
+		/*!
+		 * Available values are: WORK_THREAD_STOP, WORK_THREAD_CONTINUE
+		 */
 		ACE_Atomic_Op< ACE_Thread_Mutex, long > m_continue_work;
 
-		//! Идентификатор нити, созданной для данного объекта.
+		//! Thread identifier for that object.
 		/*!
-			\note Значение актуально только после вызова start().
+			\note Has actual value only after start().
 		*/
 		ACE_thread_t m_tid;
 
-		//! Диспетчер запустивший рабочую нить.
+		//! Owner of that working thread.
 		/*!
-			При обработке отловленного исключения, от диспетчера
-			берется объект, которому делегируется обработка.
-		*/
+		 * This reference is necessary to handle exceptions.
+		 * The exception handler is get from dispatcher.
+		 */
 		rt::dispatcher_t & m_disp;
 };
 
@@ -251,3 +246,4 @@ class work_thread_t
 } /* namespace so_5 */
 
 #endif
+

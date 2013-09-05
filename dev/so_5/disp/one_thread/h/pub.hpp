@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief  Функция для создания диспетчера с одной рабочей нитью.
+	\brief Functions for creating and binding single thread dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ONE_THREAD__PUB_HPP_ )
@@ -26,14 +26,14 @@ namespace disp
 namespace one_thread
 {
 
-//! Создание диспетчера.
+//! Create a dispatcher.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
 create_disp();
 
-//! Получить объект для привязки агента к диспетчеру.
+//! Create a dispatcher binder object.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
 create_disp_binder(
-	//! Имя диспетчера.
+	//! Name of dispatcher to be bound to.
 	const std::string & disp_name );
 
 } /* namespace one_thread */
@@ -42,5 +42,5 @@ create_disp_binder(
 
 } /* namespace so_5 */
 
-
 #endif
+

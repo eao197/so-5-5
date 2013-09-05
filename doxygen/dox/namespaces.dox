@@ -50,6 +50,38 @@ namespace so_5
 
 		} /* namespace active_obj */
 
+		/*!
+		 * \brief Dispatcher with single working thread.
+		 */
+		namespace one_thread
+		{
+			/*!
+			 * \brief Implementation details for dispatcher with
+			 * single working thread.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace one_thread */
+
+		/*!
+		 * \brief Reusable components for dispatchers.
+		 *
+		 * This namespace contains classes and functions which can
+		 * be reused by various types of dispatchers.
+		 */
+		namespace reuse
+		{
+			/*!
+			 * \brief Implemetation details of dispatcher's working thread.
+			 */
+			namespace work_thread
+			{
+			} /* namespace work_thread */
+
+		} /* namespace reuse */
+
 	} /* namespace disp */
 
 } /* namespace so_5 */

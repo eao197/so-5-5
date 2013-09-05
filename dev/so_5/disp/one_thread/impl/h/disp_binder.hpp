@@ -4,7 +4,8 @@
 
 /*!
 	\file
-	\brief Интерфейс привязки агента к диспетчеру one_thread.
+	\brief Interface for binding agent to dispatcher with single
+	working thread.
 */
 
 #if !defined( _SO_5__DISP__ONE_THREAD__IMPL__DISP_BINDER_HPP_ )
@@ -26,7 +27,7 @@ namespace one_thread
 namespace impl
 {
 
-//! Привязыватель агента к диспетчеру одной нити.
+//! Agent to dispatcher binder.
 class disp_binder_t
 	:
 		public so_5::rt::disp_binder_t
@@ -37,24 +38,18 @@ class disp_binder_t
 		virtual ~disp_binder_t();
 
 
-		//! Сделать привязку агента к диспетчеру.
 		virtual void
 		bind_agent(
-			//! Среда so_5, которой принадлежит агент.
 			so_5::rt::impl::so_environment_impl_t & env,
-			//! Ссылка на агент, который привязывается к диспетчеру.
 			so_5::rt::agent_ref_t & agent_ref );
 
-		//! Сделать привязку агента к диспетчеру.
 		virtual void
 		unbind_agent(
-			//! Среда so к диспетчеру которой происходит привязка.
 			so_5::rt::impl::so_environment_impl_t & env,
-			//! Агент которого надо привязать к диспетчеру.
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:
-		//! Имя диспетчера к которому должен быть привязан агент.
+		//! Name of dispatcher to be bound to.
 		const std::string m_disp_name;
 };
 
@@ -67,3 +62,4 @@ class disp_binder_t
 } /* namespace so_5 */
 
 #endif
+

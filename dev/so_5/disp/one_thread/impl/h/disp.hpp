@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Реальный класс диспетчера с одной рабочей нитью.
+	\brief The real class of dispatcher with single working thread.
 */
 
 #if !defined( _SO_5__DISP__ONE_THREAD__IMPL__DISP_HPP_ )
@@ -30,7 +30,7 @@ namespace impl
 //
 
 /*!
-	\brief Диспетчер с одной рабочей нитью и очередью заявок.
+	\brief A dispatcher with single working thread and event queue.
 */
 class dispatcher_t
 	:
@@ -40,34 +40,26 @@ class dispatcher_t
 		dispatcher_t();
 		virtual ~dispatcher_t();
 
-		//! Реализация методов интерфейса so_5::rt::dispatcher_t.
+		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 
-		//! Запустить диспетчер.
 		virtual ret_code_t
 		start();
 
-		//! Дать сигнал диспетчеру завершить работу.
 		virtual void
 		shutdown();
 
-		//! Ожидать полного завершения работы диспетчера
 		virtual void
 		wait();
 
-		//! Поставить запрос на выполнение события агентом.
-		//! Т.е. запланировать вызов события агента.
 		virtual void
 		put_event_execution_request(
-			//! Агент событие которого надо запланировать.
 			const so_5::rt::agent_ref_t & agent_ref,
-			//! Количество событий,
-			//! которые должны произайти у этого агента.
 			unsigned int event_count );
 		//! \}
 
 	private:
-		//! Рабочая нить для диспетчера.
+		//! Working thread for the dispatcher.
 		so_5::disp::reuse::work_thread::work_thread_t m_work_thread;
 };
 

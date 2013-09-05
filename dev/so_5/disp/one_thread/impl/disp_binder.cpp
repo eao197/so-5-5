@@ -39,15 +39,16 @@ disp_binder_t::bind_agent(
 	so_5::rt::dispatcher_ref_t disp_ref =
 		env.query_named_dispatcher( m_disp_name );
 
-	// ≈сли есть такой диспетчер, то будем прив€зывать агента к нему.
+	// If the dispatcher is found then the object should be bound to it.
 	if( disp_ref.get() )
 	{
-		// Ёто должен быть именно one_thread::impl::dispatcher_t.
+		// It should be exactly our dispatcher.
 		dispatcher_t * disp = dynamic_cast< dispatcher_t * >( disp_ref.get() );
 
 		if( nullptr == disp )
 			throw so_5::exception_t(
-				"disp type mismatch for disp \"" + m_disp_name + "\", expected one_thread disp",
+				"disp type mismatch for disp \"" + m_disp_name +
+						"\", expected one_thread disp",
 				rc_disp_type_mismatch );
 
 		so_5::rt::agent_t::call_bind_to_disp(
