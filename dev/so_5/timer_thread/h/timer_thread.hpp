@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Интерфейс timer_thread_t.
+	\brief Interface for timer_thread.
 */
 
 #if !defined( _SO_5__TIMER_THREAD__TIMER_THREAD_HPP_ )
@@ -36,37 +36,26 @@ namespace timer_thread
 // timer_thread_t
 //
 
-//! Интерфейс нити таймера.
+//! Timer thread interface.
 /*!
-	Диспетчеру run-time SObjectizer-а необходимы средства
-	для работы с отложенными и переодическими сообщениями.
-	Точность отсчета времени для различных задач может
-	сильно различаться. Для некоторых задач необходима
-	точность до милли- или микросекунд,
-	для некоторых достаточно точности в секундах.
-	Механизмы диспетчеризации для отсчета времени практически
-	не играют роли.
 
-	Все реальные таймеры для SObjectizer-а должны быть
-	производными от timer_thread_t.
+	All timers for SObjectizer should be derived from that class.
 
-	Настоящий таймер не обязательно должен быть реализован
-	в виде нити. Название timer_thread_t сложилось исторически.
-	Важно, что диспетчер запускает таймер при своем старте
-	посредством метода timer_thread_t::start() и останавливает
-	таймер при завершении работы посредством
-	timer_thread_t::shutdown(). Т.к. при реализации таймера
-	в виде отдельной нити сложно обеспечить, чтобы выход из
-	shutdown() означал завершение работы нити таймера, то
-	введен метод wait(). Диспетчер вызывает wait() сразу
-	после вызова shutdown() и возврат из wait() означает, что
-	таймер полностью остановлен и все ресурсы, захваченные
-	таймером, освобождены.
+	A real timer may not be implemented as a thread. The name of that class is
+	just a consequence of some historic reasons.
 
-	Когда у диспетчера вызывается метод push_delayed_msg
-	диспетчер передает сообщение таймеру. Далее таймер отвечает
-	за хранение экземпляра сообщения и за определение времени
-	когда сообщение должно быть диспетчеризировано.
+	A dispatcher starts timer by calling timer_thread_t::start() method.
+	Dispatcher informs timer about shutdown by calling
+	timer_thread_t::shutdown() method. Sometimes it could be impossible to
+	immediately finish timer work. Because of that dispatcher will call
+	timer_thread_t::wait() after shutdown().  The dispatcher should be blocked
+	on timer_thread_t::wait() call until timer fully finished its work. The
+	return from timer_thread_t::wait() means that timer is completelly stopped
+	and all resources are released.
+
+	When so_5::rt::dispatcher_t::push_delayed_msg() is called the dispatcher
+	passes timer message to the timer_thread. After that timer is responsible
+	for storing and processing that message.
 */
 class SO_5_TYPE timer_thread_t
 {
@@ -75,31 +64,30 @@ class SO_5_TYPE timer_thread_t
 		timer_thread_t();
 		virtual ~timer_thread_t();
 
-		//! Запустить нить таймера.
+		//! Launch timer.
 		virtual ret_code_t
 		start() = 0;
 
-		//! Дать сигнал нити таймера завершить работу.
+		//! Send shutdown signal to timer.
 		virtual void
 		shutdown() = 0;
 
-		//! Ожидать полного завершения работы нити таймера.
+		//! Wait timer to stop.
 		virtual void
 		wait() = 0;
 
-		//! Поставить отложенное или переодическое
-		//! сообщение в очередь.
+		//! Push delayed/periodic message to timer queue.
 		virtual timer_id_t
 		schedule_act(
 			timer_act_unique_ptr_t & timer_act ) = 0;
 
-		//! Отменить периодическое сообщение.
+		//! Cancel delayer/periodic message.
 		virtual void
 		cancel_act(
 			timer_id_t msg_id ) = 0;
 };
 
-//! Псевдоним unique_ptr для timer_thread_t.
+//! Auxiliary typedef for timer_thread autopointer.
 typedef std::unique_ptr< timer_thread_t > timer_thread_unique_ptr_t;
 
 } /* namespace timer_thread */

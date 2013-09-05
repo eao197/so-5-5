@@ -17,7 +17,6 @@ apply_throwing_strategy(
 	throwing_strategy_t throwing_strategy,
 	const std::string & error_msg )
 {
-	// Если надо бросать исключение, то бросаем исключение.
 	if( THROW_ON_ERROR == throwing_strategy )
 		throw so_5::exception_t( error_msg, error_code );
 
@@ -29,7 +28,6 @@ apply_throwing_strategy(
 	const so_5::exception_t & ex,
 	throwing_strategy_t throwing_strategy )
 {
-	// Если надо бросать исключение, то бросаем исключение.
 	if( THROW_ON_ERROR == throwing_strategy )
 		throw so_5::exception_t( ex.what(), ex.error_code() );
 
@@ -39,3 +37,4 @@ apply_throwing_strategy(
 } /* namespace util */
 
 } /* namespace so_5 */
+

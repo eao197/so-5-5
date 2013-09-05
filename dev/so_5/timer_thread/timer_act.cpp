@@ -34,7 +34,6 @@ timer_act_t::~timer_act_t()
 void
 timer_act_t::exec()
 {
-	// Отсылаем сообщение.
 	m_mbox->deliver_message( m_type_wrapper, m_msg );
 }
 
@@ -59,3 +58,4 @@ timer_act_t::query_period() const
 } /* namespace timer_thread */
 
 } /* namespace so_5 */
+

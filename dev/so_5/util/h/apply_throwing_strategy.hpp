@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Функция для возвращения ошибки.
+	\brief Function for applying throwing strategy to return codes.
 */
 
 #if !defined( _SO_5__API__IMPL__APPLY_THROWING_STRATEGY_HPP_ )
@@ -24,12 +24,13 @@ namespace so_5
 namespace util
 {
 
-//! Функция для возвращения ошибки.
 /*!
-	Если флаг throwing_strategy указывает бросать исключение, то
-	внитри функции выбрасывается исключение, в противном случае
-	ошибка возвращается через код ошибки.
-	\return Код ошибки.
+	\brief Function for applying throwing strategy to return codes.
+
+	If \a throwing_strategy is THROW_ON_ERROR then exception is thrown.
+	Otherwise \a error_code is returned.
+
+	\return Value of \a error_code.
 */
 SO_5_EXPORT_FUNC_SPEC( ret_code_t )
 apply_throwing_strategy(
@@ -37,12 +38,13 @@ apply_throwing_strategy(
 	throwing_strategy_t throwing_strategy,
 	const std::string & error_msg );
 
-//! Функция для возвращения ошибки.
 /*!
-	Если флаг throwing_strategy указывает бросать исключение, то
-	внитри функции выбрасывается исключение ex, в противном случае
-	ошибка возвращается через код ошибки error_code.
-	\return код ошибки error_code.
+	\brief Function for applying throwing strategy to exception object.
+
+	Rethrow \a ex if \a throwing_strategy is THROW_ON_ERROR.
+	Otherwise \a ex.error_code() is returned.
+
+	\return Value of \a ex.error_code().
 */
 SO_5_EXPORT_FUNC_SPEC( ret_code_t )
 apply_throwing_strategy(

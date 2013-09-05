@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Таймерное событие.
+	\brief Timer event definition.
 */
 
 #if !defined( _SO_5__TIMER_THREAD__TIMER_ACT_HPP_ )
@@ -28,7 +28,7 @@ namespace timer_thread
 // timer_act_t
 //
 
-//! Таймерное событие.
+//! Timer event.
 class SO_5_TYPE timer_act_t
 {
 		timer_act_t( const timer_act_t & );
@@ -37,57 +37,66 @@ class SO_5_TYPE timer_act_t
 
 	public:
 		timer_act_t(
-			//! Тип сообщения.
+			//! Message type.
 			const rt::type_wrapper_t & type_wrapper,
-			//! mbox, на который надо отправлять периодическое сообщение.
+			//! mbox to receive message.
 			const rt::mbox_ref_t & mbox,
-			//! Экземпляр сообщения.
+			//! Message to be sent on timer.
 			const rt::message_ref_t & msg,
-			/*! Для переодического сообщения указывает
-				время, через которое сообщение должно
-				возникнуть в первый раз. */
+			/*! Delay for the first message delivery. */
 			unsigned int delay,
-			/*! Период, отличен от 0 для переодических сообщений. */
+			/*!
+			 * Timeout for periodic messages. Should be 0 for
+			 * non-periodic messages.
+			 */
 			unsigned int period );
 
 		~timer_act_t();
 
-		//! Выполнить действие.
+		//! Perform corresponding action on timer.
+		/*!
+		 * Delivers message to mbox.
+		 */
 		void
 		exec();
 
-		//! Является ли таймерное действие периодическим?
+		//! Is periodic message?
 		bool
 		is_periodic() const;
 
-		//! Задержка для первого раза.
+		//! Delay for the first message delivery.
 		unsigned int
 		query_delay() const;
 
-		/*! Период, отличен от 0 для переодических сообщений. */
+		/*!
+		 * \brief Timeout beetwen deliveries for periodic messages.
+		 *
+		 * \retval 0  If message is not priodic.
+		 */
 		unsigned int
 		query_period() const;
 
 	private:
-		//! Тип сообщения.
+		//! Message type.
 		const rt::type_wrapper_t m_type_wrapper;
 
-		//! mbox, на который надо отправлять периодическое сообщение.
+		//! mbox to receive message. 
 		rt::mbox_ref_t m_mbox;
 
-		//! Экземпляр сообщения.
+		//! Message object to be delivered.
 		const rt::message_ref_t m_msg;
 
-		/*! Для переодического сообщения указывает
-			время, через которое сообщение должно
-			возникнуть в первый раз. */
+		/*! Delay for the first message delivery. */
 		const unsigned int m_delay;
 
-		/*! Период, отличен от 0 для переодических сообщений. */
+		/*!
+		 * Timeout for periodic messages. Should be 0 for
+		 * non-periodic messages.
+		 */
 		const unsigned int m_period;
 };
 
-//! Псевдоним unique_ptr для timer_act_t.
+//! Auxiliary typedef for timer_act autopointer.
 typedef std::unique_ptr< timer_act_t > timer_act_unique_ptr_t;
 
 } /* namespace timer_thread */
@@ -95,3 +104,4 @@ typedef std::unique_ptr< timer_act_t > timer_act_unique_ptr_t;
 } /* namespace so_5 */
 
 #endif
+

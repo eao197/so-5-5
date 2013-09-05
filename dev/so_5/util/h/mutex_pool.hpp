@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс, для обеспечения пула мьютексов.
+	\brief Class for implementation of mutex pool.
 */
 
 #if !defined( _SO_5__UTIL__MUTEX_POOL_HPP_ )
@@ -25,7 +25,7 @@ namespace util
 // mutex_pool_t
 //
 
-//! Класс для реализации пула мутексов заданного типа.
+//! A pool for specified type of mutex.
 template < class MUTEX >
 class mutex_pool_t
 {
@@ -42,7 +42,7 @@ class mutex_pool_t
 			delete [] m_mutex_pool;
 		}
 
-		//! Взять мутекс в пользование.
+		//! Get a mutex in use.
 		MUTEX &
 		allocate_mutex()
 		{
@@ -56,18 +56,17 @@ class mutex_pool_t
 			return m_mutex_pool[ min_index ];
 		}
 
-		//! Отказаться от использования мутекса.
+		//! Return mutex to a pool.
 		/*!
-			\return Если мутекс принадлежит пулу,
-			то уменьшает количество ссылок на него и возвращает
-			true, в противном случае вернет false и ничего
-			не сделает.
-		*/
+		 * \retval true if mutex belongs to pool. Reference count for
+		 * that mutex is decremented.
+		 *
+		 * \retval false if mutex doesn't belong to pool. No actions are
+		 * performed in this case.
+		 */
 		bool
 		deallocate_mutex( MUTEX & m )
 		{
-			// Если метекс из пула, то будем уменьшать
-			// количество ссылок на него.
 			if( &m >= m_mutex_pool &&
 				&m < m_mutex_pool + m_mutex_pool_size )
 			{
@@ -78,20 +77,20 @@ class mutex_pool_t
 				return true;
 			}
 
-			// Если мутекс не наш, то:
 			return false;
 		}
 
 	private:
-		//! Замок для выдачи мутексов.
+		//! Object look.
 		ACE_Thread_Mutex m_mutex_lock;
 
-		//! Размер пула мутексов.
+		//! Mutex pool size.
 		const size_t m_mutex_pool_size;
 
+		//! Mutex pool itself.
 		MUTEX * const m_mutex_pool;
 
-		//! Массив для хранения количества ссылок на мутексы.
+		//! Mutexes reference counters.
 		std::vector< unsigned int > m_mutex_pool_charge;
 };
 
