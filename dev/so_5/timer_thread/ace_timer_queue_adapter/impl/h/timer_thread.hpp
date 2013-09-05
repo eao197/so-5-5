@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Реализация таймерной нити на основе
+	\brief Implementation of timer_thread on top of
 		ACE_Thread_Timer_Queue_Adapter.
 */
 
@@ -38,20 +38,18 @@ namespace impl
 //
 
 /*!
-	\brief Реализация таймерной нити на основе
-	ACE_Thread_Timer_Queue_Adapter.
+	\brief Implementation of timer_thread on top of ACE_Thread_Timer_Queue_Adapter.
  */
 class timer_thread_t
 	:
 		public so_5::timer_thread::timer_thread_t,
 		public timer_act_utilizator_t
 {
-		//! Псевдоним для базового типа.
+		//! Typedef for base type.
 		typedef so_5::timer_thread::timer_thread_t base_type_t;
 	public:
 
-		//! Вспомогательный класс для хранения
-		//! таймерных идентификаторов в ACE и в SObjectizer.
+		//! Auxiliary class for storing timer Id in ACE and SObjectize.
 		struct timer_keys_t
 		{
 			timer_keys_t( timer_id_t timer_id, long ace_id )
@@ -64,50 +62,45 @@ class timer_thread_t
 			long		m_ace_id;
 		};
 
-		//! Конструктор.
+		//! Constructor.
 		timer_thread_t();
 
 		virtual ~timer_thread_t();
 
 		/*!
-		 * \name Реализация интерфейса so_5::timer_thread::timer_thread_t.
+		 * \name Implementation of so_5::timer_thread::timer_thread.
 		 * \{
 		 */
 
-		//! Запустить нить таймера.
 		/*!
-		 * Вызывает ACE_Thread_Timer_Queue_Adapter::activate().
+		 * Calls ACE_Thread_Timer_Queue_Adapter::activate().
 		 */
 		virtual ret_code_t
 		start();
 
-		//! Дать сигнал нити таймера завершить работу.
 		/*!
-		 * Вызывает ACE_Thread_Timer_Queue_Adapter::deactivate().
+		 * Calls ACE_Thread_Timer_Queue_Adapter::deactivate().
 		 */
 		virtual void
 		shutdown();
 
-		//! Ожидать полного завершения работы нити таймера.
 		/*!
-		 * Ожидает на ACE_Thread_Timer_Queue_Adapter::wait().
+		 * Calss ACE_Thread_Timer_Queue_Adapter::wait().
 		 */
 		virtual void
 		wait();
 
-		//! Поставить отложенное или переодическое сообщение в очередь.
 		/*!
-		 * Назначает данной заявке собственный ID и создает Timer ACT.
-		 * Регистрирует заявку в ACE_Thread_Timer_Queue_Adapter и сохраняет
-		 * в m_agent_demands описание этой заявки.
+		 * Assigns own ID to that event and creates Timer ACT.
+		 * Registers event in ACE_Thread_Timer_Queue_Adapter and stores
+		 * its description in m_agent_demands.
 		 *
-		 * \note Блокирует таймерную нить.
+		 * \note Blocks timer thread.
 		 */
 		virtual timer_id_t
 		schedule_act(
 			timer_act_unique_ptr_t & timer_act );
 
-		//! Отменить периодическое сообщение.
 		virtual void
 		cancel_act(
 			timer_id_t msg_id );
@@ -116,20 +109,23 @@ class timer_thread_t
 		 * \}
 		 */
 
-		//! Быстрая отмена события, без дополнительного захвата мутекса
-		//! и без удаляения из мапа.
-		//! \note Применяется только в конце при завершении
-		//! таймерной нити.
+		/*!
+		 * \brief Quick timer event cancelation.
+		 *
+		 * Mutex doesn't acquired and timer event is not removed from
+		 * the map.
+		 *
+		 * \note Used only in timer_thread shutdown.
+		 */
 		virtual void
 		quick_cancel_act(
 			const timer_keys_t & timer_keys );
 
 		/*!
-		 * \name Реализация интерфейса timer_act_utilizator_t.
+		 * \name Implementation of timer_act_utilizator_t.
 		 * \{
 		 */
 
-		//! При необходимости утилизировать таймерное действие.
 		virtual void
 		utilize_timer_act(
 			timer_act_t * timer_act );
@@ -145,55 +141,51 @@ class timer_thread_t
 		void
 		cancel_all();
 
-		//! Доступ к mutex-у, который будет использоваться для внутренней
-		//! синхронизации.
+		//! Object lock.
 		ACE_SYNCH_RECURSIVE_MUTEX &
 		mutex();
 
-		//! Тип таймерной нити из ACE.
+		//! Typedef for ACE-based timer implementation.
 		typedef ACE_Thread_Timer_Queue_Adapter< ACE_Timer_List >
 			adapter_t;
 
-		//! Таймерная нить и очередь из ACE.
+		//! ACE-based timer implementation.
 		/*!
-			Данный объект должен быть уничтожен
-			до объекта m_event_handler, т.к. в его деструкторе
-			возможны обращения к m_event_handler.
+		 * This object should be destroyed before m_event_handler.
+		 * It is because calls to m_event_handler are possible
+		 * during this object destruction.
 		 */
 		std::unique_ptr< adapter_t > m_timer_queue;
 
-		//! Единственный обработчик таймерных событий, который будет
-		//! использоваться для всех событий.
+		/*!
+		 * This event handler will be used for all timer events.
+		 */
 		std::unique_ptr< timer_event_handler_t > m_event_handler;
 
-		//! Тип карты для таймерных событий и их идентификаторов
-		//! внутри adapter_t.
+		//! Typedef for map from timer_act to IDs inside ACE-based timer.
 		typedef std::map<
 				timer_act_t*,
 				timer_keys_t >
 			scheduled_act_to_id_map_t;
 
-		//! Запланированные сообщения
+		//! Map of sheduled events.
 		scheduled_act_to_id_map_t m_scheduled_act_to_id;
 
-		//! Счетчик для собственных идентификаторов таймерных заявок.
+		//! Counter for own ID generation.
 		/*!
-			Используется простейший механизм для создания идентификаторов:
-			последовательно возрастающие значения 64-х битного счетчика.
-			Предполагается, что 64-х битного счетчика хватит для генерации
-			уникальных идентификаторов даже с большим темпом, даже в течении
-			длительного непрерывного времени работы программы.
+		 * A very simple approach is used. The 64-bit counter is used.
+		 * It is assumed that 64-bit counter is never overcounter even
+		 * in a very-very long program run.
 		 */
 		timer_id_t m_self_id_counter;
 
-		//! Тип карты timer_id => идентификатор внутри adapter_t.
+		//! Typedef for map from timer_id to ace_id.
 		typedef std::map<
 				timer_id_t,
 				long >
 			timer_id_to_ace_id_map_t;
 
-		//! Сопоставление timer_id с идентификаторами,
-		//! которые назначает ace.
+		//! Map of own timer ID to IDs inside ACE-based timer.
 		timer_id_to_ace_id_map_t m_timer_id_to_ace_id;
 	};
 
@@ -206,3 +198,4 @@ class timer_thread_t
 } /* namespace so_5 */
 
 #endif
+

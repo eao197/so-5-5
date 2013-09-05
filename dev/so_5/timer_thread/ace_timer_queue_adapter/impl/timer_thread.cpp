@@ -26,8 +26,8 @@ namespace
 {
 
 /*!
- * Вспомогательная функция для преобразования миллисекунд в
- * ACE_Time_Value (относительное время).
+ * Auxiliary fuction to conversion from milliseconds to
+ * ACE_Time_Value (in relative format).
  */
 inline ACE_Time_Value
 millisec_to_time_value( unsigned int m )
@@ -47,14 +47,11 @@ timer_thread_t::timer_thread_t()
 		m_timer_queue( new adapter_t() ),
 		m_self_id_counter( 0 )
 {
-	m_event_handler = std::unique_ptr< timer_event_handler_t >(
-		new timer_event_handler_t( *this ) );
+	m_event_handler.reset( new timer_event_handler_t( *this ) );
 }
 
 timer_thread_t::~timer_thread_t()
 {
-	m_timer_queue.reset();
-	m_event_handler.reset();
 }
 
 ret_code_t
@@ -80,7 +77,6 @@ timer_thread_t::wait()
 					SO_5_LOG_FMT( "%p" ),
 					"timer_queue->wait() failed!" ) );
 
-	// Отменяем все события, которые остались.
 	cancel_all();
 }
 
@@ -90,7 +86,7 @@ timer_thread_t::schedule_act(
 {
 	ACE_GUARD_RETURN( ACE_SYNCH_RECURSIVE_MUTEX, lock, mutex(), -1 );
 
-	// Для выставления заявки нужно указать абсолютное время в будущем.
+	// Absolute time in the future should be used.
 	ACE_Time_Value future_time( ACE_OS::gettimeofday() +
 			millisec_to_time_value( timer_act->query_delay() ) );
 
@@ -102,8 +98,8 @@ timer_thread_t::schedule_act(
 
 	if( -1 != msg_id )
 	{
-		// Таймерная заявка успешна принята к обработке.
-		// Информация о ней должна быть сохранена.
+		// Timer event was successfully registered.
+		// Information about it should be stored.
 
 		timer_keys_t timer_keys( ++m_self_id_counter, msg_id );
 
@@ -173,34 +169,14 @@ timer_thread_t::utilize_timer_act(
 	{
 		ACE_GUARD( ACE_SYNCH_RECURSIVE_MUTEX, lock, mutex() );
 
-		// Таймерная заявка должна быть уничтожена, т.к. это одиночное
-		// отложенное сообщение.
+		// Timer event should be destroyed because it is not an
+		// periodic message.
 		timer_act_unique_ptr_t timer_act( act );
 
-		// Описание этой таймерной заявки так же должно быть удалено.
+		// Its description should be destroyed too.
 		m_scheduled_act_to_id.erase( timer_act.get() );
 	}
 }
-
-//! Функтор для отмены заявок по их id.
-template< class PAIR >
-class canceler_by_id_t
-{
-	public:
-		canceler_by_id_t( timer_thread_t & timer_thread )
-			:
-				m_timer_thread( timer_thread )
-		{}
-
-		void
-		operator () ( const PAIR & p )
-		{
-			m_timer_thread.quick_cancel_act( p.second );
-		}
-
-	private:
-		timer_thread_t & m_timer_thread;
-};
 
 void
 timer_thread_t::cancel_all()
@@ -210,8 +186,9 @@ timer_thread_t::cancel_all()
 	std::for_each(
 		m_scheduled_act_to_id.begin(),
 		m_scheduled_act_to_id.end(),
-		canceler_by_id_t< scheduled_act_to_id_map_t::value_type >(
-			*this ) );
+		[this]( scheduled_act_to_id_map_t::value_type & a ) {
+			this->quick_cancel_act( a.second );
+		} );
 
 	m_timer_id_to_ace_id.clear();
 	m_scheduled_act_to_id.clear();
@@ -230,3 +207,4 @@ timer_thread_t::mutex()
 } /* namespace timer_thread */
 
 } /* namespace so_5 */
+

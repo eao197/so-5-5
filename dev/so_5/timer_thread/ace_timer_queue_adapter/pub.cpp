@@ -26,3 +26,4 @@ create_timer_thread()
 } /* namespace timer_thread */
 
 } /* namespace so_5 */
+

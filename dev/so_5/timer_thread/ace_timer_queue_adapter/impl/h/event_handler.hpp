@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Обработчик таймерных событий.
+	\brief Timer event handler.
  */
 
 #if !defined( _SO_5__TIMER_THREAD__ACE_TIMER_QUEUE_ADAPTER__IMPL__EVENT_HANDLER_HPP_ )
@@ -30,14 +30,14 @@ namespace impl
 // timer_act_utilizator_t
 //
 
-//! Утилизатор таймерных действий.
+//! An interface for timer event destroyer.
 class timer_act_utilizator_t
 {
 	public:
 		timer_act_utilizator_t(){}
 		virtual ~timer_act_utilizator_t(){}
 
-		//! При необходимости утилизировать таймерное действие.
+		//! Destroy timer event.
 		virtual void
 		utilize_timer_act( timer_act_t * timer_act ) = 0;
 };
@@ -48,10 +48,10 @@ class timer_act_utilizator_t
 //
 
 /*!
-	\brief Обработчик таймерных событий.
+	\brief Timer event handler.
 
-	Экземпляр этого типа регистрируется, как обработчик всех таймерных
-	событий у ACE_Thread_Timer_Queue_Adapter.
+	An instance of that class is registered as timer handler in
+	ACE_Thread_Timer_Queue_Adapter.
 */
 
 class timer_event_handler_t
@@ -59,12 +59,12 @@ class timer_event_handler_t
 		public ACE_Event_Handler
 {
 	public:
-		//! Инициализирующий конструктор.
+		//! Constructor.
 		timer_event_handler_t(
 				timer_act_utilizator_t & utilizator );
 		virtual ~timer_event_handler_t();
 
-		//! Реакция на наступление таймерного события.
+		//! Timer handler routine.
 		/*!
 			\return 0
 		 */
@@ -74,7 +74,7 @@ class timer_event_handler_t
 				const void * raw_act );
 
 	private:
-		//! Объект, отвечающий за утилизацию Timer ACT.
+		//! An object to destroy timer event.
 		timer_act_utilizator_t & m_utilizator;
 };
 
@@ -87,3 +87,4 @@ class timer_event_handler_t
 } /* namespace so_5 */
 
 #endif
+

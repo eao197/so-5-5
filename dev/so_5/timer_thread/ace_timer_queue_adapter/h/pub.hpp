@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Средства для создания экземпляра таймерной нити.
+	\brief Function for creating timer_thread implementation.
 */
 
 #if !defined( _SO_5__TIMER_THREAD__ACE_TIMER_QUEUE_ADAPTER__PUB_HPP_ )
@@ -24,8 +24,7 @@ namespace ace_timer_queue_adapter
 {
 
 /*!
-	\brief Создать экземпляр нити таймера.
-	\return Умный указатель на динамически созданный объект.
+	\brief Create timer_thread implementation.
  */
 SO_5_EXPORT_FUNC_SPEC( so_5::timer_thread::timer_thread_unique_ptr_t )
 create_timer_thread();
@@ -37,3 +36,4 @@ create_timer_thread();
 } /* namespace so_5 */
 
 #endif
+
