@@ -52,6 +52,10 @@ timer_thread_t::timer_thread_t()
 
 timer_thread_t::~timer_thread_t()
 {
+	// Detructor for timer_queue should be called before
+	// destructor of event_handler!
+	m_timer_queue.reset();
+	m_event_handler.reset();
 }
 
 ret_code_t
