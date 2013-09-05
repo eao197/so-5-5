@@ -53,9 +53,7 @@ dispatcher_t::shutdown()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// Ќачинаем завершение работы,
-	// с этого момента, новые диспетчеры под агентов не создаютс€,
-	// а старые не уничтожаютс€.
+	// During the shutdown new threads will not be created.
 	m_shutdown_started = true;
 
 	std::for_each(
@@ -85,7 +83,7 @@ dispatcher_t::put_event_execution_request(
 	const so_5::rt::agent_ref_t & agent_ref,
 	unsigned int event_count )
 {
-	// Ётот метод не должен вызыватьс€.
+	// This methods should not be called.
 	std::abort();
 }
 
@@ -119,7 +117,6 @@ dispatcher_t::destroy_disp_for_agent( const so_5::rt::agent_t & agent )
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// ≈сли не начат shutdown, то удал€ем диспетчер.
 	if( !m_shutdown_started )
 	{
 		agent_disp_map_t::iterator it = m_agent_disp.find( &agent );

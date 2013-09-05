@@ -39,15 +39,16 @@ disp_binder_t::bind_agent(
 	so_5::rt::dispatcher_ref_t disp_ref =
 		env.query_named_dispatcher( m_disp_name );
 
-	// Если есть такой диспетчер, то будем привязывать агента к нему.
+	// If the dispatcher is found then agent should be bound to it.
 	if( disp_ref.get() )
 	{
-		// Это должен быть именно active_obj::impl::dispatcher_t.
+		// It should be active objects dispatcher.
 		dispatcher_t * disp = dynamic_cast< dispatcher_t * >( disp_ref.get() );
 
 		if( nullptr == disp )
 			throw so_5::exception_t(
-				"disp type mismatch for disp \"" + m_disp_name + "\", expected active_obj disp",
+				"disp type mismatch for disp \"" + m_disp_name +
+					"\", expected active_obj disp",
 				rc_disp_type_mismatch );
 
 		so_5::rt::dispatcher_t & disp_for_agent =
@@ -61,9 +62,7 @@ disp_binder_t::bind_agent(
 		}
 		catch( ... )
 		{
-			// Если при привязке возникают ошибки,
-			// то надо позаботиться, чтобы
-			// созданный для агента диспетчер удалился.
+			// Dispatcher for agent should be removed.
 			disp->destroy_disp_for_agent( *agent_ref );
 			throw;
 		}
@@ -86,11 +85,10 @@ disp_binder_t::unbind_agent(
 
 	if( disp_ref.get() )
 	{
-		// Это должен быть именно active_obj::impl::dispatcher_t,
-		// иначе бы привязка не удалась бы и unbind_agent не вызывался.
+		// This should be active_obj dispatcher because binding
+		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 
-		// Удаляем диспетчер.
 		disp.destroy_disp_for_agent( *agent_ref );
 	}
 }

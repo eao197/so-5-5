@@ -3,7 +3,6 @@
  */
 namespace so_5
 {
-
 	/*!
 	 * \brief Public API functions of SObjectizer-5.
 	 */
@@ -36,6 +35,20 @@ namespace so_5
 			} /* namespace impl */
 
 		} /* namespace active_group */
+
+		/*!
+		 * \brief Active objects dispatcher.
+		 */
+		namespace active_obj
+		{
+			/*!
+			 * \brief Active objects dispatcher implemetation details.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace active_obj */
 
 	} /* namespace disp */
 

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Функция для создания диспетчера активных агетов.
+	\brief Dispatcher creation and agent binding functions.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_OBJ__PUB_HPP_ )
@@ -26,14 +26,14 @@ namespace disp
 namespace active_obj
 {
 
-//! Создание диспетчера.
+//! Create a dispatcher.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
 create_disp();
 
-//! Получить объект для привязки агента к диспетчеру.
+//! Create an agent binder.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
 create_disp_binder(
-	//! Имя диспетчера.
+	//! Dispatcher name to be bound to.
 	const std::string & disp_name );
 
 } /* namespace active_obj */

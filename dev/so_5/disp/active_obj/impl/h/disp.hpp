@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Реальный класс диспетчера акитвных объектов.
+	\brief Real class of active objects dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_OBJ__IMPL__DISP_HPP_ )
@@ -39,7 +39,7 @@ namespace impl
 //
 
 /*!
-	\brief Диспетчер активных объектов.
+	\brief Active objects dispatcher.
 */
 class dispatcher_t
 	:
@@ -49,53 +49,49 @@ class dispatcher_t
 		dispatcher_t();
 		virtual ~dispatcher_t();
 
-		//! Реализация методов интерфейса so_5::rt::dispatcher_t.
+		//! \name Implemetation of so_5::rt::dispatcher methods.
 		//! \{
 
-		//! Запустить диспетчер.
 		virtual ret_code_t
 		start();
 
-		//! Дать сигнал диспетчеру завершить работу.
 		virtual void
 		shutdown();
 
-		//! Ожидать полного завершения работы диспетчера
 		virtual void
 		wait();
 
-		//! Поставить запрос на выполнение события агентом.
-		//! Т.е. запланировать вызов события агента.
-		/*! \note Не должен вызываться напрямую у этого диспетчера. */
+		/*!
+		 * \note Should not be called for this type of dispatchers directlly.
+		 */
 		virtual void
 		put_event_execution_request(
-			//! Агент событие которого надо запланировать.
 			const so_5::rt::agent_ref_t & agent_ref,
-			//! Количество событий,
-			//! которые должны произайти у этого агента.
 			unsigned int event_count );
 		//! \}
 
+		//! Creates a new thread for the agent specified.
 		so_5::rt::dispatcher_t &
 		create_disp_for_agent( const so_5::rt::agent_t & agent );
 
+		//! Destroys the thread for the agent specified.
 		void
 		destroy_disp_for_agent( const so_5::rt::agent_t & agent );
 
 	private:
+		//! Typedef for mapping from agents for their single thread dispatchers.
 		typedef std::map<
 				const so_5::rt::agent_t *,
 				so_5::rt::dispatcher_ref_t >
 			agent_disp_map_t;
 
-		//! Карта диспетчеров созданных под агентов.
+		//! A map from agents to single thread dispatchers.
 		agent_disp_map_t m_agent_disp;
 
-		//! Флаг, говорящий о том, что начато завершение
-		//! работы диспетчера.
+		//! Shutdown flag.
 		bool m_shutdown_started;
 
-		//! Замок для операций создания и удаления диспетчеров.
+		//! This object lock.
 		ACE_Thread_Mutex m_lock;
 };
 
@@ -108,3 +104,4 @@ class dispatcher_t
 } /* namespace so_5 */
 
 #endif
+

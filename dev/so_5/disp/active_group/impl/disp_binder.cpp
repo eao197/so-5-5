@@ -63,9 +63,7 @@ disp_binder_t::bind_agent(
 		}
 		catch( ... )
 		{
-			// Если при привязке возникают ошибки,
-			// то надо позаботиться, чтобы
-			// созданный для агента диспетчер удалился.
+			// Dispatcher for agent should be removed.
 			disp->release_disp_for_group( m_group_name );
 			throw;
 		}
