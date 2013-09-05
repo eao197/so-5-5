@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Функция для создания диспетчера активных групп.
+	\brief Functions for creating and binding to active group dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_GROUP__PUB_HPP_ )
@@ -26,16 +26,16 @@ namespace disp
 namespace active_group
 {
 
-//! Создание диспетчера.
+//! Creates dispatcher.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
 create_disp();
 
-//! Получить объект для привязки агента к диспетчеру.
+//! Creates dispatcher binder.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
 create_disp_binder(
-	//! Имя диспетчера.
+	//! Dispatcher name.
 	const std::string & disp_name,
-	//! Имя группы.
+	//! Active group name to be bound to.
 	const std::string & group_name );
 
 } /* namespace active_group */

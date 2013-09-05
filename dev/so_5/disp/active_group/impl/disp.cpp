@@ -85,7 +85,7 @@ dispatcher_t::put_event_execution_request(
 	const so_5::rt::agent_ref_t &,
 	unsigned int )
 {
-	// Этот метод не должен вызываться.
+	// This method should not be called!
 	std::abort();
 }
 
@@ -102,14 +102,14 @@ dispatcher_t::query_disp_for_group( const std::string & group_name )
 	active_group_disp_map_t::iterator it =
 		m_group_disp.find( group_name );
 
-	// Если уже есть диспетчер для активной группы, то вернем его.
+	// If there is a dispatcher for active group it should be returned.
 	if( m_group_disp.end() != it )
 	{
 		++(it->second.m_user_agent);
 		return *(it->second.m_disp_ref);
 	}
 
-	// Если надо создавать агента, то создаем его.
+	// New dispatcher should be created.
 	so_5::rt::dispatcher_ref_t disp(
 		new so_5::disp::one_thread::impl::dispatcher_t );
 
@@ -125,8 +125,6 @@ dispatcher_t::release_disp_for_group( const std::string & group_name )
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// Если не начат shutdown, то помечаем, что
-	// в активной группе стало на 1 агент меньше.
 	if( !m_shutdown_started )
 	{
 		active_group_disp_map_t::iterator it = m_group_disp.find( group_name );

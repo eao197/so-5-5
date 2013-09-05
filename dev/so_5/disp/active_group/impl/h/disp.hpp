@@ -1,10 +1,10 @@
-	/*
+/*
 	SObjectizer 5.
 */
 
 /*!
 	\file
-	\brief Реальный класс диспетчера активных групп.
+	\brief The real class of active group dispatcher
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_GROUP__IMPL__DISP_HPP_ )
@@ -37,7 +37,7 @@ namespace impl {
 //
 
 /*!
-	\brief Диспетчер активных групп.
+	\brief Active group dispatcher.
 */
 class dispatcher_t
 	:
@@ -47,51 +47,58 @@ class dispatcher_t
 		dispatcher_t();
 		virtual ~dispatcher_t();
 
-		//! Реализация методов интерфейса so_5::rt::dispatcher_t.
+		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 
-		//! Запустить диспетчер.
+		//! Launch the dispatcher.
 		virtual ret_code_t
 		start();
 
-		//! Дать сигнал диспетчеру завершить работу.
+		//! Send a signal about shutdown to the dispatcher.
 		virtual void
 		shutdown();
 
-		//! Ожидать полного завершения работы диспетчера
+		//! Wait for the full stop of the dispatcher.
 		virtual void
 		wait();
 
-		//! Поставить запрос на выполнение события агентом.
-		//! Т.е. запланировать вызов события агента.
-		/*! \note Не должен вызываться напрямую у этого диспетчера. */
+		/*!
+		 * \brief Schedule event processing for the agent.
+		 *
+		 * \note Should not be called directly for this dispatcher.
+		 */
 		virtual void
 		put_event_execution_request(
 			const so_5::rt::agent_ref_t &,
 			unsigned int);
 		//! \}
 
-		//! Получить диспетчер активной группы \@ group_name .
-		/*! Если диспетчера для такой активной группы нет,
-			то он создается делается пометка, что на ней будет вращаться
-			1 агент. Если получается, что диспетчер существует, то
-			делается пометка, что им будет пользоваться еще 1 агент.
-		*/
+		/*!
+		 * \brief Get the dispatcher for specified active group.
+		 *
+		 * If name \a group_name is unknown then a new dispatcher
+		 * thread is started. This thread is marked as it has one
+		 * working agent on it.
+		 *
+		 * If there already is a thread for \a group_name then the
+		 * counter of working agents for it is incremented.
+		 */
 		so_5::rt::dispatcher_t &
 		query_disp_for_group( const std::string & group_name );
 
-		//! Отпустить диспетчер для активной группы \@ group_name .
-		/*! Помечает, что на 1 агент меньше теперь пользуется
-			этой активной группой. И, если это оказывается последний
-			агент этой активной группы, то диспетчер для
-			этой активной группы уничтожается.
-		*/
+		/*!
+		 * \brief Release the dispatcher for specified active group.
+		 *
+		 * Decrements working agent count for the thread of
+		 * \a group_name. If there no more working agents left then
+		 * dispatcher and working thread for that group will be
+		 * destroyed.
+		 */
 		void
 		release_disp_for_group( const std::string & group_name );
 
 	private:
-		//! Вспомогательный класс для подсчета агентов
-		//! работающих в активной группе.
+		//! Auxiliary class for working agent counting.
 		struct disp_with_ref_t
 		{
 			disp_with_ref_t()
@@ -111,21 +118,20 @@ class dispatcher_t
 			unsigned int m_user_agent;
 		};
 
-		//! Тип мапа активных групп к их
-		//! диспетчерам с одной рабочей нитью.
+		//! Typedef for mapping from group names to single thread
+		//! dispatcher.
 		typedef std::map<
 				std::string,
 				disp_with_ref_t >
 			active_group_disp_map_t;
 
-		//! Карта диспетчеров созданных под активные группы.
+		//! A map of dispatchers for active groups.
 		active_group_disp_map_t m_group_disp;
 
-		//! Флаг, говорящий о том, что начато завершение
-		//! работы диспетчера.
+		//! Shutdown indication flag.
 		bool m_shutdown_started;
 
-		//! Замок для операций создания и удаления диспетчеров.
+		//! This object lock.
 		ACE_Thread_Mutex m_lock;
 };
 

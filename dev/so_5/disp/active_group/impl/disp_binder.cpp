@@ -41,10 +41,10 @@ disp_binder_t::bind_agent(
 	so_5::rt::dispatcher_ref_t disp_ref =
 		env.query_named_dispatcher( m_disp_name );
 
-	// Если есть такой диспетчер, то будем привязывать агента к нему.
+	// If the dispatcher is found then agent should be bound to it.
 	if( disp_ref.get() )
 	{
-		// Это должен быть именно active_group::impl::dispatcher_t.
+		// It should be active group dispatcher.
 		dispatcher_t * disp = dynamic_cast< dispatcher_t * >( disp_ref.get() );
 
 		if( nullptr == disp )
@@ -88,11 +88,10 @@ disp_binder_t::unbind_agent(
 
 	if( disp_ref.get() )
 	{
-		// Это должен быть именно active_group::impl::dispatcher_t,
-		// иначе бы привязка не удалась бы и unbind_agent не вызывался.
+		// This should be active_group dispatcher because binding
+		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 
-		// Отпускаем диспетчер.
 		disp.release_disp_for_group( m_group_name );
 	}
 }

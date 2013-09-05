@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Интерфейс привязки агента к диспетчеру active_group.
+	\brief Agent to dispatcher binder interface.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_GROUP__IMPL__DISP_BINDER_HPP_ )
@@ -26,7 +26,7 @@ namespace active_group
 namespace impl
 {
 
-//! Привязыватель агента к диспетчеру активных групп.
+//! Agent to dispatcher binder interface.
 class disp_binder_t
 	:
 		public so_5::rt::disp_binder_t
@@ -38,25 +38,23 @@ class disp_binder_t
 
 		virtual ~disp_binder_t();
 
-		//! Сделать привязку агента к диспетчеру.
+		//! Bind agent to dispatcher.
 		virtual void
 		bind_agent(
 			so_5::rt::impl::so_environment_impl_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
-		//! Сделать привязку агента к диспетчеру.
+		//! Unbind agent from dispatcher.
 		virtual void
 		unbind_agent(
-			//! Среда so к диспетчеру которой происходит привязка.
 			so_5::rt::impl::so_environment_impl_t & env,
-			//! Агент которого надо привязать к диспетчеру.
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:
-		//! Имя диспетчера к которому должен быть привязан агент.
+		//! Name of dispatcher to be bound to.
 		const std::string m_disp_name;
 
-		//! Имя активной группы, к которой должен присоединиться агент.
+		//! Name of active group to be included in.
 		const std::string m_group_name;
 };
 

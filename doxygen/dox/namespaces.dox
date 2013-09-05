@@ -18,6 +18,27 @@ namespace so_5
 
 	} /* namespace so_5::api */
 
+	/*!
+	 * \brief Event dispatchers.
+	 */
+	namespace disp
+	{
+		/*!
+		 * \brief Active groups dispatcher.
+		 */
+		namespace active_group
+		{
+			/*!
+			 * \brief Active groups dispatcher implemetation details.
+			 */
+			namespace impl
+			{
+			} /* namespace impl */
+
+		} /* namespace active_group */
+
+	} /* namespace disp */
+
 } /* namespace so_5 */
 
 // vim:ft=cpp.doxygen
