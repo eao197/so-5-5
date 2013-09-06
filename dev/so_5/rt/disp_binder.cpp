@@ -35,7 +35,7 @@ namespace /* ananymous */
 // default_disp_binder_t
 //
 
-//! Привязка к диспетчеру по умолчанию.
+//! Default dispatcher binder implementation.
 class default_disp_binder_t
 	:
 		public disp_binder_t
@@ -44,18 +44,14 @@ class default_disp_binder_t
 		default_disp_binder_t();
 		virtual ~default_disp_binder_t();
 
-		//! Сделать привязку агента к диспетчеру.
 		virtual void
 		bind_agent(
 			impl::so_environment_impl_t & env,
 			agent_ref_t & agent_ref );
 
-		//! Сделать привязку агента к диспетчеру.
 		virtual void
 		unbind_agent(
-			//! Среда so к диспетчеру которой происходит привязка.
 			impl::so_environment_impl_t & env,
-			//! Агент которого надо привязать к диспетчеру.
 			agent_ref_t & agent_ref );
 };
 
@@ -95,3 +91,4 @@ create_default_disp_binder()
 } /* namespace rt */
 
 } /* namespace so_5 */
+

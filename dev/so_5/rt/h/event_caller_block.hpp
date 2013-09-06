@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс, который представляет массив вызывателей сообщения.
+	\brief Wrapper around a bunch of event callers definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_CALLER_BLOCK_HPP_ )
@@ -30,10 +30,10 @@ namespace rt
 // event_caller_block_t
 //
 
-//! Тип для массива вызывателей.
+//! Typedef for event_handler_caller_ref container.
 typedef std::vector< event_handler_caller_ref_t > evt_caller_array_t;
 
-//! Класс - пачка вызывателей.
+//! Wrapper around a bunch of event callers.
 class SO_5_TYPE event_caller_block_t
 	:
 		private atomic_refcounted_t
@@ -47,36 +47,33 @@ class SO_5_TYPE event_caller_block_t
 
 		~event_caller_block_t();
 
-		//! Вызвать обработчик.
-		inline void
+		//! Call every handler for a message.
+		void
 		call(
-			//! Сообщение.
 			message_ref_t & message_ref ) const;
 
-		//! Удалить вызывателя
+		//! Erase caller.
 		void
 		erase( const event_handler_caller_ref_t & ehc_ref );
 
-		//! Удалить вызывателя
+		//! Add caller.
 		void
 		insert( const event_handler_caller_ref_t & ehc_ref );
 
-		//! Проверить есть ли такой вызыватель?
+		//! Is this caller already added.
 		bool
 		has( const event_handler_caller_ref_t & ehc_ref ) const;
 
-		//! Найти заданный вызыватель, который в данный моментесть.
-		//! Если есть вызыватель для заданного сообщения
-		//! в заданном состоянии.
+		//! Search for the caller.
 		const event_handler_caller_t *
 		find( const event_handler_caller_ref_t & ehc_ref ) const;
 
-		//! Есть ли вызыватели вообще.
+		//! Is this bunch empty.
 		bool
 		is_empty() const;
 
 	private:
-		//! Массив вызывателей.
+		//! Bunch of callers.
 		evt_caller_array_t m_callers_array;
 };
 
@@ -97,3 +94,4 @@ event_caller_block_t::call(
 } /* namespace so_5 */
 
 #endif
+

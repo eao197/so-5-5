@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief —сылка на event_caller_block_t.
+	\brief Smart reference to event_caller_block definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_CALLER_BLOCK_REF_HPP_ )
@@ -24,7 +24,7 @@ class event_caller_block_t;
 // event_caller_block_ref_t
 //
 
-//!  ласс ссылка на event_caller_block_ref_t.
+//! Smart reference to event_caller_block.
 class SO_5_TYPE event_caller_block_ref_t
 {
 	public:
@@ -63,16 +63,18 @@ class SO_5_TYPE event_caller_block_ref_t
 		release();
 
 	private:
-		//! ”меньшить количество ссылок на event_caller_block
-		//! и в случае необходимости удалить его.
+		//! Decrement reference count.
+		/*!
+		 * Deletes event_caller_block if reference counter became 0.
+		 */
 		void
 		dec_event_caller_block_ref_count();
 
-		//! ”величить количество ссылок на event_caller_block.
+		//! Increment reference count.
 		void
 		inc_event_caller_block_ref_count();
 
-		//! ”казатель на event_caller_block.
+		//! Event caller block.
 		event_caller_block_t * m_event_caller_block_ptr;
 };
 
@@ -81,3 +83,4 @@ class SO_5_TYPE event_caller_block_ref_t
 } /* namespace so_5 */
 
 #endif
+

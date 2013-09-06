@@ -114,3 +114,4 @@ event_caller_block_ref_t::inc_event_caller_block_ref_count()
 } /* namespace rt */
 
 } /* namespace so_5 */
+
