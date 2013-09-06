@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Инерфейс слущателя коопераций.
+	\brief Interface for cooperation listener definition.
 */
 
 #if !defined( _SO_5__RT__COOP_LISTENER_HPP_ )
@@ -27,45 +27,44 @@ class so_environment_t;
 // coop_listener_t
 //
 
-//! Слушатель действий происходящих с кооперациями.
+//! Interface for cooperation listener.
 /*!
-	Служит для обработки случаев регистрации
-	и дерегистрации коопераций.
-
-	Вызовы обработчиков не синхронизируются,
-	и могут происходить с разных нитей. Поэтому в случае
-	необходимости синхронизации о ней должен позаботиться
-	прикладной программист.
-*/
+ * Cooperation listener intended for observation moments of
+ * cooperation registrations and deregistrations.
+ *
+ * \attention SObjectizer doesn't synchronize calls to
+ * on_registered() and on_deregistered(). If this is a problem
+ * then programmer should take care about object's thread safety.
+ */
 class SO_5_TYPE coop_listener_t
 {
 	public:
 		virtual ~coop_listener_t();
 
-		//! Метод обработки регистрации кооперации.
+		//! Hook for cooperation registration event.
 		/*!
-			Вызывается после того, как кооперация успешно зарегистрирована.
-		*/
+		 * Called right after cooperation successfully registered.
+		 */
 		virtual void
 		on_registered(
-			//! Среда Sobjectizer.
+			//! SObjectizer Environment.
 			so_environment_t & so_env,
-			//! Имя зарегистрированной кооперации.
-			const std::string & coop_name ) throw() = 0;
+			//! Cooperation which was registered.
+			const std::string & coop_name ) = 0;
 
-		//! Метод обработки дерегистрации кооперации.
+		//! Hook for cooperation deregistration event.
 		/*!
-			Вызывается после того, как кооперация окончательно дерегистрирована.
-		*/
+		 * Called right after cooperation fully deregistered.
+		 */
 		virtual void
 		on_deregistered(
-			//! Среда Sobjectizer.
+			//! SObjectizer Environment.
 			so_environment_t & so_env,
-			//! Имя дерегистрированной кооперации.
-			const std::string & coop_name ) throw() = 0;
+			//! Cooperation which was registered.
+			const std::string & coop_name ) = 0;
 };
 
-//! Псевдоним unique_ptr для coop_listener_t.
+//! Typedef for coop_listener autopointer.
 typedef std::unique_ptr< coop_listener_t > coop_listener_unique_ptr_t;
 
 } /* namespace rt */

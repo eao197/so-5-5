@@ -22,6 +22,7 @@ disp_evt_except_handler_t::~disp_evt_except_handler_t()
 //
 
 dispatcher_t::dispatcher_t()
+	:	m_disp_evt_except_handler( nullptr )
 {
 }
 

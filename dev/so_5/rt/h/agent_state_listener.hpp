@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Ѕазовый класс слушател€ состо€ний агента.
+	\brief Agent state listener definition.
 */
 
 #if !defined( _SO_5__RT__AGENT_STATE_LISTENER_HPP_ )
@@ -29,20 +29,21 @@ class state_t;
 // agent_state_listener_t
 //
 
-//!	Ѕазовый класс "слушателей" состо€ни€ агента.
+//! Interface of agent state listener.
 /*!
-	¬ некоторых случа€х нужно определ€ть моменты смены состо€ни€
-	агента. Ќапример, при создании средств мониторинга приложени€.
-	ƒл€ этих случаев предназначены "слушатели" состо€ни€ агента.
-
-	јгенту может быть назначено любое количество "слушателей".
-	јгент, после успешной смены своего состо€ни€, в методе so_change_state()
-	вызовет у каждого из них метод changed().
-
-	\note ¬ажно, при реализации слушател€ избегать рекурсии,
-	когда слушатель напр€мую и опосредованно может приводить
-	к смене заданным агентом его состо€ни€.
-*/
+ * This interface intended for cases where agent state switches
+ * should be observed or monitored. A "state listener" is an object
+ * which could be attached to an agent and the agent will inform
+ * listener about state changes. Such state listeners should implement
+ * this interface.
+ *
+ * A non-limited counte of state listeners could be attached to an agent.
+ * For each of them agent will call changed() method inside
+ * so_5::rt::agent_t::so_change_state().
+ *
+ * \attention It is important not to change agent state inside changed().
+ * Because this could lead to infinite recursion.
+ */
 class SO_5_TYPE agent_state_listener_t
 	:
 		private cpp_util_2::nocopy_t
@@ -50,20 +51,23 @@ class SO_5_TYPE agent_state_listener_t
 	public:
 		virtual ~agent_state_listener_t();
 
-		//! ¬ызываетс€ после успешной смены состо€ни€ агента.
+		//! Hook method for state changes.
+		/*!
+		 * Agent calls this method after successful change of state.
+		 */
 		virtual void
 		changed(
-			//! јгент, чье состо€ние изменилось.
+			//! Agent which state has been changed.
 			agent_t & agent,
-			//! “екущее состо€ни€ агента.
+			//! New agent state.
 			const state_t & state ) = 0;
 };
 
-//! ”мный указатель на слушател€
+//! Typedef for agent_state_listener autopointer.
 typedef std::unique_ptr< agent_state_listener_t >
 	agent_state_listener_unique_ptr_t;
 
-//! ”мна€ ссылка на agent_state_listener_t.
+//! Typedef for agent_state_listener smart pointer.
 typedef std::shared_ptr< agent_state_listener_t >
 	agent_state_listener_ref_t;
 
@@ -72,3 +76,4 @@ typedef std::shared_ptr< agent_state_listener_t >
 } /* namespace so_5 */
 
 #endif
+

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Базовый класс объекта с подсчетом ссылок.
+	\brief Base class for object with reference counting definition.
 */
 
 #if !defined( _SO_5__RT__ATOMIC_REFCOUNTED_HPP_ )
@@ -19,38 +19,45 @@ namespace so_5
 namespace rt
 {
 
-//! Базовый класс с механизмом подсчета ссылок себя.
+//! Base class for object with reference counting.
 /*!
-	Служит для организации умных ссылок на наследников.
+ * Should be used as base class. Smart reference for such objects
+ * should be defined for derived classes (for example so_5::rt::agent_ref_t).
 */
 class SO_5_TYPE atomic_refcounted_t
 {
-		//! Запрещаем конструктор копирования.
+		/*! Disabled. */
 		atomic_refcounted_t(
 			const atomic_refcounted_t & );
 
-		//! Запрещаем оператор присваивания.
+		/*! Disabled. */
 		atomic_refcounted_t &
 		operator = (
 			const atomic_refcounted_t & );
 
 	public:
-		//! Конструктор по умолчанию.
-		//! Устанавливает количество ссылок в 0.
+		//! Default constructor
+		/*!
+		 * Sets reference counter to 0.
+		 */
 		atomic_refcounted_t();
 
-		virtual ~atomic_refcounted_t();
+		//! Destructor.
+		/*!
+		 * Do nothing.
+		 */
+		~atomic_refcounted_t();
 
-		//! Увеличить количество ссылок.
+		//! Increment reference count.
 		inline void
 		inc_ref_count()
 		{
 			++m_ref_counter;
 		}
 
-		//! Уменьшить количество ссылок.
+		//! Decrement reference count.
 		/*!
-			количество ссылок на объект ПОСЛЕ декркмента.
+		 * \return Value of reference counter *after* decrement.
 		*/
 		inline unsigned long
 		dec_ref_count()
@@ -59,7 +66,7 @@ class SO_5_TYPE atomic_refcounted_t
 		}
 
 	private:
-		//! Счетчик ссылок на объект.
+		//! Object reference count.
 		atomic_counter_t m_ref_counter;
 };
 
@@ -68,3 +75,4 @@ class SO_5_TYPE atomic_refcounted_t
 } /* namespace so_5 */
 
 #endif
+

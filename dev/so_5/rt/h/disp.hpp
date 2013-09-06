@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Интерфейс диспетчера - dispatcher_t.
+	\brief Interface for dispatcher definition.
 */
 
 #if !defined( _SO_5__RT__DISP_HPP_ )
@@ -30,18 +30,18 @@ namespace rt
 // disp_evt_except_handler_t
 //
 
-//! Обработчик исключений событий агентов на данном диспетчере.
+//! Interface for exception handler for dispatcher.
 class SO_5_TYPE disp_evt_except_handler_t
 {
 	public:
 		virtual ~disp_evt_except_handler_t();
 
-		//! Обработать исключение.
+		//! Handle exception.
 		virtual event_exception_response_action_unique_ptr_t
 		handle_exception(
-			//! Ссылка на экземпляр возникшего исключения.
+			//! Exception which was caught.
 			const std::exception & event_exception,
-			//! Имя кооперации, которой принадлежит агент.
+			//! Cooperation name for agent who threw the exception.
 			const std::string & coop_name ) = 0;
 };
 
@@ -49,91 +49,92 @@ class SO_5_TYPE disp_evt_except_handler_t
 // dispatcher_t
 //
 
-//! Абстрактный базовый класс для всех диспетчеров.
+//! An interface for all dispatchers.
 /*!
-	Диспетчеры отвечают за вызов событий агентов.
-
-	Когда регистрируется кооперация агентов, каждый агент
-	кооперации привязывается через привязыватель dispatcher_binder_t
-	к совему диспетчеру.
-
-	Когда агентам через mbox отправляетя сообщения, на которое те подписаны,
-	оно обращается к методам агента, которые в свою очередь кладут
-	необходисые для выполнения обрабочика данные к себе в локальную очередь,
-	а затем обращаются к своему диспетчеру, чтобы тот поставил запрос
-	на выполнение заявок и исполнил его, как только сможет.
-	Т.е. диспетчерам говорится, что есть необходимость выполнять события,
-	а те в свою очередь инициируют их выполнение на рабочей нити (нитях).
-*/
+ * Dispatcher schedules and calls agents' events.
+ *
+ * Each agent is binded to dispatcher during registration.
+ * A dispatcher_binder_t object is used for that.
+ *
+ * Each agent stores its events in own event queue. When event is
+ * stored in queue agent informs its dispatcher about it. Dispatcher
+ * should schedule agent for event execution on agent's working thread
+ * context.
+ */
 class SO_5_TYPE dispatcher_t
 {
 	public:
+		/*! Do nothing. */
 		dispatcher_t();
+		/*! Do nothing. */
 		virtual ~dispatcher_t();
 
+		/*! Auxiliary method. */
 		inline dispatcher_t *
 		self_ptr()
 		{
 			return this;
 		}
 
-		//! Запустить диспетчер.
+		//! Launch dispatcher.
 		/*!
-			\return 0, если диспетчер успешно запущен,
-			и rc_disp_start_failed если запустить диспетчер
-			не удалось.
-		*/
+		 * \return 0 If dispatcher started successfully. Not-null value
+		 * indicates that dispatcher cannot be started.
+		 */
 		virtual ret_code_t
 		start() = 0;
 
-		//! Дать сигнал диспетчеру завершить работу.
+		//! Signal about shutdown.
 		/*!
-			Должен только устанавливаться признак необходимости
-			завершения работы диспетчера. Метод shutdown не
-			обязан дожидаться завершения работы.
-		*/
+		 * Dispatcher should initiate actions for shutting down all
+		 * working threads. This method should not block caller until
+		 * all threads have beed stopped.
+		 */
 		virtual void
 		shutdown() = 0;
 
-		//! Ожидать полного завершения работы диспетчера.
+		//! Wait for full stop of dispatcher.
 		/*!
-			Возврат из этого метода должен осуществляться только
-			когда работа диспетчера полностью завершена.
-		*/
+		 * This method should block caller until all working thread
+		 * have been stopped.
+		 */
 		virtual void
 		wait() = 0;
 
-		//! Поставить запрос на выполнение события агентом.
-		//! Т.е. запланировать вызов события агента.
+		//! Schedule execution of agent events.
 		virtual void
 		put_event_execution_request(
-			//! Агент событие которого надо запланировать.
+			//! Agent which events should be executed.
 			const agent_ref_t & agent_ref,
-			//! Количество событий,
-			//! которые должны произайти у этого агента.
+			//! Count of events for that agent.
 			unsigned int event_count ) = 0;
 
-		//! Установить новый disp_evt_except_handler.
+		//! Set exception handler.
+		/*!
+		 * Caller should take care about 
+		 * \a disp_evt_except_handler life-time.
+		 */
 		void
 		set_disp_event_exception_handler(
 			disp_evt_except_handler_t & disp_evt_except_handler );
 
+		//! Access to current exception handler.
 		disp_evt_except_handler_t &
 		query_disp_evt_except_handler();
 
 	private:
-		//! Обработчик исключений событий агентов на данном диспетчере.
+		//! Exception handler for the dispatcher.
 		disp_evt_except_handler_t * m_disp_evt_except_handler;
 };
 
-//! Тип для умного указателя на dispatcher_t.
+//! Typedef for dispatcher autopointer.
 typedef std::unique_ptr< dispatcher_t > dispatcher_unique_ptr_t;
 
-//! Тип для умного указателя на dispatcher_t.
+//! Typedef for dispatcher smart pointer.
 typedef std::shared_ptr< dispatcher_t >
 	dispatcher_ref_t;
 
-//! Тип карты для хранения именованных диспетчеров.
+//! Typedef for map from dispatcher name to dispather.
 typedef std::map<
 		std::string,
 		dispatcher_ref_t >
@@ -144,3 +145,4 @@ typedef std::map<
 } /* namespace so_5 */
 
 #endif
+

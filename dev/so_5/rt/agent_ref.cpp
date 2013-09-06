@@ -47,6 +47,19 @@ agent_ref_t::operator = ( const agent_ref_t & agent_ref )
 	return *this;
 }
 
+agent_ref_t &
+agent_ref_t::operator = ( agent_ref_t && o )
+{
+	if( &o != this )
+	{
+		dec_agent_ref_count();
+
+		m_agent_ptr = o.release_pointer();
+	}
+
+	return *this;
+}
+
 agent_ref_t::~agent_ref_t()
 {
 	dec_agent_ref_count();
