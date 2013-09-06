@@ -85,6 +85,20 @@ namespace so_5
 	} /* namespace disp */
 
 	/*!
+	 * \brief All code related to implementation of SObjectizer run-time.
+	 */
+	namespace rt
+	{
+		/*!
+		 * Details of SObjectizer run-time implementations.
+		 */
+		namespace impl
+		{
+		} /* namespace impl */
+
+	} /* namespace rt */
+
+	/*!
 	 * \brief All details related to timers and timer events.
 	 */
 	namespace timer_thread

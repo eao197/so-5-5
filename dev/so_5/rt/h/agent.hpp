@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Базовый класс для агентов.
+	\brief A base class for agents.
 */
 
 #if !defined( _SO_5__RT__AGENT_HPP_ )
@@ -36,7 +36,7 @@ namespace rt
 namespace impl
 {
 
-// Объявления необходимые для работы агента.
+// Forward declarations.
 class local_event_queue_t;
 class message_consumer_link_t;
 class so_environment_impl_t;
@@ -52,96 +52,93 @@ class agent_coop_t;
 // agent_t
 //
 
-//! Базовый класс агентов.
+//! A base class for agents.
 /*!
-	Либой агент в SObjectizer-е должен быть производным
-	от agent_t.
+	An agent in SObjctizer should be derived from agent_t.
 
-	Базовый класс агента предоставляет различные методы, которые можно выделить
-	в следующие основные группы:
-	\li методы для взаимодействия с SObjectizer;
-	\li предопределенные хук-методы, вызываемые в процессе регистрации кооперации,
-	начала и завершения работы агента;
-	\li методы подписки на сообщения и отмены подписок;
-	\li методы работы с состояниями агента.
+	The base class provides various methods whose could be splitted into
+	the following groups:
+	\li methods for interaction with SObjectizer;
+	\li predefined hook-methods which are called during: cooperation
+	registration, starting and stopping of agent;
+	\li methods for message subscription and unsubscription;
+	\li methods for working with agent state;
 
-	<b>Методы для взаимодействия с SObjectizer.</b>
+	<b>Methods for interaction with SObjectizer</b>
 
-	Метод so_5::rt::agent_t::so_environment() служит для получения доступа к
-	SObjectizer Environment, а следовательно и ко всем методам
-	SObjectizer Environment.
-	Обращаться к методу можно сразу после создания агента,
-	потому что агент привязывается к SObjectizer Environment
-	в конструкторе базового класса so_5::rt::agent_t.
+	Method so_5::rt::agent_t::so_environment() serves for access to
+	SObjectizer Environment (and, therefore, to all methods of
+	SObjectizer Environment).
+	This method could be called immediatelly after agent creation.
+	This is because agent is bound to SObjectizer Environment during
+	creation process.
 
-	<b>Хук-методы.</b>
+	<b>Hook methods</b>
 
-	В базовом классе агента определены хук-методы для
-	обработки различных ситуаций, которые по умолчанию ничего не делают.
+	Base class defines several hook-methods. Its default implementation
+	do nothing.
 
-	Метод определения агента -- agent_t::so_define_agent(),
-	который вызывается до того как агент начнет работать в SO,
-	т.е. до того, как начнется его работа на рабочей нити.
-	Вызов этого метода осуществляется в процессе
-	регистрации агента. Служит для начальной подписки агента на сообщения.
+	Method agent_t::so_define_agent() is called just before agent will
+	started by SObjectizer as a part of agent registration process.
+	It should be reimplemented for initial subscription of agent
+	to messages.
 
-	Во время жизненного цикла агента можно выделить два события: начала работы
-	агента (когда кооперация успешно зарегистрирована и все агенты привязаны
-	к диспетчерам) и завершения работы агента, когда кооперация
-	дерегистрируется и агент завершил обработку последней заявки
-	на обработку сообщения. Для обработки начала работы агента и завершения
-	работы агента служат следующие хук-методы:
-	agent_t::so_evt_start() и agent_t::so_evt_finish().
-	О вызове этих методов заботится SObjectizer,
-	а пользователю остается только определить логику работы этих методов.
+	There are two hook-methods related to important agent's life-time events:
+	agent_t::so_evt_start() and agent_t::so_evt_finish(). They are called
+	by SObjectizer in next circumstances:
+	- method so_evt_start() is called when agent is starting its work
+	  inside SObjectizer. At that moment the agent cooperation is
+	  successfully registered and all agent are bound to their working
+	  threads;
+	- method so_evt_finish() is called during the agent's cooperation
+	  deregistration just after agent processed the last pending event.
 
-	<b>Методы подписки на сообщения и отмены подписок.</b>
+	Methods so_evt_start() and so_evt_finish() are called by SObjectizer and
+	user can just reimplement them to implement agent-specific logic.
 
-	Механизм обработчиков сообщений строится на понятиях сообщения, mbox-а
-	(ящик сообщений), обработчика сообщения (метода агента с особой сигнатурой)
-	и на понятии состояния агента.
+	<b>Message subscription and unsubscription methods</b>
 
-	Обработчиком сообщения может считаться любой метод агента с сигнатурой
-	аналогичной следующей:
+	Any method with the following prototype can be used as event
+	handler:
 	\code
 		void
 		evt_handler(
 			const so_5::rt::event_data_t< MESSAGE > & msg );
 	\endcode
-	Где \c evt_handler — имя обработчика события, а \c MESSAGE — тип сообщения.
+	Where \c evt_handler is a name of event handler, \c MESSAGE is a message
+	type.
 
-	Класс so_5::rt::event_data_t является оберткой над указателем
-	на объект типа \c MESSAGE, который предоставляет доступ к объекту
-	аналогично <tt>std::unique_ptr</tt>. Причем самого объекта
-	может и не существовать, когда отправитель сообщения не имеет
-	намерения отправлять в сообщении никакой дополнительной информации,
-	кроме типа сообщения, в таком случае сообщение представляет собой
-	сигнал определенного типа и ничего более.
+	Class so_5::rt::event_data_t is a wrapper on pointer to an instance of \c
+	MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. The pointer to \c
+	MESSAGE could be nullptr. It happens in case when message has no actual data
+	and servers just a signal about something.
 
-	Подписка агента на сообщения осуществляется с помощью метода
-	so_5::rt::agent_t::so_subscribe().
-	В результате создается объект класса
-	so_5::rt::subscription_bind_t, который уже
-	знает агента подписчика и mbox, к которому происходит подписка,
-	а также в качестве состояния подписки выбрано
-	состояние агента по умолчанию.
+	Subscription to a message is performed by method so_subscribe().
+	This method returns an instance of so_5::rt::subscription_bind_t which
+	does all actual actions of subscription process. That instance already
+	knowns agents and message mbox and uses default agent state for
+	the event subscription (binding to different state is also possible). 
 
-	<b>Методы работы с состояниями агента</b>
+	<b>Methods for working with agent state</b>
 
-	Для смены состояния агента служит метод
-	so_5::rt::agent_t::so_change_state().
-	Ошибка, при смене состояния, может возникнуть только тогда,
-	когда производится попытка перевести агента в состояние,
-	которым он не владеет. В некоторых случаях нужно определять моменты
-	смены состояния агента.
-	Например, при создании средств мониторинга приложения.
-	Для этих случаев предназначены "слушатели"состояния агента.
-	Агенту может быть назначено любое количество "слушателей".
-	Для добавления слушателя, владение которым контролирует прикладной
-	программист, служит метод
-	so_5::rt::agent_t::so_add_nondestroyable_listener().
-	Для добавления слушателя, владение которым передается агенту,
-	служит метод so_5::rt::sgent_t::so_add_destroyable_listener().
+	Agent can change its state by so_change_state() method.
+
+	An attempt to switch agent to the state which belongs to different
+	agent is an error. If state is belong to the same agent there are
+	no possibility to any run-time errors. In this case changing agent
+	state is very safe operation.
+
+	In some cases it is necessary to detect agent state switching.
+	For example for application monitoring purposes. That could be done
+	by "state listeners".
+
+	Any count of state listeners could be set for an agent. There are
+	two methods for that:
+	- so_add_nondestroyable_listener() is for listeners whose life-time
+	  are controlled by programmer, not by SObjectizer;
+	- so_add_destroyable_listener() is for listeners whose life-time
+	  should be controlled by SObjectizer. For those listeners agent tooks
+	  care about their deleting.
 */
 class SO_5_TYPE agent_t
 	:
@@ -153,552 +150,558 @@ class SO_5_TYPE agent_t
 		friend class agent_coop_t;
 
 	public:
-		//! Конструктор агента.
+		//! Constructor.
 		/*!
-			При создании объекта-агента, он в обязательном
-			порядке должен быть привязан к SObjectizer Environment,
-			и эта привязка не может быть изменена в дальнейшем.
+			Agent should be bound to SObjectizer Environment during
+			its creation. And that binding cannot be changed anymore.
 		*/
 		explicit agent_t(
-			//! Среда SO, для которой создается агент.
+			//! The Environment for that agent is created.
 			so_environment_t & env );
 
 		virtual ~agent_t();
 
-		//! Получить указатель на себя.
+		//! Get raw pointer to itself.
 		/*!
-			Для того, чтобы избежать многословных предупреждений
-			от компилятора, когда в списке инициализации
-			требуется испобльзовать this. Например, при инициализации
-			состояний агента.
+			This method is intended for use in member initialization
+			list instead 'this' to suppres compiler warnings.
+			For example for agent state initialization:
 			\code
-				class a_sample_t
-					:
-						public so_5::rt::agent_t
-				{
-						typedef so_5::rt::agent_t base_type_t;
+			class a_sample_t
+				:
+					public so_5::rt::agent_t
+			{
+					typedef so_5::rt::agent_t base_type_t;
 
-						// Состояние агента.
-						const so_5::rt::state_t m_sample_state;
-					public:
-						a_sample_t( so_5::rt::so_environment_t & env )
-							:
-								base_type_t( env ),
-								m_sample_state( self_ptr() )
-						{
-							// ...
-						}
+					// Agent state.
+					const so_5::rt::state_t m_sample_state;
+				public:
+					a_sample_t( so_5::rt::so_environment_t & env )
+						:
+							base_type_t( env ),
+							m_sample_state( self_ptr() )
+					{
+						// ...
+					}
 
-					// ...
+				// ...
 
-				};
+			};
 			\endcode
 		*/
 		const agent_t *
 		self_ptr() const;
 
-		//! Начальное событие агента.
-		/*! Т.е. то событие, которое гарантировано
-			будет вызвано первым, в тот момент когда,
-			агент будет привязан к диспетчеру.
+		//! Hook on agent start inside SObjectizer.
+		/*!
+			It is guaranteed that this method will be called first
+			just after end of cooperation registration process.
 
-			Метод играет роль своеобразного конструктора,
-			в контексте SObjectizer, когда сначала конструируется
-			сам объект агента, затем он привязывается к своему диспетчеру
-			и начинает работу на нити диспетчера с вызова \с so_evt_start().
+			During cooperation registration agent is bound to some
+			working thread. And the first method which is called for
+			the agent on that working thread context is that method.
 
 			\code
-				class a_sample_t
-					:
-						public so_5::rt::agent_t
-				{
-					// ...
-					virtual void
-					so_evt_start();
-					// ...
-				};
+			class a_sample_t
+				:
+					public so_5::rt::agent_t
+			{
+				// ...
+				virtual void
+				so_evt_start();
+				// ...
+			};
 
-				a_sample_t::so_evt_start()
-				{
-					std::cout << "first agent action on binded"
-						" dispatcher" << std::endl;
-
-					// Отправить инициирующие сообщение.
-					m_mbox->deliver_message( ... );
-				}
+			a_sample_t::so_evt_start()
+			{
+				std::cout << "first agent action on bound dispatcher" << std::endl;
+				... // Some application logic actions.
+			}
 			\endcode
 		*/
 		virtual void
 		so_evt_start();
 
-		//! Завершающее событие агента.
+		//! Hook of agent finish in SObjectizer.
 		/*!
-			Т.е. то событие, которое гарантировано
-			будет вызвано последним, до того момента, как
-			агент будет отвязан к диспетчеру.
+			It is guaranteed that this method will be called last
+			just before deattaching agent from it's working thread.
 
-			Метод играет роль своеобразного деструктора,
-			в контексте SObjectizer, когда агент может выполнить
-			какие-то действия на своей нити, еще до того, как
-			будет вызван деструктор агента.
-
+			This method could be used to perform some cleanup
+			actions on it's working thread.
 			\code
-				class a_sample_t
-					:
-						public so_5::rt::agent_t
-				{
-					// ...
-					virtual void
-					so_evt_finish();
-					// ...
-				};
+			class a_sample_t
+				:
+					public so_5::rt::agent_t
+			{
+				// ...
+				virtual void
+				so_evt_finish();
+				// ...
+			};
 
-				a_sample_t::so_evt_finish()
-				{
-					std::cout << "last agent activity";
+			a_sample_t::so_evt_finish()
+			{
+				std::cout << "last agent activity";
 
-					if( so_current_state() == m_db_error_happened )
-					{
-						// Уничтожаем подключение к БД
-						// в том же потоке в котором работали и
-						// в котором произошла ошибка
-						m_db.release();
-					}
+				if( so_current_state() == m_db_error_happened )
+				{
+					// Delete DB connection on the same thread where
+					// connection was established and where some
+					// error happened.
+					m_db.release();
 				}
+			}
 			\endcode
 		*/
 		virtual void
 		so_evt_finish();
 
-		//! Получить ссылку на текущее состояние.
+		//! Access to the current agent state.
 		inline const state_t &
 		so_current_state() const
 		{
 			return *m_current_state_ptr;
 		}
 
-		//! Имя кооперации, к которой принадлежит агент.
+		//! Name of agent's cooperation.
 		/*!
-			\return Если агент принадлежит какой-либо кооперации,
-			то вернет имя кооперации. Если же агент не является
-			членом какой-либо кооперации, то выбросывается исключение.
-		*/
+		 * \note It is safe to use this method when agent is working inside
+		 * SObjectizer because agent could be registered only in some
+		 * cooperation. When agent is not registered in SObjectizer this
+		 * method should be used with care.
+		 *
+		 * \throw so_5::exception_t If agent doesn't belong to any cooperation.
+		 *
+		 * \return Name of cooperation if agent is bound to a cooperation.
+		 */
 		const std::string &
 		so_coop_name() const;
 
-		//! Добавить агенту слушателя,
-		//! время жизни которого агент не контролирует.
+		//! Add state listener to agent.
+		/*!
+		 * A programmer should guaranteed that life-time of
+		 * \a state_listener is exceed life-time of the agent.
+		 */
 		void
 		so_add_nondestroyable_listener(
 			agent_state_listener_t & state_listener );
 
-		//! Добавить агенту слушателся,
-		//! владение которым передается агенту.
+		//! Add state listener to agent.
+		/*!
+		 * Agent tooks care of destruction of \a state_listener.
+		 */
 		void
 		so_add_destroyable_listener(
 			agent_state_listener_unique_ptr_t state_listener );
 
-		//! Поставить в очередь событие для выполнения агентом.
+		//! Push an event to agent's event queue.
 		/*!
-			Метод который используется для планирования событий агента.
+			This method is used by SObjectizer for agent's event scheduling.
 		*/
 		static inline void
 		call_push_event(
 			agent_t & agent,
-			//! Вызыватель обработичика.
 			const event_caller_block_ref_t & event_handler_caller,
-			//! Экземпляр сообщения, которое будет параметром
-			//! обработчика событие, которое должен будет выполнить агент.
 			const message_ref_t & message )
 		{
 			agent.push_event( event_handler_caller, message );
 		}
 
-		//! Инициировать выполнение очередного события.
+		//! Run event handler for next event.
 		/*!
-			Метод который используется диспетчерами (рабочими нитями),
-			для выполнения событий агента.
+			This method is used by dispatcher/working thread for
+			event handler execution.
 		*/
 		static inline void
 		call_next_event(
-			//! Агент, у которого в очереди есть события,
-			//! и очередное событие которого надо выполнить.
+			//! Agents which events should be executed.
 			agent_t & agent )
 		{
 			agent.exec_next_event();
 		}
 
-		//! Привязать агента к диспетчеру.
+		//! Bind agent to the dispatcher.
 		static inline void
 		call_bind_to_disp(
-			//! Агент.
 			agent_t & agent,
-			//! Диспетчер.
 			dispatcher_t & disp )
 		{
 			agent.bind_to_disp( disp );
 		}
 
 	protected:
-		//! Работа с состояниями.
-		//! \{
+		/*!
+		 * \name Methods for working with agent state.
+		 * \{
+		 */
 
-		//! Получить ссылку на состояние по умолчанию.
+		//! Access to the agent's default state.
 		const state_t &
 		so_default_state() const;
 
-		//! Сменить состояние.
+		//! Change state.
 		/*!
+			Usage sample:
 			\code
-				void
-				a_sample_t::evt_smth(
-					const so_5::rt::event_data_t< message_one_t > & msg )
-				{
-					// Если с сообщение что-то не так, то
-					// переходим в сотояние "ошибка".
-					if( error_in_data( *msg ) )
-						so_change_state( m_error_state );
-				}
+			void
+			a_sample_t::evt_smth(
+				const so_5::rt::event_data_t< message_one_t > & msg )
+			{
+				// If something wrong with message then we should
+				// switch to error_state.
+				if( error_in_data( *msg ) )
+					so_change_state( m_error_state );
+			}
 			\endcode
 		*/
 		ret_code_t
 		so_change_state(
-			//! Новое состояние агента.
+			//! New agent state.
 			const state_t & new_state,
-			//! Флаг - бросать ли исключение в случае ошибки.
-			throwing_strategy_t throwing_strategy =
-				THROW_ON_ERROR );
-		//! \}
-
-		//! Подписка и отписка от сообщения.
-		//! \{
-
-		//! Создать объект для выполнения подписки.
+			//! Exception strategy.
+			throwing_strategy_t throwing_strategy = THROW_ON_ERROR );
 		/*!
+		 * \}
+		 */
+
+		/*!
+		 * \name Subscription and unsubscription methods.
+		 * \{
+		 */
+
+		//! Initiate subscription.
+		/*!
+			Usage sample:
 			\code
-				void
-				a_sample_t::so_define_agent()
-				{
-					// Подписаться на сообщения.
-					so_subscribe( m_mbox_target )
-						.in( m_state_one )
-							.event( &a_sample_t::evt_sample_handler );
-				}
+			void
+			a_sample_t::so_define_agent()
+			{
+				so_subscribe( m_mbox_target )
+					.in( m_state_one )
+						.event( &a_sample_t::evt_sample_handler );
+			}
 			\endcode
 		*/
 		subscription_bind_t
 		so_subscribe(
-			//! Mbox на сообщение которого подписывать.
+			//! Mbox for messages to subscribe.
 			const mbox_ref_t & mbox_ref );
 
-		//! Создать объект для изьятия подписки.
+		//! Initiate unsubscription.
 		/*!
+			Usage sample:
 			\code
-				void
-				a_sample_t::evt_smth(
-					const so_5::rt::event_data_t< message_one_t > & msg )
-				{
-					// Отписаться от сообщения.
-					so_unsubscribe( m_mbox_target )
-						.in( m_state_one )
-							.event( &a_sample_t::evt_sample_handler );
-				}
+			void
+			a_sample_t::evt_smth(
+				const so_5::rt::event_data_t< message_one_t > & msg )
+			{
+				so_unsubscribe( m_mbox_target )
+					.in( m_state_one )
+						.event( &a_sample_t::evt_sample_handler );
+			}
 			\endcode
 		*/
 		subscription_unbind_t
 		so_unsubscribe(
-			//! mbox от сообщений которого отписывать.
+			//! Mbox for messages to unsubscribe.
 			const mbox_ref_t & mbox_ref );
-		//! \}
-
-		//! Первоначальная инициализация агента.
-		//! \{
-
-		//! Метод определения агента.
 		/*!
-			Метод, который вызывается до того как
-			агент начнет работать в SO, т.е. до того
-			как начнется его работа на рабочей нити.
+		 * \}
+		 */
+
+		/*!
+		 * \name Agent initialization methods.
+		 * \{
+		 */
+
+		//! Hook on define agent for SObjectizer.
+		/*!
+			This method is called by SObjectizer during cooperation
+			registration process before agent will be bound to its
+			working thread.
+
+			May be used by agent to make necessary message subscriptions.
+
+			Usage sample;
 			\code
-				class a_sample_t
-					:
-						public so_5::rt::agent_t
-				{
-					// ...
-					virtual void
-					so_define_agent();
-
-					void
-					evt_handler_1(
-						const so_5::rt::event_data_t< message1_t > & msg );
-					// ...
-
-					void
-					evt_handler_N(
-						const so_5::rt::event_data_t< messageN_t > & msg );
-
-				};
+			class a_sample_t
+				:
+					public so_5::rt::agent_t
+			{
+				// ...
+				virtual void
+				so_define_agent();
 
 				void
-				a_sample_t::so_define_agent()
-				{
-					// Подписываемся на сообщения.
-					so_subscribe( m_mbox1 )
-						.in( m_state_1 )
-							.event( &a_sample_t::evt_handler_1 );
-					// ...
-					so_subscribe( m_mboxN )
-						.in( m_state_N )
-							.event( &a_sample_t::evt_handler_N );
-				}
+				evt_handler_1(
+					const so_5::rt::event_data_t< message1_t > & msg );
+				// ...
+				void
+				evt_handler_N(
+					const so_5::rt::event_data_t< messageN_t > & msg );
+
+			};
+
+			void
+			a_sample_t::so_define_agent()
+			{
+				// Make subscriptions...
+				so_subscribe( m_mbox1 )
+					.in( m_state_1 )
+						.event( &a_sample_t::evt_handler_1 );
+				// ...
+				so_subscribe( m_mboxN )
+					.in( m_state_N )
+						.event( &a_sample_t::evt_handler_N );
+			}
 			\endcode
 		*/
 		virtual void
 		so_define_agent();
 
-		//! \}
-
-		//! Был ли агент определен?
+		//! Is method define_agent already called?
 		/*!
-			Когда надо определить определен ли агент уже.
+			Usage sample:
 			\code
-				class a_sample_t
-					:
-						public so_5::rt::agent_t
-				{
-					// ...
+			class a_sample_t
+				:
+					public so_5::rt::agent_t
+			{
+				// ...
 
-					public:
-						void
-						set_target_mbox(
-							const so_5::rt::mbox_ref_t & mbox )
+				public:
+					void
+					set_target_mbox(
+						const so_5::rt::mbox_ref_t & mbox )
+					{
+						// mbox cannot be changed after agent registration.
+						if( !so_was_defined() )
 						{
-							// mbox для подписки нельзя менять
-							// после того как агент на него подписался.
-
-							if( !so_was_defined() && mbox.get() )
-							{
-								m_target_mbox = mbox;
-							}
+							m_target_mbox = mbox;
 						}
+					}
 
-					private:
-						so_5::rt::mbox_ref_t m_target_mbox;
-				};
+				private:
+					so_5::rt::mbox_ref_t m_target_mbox;
+			};
 			\endcode
 		*/
 		bool
 		so_was_defined() const;
+		/*!
+		 * \}
+		 */
 
 	public:
-		//! Получить ссылку на среду SO к которой
-		//! принадлежит агент.
+		//! Access to SObjectizer Environment for that agent is belong.
 		/*!
-			Метод служит для получения доступа к
-			SObjectizer Environment, а следовательно и ко всем методам
-			SObjectizer Environment. Это, например позволяет агенту
-			создать кооперации лругих агентов.
+			Usage sample for other cooperation registration:
 			\code
-				void
-				a_sample_t::evt_on_smth(
-					const so_5::rt::event_data_t< some_message_t > & msg )
-				{
-					so_5::rt::agent_coop_unique_ptr_t coop =
-						so_environment().create_coop(
-							so_5::rt::nonempty_name_t( "first_coop" ) );
+			void
+			a_sample_t::evt_on_smth(
+				const so_5::rt::event_data_t< some_message_t > & msg )
+			{
+				so_5::rt::agent_coop_unique_ptr_t coop =
+					so_environment().create_coop(
+						so_5::rt::nonempty_name_t( "first_coop" ) );
 
-					// Добавляем в кооперацию агентов.
-					coop->add_agent( so_5::rt::agent_ref_t(
-						new a_another_t( ... ) ) );
-					// ...
+				// Filling the cooperation...
+				coop->add_agent( so_5::rt::agent_ref_t(
+					new a_another_t( ... ) ) );
+				// ...
 
-					// Регистрируем кооперацию.
-					so_environment().register_coop( coop );
-				}
+				// Registering cooperation.
+				so_environment().register_coop( coop );
+			}
 			\endcode
 
-			Или, например, инициировать завершение работы.
+			Usage sample for SObjectizer shutting down:
 			\code
-				void
-				a_sample_t::evt_last_event(
-					const so_5::rt::event_data_t< message_one_t > & msg )
-				{
-					// Обрабатываем сообщение.
-					process( msg );
-
-					// Останавливаемся.
-					so_environment().stop();
-				}
+			void
+			a_sample_t::evt_last_event(
+				const so_5::rt::event_data_t< message_one_t > & msg )
+			{
+				...
+				so_environment().stop();
+			}
 			\endcode
 		*/
 		so_environment_t &
 		so_environment();
 
 	private:
-		//! Получить ссылку на агент.
-		//! Внутренний метод SO.
-		//! Вызывается только тогда - когда гарантированно агент еще
-		//! нужен и его кто-то держит по ссылке.
+		//! Make agent reference.
+		/*!
+		 * This is an internal SObjectizer method. It is called when
+		 * it is guaranteed that agent is still necessary and something
+		 * has reference to it.
+		 */
 		agent_ref_t
 		create_ref();
 
-		//! Внедрение агента в действующий SO Runtime.
-		//! \{
-
-		//! Привязать агента к кооперации.
 		/*!
-			Инициализирует внутренний указатель на кооперацию,
-			а также взводит флаг что кооперация, которой принадлежит агент
-			не является помеченной на дерегистрацию.
-		*/
+		 * \name Embedding agent into SObjectize run-time.
+		 * \{
+		 */
+
+		//! Bind agent to cooperation.
+		/*!
+		 * Initializes internal cooperation pointer.
+		 *
+		 * Drops m_is_coop_deregistered to false.
+		 */
 		void
 		bind_to_coop(
-			//! Кооперация агентов.
+			//! Cooperation for that agent.
 			agent_coop_t & coop );
 
-		//! Привязать агента к среде so_5.
+		//! Bind agent to SObjectizer Environment.
 		/*!
-			Инициализирует внутренний указатель на среду SO
-			и получает свою локальную очередь.
-			Вызывается из конструктора агента.
-		*/
+		 * Called from agent constructor.
+		 *
+		 * Initializes internal SObjectizer Environment pointer.
+		 */
 		void
 		bind_to_environment(
-			//! Среда so_5.
 			impl::so_environment_impl_t & env_impl );
 
-		//! Привязать агента к диспетчеру.
+		//! Bind agent to dispatcher.
 		/*!
-			Определяет диспетчер, который будет являться
-			реальным диспетчером агента.
-			Если в локальной очереди что-то накопилось, то
-			рельному диспетчеру будет поставлен запрос на выполнение
-			всего количества накопившихся событий ко времени
-			начала работы агента на данном диспетчере.
-		*/
+		 * Initializes internal dispatcher poiner.
+		 *
+		 * Checks local event queue. If queue is not empty then
+		 * tells dispatcher to schedule agent for event processing.
+		 */
 		void
 		bind_to_disp(
-			//! Диспетчер.
 			dispatcher_t & disp );
 
-		//! Внутренний метод определения агента.
+		//! Agent definition driver.
 		/*!
-			Вызывает so_define_agent(), после чего
-			устанавливает флаг, что агент определен.
-		*/
+		 * Calls so_define_agent() and then stores agent definition flag.
+		 */
 		void
 		define_agent();
 
-		//! Метод изьятия агента из системы.
+		//! Agent undefinition deriver.
 		/*!
-			Метод который изымает все подписки агента.
-			\note Внутренний метод SO.
+		 * Destroys all agent subscriptions.
 		*/
 		void
 		undefine_agent();
+		/*!
+		 * \}
+		 */
 
-		//! \}
+		/*!
+		 * \name Subscription/unsubscription implementation details.
+		 * \{
+		 */
 
-		//! Добавление/удаление привязок для обработки сообщений.
-		//! \{
-
-		//! Создать привязку между агентом и mbox-ом
-		//! для обработки сообщений.
+		//! Create binding between agent and mbox.
 		ret_code_t
 		create_event_subscription(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Ссылка на mbox.
+			//! Message's mbox.
 			mbox_ref_t & mbox_ref,
-			//! Вызыватель обработчика.
+			//! Event handler caller.
 			const event_handler_caller_ref_t & ehc,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Уничтожить привязку между агентом и mbox-ом
-		//! для обработки сообщений.
+		//! Destroy agent and mbox binding.
 		ret_code_t
 		destroy_event_subscription(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Mbox.
+			//! Message's mbox.
 			mbox_ref_t & mbox_ref,
-			//! Вызыватель обработчика.
+			//! Event handler caller.
 			const event_handler_caller_ref_t & ehc,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Уничтожить все подписки.
+		//! Destroy all agent subscriptions.
 		void
 		destroy_all_subscriptions();
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! Постановка событий в очередь и их выполнение.
-		//! \{
+		/*!
+		 * \name Event handling implementation details.
+		 * \{
+		 */
 
-		//! Поставить в очередь локальное событие.
+		//! Push event into local event queue.
 		void
 		push_event(
-			//! Вызыватель обработичика
+			//! Event handler caller for event.
 			const event_caller_block_ref_t & event_handler_caller,
-			//! Экземпляр сообщения.
+			//! Event message.
 			const message_ref_t & message );
 
-		//! Выполнить очередное событие.
+		//! Execute next event.
 		/*!
-			Должно вызываться только на контексте рабоченй нити.
-			\note Полагается, что в очереди событий есть элементы.
-		*/
+		 * \attention Should be called only on working thread contex.
+		 *
+		 * \attention It is assumed that local event queue is not empty.
+		 */
 		void
 		exec_next_event();
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! Состояние по умолчанию.
+		//! Default agent state.
 		const state_t m_default_state;
 
-		//! Текущее состояние агента.
+		//! Current agent state.
 		const state_t * m_current_state_ptr;
 
-		//! Был ли агент определен.
+		//! Agent definition flag.
+		/*!
+		 * Set to true after successful return from so_define_agent().
+		 */
 		bool m_was_defined;
 
-		//! Контроллер слушателей агента.
+		//! State listeners controller.
 		std::unique_ptr< impl::state_listener_controller_t >
 			m_state_listener_controller;
 
-		//! Тип карта привязок к обработчикам событий.
+		//! Typedef for map from subscriptions to event handlers.
 		typedef std::map<
 				subscription_key_t,
 				impl::message_consumer_link_t * >
 			consumers_map_t;
 
-		//! Потребители сообщения, которые являются
-		//! обработчиками событий.
+		//! Map from subscriptions to event handlers.
 		consumers_map_t m_event_consumers_map;
 
-		//! Локальная очередь событий.
+		//! Local events queue.
 		std::unique_ptr< impl::local_event_queue_t >
 			m_local_event_queue;
 
-		//! Среда so_5 которой принадлежит агент.
+		//! SObjectizer Environment for which the agent is belong.
 		impl::so_environment_impl_t * m_so_environment_impl;
 
-		//! Диспетчер который занимается вызывом агента.
-		/*! По умолчанию получает заглушку,
-			которая ничего не делает, а просто поглащает
-			вызовы постановки агента в очередь на вызов.
-			После привязки агента к реальному диспетчеру
-			сменить его нельзя, и при попытке это сделать
-			произойдет ошибка.
-
-			Владение над m_dispatcher агент не имеет.
-		*/
+		//! Dispatcher for that agent.
+		/*!
+		 * By default this pointer points to a special stub.
+		 * This stub do nothing but allows to safely call method for
+		 * events scheduling.
+		 *
+		 * This pointer received actual value after binding
+		 * agent to real dispatcher.
+		 */
 		dispatcher_t * m_dispatcher;
 
-		//! Кооперация которой принадлежит агент.
+		//! Cooperation to which agent is belong.
 		agent_coop_t * m_agent_coop;
 
-		//! Флаг помечена ли кооперация, как удаляемая?
+		//! Is cooperation deregistration in progress?
 		bool m_is_coop_deregistered;
 };
 
@@ -707,3 +710,4 @@ class SO_5_TYPE agent_t
 } /* namespace so_5 */
 
 #endif
+
