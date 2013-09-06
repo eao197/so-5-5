@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Среда исполнения so_5.
+	\brief Agent cooperation definition.
 */
 
 #if !defined( _SO_5__RT__AGENT_COOP_HPP_ )
@@ -40,82 +40,89 @@ class so_environment_impl_t;
 class so_environment_t;
 class agent_coop_t;
 
-//! Псевдоним для agent_coop_t.
+//! Typedef for agent_coop autopointer.
 typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
 
-//! Кооперация агентов.
+//! Agent cooperation.
 /*!
-	Служит для объединения несольких агентов, как одной рабочей единицы
-	SObjectizer. При регистрации кооперации все агенты должны быть
-	зарегистрированы, иначе регистрация кооперации не состоиться.
-	Агенты добавляются в кооперацию через метод кооперации add_agent().
-	При добавлении агента в кооперацию ей передается владение этим агентом.
-*/
+ * The main purpose of cooperation is introduce several agents into
+ * SObjectizer as a whole. A cooperation should be registered
+ * (e.g. all agents from cooperations should be registered). If an agent from
+ * cooperation cannot be registered then whole cooperation is not registered.
+ *
+ * Agents are added to cooperation by add_agent() method.
+ *
+ * After addition to cooperation the cooperation tooks care about
+ * agent life-time.
+ */
 class SO_5_TYPE agent_coop_t
 {
+	private :
 		friend class agent_t;
 		friend class impl::agent_core_t;
 
-		//! Конструктор кооперации.
+		//! Constructor.
 		agent_coop_t(
-			//! Имя кооперации.
+			//! Cooperation name.
 			const nonempty_name_t & name,
-			//! Привязка к диспетчеру для агентов
-			//! коопераций по-умолчанию.
+			//! Default dispatcher binding.
 			disp_binder_unique_ptr_t & coop_disp_binder,
-			//! Реализация среды so_5.
+			//! SObjectizer Environment.
 			impl::so_environment_impl_t & env_impl );
 
 	public:
-		//! Создание кооперации.
+		//! Create a cooperation.
 		static agent_coop_unique_ptr_t
 		create_coop(
-			//! Имя кооперации.
+			//! Cooperation name.
 			const nonempty_name_t & name,
-			//! Привязка к диспетчеру для агентов
-			//! коопераций по-умолчанию.
+			//! Default dispatcher binding.
 			disp_binder_unique_ptr_t & coop_disp_binder,
-			//! Реализация среды so_5 в рамках которой
-			//! создается кооперация.
+			//! SObjectizer Environment for which cooperation will be created.
 			impl::so_environment_impl_t & env_impl );
 
 		virtual ~agent_coop_t();
 
-		//! Получить имя кооперации.
+		//! Get cooperation name.
 		const std::string &
 		query_coop_name() const;
 
-		//! Добавить агента в кооперацию,
-		//! владение агентом переходит к gent_coop_t.
+		//! Add agent to cooperation.
+		/*!
+		 * Cooperation tooks care about agent lifetime.
+		 *
+		 * Default dispatcher binding is used for agent.
+		 */
 		ret_code_t
 		add_agent(
-			//! Агент.
 			const agent_ref_t & agent_ref );
 
-		//! Добавить агента в кооперацию с указанием привязки
-		//! к конкретному дисптчеру,
-		//! владение агентом переходит к agent_coop_t.
+		//! Add agent to cooperation with dispatcher binding.
 		/*!
-			Если агент, добавляемый в кооперацию, должен иметь
-			привязку к диспетчеру отличную от привязки
-			всей кооперации, то используется этот метод,
-			параметр \a disp_binder которого определяет
-			специфичного для данного агента привязывателя.
-		*/
+		 * Instead of default dispatcher binding the \a disp_binder
+		 * is used for that agent during cooperation registration.
+		 */
 		ret_code_t
 		add_agent(
-			//! Агент.
+			//! Agent.
 			const agent_ref_t & agent_ref,
-			//! Объект для привязки к диспетчеру.
+			//! Agent to dispatcher binder.
 			disp_binder_unique_ptr_t disp_binder );
 
+		//! Internal SObjectizer method.
+		/*!
+		 * Informs cooperation about full finishing of agent work.
+		 */
 		static inline void
 		call_agent_finished( agent_coop_t & coop )
 		{
 			coop.agent_finished();
 		}
 
-		//! Выполнить окончательную дерегистрацию кооперации.
+		//! Internal SObjectizer method.
+		/*!
+		 * Initiate final deregistration stage.
+		 */
 		static inline void
 		call_final_deregister_coop( agent_coop_t * coop )
 		{
@@ -123,103 +130,101 @@ class SO_5_TYPE agent_coop_t
 		}
 
 	private:
-		//! Агент и его привязка.
-		/*!
-			Элемент списка в котором хранятся агенты и их привязыватели.
-		*/
+		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t
 		{
 			agent_with_disp_binder_t(
-				//! Агент.
 				const agent_ref_t & agent_ref,
-				//! Привязка.
 				const disp_binder_ref_t & binder )
 				:
 					m_agent_ref( agent_ref ),
 					m_binder( binder )
 			{}
 
-			//! Агент.
+			//! Agent.
 			agent_ref_t m_agent_ref;
 
-			//! Привязка.
+			//! Agent to dispatcher binder.
 			disp_binder_ref_t m_binder;
 		};
 
-		//! Тип для массива агентов c их привязками к диспетчерам.
+		//! Typedef for agent information container.
 		typedef std::vector< agent_with_disp_binder_t > agent_array_t;
 
-		//! Привязать агентов к кооперации.
+		//! Bind agents to cooperation.
 		void
 		bind_agents_to_coop();
 
-		//! Вызвать у всех агентов метод so_define_agent().
+		//! Call define_agent method for all cooperation agents.
 		void
 		define_all_agents();
 
-		//! Вызвать у всех агентов метод undefine_agent().
+		//! Call undefine_agent method for all cooperation agents.
 		void
 		undefine_all_agents();
 
-		//! Вызвать у агентов undefine_agent().
+		//! Call undefine_agent method for the agent specified.
+		/*!
+		 * Call undefine_agent for all agents in range
+		 * [m_agent_array.begin(), it).
+		 */
 		void
 		undefine_some_agents(
-			//! Итератор на агента у всех предшественников
-			//! которого надо вызывать undefine_agent().
+			//! Right border of processing range.
 			agent_array_t::iterator it );
 
-		//! Выполнить привязку агентов к диспетчерам.
+		//! Bind agents to dispatcher.
 		void
 		bind_agents_to_disp();
 
-		//! Отвязать агентов от диспетчеров.
+		//! Unbind agent from dispatcher.
+		/*!
+		 * Unbinds all agents in range [m_agent_array.begin(), it).
+		 */
 		void
-		unbind_agents_to_disp(
-			//! Итератор на агента всех предшественников
-			//! которого надо отвязать от лиспетчеров.
+		unbind_agents_from_disp(
+			//! Right border of processing range.
 			agent_array_t::iterator it );
 
-		//! Отметить, что очередной агент кооперации, завершил работу.
+		//! Process signal about finished work of an agent.
 		/*!
-			После дерегистрации кооперации, ее агенты,
-			продолжают обрабатывать события, которые успели
-			встать в очередь до факта дерегистрации, а когда
-			агент видит, что все события, которые ему надо было
-			обработать - обработаны, агент говорит собственной
-			кооперации, что он закончил.
-			Когда все агенты кооперации завершают свою работу,
-			кооперацию можно уничтожать.
-		*/
+		 * Cooperation deregistration is a long process. All agents
+		 * process events from their queues. When an agent detects that
+		 * no more events in its queue it informs cooperation about this.
+		 *
+		 * When cooperation detects that all agents have finished their
+		 * work it initiates agents destruction.
+		 */
 		void
 		agent_finished();
 
-		//! Выполнить окончательную дерегистрацию кооперации.
+		//! Do final deregistration stage.
 		void
 		final_deregister_coop();
 
-		//! Имя кооперации.
+		//! Cooperation name.
 		const std::string m_coop_name;
 
-		//! Мутекс для синхронизации операций над кооперацией.
+		//! Object lock.
 		ACE_Thread_Mutex & m_lock;
 
-		//! Флаг того, что агенты кооперации разопределены.
+		//! Agent undefinition flag.
 		bool m_agents_are_undefined;
 
-		//! Привязка к диспетчеру для агентов коопераций по-умолчанию.
+		//! Default agent to dispatcher binder.
 		disp_binder_ref_t m_coop_disp_binder;
 
-		//! Массив агентов кооперации.
+		//! Cooperation agents.
 		agent_array_t m_agent_array;
 
-		//! Реализация среды so_5.
+		//! SObjectizer Environment for which cooperation is created.
 		impl::so_environment_impl_t & m_so_environment_impl;
 
-		//! Количество работающих агентов.
+		//! Count for working agents.
 		atomic_counter_t m_working_agents_count;
 };
 
-//! Тип для умного указателя на agent_coop_t.
+//! Typedef for agent_coop smart pointer.
 typedef std::shared_ptr< agent_coop_t > agent_coop_ref_t;
 
 } /* namespace rt */

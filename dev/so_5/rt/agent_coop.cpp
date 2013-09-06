@@ -125,23 +125,16 @@ agent_coop_t::undefine_some_agents(
 	agent_array_t::iterator it )
 {
 	{
-		// Выставляем флаг, что агенты кооперации разопределены.
+		// A flag of agent undefinition should be set.
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 		m_agents_are_undefined = true;
 	}
 
-	agent_array_t::iterator it_begin = m_agent_array.begin();
-
-	// Если ошибка выскочила не на первом агенте,
-	// то надо вызывать so_undefine_agent() для всех предшественников.
-
-	if( it != it_begin )
-		do
-		{
-			// Взять предшествующий агент
-			--it;
-			it->m_agent_ref->undefine_agent();
-		} while( it != it_begin );
+	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
+	{
+		--it;
+		it->m_agent_ref->undefine_agent();
+	}
 }
 
 void
@@ -161,11 +154,10 @@ agent_coop_t::bind_agents_to_disp()
 	}
 	catch( const std::exception & ex )
 	{
-		unbind_agents_to_disp( it );
+		unbind_agents_from_disp( it );
 
-		// Т.к. все агенты к этому времени были определены,
-		// то перед тем как бросать исключение
-		// разопределим всех агентов.
+		// Because all agents are defined at this point then
+		// they should be undefined.
 		undefine_all_agents();
 
 		throw;
@@ -177,33 +169,22 @@ agent_coop_t::bind_agents_to_disp()
 }
 
 inline void
-agent_coop_t::unbind_agents_to_disp(
+agent_coop_t::unbind_agents_from_disp(
 	agent_array_t::iterator it )
 {
-	agent_array_t::iterator it_begin = m_agent_array.begin();
-
-	// Если ошибка выскочила не на первом агенте,
-	// то надо удалить привязки агентов, которые успешно прошли
-	// для агентов стоящих до него.
-	if( it != it_begin )
-		do
-		{
-			// Взять предшествующий агент
-			--it;
-
-			// Отвязать.
-			it->m_binder->unbind_agent(
-				m_so_environment_impl, it->m_agent_ref );
-
-		} while( it != it_begin );
+	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
+	{
+		--it;
+		it->m_binder->unbind_agent(
+			m_so_environment_impl, it->m_agent_ref );
+	}
 }
 
 void
 agent_coop_t::agent_finished()
 {
-	// Если мы вызваны из того агента, который последний
-	// из работающих, то извещаем среду SO, что эту кооперацию
-	// нужно уничтожить.
+	// If it is last working agent then Environment should be
+	// informed that cooperation is ready to be deregistered.
 	if( 0 == --m_working_agents_count )
 	{
 		m_so_environment_impl.ready_to_deregister_notify( this );
@@ -213,7 +194,7 @@ agent_coop_t::agent_finished()
 void
 agent_coop_t::final_deregister_coop()
 {
-	unbind_agents_to_disp( m_agent_array.end() );
+	unbind_agents_from_disp( m_agent_array.end() );
 
 	m_so_environment_impl.final_deregister_coop( m_coop_name );
 }
@@ -221,3 +202,4 @@ agent_coop_t::final_deregister_coop()
 } /* namespace rt */
 
 } /* namespace so_5 */
+
