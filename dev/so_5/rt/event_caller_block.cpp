@@ -5,6 +5,8 @@
 #include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 
+#include <algorithm>
+
 namespace so_5
 {
 
@@ -34,18 +36,12 @@ void
 event_caller_block_t::erase(
 	const event_handler_caller_ref_t & ehc_ref )
 {
-	evt_caller_array_t evt_caller_array;
-	evt_caller_array_t::iterator
-		it = m_callers_array.begin(),
-		it_end = m_callers_array.end();
-
-	for(; it != it_end; ++it )
-	{
-		if( !( *it == ehc_ref ) )
-			evt_caller_array.push_back( *it );
-	}
-
-	m_callers_array.swap( evt_caller_array );
+	m_callers_array.erase(
+			std::remove(
+					m_callers_array.begin(),
+					m_callers_array.end(),
+					ehc_ref ),
+			m_callers_array.end() );
 }
 
 void
@@ -59,34 +55,21 @@ bool
 event_caller_block_t::has(
 	const event_handler_caller_ref_t & ehc_ref ) const
 {
-	evt_caller_array_t::const_iterator
-		it = m_callers_array.begin(),
-		it_end = m_callers_array.end();
-
-	for(; it != it_end; ++it )
-	{
-		if( *it == ehc_ref )
-			return true;
-	}
-
-	return false;
+	return m_callers_array.end() != std::find(
+			m_callers_array.begin(),
+			m_callers_array.end(),
+			ehc_ref );
 }
 
 const event_handler_caller_t *
 event_caller_block_t::find(
 	const event_handler_caller_ref_t & ehc_ref ) const
 {
-	evt_caller_array_t::const_iterator
-		it = m_callers_array.begin(),
-		it_end = m_callers_array.end();
-
-	for(; it != it_end; ++it )
-	{
-		if( *it == ehc_ref )
-			return it->get();
-	}
-
-	return nullptr;
+	auto it = std::find(
+			m_callers_array.begin(),
+			m_callers_array.end(),
+			ehc_ref );
+	return m_callers_array.end() != it ?  it->get() : nullptr;
 }
 
 bool
@@ -98,3 +81,4 @@ event_caller_block_t::is_empty() const
 } /* namespace rt */
 
 } /* namespace so_5 */
+
