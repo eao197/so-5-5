@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс event_exception_logger_t.
+	\brief An interface for exception logging definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_EXCEPTION_LOGGER_HPP_ )
@@ -28,36 +28,45 @@ namespace rt
 
 class event_exception_logger_t;
 
-//! Псевдоним на умный указатель к event_exception_logger_t.
+//! Typedef for event_exception_logger autopointer.
 typedef std::unique_ptr< event_exception_logger_t >
 	event_exception_logger_unique_ptr_t;
 
-//! Интерфейс объекта, который логирует исключение.
+//! An interface for exception logging.
+/*!
+ * Exception logger should handle two actions:
+ *
+ * 1. Installation of logger into SObjectizer Environment.
+ *    The on_install() method could be reimplemented for this.
+ * 2. Caught of an exception. The log_exception() method
+ *    should be reimplemented for this.
+ */
 class SO_5_TYPE event_exception_logger_t
 {
 	public:
 		virtual ~event_exception_logger_t();
 
 		/*!
-			\brief Метод логирования исключения.
-			Логирование определяется наследниками класса.
+		 * \brief Log the exception caught.
 		*/
 		virtual void
 		log_exception(
-			//! Ссылка на экземпляр возникшего исключения.
+			//! Exception caught.
 			const std::exception & event_exception,
-			//! Имя кооперации, которой принадлежит агент.
+			//! Name of cooperation to which agent is belong.
 			const std::string & coop_name ) = 0;
 
-		//! Обработка инсталляции.
-		/*! Если текущий журнализатор ставиться в то время, когда
-			уже есть журнализатор, то новый должен решить,
-			что делать со старым.
-			Реализация по умолчанию удаляет старый журнализатор.
-		*/
+		/*!
+		 * \brief Installation hook.
+		 *
+		 * A new exception logger should decide what happened with
+		 * old logger.
+		 *
+		 * Default implementation simply erases old logger.
+		 */
 		virtual void
 		on_install(
-			//! Предыдущий журнализатор.
+			//! Old logger.
 			event_exception_logger_unique_ptr_t && previous_logger );
 };
 
@@ -65,7 +74,7 @@ class SO_5_TYPE event_exception_logger_t
 // create_std_event_exception_logger
 //
 
-//! Создать логер исключений по умолчанию.
+//! Create default exception logger.
 CPP_UTIL_2_EXPORT_FUNC_SPEC( event_exception_logger_unique_ptr_t )
 create_std_event_exception_logger();
 

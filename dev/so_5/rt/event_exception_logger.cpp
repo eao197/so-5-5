@@ -23,7 +23,7 @@ void
 event_exception_logger_t::on_install(
 	event_exception_logger_unique_ptr_t && previous_logger )
 {
-	// Реализация по умолчанию удаляет старый журнализатор.
+	// Default implementation deletes old logger.
 	previous_logger.reset();
 }
 
@@ -34,7 +34,7 @@ namespace /* ananymous */
 // std_event_exception_logger_t
 //
 
-//! Стандартный логер исключений.
+//! Standard exception logger implementation.
 class std_event_exception_logger_t
 	:
 		public event_exception_logger_t
@@ -45,9 +45,7 @@ class std_event_exception_logger_t
 
 		virtual void
 		log_exception(
-			//! Ссылка на экземпляр возникшего исключения.
 			const std::exception & event_exception,
-			//! Имя кооперации, которой принадлежит агент.
 			const std::string & coop_name )
 		{
 			std::cerr
@@ -57,7 +55,7 @@ class std_event_exception_logger_t
 		}
 };
 
-} /* ananymous namespace */
+} /* anonymous namespace */
 
 //
 // create_std_event_exception_logger

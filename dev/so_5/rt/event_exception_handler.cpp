@@ -29,7 +29,7 @@ void
 event_exception_handler_t::on_install(
 	event_exception_handler_unique_ptr_t && previous_handler )
 {
-	// Реализация по умолчанию удаляет старый логгер.
+	// Standard implementation deletes old handler.
 	previous_handler.reset();
 }
 
@@ -40,16 +40,17 @@ namespace /* ananymous */
 // std_event_exception_response_action_t
 //
 
-//! Стандартное действие на возникновение исключения.
+//! Standard implementation of event_exception_response_action.
+/*!
+ * Deregisters cooperation with failed agent.
+ */
 class std_event_exception_response_action_t
 	:
 		public event_exception_response_action_t
 {
 	public:
 		std_event_exception_response_action_t(
-			//! Среда SObjectizer.
 			so_environment_t & so_environment,
-			//! Имя кооперации которой принадлежит агент.
 			const std::string & coop_name )
 			:
 				m_so_environment( so_environment ),
@@ -75,10 +76,10 @@ class std_event_exception_response_action_t
 // std_event_exception_handler_t
 //
 
-//! Стандартный обработчик исключений.
+//! Standard exception handler.
 /*!
-	Обработка исключения сводится к дерегистрации кооперации.
-*/
+ * Deregisters cooperation with failed agent.
+ */
 class std_event_exception_handler_t
 	:
 		public event_exception_handler_t
@@ -89,11 +90,8 @@ class std_event_exception_handler_t
 
 		event_exception_response_action_unique_ptr_t
 		handle_exception(
-			//! Среда SObjectizer.
 			so_environment_t & so_environment,
-			//! Ссылка на экземпляр возникшего сообщения.
 			const std::exception & event_exception,
-			//! Имя кооперации которой принадлежит агент.
 			const std::string & coop_name )
 		{
 			return event_exception_response_action_unique_ptr_t(
@@ -119,3 +117,4 @@ create_std_event_exception_handler()
 } /* namespace rt */
 
 } /* namespace so_5 */
+

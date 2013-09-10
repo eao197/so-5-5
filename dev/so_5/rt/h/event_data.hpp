@@ -4,10 +4,7 @@
 
 /*!
 	\file
-	\brief Шаблонный класс event_data_t.
-
-	Шаблон, конкретные экземпляры которого служат
-	параметрами для методов обработки событий.
+	\brief Definition of template class event_data.
 */
 
 
@@ -26,52 +23,55 @@ namespace rt
 
 class mbox_t;
 
-//! Шаблонный класс для инкапсуляции сообщения,
-//! которое является параметром обработчика события агента.
+//! Template for message incapsulation.
 /*!
+	Used to wrap a message which is the source for agent event.
+
+	Usage sample:
 	\code
-		void
-		a_sample_t::evt_smth(
-			const so_5::rt::event_data_t< sample_message_t > & msg )
-		{
-			// ...
-		}
+	void
+	a_sample_t::evt_smth(
+		const so_5::rt::event_data_t< sample_message_t > & msg )
+	{
+		// ...
+	}
 	\endcode
 */
 template< class MESSAGE >
 class event_data_t
 {
 	public:
-		//! Конструктор по умолчанию, который
-		//! создает пустое сообщение - сигнал.
+		//! Default constructor.
+		/*!
+		 * Used for creating signal events, e.g. events without real
+		 * message data.
+		 */
 		event_data_t()
 			:
 				m_message_instance( 0 )
 		{}
 
+		//! Constructor.
 		event_data_t( const MESSAGE * message_instance )
 			:
 				m_message_instance( message_instance )
 		{}
 
-		~event_data_t()
-		{}
-
-		//! Получить ссылку на сообщение.
+		//! Access to message.
 		const MESSAGE&
 		operator * () const
 		{
 			return *m_message_instance;
 		}
 
-		//! Получить указатель на сообщение.
+		//! Access to raw message pointer.
 		const MESSAGE *
 		get() const
 		{
 			return m_message_instance;
 		}
 
-		//! Вызвать метод у сообщения.
+		//! Access to message via pointer.
 		const MESSAGE *
 		operator -> () const
 		{
@@ -79,52 +79,50 @@ class event_data_t
 		}
 
 	private:
-		//! Указатель на экземпляр сообщения.
+		//! Message.
 		const MESSAGE * const m_message_instance;
 };
 
-//! Шаблонный класс для инкапсуляции сообщения,
-//! которое является параметром обработчика события агента, и которое
-//! гарантировано указывает на реально существующий объект сообщения.
+//! Template for message incapsulation.
 /*!
+	Requires presence of message data. Should be used when event requires
+	message data and don't allows signals (events without message data).
+
+	Usage sample:
 	\code
-		void
-		a_sample_t::evt_smth(
-			const so_5::rt::not_null_event_data_t< sample_message_t > & msg )
-		{
-			// ...
-		}
+	void
+	a_sample_t::evt_smth(
+		const so_5::rt::not_null_event_data_t< sample_message_t > & msg )
+	{
+		// ...
+	}
 	\endcode
 */
 template< class MESSAGE >
 class not_null_event_data_t
 {
 	public:
-		//! Конструктор по умолчанию, который
-		//! создает пустое сообщение - сигнал.
+		// Constructor.
 		not_null_event_data_t( const MESSAGE & message_instance )
 			:
 				m_message_instance( message_instance )
 		{}
 
-		~not_null_event_data_t()
-		{}
-
-		//! Получить ссылку на сообщение.
+		//! Access to message.
 		const MESSAGE&
 		operator * () const
 		{
 			return *m_message_instance;
 		}
 
-		//! Получить указатель на сообщение.
+		//! Access to raw message pointer.
 		const MESSAGE *
 		get() const
 		{
 			return &m_message_instance;
 		}
 
-		//! Вызвать метод у сообщения.
+		//! Access to message via pointer.
 		const MESSAGE *
 		operator -> () const
 		{
@@ -132,7 +130,7 @@ class not_null_event_data_t
 		}
 
 	private:
-		//! Ссылка на экземпляр сообщения.
+		//! Message.
 		const MESSAGE & m_message_instance;
 };
 
@@ -141,3 +139,4 @@ class not_null_event_data_t
 } /* namespace so_5 */
 
 #endif
+
