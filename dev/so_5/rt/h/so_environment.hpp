@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Среда исполнения so_5.
+	\brief SObjectizer Environment definition.
 */
 
 #if !defined( _SO_5__RT__SO_ENVIRONMENT_HPP_ )
@@ -46,101 +46,99 @@ class message_ref_t;
 // so_environment_params_t
 //
 
-//! Инициализирующие параметры среды so_5.
+//! Parameters for SObjectizer Environment initialization.
 /*!
-	С помощью данного класса задаются параметры SObjectizer Environment.
-	Класс позволяет простым образом указать необходимые параметры
-	оставляя другие по умолчанию.
-
-	\see http://www.parashift.com/c++-faq/named-parameter-idiom.html
-*/
+ * This class is used for setting SObjectizer Parameters.
+ *
+ * \see http://www.parashift.com/c++-faq/named-parameter-idiom.html
+ */
 class SO_5_TYPE so_environment_params_t
 {
 		friend class impl::so_environment_impl_t;
 
 	public:
+		/*!
+		 * \brief Constructor.
+		 *
+		 * Sets default values for parameters.
+		 */
 		so_environment_params_t();
 		~so_environment_params_t();
 
-		//! Указать размер пула мутексов для синхронизации работы mbox-ов.
+		//! Set mutex pool size for syncronizing work with mboxes.
 		/*!
-			Для синхронизации действий с mbox-ами необходимы
-			ресурсы, для чего mbox использует мутекс (ACE_RW_Thread_Mutex ).
-			Но т.к. mbox-ов может быть много, и время жизни их может быть
-			достаточно коротким, то было бы не целесообразно в
-			каждый mbox включать собственный метекс. Поэтому в
-			SObjectizer Environment создается пул мутексов для использования
-			обычными mbox-ами.
-
-			\see so_environment_t::create_local_mbox().
-		*/
+		 * A ACE_RW_Thread_Mutex is necessary to work with mboxes.
+		 * But because there are could be so many mboxes and lifetime
+		 * of them could be so small that it is not efficient to
+		 * create a dedicated mutex for every mbox.
+		 *
+		 * A mutex pool is used by SObjectizer Environment for that
+		 * purpose.
+		 *
+		 * This method allows change the default mutex pool size.
+		 *
+		 * \see so_environment_t::create_local_mbox().
+		 */
 		so_environment_params_t &
 		mbox_mutex_pool_size(
 			unsigned int mutex_pool_size );
 
-		//! Указать размер пула мутексов для коопераций агентов.
+		//! Set mutex pool size for syncronizing work with agent cooperations.
 		/*!
-			Кооперации агентов требуют синхронизации.
-			По рациональным соображениям создавать мутекс
-			для каждой кооперации неэффективно. Поэтому
-			SObjectizer Environment создает пул таких мутексов,
-			которые и назначаются кооперациям.
-		*/
+		 * A work with cooperations requires syncronization.
+		 * SObjectizer Environment uses pool of mutexes to do that.
+		 *
+		 * This method allows change the default mutex pool size.
+		 */
 		so_environment_params_t &
 		agent_coop_mutex_pool_size(
 			unsigned int mutex_pool_size );
 
-		//! Указать размер пула мутексов для синхронизации
-		//! локальных очередей событий агентов.
+		//! Set mutex pool size for syncronizing work with event queues.
 		/*!
-			Локальная очередь событий агентов требует синхронизации.
-			Свою локальную очередь агент получает во время создания от
-			SObjectizer Environment, которая передается ему в конструкторе.
-			Но, из-за того что агентов в системе может быть много,
-			то выделять мутекс для каждой локальной очереди не рационально,
-			поэтому SObjectizer Environment создает пул мутексов для
-			обеспечения работы локальных очередей событий агентов.
-		*/
+		 * A work with local agent event queues requires syncronization.
+		 * SObjectizer Environment uses pool of mutexes to do that.
+		 *
+		 * This method allows change the default mutex pool size.
+		 */
 		so_environment_params_t &
 		agent_event_queue_mutex_pool_size(
 			unsigned int mutex_pool_size );
 
-		//! Добавить именованный диспетчер.
+		//! Add a named dispatcher.
 		/*!
-			По умолчанию SObjectizer Environment имеет только один диспетчер
-			с одной рабочей нитью. Пользователь может добавлять
-			дополнительные -– именованные диспетчеры рабочих нитей.
-
-			\note Если ранее уже добавлялся диспетчер с таким именем,
-			то он будет замещен вновь добавленным.
-		*/
+		 * By default SObjectizer Environment has only one dispatcher
+		 * with one working thread. A user can add his own dispatcher:
+		 * named ones.
+		 *
+		 * \note If a dispatcher with \a name is already registered it
+		 * will be replaced by new dispatcher \a dispatcher.
+		 */
 		so_environment_params_t &
 		add_named_dispatcher(
-			//! Имя диспетчера.
+			//! Dispatcher name.
 			const nonempty_name_t & name,
-			//! Диспетчер.
+			//! Dispatcher.
 			dispatcher_unique_ptr_t && dispatcher );
 
-		//! Добавить таймерную нить.
+		//! Set timer thread.
 		/*!
-			Если \a timer_thread указывает на 0, то
-			будет использована таймерная нить по умолчанию.
-		*/
+		 * If \a timer_thread is nullptr then default timer thread
+		 * will be used.
+		 */
 		so_environment_params_t &
 		timer_thread(
-			//! Таймерная нить.
+			//! Timer thread to be set.
 			so_5::timer_thread::timer_thread_unique_ptr_t && timer_thread );
 
-		//! Добавление дополнительных слоев.
+		//! Add an additional layer to SObjectize Environment.
 		/*!
-			Если слой такого типа уже добавлен,
-			то он будет замещен вновь добавляемым.
+		 * If that layer is already added it will be replaced by \a layer_ptr.
 		*/
 		template< class SO_LAYER >
 		so_environment_params_t &
 		add_layer(
-			//! Слой SObjectizer, который должен быть включен
-			//! в SObjectizer Environment.
+			//! A layer to be added.
 			std::unique_ptr< SO_LAYER > && layer_ptr )
 		{
 			if( layer_ptr.get() )
@@ -183,43 +181,42 @@ class SO_5_TYPE so_environment_params_t
 		so_layers_map() const;
 
 	private:
-		//! Добавить новый слой.
+		//! Add an additional layer.
 		/*!
-			Если слой такого типа уже добавлен,
-			то он будет замещен вновь добавляемым.
-		*/
+		 * If that layer is already added it will be replaced by \a layer_ptr.
+		 */
 		void
 		add_layer(
-			//! Информация о типе слоя.
+			//! Type identification for layer.
 			const type_wrapper_t & type,
-			//! Слой.
+			//! A layer to be added.
 			so_layer_unique_ptr_t layer_ptr );
 
-		//! Размер пула мутексов для mbox-ов.
+		//! Size of pool of mutexes to be used with mboxes.
 		unsigned int m_mbox_mutex_pool_size;
 
-		//! Размер пула мутексов для коопераций агентов агентов.
+		//! Size of pool of mutexes to be used with agent cooperations.
 		unsigned int m_agent_coop_mutex_pool_size;
 
-		//! Размер пула мутексов для локальных очередей событий агентов.
+		//! Size of pool of mutexes to be used with agent local queues.
 		unsigned int m_agent_event_queue_mutex_pool_size;
 
-		//! Именованные диспетчеры.
+		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;
 
-		//! Таймерная нить.
+		//! Timer thread.
 		so_5::timer_thread::timer_thread_unique_ptr_t m_timer_thread;
 
-		//! Дополнительные слои SObjectizer.
+		//! Additional layers.
 		so_layer_map_t m_so_layers;
 
-		//! Слущатель действий над кооперациями.
+		//! Cooperation listener.
 		coop_listener_unique_ptr_t m_coop_listener;
 
-		//! Логер исключений.
+		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
 
-		//! Обработчик исключений.
+		//! Exception handler.
 		event_exception_handler_unique_ptr_t m_event_exception_handler;
 };
 
@@ -227,314 +224,306 @@ class SO_5_TYPE so_environment_params_t
 // so_environment_t
 //
 
-//! Среда выполнения SObjectizer.
+//! SObjectizer Environment.
 /*!
-	Среда выполнения SObjectizer предоставляет необходимую для агентов
-	инфраструктуру. Она является фундаментом,
-	на котором работают SObjectizer агенты.
-
-	Для создания и запуска SObjectizer Environment предполагается,
-	что прикладной программист создает собственный класс наследуясь
-	от so_environment_t и переопределяет метод
-	so_environment_t::init().
-	Внутри этого метода программист определяет логику начала работы
-	SObjectizer Environment, например, регистрация первоначальных коопераций
-	и отправку инициализируеющих сообщений.
-	В момент вызова init() SObjectizer Environment уже успешно инициализировал
-	и запустил необходимую инфраструктуру, иначе до вызова init() дело не дойдет.
-
-	Для непосредственного запуска SObjectizer Environment служит метод
-	so_environment_t::run(), который блокирует вызывающую нить
-	на протяжении всего времени работы SObjectizer.
-	Если ошибок не произошло, то метод so_environment_t::run() возвращает 0.
-	Если во время работы SObjectizer Environment произошла ошибка,
-	то вернет ее код или выбросит исключение. Это зависит от параметра
-	\a throwing_strategy (so_5::throwing_strategy_t).
-
-	Для остановки работы SObjectizer Environment служит метод
-	so_environment_t::stop().
-	Вызов so_environment_t::stop() только инициирует завершение работы
-	SObjectizer Environment. Этот метод инициирует дерегистрацию всех
-	коопераций. А когда все кооперации будут дерегистрированы,
-	будет завершена работы внутренних компонент SObjectizer Environment.
-	После этого работа SObjectizer будет завершена.
-
-	Во время работы SObjectizer Environment предоставляет
-	следующие три группы прикладных методов:
-		\li методы работы с mbox-ами;
-		\li методы работы с кооперациями;
-		\li методы отправки отложенных и периодических сообщений.
-
-	<b>Методы работы с mbox-ами.</b>
-
-	SObjectizer Environment позволяет создавать
-	безымянные mbox-ы с ресурсами синхронизации из пула или
-	указанных пользователем, или также именные mbox, список которых
-	ведет SObjectizer Environment.
-
-	Для создания mbox-ов служат методы so_environment_t::create_local_mbox().
-	Все они возвращают объект класса mbox_ref_t, который является указателем
-	с подсчетом ссылок на объект класса mbox_t.
-	Уничтожение безымянных mbox-ов происходит само собой, когда ссылок на него
-	не остается.
-	Именованные mbox-ы же хранятся в SObjectizer Environment, что дает
-	постоянную ссылку на mbox. Для того чтобы изъять именованный mbox из
-	этого списка, служит метод so_environment_t::destroy_mbox().
-	Этот метод исключает именованный mbox из списка и, если на него больше никто не
-	ссылается, то он будет уничтожен.
-
-	\note Если после исключение именнованный mbox остается, например,
-	у какого-либо агента, а затем создается именованный mbox
-	с таким же именем то это это будут разные mbox-ы. И сообщения,
-	посылаемые через один mbox, не будут передаваться подписчикам другого.
-
-	<b>Методы работы с кооперациями.</b>
-
-	Кооперации можно создавать с помощью методов so_environment_t::create_coop(),
-	для регистрации кооперации служит метод so_environment_t::register_coop(),
-	а для дерегистрации кооперации служит метод
-	so_environment_t::deregister_coop().
-
-	<b>Методы отправки отложенных и периодических сообщений</b>
-
-	Отправка отложенного и периодического сообщения называется таймерным событием.
-	Механизм таймерных событий позволяет не только заводить,
-	но и отменять таймерные события. В случае отложенного сообщения оно
-	не будет отправлено, если, конечно, оно еще не было отправлено, а в случае
-	периодического сообщения – отправка его будет прекращена.
-	Для создания таймерных событий служит метод
-	so_environment_t::schedule_timer(), который имеет две версии,
-	первая подразумевает, что передается реальный экземпляр сообщения,
-	а второй предусматривает только тип сообщения без реального
-	экземпляра сообщения.
-	so_environment_t::schedule_timer() возвращают таймерный
-	идентификатор — объект типа so_5::timer_thread::timer_id_ref_t,
-	который хранит данные, необходимые для отмены таймерного события.
-	А отменить таймерное событие можно либо с помощью метода
-	so_5::timer_thread::timer_id_ref_t::release(), либо
-	оно будет уничтожено автоматически, если все ссылки на таймерное
-	событие уничтожены.
-
-	В некоторых случаях есть необходимость отправить отложенное сообщение,
-	которое ни в каких случаях не требует отмены, но
-	so_environment_t::schedule_timer() требует запоминать таймерный
-	идентификатор, в противном случае, отправка отложенного сообщения будет
-	тут же отменена. Чтобы избежать хранения таймерного
-	идентификатора в таких случаях в SObjectizer Environment предусмотрен
-	метод so_environment_t::single_timer(), который планирует отложенную
-	отправку сообщения, для которой не надо хранить таймерный идентификатор.
-*/
+ * \section so_env__intro Basic information
+ *
+ * SObjectizer Environment provides basic infrastructure for
+ * SObjectizer Run-Time execution.
+ *
+ * Main method of starting SObjectizer Environment is creating a
+ * class derived from so_environment_t and reimplementing
+ * so_environment_t::init() method.
+ * This method should be used to define starting actions of
+ * application. For example first application cooperations could
+ * be registered here and starting messages could be sent to them.
+ *
+ * SObjectizer Environment calls so_environment_t::init() when
+ * SObjectize Run-Time is successfully started. If something happened
+ * during Run-Time startup then method init() will not be called.
+ *
+ * SObjectizer Run-Time is started by so_environment_t::run().
+ * This method blocks caller thread until SObjectizer completely
+ * finished its work.
+ *
+ * SObjectizer Run-Time is finished by so_environment_t::stop().
+ * This method doesn't block caller thread. Instead it sends a special
+ * shutdown signal to Run-Time. SObjectizer Run-Time then inform agents
+ * about this and waits agents to finishing their work.
+ * SObjectizer Run-Time finished when all agents will be stopped and
+ * all cooperation will be deregistered.
+ *
+ * Methods of SObjectizer Environment could be splitted into the
+ * following groups:
+ * - working with mboxes;
+ * - working with dispatchers, exception loggers and handlers;
+ * - working with cooperations;
+ * - working with delayed and periodic messages;
+ * - working with additional layers;
+ * - initializing/running/stopping/waiting of Run-Time.
+ *
+ * \section so_env__mbox_methods Methods for working with mboxes.
+ *
+ * SObjectizer Environment allows creation of named and anonymous mboxes.
+ * A syncronization objects for that mboxes could be obtained from
+ * common pools or assigned by user during mbox creation.
+ *
+ * Mboxes are created by so_environment_t::create_local_mbox() methods.
+ * All those methods return mbox_ref_t which is a smart reference to mbox.
+ *
+ * An anonymous mbox is automatically destroyed when last reference to is is
+ * destroyed. So, to save anonymous mbox, the mbox_ref from create_local_mbox()
+ * should be stored anywhere.
+ *
+ * Named mbox should be destroyed manualy by calling
+ * so_environment_t::destroy_mbox() method. But physically deletion of
+ * named mbox postponed to deletion of last reference to it. So if there is
+ * some reference to named mbox it instance will live with that reference.
+ * But mbox itself will be removed from SObjectizer Environment lists.
+ *
+ *
+ * \section so_env__coop_methods Methods for working with cooperations.
+ *
+ * Cooperations could be created by so_environment_t::create_coop() methods.
+ *
+ * Method so_environment_t::register_coop() should be used for cooperation
+ * registration.
+ *
+ * Method so_environment_t::deregister_coop() should be used for cooperation
+ * deregistration.
+ *
+ * \section so_env__delayed_message_methods Methods for sending delayed and periodic messages.
+ *
+ * Delayed and/or periodic message is named timer event.
+ *
+ * Timer event could be created and destroyed. If timer event for
+ * delayed message is destroyed before message timeout expired then
+ * message delivery canceled. For periodic messages destroying of
+ * timer event means that delivery of message will be stopped.
+ *
+ * Timer events could be created by so_environment_t::schedule_timer()
+ * methods. The one version of schedule_timer() is intended for
+ * messages with actual data. The second -- for the signals without
+ * message data.
+ *
+ * Methods schedule_timer() return a special reference for timer event.
+ * Timer event destroyed when this reference destroyed. So it is necessary
+ * to store that reference anywhere. Also timer event could be destroyed
+ * by so_5::timer_thread::timer_id_ref_t::release() method.
+ *
+ * A special method so_environment_t::single_timer() could be used in
+ * case when a single shot timer event is necessary. With using this
+ * method there is no need to store reference for the scheduled
+ * single shot timer event.
+ */
 class SO_5_TYPE so_environment_t
 {
-		//! Получить ссылку на себя.
+		//! Auxiliary methods for getting reference to itself.
 		/*!
-			Служит для инициализации внутренних переменных
-			в конструкторе so_environment_t, конструктор которых
-			требует указать ссылку на so_environment_t.
-			Это позволяет избежать предупреждений компилятора
-			об использовании \c this.
-		*/
+		 * Could be used in constructors without compiler warnings.
+		 */
 		so_environment_t &
 		self_ref();
 
 	public:
 		explicit so_environment_t(
-			//! Параметры среды SObjectizer.
+			//! Initialization params.
 			const so_environment_params_t & so_environment_params );
 
 		virtual ~so_environment_t();
 
-		//! \name Работа с mbox-ами.
-		//! \{
-
-		//! Создать безымянный mbox.
 		/*!
-			Мутекс для синхронизации берется из общего пула.
-		*/
+		 * \name Methods for working with mboxes.
+		 * \{
+		 */
+
+		//! Create anonymous mbox with default mutex.
 		mbox_ref_t
 		create_local_mbox();
 
-		//! Создать именованный mbox.
+		//! Create named mbox with default mutex.
 		/*!
-			Если mbox-а с таким именем нет, то он создается.
-			Если же такой mbox уже был создан, то просто
-			возвращается сылка на него.
-			Мутекс для синхронизации берется из общего пула.
-		*/
+		 * If \a mbox_name is unique then new mutex is created.
+		 * If not the reference to existing mutex is returned.
+		 */
 		mbox_ref_t
 		create_local_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const nonempty_name_t & mbox_name );
 
-		//! Создать безымянный mbox,
-		//! мутекс для синхронизации создается пользователем.
+		//! Create anonymous mbox with user supplied mutex.
 		/*!
-			Есть и особые случаи, когда надо обеспечить,
-			чтобы mbox синхронизировался без параллельного использования
-			в тех же целях другими mbox-ами. В таких случаях, создавая mbox,
-			можно указать собственный динамически созданный мутекс
-			(ACE_RW_Thread_Mutex).
-		*/
+		 * Intended for the cases where a dedicated mutex for mbox
+		 * is necessary.
+		 */
 		mbox_ref_t
 		create_local_mbox(
-			//! Мутекс созданный пользователем.
+			//! A dedicated mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
-		//! Создать именованный mbox.
+		//! Create named mbox with user supplied mutex.
 		/*!
-			Если mbox-а с таким именем нет, то он создается.
-			Если же такой mbox уже был создан, то просто
-			возвращается сылка на него.
-			Мутекс для синхронизации создается пользователем.
-		*/
+		 * Intended for the cases where a dedicated mutex for mbox
+		 * is necessary.
+		 */
 		mbox_ref_t
 		create_local_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const nonempty_name_t & mbox_name,
-			//! Мутекс созданный пользователем
+			//! A dedicated mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Диспетчеры.
-		//! \{
+		/*!
+		 * \name Method for working with dispatchers.
+		 * \{
+		 */
 
-		//! Получить диспетчер по умолчанию.
+		//! Access to the default dispatcher.
 		dispatcher_t &
 		query_default_dispatcher();
 
-		//! Получить именованный диспетчер.
+		//! Get named dispatcher.
 		/*!
-			\return Если диспетчер с таким именем есть,
-			то вернется dispatcher_ref_t, который указывает на него,
-			в противном случае вернется dispatcher_ref_t на 0.
-		*/
+		 * \return A reference to dispatcher with name \a disp_name.
+		 * Zero reference if dispatcher with such name not found.
+		 */
 		dispatcher_ref_t
 		query_named_dispatcher(
-			//! Имя диспетчера.
+			//! Name of dispatcher.
 			const std::string & disp_name );
 
-		//! Установить логер исключений.
+		//! Set up exception logger.
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t && logger );
 
-		//! Установить обработчик исключений.
+		//! Set up exception handler.
 		void
 		install_exception_handler(
 			event_exception_handler_unique_ptr_t && handler );
-		//! \}
-
-		//! \name Работа с кооперациями.
-		//! \{
-
-		//! Создать кооперацию.
 		/*!
-			Создается кооперация с заданным именем,
-			с классом привязки агентов к диспетчеру SObjectizer по умолчанию.
-		*/
+		 * \}
+		 */
+
+		/*!
+		 * \name Methods for working with cooperations.
+		 * \{
+		 */
+
+		//! Create cooperation.
+		/*!
+		 * \return A new cooperation with \a name. This cooperation
+		 * with use default dispatcher binders.
+		 */
 		agent_coop_unique_ptr_t
 		create_coop(
-			//! Имя кооперации.
+			//! A name for new cooperation.
 			const nonempty_name_t & name );
 
-		//! Создать кооперацию.
+		//! Create cooperation.
 		/*!
-			По умолчанию агенты кооперации привязываются
-			к диспетчеру с помощью \a disp_binder.
-
-			Используется для тех агентов, которые добавляютяс к
-			кооперации без явного указания привязки к диспетчеру.
+		 * A binder \a disp_binder will be used for binding cooperation
+		 * agents to dispatcher. This binder will be default binder for
+		 * that cooperation.
+		 *
 			\code
-				so_5::rt::agent_coop_unique_ptr_t coop = so_env.create_coop(
-					so_5::rt::nonempty_name_t( "some_coop" ),
-					so_5::disp::active_group::create_disp_binder(
-						"active_group",
-						"some_active_group" ) );
-
-				// Агент будет привязан к деспетчеру активных групп "active_group"
-				// и будет работать на нити активной группы "some_active_group"
-				coop->add_agent(
-					so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
+			so_5::rt::agent_coop_unique_ptr_t coop = so_env.create_coop(
+				so_5::rt::nonempty_name_t( "some_coop" ),
+				so_5::disp::active_group::create_disp_binder(
+					"active_group",
+					"some_active_group" ) );
+      
+			// That agent will be bound to dispatcher "active_group"
+			// and will be member of active group with name
+			// "some_active_group".
+			coop->add_agent(
+				so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
 			\endcode
-			*/
+		 */
 		agent_coop_unique_ptr_t
 		create_coop(
-			//! Имя кооперации.
+			//! A name for new cooperation.
 			const nonempty_name_t & name,
-			//! Привязка  агентов к диспетчеру, используемая
-			//! по умолчанию для агентов кооперации.
+			//! A default binder for that cooperation.
 			disp_binder_unique_ptr_t disp_binder );
 
-		//! Зарегистрировать кооперацию.
+		//! Register cooperation.
 		/*!
-			При регистрации агенты сначала привязываются к кооперации,
-			после этого агенты кооперации знают в какую кооперацию они входят.
-			Затем SObjectizer Environment проверяет: является ли имя
-			кооперации уникальным и, если имя не уникальное,
-			то это приводит к ошибке. Если имя уникальное, то дальше
-			осуществляется определение агентов, у них вызывается метод
-			agent_t::so_define_agent(), что позволяет агенту подписаться на
-			сообщения, еще до того как агент привязан к определенной рабочей нити.
-			И в последнюю очередь происходит привязка агентов к их диспетчерам.
-			Если все агенты успешно привязались к своим диспетчерам,
-			то кооперация становится успешно зарегистрированной
-			и добавляется в словарь зарегистрированных коопераций.
-			В случае успешной регистрации register_coop вернет 0.
-		*/
+		 * Cooperation registration includes the following steps:
+		 *
+		 * - binding agents to cooperation object;
+		 * - checking uniquess of cooperation name. Cooperation is
+		 *   not registered if its name isn't unique;
+		 * - agent_t::so_define_agent() is called for each agent
+		 *   in cooperation;
+		 * - binding of each agent to dispatcher.
+		 *
+		 * If all those actions are successful then cooperation is
+		 * marked as registered.
+		 *
+		 * \retval 0 If cooperation registered successfully.
+		 */
 		ret_code_t
 		register_coop(
-			//! Кооперация, агентов которой надо зарегистрировать.
+			//! Cooperation to be registered.
 			agent_coop_unique_ptr_t agent_coop,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy =
 				THROW_ON_ERROR );
 
-		//! Дерегистрировать кооперацию.
+		//! Deregister cooperation.
 		/*!
-			При дерегистрации SObjectizer Environment проверяет наличие
-			кооперации в словаре зарегистрированных коопераций и,
-			если она находится, то инициирует ее дерегистрацию.
-
-			Важно понимать, что дерегистрация кооперации не значит,
-			что ее агенты немедленно перестают работать,
-			в этот момент агенты уведомляются, что они дерегистрируются.
-			Получив такое уведомление, агенты перестают принимать новые заявки
-			на обработку сообщений. И только когда агенты обработают
-			локальную очередь событий до конца, они уведомят об этом кооперацию.
-			Кооперация, в свою очередь, приполучении сигнала от всех своих
-			агентов, уведомляет об этом SObjectizer,
-			который затем на отдельной служебной нити окончательно
-			дерегистрирует кооперацию.
-
-			После окончательной дерегистрации кооперации, агенты отвязываются
-			от диспетчеров. После этого кооперация удаляется из
-			словаря зарегистрированных коопераций.
-		*/
+		 * Searches cooperation between registered cooperations and if
+		 * it is found deregistes it.
+		 *
+		 * Deregistration could take some time.
+		 *
+		 * At first a special signal is sent to cooperation agents.
+		 * By receiving that signal agents stops receiving new messages.
+		 * When local event queue for agent becomes empty agent informs
+		 * cooperation about this. When cooperation receives all
+		 * those signals from agents it informs SObjectizer Run-Time.
+		 * Only after that cooperation is deregistered on special thread
+		 * context.
+		 *
+		 * After cooperation deregistration agents are unbound from
+		 * dispatchers. And name of cooperation is removed from
+		 * list of registered cooperations.
+		 */
 		ret_code_t
 		deregister_coop(
-			//! Имя дерегистрируемой кооперации.
+			//! Name of cooperation to be registered.
 			const nonempty_name_t & name,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy =
 				DO_NOT_THROW_ON_ERROR );
 
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Работа с таймерными событиями.
-		//! \{
+		/*!
+		 * \name Methods for working with timer events.
+		 * \{
+		 */
 
-		//! Запланировать таймерное событие.
+//FIXME: why not to use a simple std::unique_ptr instead of
+//reference and rvalue reference?
+		//! Schedule timer event.
 		template< class MESSAGE >
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
-			//! Сообщение.
+			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > & msg,
-			//! Mbox, на который надо отсылать сообщение.
+			//! Mbox to which message should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед первой отправкой сообщения.
+			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Период отправки сообщений. Для отложенных сообщений
-			//! \a period_msec равно 0.
+			//! Period of delivery repetition for periodic messages.
+			//! Value 0 indicates delayed only message.
 			unsigned int period_msec )
 		{
 			return schedule_timer(
@@ -545,18 +534,18 @@ class SO_5_TYPE so_environment_t
 				period_msec );
 		}
 
-		//! Запланировать таймерное событие.
+		//! Schedule timer event.
 		template< class MESSAGE >
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
-			//! Сообщение.
+			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > && msg,
-			//! Mbox, на который надо отсылать сообщение.
+			//! Mbox to which message should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед первой отправкой сообщения.
+			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Период отправки сообщений. Для отложенных сообщений
-			//! \a period_msec равно 0.
+			//! Period of delivery repetition for periodic messages.
+			//! Value 0 indicates delayed only message.
 			unsigned int period_msec )
 		{
 			return schedule_timer(
@@ -567,16 +556,16 @@ class SO_5_TYPE so_environment_t
 				period_msec );
 		}
 
-		//! Запланировать таймерное событие с пустым сообщением.
+		//! Schedule timer event for a signal.
 		template< class MESSAGE >
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
-			//! Mbox, на который надо отсылать сообщение.
+			//! Mbox to which signal should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед первой отправкой сообщения.
+			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Период отправки сообщений. Для отложенных сообщений
-			//! \a period_msec равно 0.
+			//! Period of delivery repetition for periodic signals.
+			//! Value 0 indicates delayed only signal.
 			unsigned int period_msec )
 		{
 			return schedule_timer(
@@ -587,16 +576,15 @@ class SO_5_TYPE so_environment_t
 				period_msec );
 		}
 
-		//! Запланировать единичное таймерное событие,
-		//! которое нельзя отменить.
+		//! Schedule a single shot timer event.
 		template< class MESSAGE >
 		void
 		single_timer(
-			//! Сообщение.
+			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
-			//! Mbox, на который надо отсылать сообщение.
+			//! Mbox to which message should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед отправкой сообщения.
+			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
 			single_timer(
@@ -606,14 +594,13 @@ class SO_5_TYPE so_environment_t
 				delay_msec );
 		}
 
-		//! Запланировать единичное таймерное событие,
-		//! которое нельзя отменить, с пустым сообщением.
+		//! Schedule a single shot timer event for a signal.
 		template< class MESSAGE >
 		void
 		single_timer(
-			//! Mbox, на который надо отсылать сообщение.
+			//! Mbox to which signal should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед отправкой сообщения.
+			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
 			single_timer(
@@ -622,19 +609,23 @@ class SO_5_TYPE so_environment_t
 				mbox,
 				delay_msec );
 		}
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Работа со слоями.
-		//! \{
+		/*!
+		 * \name Methods for working with layers.
+		 * \{
+		 */
 
-		//! Получить указатель на требумый слой.
+		//! Get access to layer.
 		template< class SO_LAYER >
 		SO_LAYER *
 		query_layer(
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR ) const
 		{
-			// Проверка на полиморфность SO_LAYER типу so_layer_t
-			// которая происходит во время компиляции.
+			// A kind of static assert.
+			// Checks that SO_LAYER is derived from so_layer_t.
 			so_layer_t * layer = static_cast< so_layer_t* >( (SO_LAYER *)0 );
 
 			layer = query_layer(
@@ -651,7 +642,7 @@ class SO_5_TYPE so_environment_t
 			return nullptr;
 		}
 
-		//! Добавить дополнительный слой.
+		//! Add an additional layer.
 		template< class SO_LAYER >
 		ret_code_t
 		add_extra_layer(
@@ -663,96 +654,90 @@ class SO_5_TYPE so_environment_t
 				so_layer_ref_t( layer_ptr.release() ),
 				throwing_strategy );
 		}
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Запуск, инициализация и остановка.
-		//! \{
-		//! Запустить среду SO_5.
+		/*!
+		 * \name Methods for starting, initializing and stopping of Run-Time.
+		 * \{
+		 */
+
+		//! Run SObjectizer Run-Time.
 		ret_code_t
 		run(
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy =
 				THROW_ON_ERROR );
 
-		//! Инициализировать среду SO.
-		//! Метод вызывается тогда, когда среда уже запущена.
+		//! Initialization hook.
 		/*!
-			\attention Для того чтобы комманды
-			на остановку среды Sobjectizer (метод stop())
-			возымели действие необходимо
-			чтобы работа init() завершилась. В противном случае
-			управляющая нить среды Sobjectizer, остается внутри
-			init(), и не может приступить к ожиданию
-			завершения работы, а соответственно дождаться его и
-			начать завершение работы Sobjectizer. Например, если
-			в init() сначала регистрируется кооперация,
-			ее агенты начинают работать на своих диспетчерах рабочих нитей,
-			а init() далее начинает бесконечный диалог с пользователем.
-			Тогда даже если како-либо агент вызовет so_environment_t::stop(), то
-			среда Sobjectizer продолжит работать в том же режиме,
-			что и до этого, оставаясь полностью рабочей.
-		*/
+		 * \attention A hang inside this method will prevent Run-Time
+		 * from stopping. For example if a dialog with application user
+		 * is performed inside init() then SObjectizer cannot finish
+		 * its work until this dialog is finished.
+		 */
 		virtual void
 		init() = 0;
 
-		//! Завершить выполнение среды SO_5.
+		//! Send a shutdown signal to Run-Time.
 		void
 		stop();
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! Получить реализацию so_environment_impl.
+		//! Access to environment implementation.
 		impl::so_environment_impl_t &
 		so_environment_impl();
 
 	private:
-		//! Запланировать таймерное событие.
+		//! Schedule timer event.
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Сообщение.
+			//! Message to be sent after timeout.
 			const message_ref_t & msg,
-			//! mbox на который надо отсылать сообщение.
+			//! Mbox to which message should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед первой отправкой сообщения.
+			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Период отправки сообщений, для отложенных сообщений
-			//! \a period_msec == 0.
+			//! Period of delivery repetition for periodic messages.
+			//! Value 0 indicates delayed only message.
 			unsigned int period_msec = 0 );
 
-		//! Запланировать единичное таймерное событие,
-		//! которое нельзя отменить.
+		//! Schedule a single shot timer event.
 		void
 		single_timer(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Сообщение.
+			//! Message to be sent after timeout.
 			const message_ref_t & msg,
-			//! mbox на который надо отсылать сообщение.
+			//! Mbox to which message should be delivered.
 			const mbox_ref_t & mbox,
-			//! Задержка перед отправкой сообщений.
+			//! Timeout before the first delivery.
 			unsigned int delay_msec );
 
-		//! Получить слой.
+		//! Access to an additional layer.
 		so_layer_t *
 		query_layer(
 			const type_wrapper_t & type ) const;
 
-		//! Добавить дополнительный слой.
+		//! Add an additional layer.
 		ret_code_t
 		add_extra_layer(
 			const type_wrapper_t & type,
 			const so_layer_ref_t & layer,
 			throwing_strategy_t throwing_strategy );
 
-		//! Изьять дополнительный слой.
+		//! Remove an additional layer.
 		ret_code_t
 		remove_extra_layer(
-			//! Тип слоя.
 			const type_wrapper_t & type,
 			throwing_strategy_t throwing_strategy );
 
-		//! Реализация среды so_5.
+		//! Real SObjectizer Environment implementation.
 		impl::so_environment_impl_t * m_so_environment_impl;
 };
 

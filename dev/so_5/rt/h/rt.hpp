@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Заголовочные файлы для SO Runtime.
+	\brief A wrapper for all major SO Run-Time includes.
 */
 
 #if !defined( _SO_5__RT__RT_HPP_ )
