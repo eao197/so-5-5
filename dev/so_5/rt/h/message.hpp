@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Базовый класс для сообщений.
+	\brief A base class for agent messages definition.
 */
 
 #if !defined( _SO_5__RT__MESSAGE_HPP_ )
@@ -23,11 +23,10 @@ namespace rt
 // message_t
 //
 
-//! Базовый класс для сообщений.
+//! A base class for agent messages.
 /*!
-	Все сооббщения, посылаемые через mbox-ы должны
-	быть нвследниками данного класса.
-*/
+ * All messages for agents should be derived from that class.
+ */
 class SO_5_TYPE message_t
 	:
 		private atomic_refcounted_t
@@ -42,14 +41,12 @@ class SO_5_TYPE message_t
 
 		virtual ~message_t();
 
-		//! Проверить данные в сообщении.
+		//! Check validity of message data.
 		/*!
-			\return true если сообщение прошло проверку.
-			false если сообщение не проходит проверку.
-
-			\note Реализация по умолчанию всегда возвращает
-			true.
-		*/
+		 * Should return \a true if message data is correct.
+		 *
+		 * \note Default implementation always returns true.
+		 */
 		virtual bool
 		check() const;
 };
@@ -59,3 +56,4 @@ class SO_5_TYPE message_t
 } /* namespace so_5 */
 
 #endif
+

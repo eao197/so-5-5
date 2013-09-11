@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс ссылка на message.
+	\brief Smart reference to message definition.
 */
 
 #if !defined( _SO_5__RT__MESSAGE_REF_HPP_ )
@@ -20,7 +20,7 @@ namespace rt
 
 class message_t;
 
-//! Класс умная ссылка на message_t.
+//! A smart reference to message.
 class SO_5_TYPE message_ref_t
 {
 	public:
@@ -74,16 +74,18 @@ class SO_5_TYPE message_ref_t
 		}
 
 	private:
-		//! Увеличить количество ссылок на message
-		//! и в случае необходимости удалить его.
+		//! Increment reference count to message.
 		void
 		inc_message_ref_count();
 
-		//! Уменьшить количество ссылок на message
-		//! и в случае необходимости удалить его.
+		//! Decrement reference count to message.
+		/*!
+		 * Deletes the message if reference count become 0.
+		 */
 		void
 		dec_message_ref_count();
 
+		//! Message object.
 		message_t * m_message_ptr;
 };
 
@@ -92,3 +94,4 @@ class SO_5_TYPE message_ref_t
 } /* namespace so_5 */
 
 #endif
+

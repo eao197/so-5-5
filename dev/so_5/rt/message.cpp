@@ -34,7 +34,7 @@ message_t::operator = ( const message_t & )
 bool
 message_t::check() const
 {
-	// По умолчанию проверка проходит.
+	// Default implementation always return true.
 	return true;
 }
 

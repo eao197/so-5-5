@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс nonempty_name_t.
+	\brief A nonempty_name class definition.
 */
 
 #if !defined( _SO_5__RT__NONEMPTY_NAME_HPP_ )
@@ -24,25 +24,24 @@ namespace rt
 // nonempty_name_t
 //
 
-//! Класс для инкапсуляции имени, которое не может быть пустым.
+//! A class for the name which cannot be empty.
 /*!
-	Если в конструктор объекта передается пустая строка,
-	то будет выброшено исключение.
+ * Checks value in constructor. Throws an exception if name is empty.
 */
 class SO_5_TYPE nonempty_name_t
 {
 	public:
-		//! Имя не должно быть пустым.
+		//! Constructor with check for empty value.
 		nonempty_name_t(
 			const char * name );
 
-		//! Имя не должно быть пустым.
+		//! Constructor with check for empty value.
 		nonempty_name_t(
 			const std::string & name );
 
 		~nonempty_name_t();
 
-		//! Получить имя.
+		//! Get the value.
 		inline const std::string &
 		query_name() const
 		{
@@ -50,7 +49,7 @@ class SO_5_TYPE nonempty_name_t
 		}
 
 	private:
-		//! Имя.
+		//! Value.
 		std::string m_nonempty_name;
 };
 
