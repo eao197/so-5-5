@@ -4,9 +4,7 @@
 
 /*!
 	\file
-	\brief Класс mbox_t.
-
-	Базовый класс для mbox-ов.
+	\brief Mbox definition.
 */
 
 
@@ -57,28 +55,26 @@ class message_ref_t;
 // mbox_t
 //
 
-//! Базовый класс почтового ящика.
+//! Mail box class.
 /*!
-	Служит интерфейсом для отправки и получения сообщений агентами.
-
-	Mbox-ы создаются через SObjectizer Environment и
-	оборачиваются в so_5::rt::mbox_ref_t.
-	Главный метод mbox-а – это метод доставки сообщения
-	mbox_t::deliver_message(), который имеет две версии:
-	одна предназначена для отправкой реального экземпляра сообщения,
-	а вторая для отправки сообщения без реального объекта,
-	когда известен только тип сообщения.
-	Суть метода сводится к определению списка всех агентов
-	подписчиков на данный тип сообщения и к последующему добавлению
-	заявки на обработку сообщения в локальную очередь
-	событий каждому агенту (agent_t) из этого списка.
-
-	Отправка отложенных и периодических событий происходит тоже
-	через mbox_t. SObjectizer Environment запоминает mbox,
-	через который осуществляется отправка сообщения, а таймерная нить
-	в назначенное время инициирует отправку сообщения через заданный mbox.
-	\see so_environment_t::schedule_timer(), so_environment_t::single_timer().
-*/
+ * Serves as an interface for sending and receiving messages.
+ *
+ * All mboxes should created via SObjectizer Environment. References to
+ * mboxes are stored and manipulated by so_5::rt::mbox_ref_t objects.
+ *
+ * mbox_t has two versions of deliver_message() method. First requires
+ * pointer to actual message data and intended for delivering messages
+ * to agents.
+ * Second doesn't not use pointer to actual message data and intended for
+ * delivering signals to agents.
+ *
+ * mbox_t also used for delivery of delayed and periodic messages.
+ * SObjectizer Environment stores mbox for which messages should be
+ * delivered and timer thread pushes message instances to that mbox
+ * at the appropriate time.
+ *
+ * \see so_environment_t::schedule_timer(), so_environment_t::single_timer().
+ */
 class SO_5_TYPE mbox_t
 	:
 		private atomic_refcounted_t
@@ -96,121 +92,103 @@ class SO_5_TYPE mbox_t
 		mbox_t();
 		virtual ~mbox_t();
 
-		//! Отправить сообщение на данный mbox.
+		//! Deliver message.
 		/*!
-			Экземпляр сообщения определяется берется из
-			\a msg_unique_ptr, далее за удаление сообщения
-			отвечает SO.
+		 * Mbox take care about destroying a message object.
 		*/
 		template< class MESSAGE >
 		inline void
 		deliver_message(
-			//! Умный указатель на экземпляр сообщения.
+			//! Message data.
 			std::unique_ptr< MESSAGE > & msg_unique_ptr );
 
 
-		//! Отправить сообщение на данный mbox.
+		//! Deliver message.
 		/*!
-			Экземпляр сообщения определяется берется из
-			\a msg_unique_ptr, далее за удаление сообщения
-			отвечает SO.
+		 * Mbox take care about destroying a message object.
 		*/
 		template< class MESSAGE >
 		inline void
 		deliver_message(
-			//! Умный указатель на экземпляр сообщения.
+			//! Message data.
 			std::unique_ptr< MESSAGE > && msg_unique_ptr );
 
 
-		//! Отправить сообщение на данный mbox.
-		/*!
-			Для тех случаев когда сообщение является сигналом
-			и реального экземпларя сообщения создавать не нужно.
-		*/
+		//! Deliver signal.
 		template< class MESSAGE >
 		inline void
 		deliver_message();
 
-		//! Получить имя.
+		//! Get mbox name.
 		virtual const std::string &
 		query_name() const = 0;
 
 	protected:
-		//! Добавить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Add very first message handler.
 		/*!
-			Метод вызывается, когда агент первый раз подписывается
-			на сообщение заданного типа.
-		*/
+		 * This method is called when agent is subscribing to message
+		 * at first time.
+		 */
 		virtual void
 		subscribe_first_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который
-			//! будет вставлен.
+			//! Message consumer for that message.
 			std::unique_ptr< impl::message_consumer_link_t > &
 				message_consumer_link,
-			//! Первый вызыватель, который будет вставлен.
+			//! A very first message handler.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref ) = 0;
 
-		//! Добавить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Add yet another message handler.
 		/*!
-			Метод вызывается, когда агент подписывается на
-			тип сообщения, на которое он ранее уже подписывался.
-		*/
+		 * This method is called when agent is subscribing to message
+		 * to which it is already subscribed.
+		 */
 		virtual ret_code_t
 		subscribe_more_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения который содержит
-			//! ранее созданные подписки.
+			//! Message consumer for that message.
 			impl::message_consumer_link_t * message_consumer_link,
-			//! Очередной вызыватель для подписки.
+			//! Message handler for that message.
 			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy ) = 0;
 
-		//! Удалить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Remove message handler.
 		virtual ret_code_t
 		unsubscribe_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения который содержит
-			//! ранее созданные подписки.
+			//! Message consumer for that message.
 			impl::message_consumer_link_t *
 				message_consumer_link,
-			//! Вызыватель, который надо удалить.
-			const event_handler_caller_ref_t &
-				event_handler_caller_ref,
-			//! Приемник для флага, является ли удаляемый
-			//! вызыватель последним в подписке агента на заданный
-			//! тип сообщения.
+			//! Message handler to be removed.
+			const event_handler_caller_ref_t & event_handler_caller_ref,
+			//! Receiver for last subscription indicator.
 			bool & is_last_subscription,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy ) = 0;
 
-		//! Удалить всех потребителей сообщения.
+		//! Remove all message handlers.
 		virtual void
 		unsubscribe_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения который содержит
-			//! ранее созданные подписки.
+			//! Message consumer for that message.
 			impl::message_consumer_link_t *
 				message_consumer_link ) = 0;
 
-		//! Отправить всем подписчикам сообщение.
+		//! Deliver message for all subscribers.
 		virtual void
 		deliver_message(
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) = 0;
 
-		//! Адрес для проведения операция сравнения.
+		//! Get data for object comparision.
 		/*!
-			Реализация по умолчанию возвращает this.
+		 * Default implementation returns this pointer.
 		*/
 		virtual const mbox_t *
 		cmp_ordinal() const;

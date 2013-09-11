@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс ссылка на mbox.
+	\brief Smart reference for mbox.
 */
 
 #if !defined( _SO_5__RT__MBOX_REF_HPP_ )
@@ -20,7 +20,7 @@ namespace rt
 
 class mbox_t;
 
-//! Класс умной ссылки на mbox_t.
+//! Smart reference for mbox_t.
 class SO_5_TYPE mbox_ref_t
 {
 	public:
@@ -77,16 +77,18 @@ class SO_5_TYPE mbox_ref_t
 		operator < ( const mbox_ref_t & mbox_ref ) const;
 
 	private:
-		//! Уменьшить количество ссылок на mbox
-		//! и в случае необходимости удалить его.
+		//! Decrement reference count for mbox.
+		/*!
+		 * Deletes mbox when reference count become 0.
+		 */
 		void
 		dec_mbox_ref_count();
 
-		//! Увеличить количество ссылок на mbox.
+		//! Increment reference count for mbox.
 		void
 		inc_mbox_ref_count();
 
-		//! Указатель на mbox.
+		//! Actual mbox.
 		mbox_t * m_mbox_ptr;
 };
 
@@ -95,3 +97,4 @@ class SO_5_TYPE mbox_ref_t
 } /* namespace so_5 */
 
 #endif
+

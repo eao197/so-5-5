@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief  ласс ссылка на event_handler_caller_t.
+	\brief Smart reference for event_handler_caller.
 */
 
 #if !defined( _SO_5__RT__EVENT_HANDLER_CALLER_REF_HPP_ )
@@ -24,7 +24,7 @@ namespace rt
 class agent_t;
 class event_handler_caller_t;
 
-//! —сылка на event_handler_caller_t.
+//! Smart reference for event_handler_caller.
 class SO_5_TYPE event_handler_caller_ref_t
 {
 	public:
@@ -67,16 +67,19 @@ class SO_5_TYPE event_handler_caller_ref_t
 			event_handler_caller_ref ) const;
 
 	private:
-		//! ”меньшить количество ссылок на event_handler_caller
-		//! и в случае необходимости удалить его.
+		//! Decrement reference count for event_handler_caller.
+		/*!
+		 * Deletes m_event_handler_caller_ptr if reference count
+		 * became 0.
+		 */
 		void
 		dec_event_handler_caller_ref_count();
 
-		//! ”величить количество ссылок на event_handler_caller.
+		//! Increment reference count for event_handler_caller.
 		void
 		inc_event_handler_caller_ref_count();
 
-		//! ”казатель на event_handler_caller.
+		//! Pointer for actual event_handler_caller.
 		event_handler_caller_t * m_event_handler_caller_ptr;
 };
 
@@ -85,3 +88,4 @@ class SO_5_TYPE event_handler_caller_ref_t
 } /* namespace so_5 */
 
 #endif
+

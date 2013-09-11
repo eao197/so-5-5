@@ -4,8 +4,7 @@
 
 /*!
 	\file
-	\brief Базовый класс для вызова метода обработчика у агента
-	и шаблон, который обеспечивает конкретные экземпляры объекта.
+	\brief Tools for calling agent's event handler.
 */
 
 
@@ -36,11 +35,7 @@ class event_handler_caller_t;
 // event_handler_caller_t
 //
 
-//! Базовый класс для вызова обработчика.
-/*!
-	Через этот интерфейс подсистемы работают с вызывателями
-	обработчиков событий.
-*/
+//! Base class for agent's event handler caller.
 class SO_5_TYPE event_handler_caller_t
 	:
 		private atomic_refcounted_t
@@ -58,33 +53,32 @@ class SO_5_TYPE event_handler_caller_t
 		event_handler_caller_t();
 		virtual ~event_handler_caller_t();
 
-		//! Вызвать у агента метод обработки события.
+		//! Call agent's event caller.
 		/*!
-			\return Если событие было выполнено, то
-			вернет true, в противном случае вернет false.
-
-			Событие не выполняется только в том случае,
-			если агент находится в состоянии отличном от
-			того с которым он подписывался на сообщение.
-		*/
+		 * Event will not be called if agent is in state evere
+		 * event is disabled.
+		 *
+		 * \retval true If event has been called.
+		 * \retval false If event has not been called.
+		 */
 		virtual bool
 		call(
-			//! Сообщение.
+			//! Message for the event.
 			message_ref_t & message_ref ) const = 0;
 
+		//! Message type identifier.
 		virtual type_wrapper_t
 		type_wrapper() const = 0;
 
-		//! Значение для сравнения
-		//! (указатель на метод обработки события).
+		//! Value for event caller comparision.
 		virtual char *
 		ordinal() const = 0;
 
-		//! Размер значения для сравнния.
+		//! Value for event caller comparision.
 		virtual size_t
 		ordinal_size() const = 0;
 
-		//! Указатель на событие.
+		//! Target state for the event.
 		virtual const state_t *
 		target_state() const;
 };
@@ -93,15 +87,18 @@ class SO_5_TYPE event_handler_caller_t
 // real_event_handler_caller_t
 //
 
-//! Шаблонный класс для вызова обработчика у конкретного агента с
-//! конкретным типом сообщения.
+//! Template based implementation of event_handler_caller.
+/*!
+ * Allows calling event handler for messages without actual data
+ * (e.g. for signals).
+ */
 template< class MESSAGE, class AGENT >
 class real_event_handler_caller_t
 	:
 		public event_handler_caller_t
 {
 	public:
-		//! Указатель на метод обработчик события агента.
+		//! Typedef for agent method pointer.
 		typedef void (AGENT::*FN_PTR_T)(
 			const event_data_t< MESSAGE > & );
 
@@ -124,16 +121,12 @@ class real_event_handler_caller_t
 			return type_wrapper_t( typeid( MESSAGE ) );
 		}
 
-		//! Значение для сравнения.
-		//! Возращает указатель на участок памяти в котором
-		//! храниться указатель на метод класса.
 		virtual char *
 		ordinal() const
 		{
 			return (char *) &m_pfn;
 		}
 
-		//! Размер значения для сравнния.
 		virtual size_t
 		ordinal_size() const
 		{
@@ -146,20 +139,12 @@ class real_event_handler_caller_t
 			return m_target_state;
 		}
 
-		//! Вызвать у агента метод обработки события.
-		/*!
-			\return Если событие было выполнено, то
-			вернет true, в противном случае вернет false.
-		*/
 		virtual bool
 		call(
-			//! Сообщение.
 			message_ref_t & message_ref ) const
 		{
 			const bool execute = &m_agent.so_current_state() == m_target_state;
 
-			// Если агент находится в том состоянии, в котором
-			// подписан на событие, то вызываем обработчик.
 			if( execute )
 			{
 				const event_data_t< MESSAGE > event_data(
@@ -172,13 +157,13 @@ class real_event_handler_caller_t
 		};
 
 	private:
-		//! Состояние в котором должно обрабатываться сообщение.
+		//! State for which event is enabled.
 		const state_t * const m_target_state;
 
-		//! Указатель на метод обработчик события агента.
+		//! Agent's method for handling event.
 		FN_PTR_T m_pfn;
 
-		//! Ссылка на агент у которого надо вызывать обработчик.
+		//! Agent for which event should be called.
 		AGENT & m_agent;
 };
 
@@ -186,15 +171,18 @@ class real_event_handler_caller_t
 // not_null_data_real_event_handler_caller_t
 //
 
-//! Шаблонный класс для вызова обработчика у конкретного агента с
-//! конкретным типом сообщения.
+//! Template based implementation of event_handler_caller.
+/*!
+ * Doesn't allow calling event handler for messages without actual data
+ * (e.g. for signals).
+ */
 template< class MESSAGE, class AGENT >
 class not_null_data_real_event_handler_caller_t
 	:
 		public event_handler_caller_t
 {
 	public:
-		//! Указатель на метод обработчик события агента.
+		//! Typedef for agent method pointer.
 		typedef void (AGENT::*FN_PTR_T)(
 			const not_null_event_data_t< MESSAGE > & );
 
@@ -218,16 +206,12 @@ class not_null_data_real_event_handler_caller_t
 			return type_wrapper_t( typeid( MESSAGE ) );
 		}
 
-		//! Значение для сравнения.
-		//! Возращает указатель на участок памяти, в котором
-		//! храниться указатель на метод класса.
 		virtual char *
 		ordinal() const
 		{
 			return (char *) &m_pfn;
 		}
 
-		//! Размер значения для сравнния.
 		virtual size_t
 		ordinal_size() const
 		{
@@ -240,20 +224,12 @@ class not_null_data_real_event_handler_caller_t
 			return m_target_state;
 		}
 
-		//! Вызвать у агента метод обработки события.
-		/*!
-			\return Если событие было выполнено, то
-			вернет true, в противном случае вернет false.
-		*/
 		virtual bool
 		call(
-			//! Сообщение.
 			message_ref_t & message_ref ) const
 		{
 			bool execute = &m_agent.so_current_state() == m_target_state;
 
-			// Если агент находится в том состоянии, в котором
-			// подписан на событие, то вызываем обработчик.
 			if( execute )
 			{
 				if( message_ref.get() )
@@ -269,13 +245,13 @@ class not_null_data_real_event_handler_caller_t
 		};
 
 	private:
-		//! Состояние в котором должно обрабатываться сообщение.
+		//! State for which event is enabled.
 		const state_t * const m_target_state;
 
-		//! Указатель на метод обработчик события агента.
+		//! Agent's method for handling event.
 		FN_PTR_T m_pfn;
 
-		//! Ссылка на агент, у которого надо вызывать обработчик.
+		//! Agent for which event should be called.
 		AGENT & m_agent;
 };
 
