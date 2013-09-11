@@ -31,13 +31,6 @@ message_t::operator = ( const message_t & )
 {
 }
 
-bool
-message_t::check() const
-{
-	// Default implementation always return true.
-	return true;
-}
-
 } /* namespace rt */
 
 } /* namespace so_5 */

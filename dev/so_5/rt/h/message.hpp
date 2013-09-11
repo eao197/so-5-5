@@ -40,15 +40,6 @@ class SO_5_TYPE message_t
 		operator = ( const message_t & );
 
 		virtual ~message_t();
-
-		//! Check validity of message data.
-		/*!
-		 * Should return \a true if message data is correct.
-		 *
-		 * \note Default implementation always returns true.
-		 */
-		virtual bool
-		check() const;
 };
 
 } /* namespace rt */
