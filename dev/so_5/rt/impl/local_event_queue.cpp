@@ -35,7 +35,7 @@ local_event_queue_t::local_event_queue_t(
 
 local_event_queue_t::~local_event_queue_t()
 {
-	// Возвращаем мутекс в пул.
+	// Mutex should be returned to pool.
 	m_mutex_pool.deallocate_mutex( m_lock );
 }
 
@@ -44,3 +44,4 @@ local_event_queue_t::~local_event_queue_t()
 } /* namespace rt */
 
 } /* namespace so_5 */
+

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс локальная очередь событий агента.
+	\brief A definition of agent's local event queue.
 */
 
 #if !defined( _SO_5__RT__IMPL__LOCAL_EVENT_QUEUE_HPP_ )
@@ -33,26 +33,26 @@ namespace impl
 // event_item_t
 //
 
-//! Элемент очереди событий.
+//! Event queue item.
 struct event_item_t
 {
 	event_item_t()
 	{}
 
 	event_item_t(
-		//! Вызыватель события.
+		//! Event handler caller.
 		const event_caller_block_ref_t & event_caller_block,
-		//! Сообщение.
+		//! Message.
 		const message_ref_t & message_ref )
 		:
 			m_event_caller_block( event_caller_block ),
 			m_message_ref( message_ref )
 	{}
 
-	//! Вызыватель события.
+	//! Event handler caller.
 	event_caller_block_ref_t m_event_caller_block;
 
-	//! Сообщение.
+	//! Message.
 	message_ref_t m_message_ref;
 };
 
@@ -60,58 +60,61 @@ struct event_item_t
 // local_event_queue_t
 //
 
-//! Локальная очередь событий агента.
+//! Agent's local event queue.
 /*!
-	\note Вся работа с очередью происходит внутри агента.
-	Все операции над классом не защищены мутексом.
-	Агент владеющий очередью, должен заботиться о защите
-	своей очереди сам.
-*/
+ * \attention Not thread safe. Operation on queue should be
+ * protected by agent. Synchronization object for that queue
+ * could be obtained by local_event_queue_t::lock() method.
+ */
 class local_event_queue_t
 {
 	public:
+		//! Constructor.
 		explicit local_event_queue_t(
 			util::mutex_pool_t< ACE_Thread_Mutex > & mutex_pool );
 		~local_event_queue_t();
 
-		//! Получить первую заявку.
+		//! Get the first event from queue.
 		inline void
 		pop( event_item_t & event_item );
 
-		//! Вставить заявку в конец.
+		//! Push new event to the end of queue.
 		inline void
 		push(
 			const event_item_t & evt );
 
-		//! Получить замок.
+		//! Get object lock.
 		inline ACE_Thread_Mutex &
 		lock();
 
-		//! Количество элементов очереди.
-		//! \note Не является thread-safe.
+		//! Current queue size.
+		/*!
+		 * \attention Not thread safe.
+		 */
 		inline size_t
 		size() const;
 
-		//! Отчистить очередь.
+		//! Clear queue.
 		inline void
 		clear();
 
 	private:
-		//! Пул мутексов, от которого получен m_lock.
+		//! Mutex pool from which mutex has been obtained.
 		/*!
-			При создании объекта надо запомнить пул,
-			из которого выделяли мутекс, потому что
-			при уничтожении объекта надо вернуть мутекс в пул.
-		*/
+		 * This reference is necessary to return mutex back.
+		 */
 		util::mutex_pool_t< ACE_Thread_Mutex > & m_mutex_pool;
 
-		//! Замок на проведение операций с очередью.
+		//! Reference to object lock.
+		/*!
+		 * This lock is obtained from \a m_mutex_pool.
+		 */
 		ACE_Thread_Mutex & m_lock;
 
-		//! Тип для контейнера очереди событий.
+		//! Typedef for queue underlying container type.
 		typedef std::deque< event_item_t > events_queue_t;
 
-		//! Контейнер для очереди событий.
+		//! Events queue.
 		events_queue_t m_events_queue;
 };
 
@@ -148,7 +151,7 @@ local_event_queue_t::clear()
 	m_events_queue.clear();
 }
 
-//! Псевдоним unique_ptr для local_event_queue_t.
+//! Typedef for local_event_queue autopointer.
 typedef std::unique_ptr< local_event_queue_t >
 	local_event_queue_unique_ptr_t;
 
@@ -159,3 +162,4 @@ typedef std::unique_ptr< local_event_queue_t >
 } /* namespace so_5 */
 
 #endif
+

@@ -4,8 +4,7 @@
 
 /*!
 	\file
-	\brief Класс, для обеспечения mbox-ов мьютексами
-	и хранения именованных mbox-ов в словаре.
+	\brief A definition of utility class for work with mboxes.
 */
 
 #if !defined( _SO_5__RT__IMPL__MBOX_CORE_HPP_ )
@@ -43,8 +42,9 @@ class mbox_core_ref_t;
 // mbox_core_t
 //
 
-//! Класс, для обеспечения mbox-ов мьютексами
-//! и хранения именованных mbox-ов в словаре.
+/*!
+ * \brief A utility class for work with mboxes.
+ */
 class mbox_core_t
 	:
 		private atomic_refcounted_t
@@ -60,65 +60,62 @@ class mbox_core_t
 			unsigned int mutex_pool_size );
 		virtual ~mbox_core_t();
 
-		//! Создать безимянный локальный mbox.
+		//! Create local anonymous mbox.
 		mbox_ref_t
 		create_local_mbox();
 
-		//! Создать именованный локальный mbox.
+		//! Create local named mbox.
 		mbox_ref_t
 		create_local_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const nonempty_name_t & nonempty_name );
 
-		//! Создать безимянный локальный mbox,
-		//! который использует заданный мутекс.
+		//! Create local anonymous mbox with specified mutex.
 		mbox_ref_t
 		create_local_mbox(
-			//! Замок созданный пользователем
+			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex >
 				lock_ptr );
 
-		//! Создать именованный локальный mbox,
-		//! который использует заданный мутекс.
+		//! Create local named mbox with specified mutex.
 		mbox_ref_t
 		create_local_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const nonempty_name_t & nonempty_name,
-			//! Замок созданный пользователем
+			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex >
 				lock_ptr );
 
-		//! Уничтожить ссылку на именованный mbox.
+		//! Remove a reference to named mbox.
 		/*!
-			Если это была последняя ссылка,
-			то именованный mbox удаляется.
+		 * If it was a last reference to named mbox the mbox destroyed.
 		*/
 		void
 		destroy_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const std::string & name );
 
-		//! Взять мутекс в пользование.
+		//! Allocate mutex from pool.
 		ACE_RW_Thread_Mutex &
 		allocate_mutex();
 
-		//! Отказаться от использования мутекса.
+		//! Release mutex.
 		/*!
-			Если мутекс \a m не является мутексом из пула,
-			то считается, что он создавался отдельно при помощи \c new
-			и поэтому будет удален через \c delete.
-		*/
+		 * If \a m is a mutex from pool it is returned to pool.
+		 * Otherwise it is assumed that \a m is a user supplied mutex and
+		 * it is destroyed via delete operator.
+		 */
 		void
 		deallocate_mutex( ACE_RW_Thread_Mutex & m );
 
 	private:
-		//! Пул мутексов.
+		//! Mutex pool.
 		util::mutex_pool_t< ACE_RW_Thread_Mutex > m_mbox_mutex_pool;
 
-		//! Замок для работы со словарем.
+		//! Named mbox map's lock.
 		ACE_RW_Thread_Mutex m_dictionary_lock;
 
-		//! Информация о именованном mbox-е.
+		//! Named mbox information.
 		struct named_mbox_info_t
 		{
 			named_mbox_info_t()
@@ -133,22 +130,21 @@ class mbox_core_t
 					m_mbox( mbox )
 			{}
 
-			//! Количество ссылок посредством внешних mbox_ref.
+			//! Reference count by external mbox_refs.
 			unsigned int m_external_ref_count;
-			//! Реальный mbox с помощью которого
-			//! идут сооющения.
+			//! Real mbox for that name.
 			mbox_ref_t m_mbox;
 		};
 
-		//! Тип для словоря именованных mbox-ов
+		//! Typedef for map from mbox name to mbox information.
 		typedef std::map< std::string, named_mbox_info_t >
 			named_mboxes_dictionary_t;
 
-		//! Словарь именованных mbox-ов.
+		//! Named mboxes.
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
 };
 
-//! Класс умной ссылки на mbox_core_t.
+//! Smart reference to mbox_core_t.
 class mbox_core_ref_t
 {
 	public:
@@ -217,13 +213,14 @@ class mbox_core_ref_t
 		}
 
 	private:
-		//! Увеличить количество ссылок на mbox_core
-		//! и в случае необходимости удалить его.
+		//! Increment reference count to mbox_core.
 		void
 		inc_mbox_core_ref_count();
 
-		//! Уменьшить количество ссылок на mbox_core
-		//! и в случае необходимости удалить его.
+		//! Decrement reference count to mbox_core.
+		/*!
+		 * If reference count become 0 then mbox_core is destroyed.
+		 */
 		void
 		dec_mbox_core_ref_count();
 

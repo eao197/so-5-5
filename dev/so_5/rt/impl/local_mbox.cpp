@@ -117,7 +117,6 @@ local_mbox_t::deliver_message(
 		message_ref );
 }
 
-// Объект для получения ссылки на имя, для безымянного mbox-а.
 const std::string g_mbox_empty_name;
 
 const std::string &

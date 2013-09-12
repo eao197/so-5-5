@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Реализация анонимного mbox-а.
+	\brief A local mbox definition.
 */
 
 #if !defined( _SO_5__RT__IMPL__LOCAL_MBOX_HPP_ )
@@ -33,7 +33,7 @@ namespace impl
 // local_mbox_t
 //
 
-//! Локальный анонимный mbox.
+//! A class for representing local anonymous mbox.
 class local_mbox_t
 	:
 		public mbox_t
@@ -50,94 +50,87 @@ class local_mbox_t
 	public:
 		virtual ~local_mbox_t();
 
-		//! Переопределение методов базового класса.
-		//! \{
-
-		//! Получить имя.
+		/*!
+		 * \return Empty string.
+		 */
 		virtual const std::string &
 		query_name() const;
 
 	protected:
-		//! Добавить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Subscribe first event handler to a mbox's message.
 		virtual void
 		subscribe_first_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который
-			//! будет вставлен.
+			//! Message consumer for that message type.
 			std::unique_ptr< impl::message_consumer_link_t > &
 				message_consumer_link,
-			//! Первый вызыватель, который будет вставлен.
+			//! The first event caller for that message.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref );
 
-		//! Добавить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Add yet another event handler for a mbox's message.
 		/*!
-			Метод вызывается, когда агент подписывается на
-			тип сообщение, на которое он ранее уже подписывался.
+		 * This method is called when agent is subscribing for message
+		 * to which it was subscribed earlier.
 		*/
 		virtual ret_code_t
 		subscribe_more_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения который содержит
-			//! ранее созданные подписки.
+			//! Already existed message consumer for that message.
 			impl::message_consumer_link_t * message_consumer_link,
-			//! Очередной вызыватель для подписки.
+			//! Event caller for that message.
 			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Удалить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Remove event handler.
 		virtual ret_code_t
 		unsubscribe_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения который содержит
-			//! ранее созданные подписки.
+			//! Message consumer for that message.
 			impl::message_consumer_link_t *
 				message_consumer_link,
-			//! Вызыватель, который надо удалить.
+			//! Event caller to be removed.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref,
-			//! Приемник для флага, является ли удаляемый
-			//! вызыватель последним в подписке агента на заданный
-			//! тип сообщения.
+			//! Last event handler indicator.
+			//! Should receive \a true if removed event caller was
+			//! the last event handler for message.
 			bool & is_last_subscription,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Удалить всю подписку агента на заданный тип сообщения.
-		//! \note Вызывается при дерегистрации агента,
-		//! когда надо удалять все его подписки,
-		//! а не отдельные вызыватели.
+		//! Remove all subscription for message specified.
+		/*!
+		 * This method is called during agent deregistration when
+		 * all agent subscriptions should be removed.
+		 */
 		virtual void
 		unsubscribe_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения который содержит
-			//! ранее созданные подписки.
+			//! Message consumer for agent.
 			impl::message_consumer_link_t *
 				message_consumer_link );
 		//! \}
 
-		//! Отправить всем подписчикам сообщение.
+		//! Deliver message for all subscribers.
 		void
 		deliver_message(
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref );
 
 	private:
-		//! Создатель данного mbox-а.
+		//! Implementation data.
 		impl::mbox_core_ref_t m_mbox_core;
 
-		//! Ссылка на мутекс для синхронизации операций подписки.
+		//! Object lock.
 		ACE_RW_Thread_Mutex & m_lock;
 
-		//! Распределитель сообщений.
+		//! Message distributor.
 		impl::message_distributor_t m_message_distributor;
 };
 

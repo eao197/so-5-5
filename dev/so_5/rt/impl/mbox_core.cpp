@@ -65,7 +65,7 @@ mbox_core_t::create_local_mbox(
 				*this ) );
 	}
 
-	// ≈сли не нашли, то надо создавать.
+	// There is no mbox with such name. New mbox should be created.
 	mbox_ref_t mbox_ref( new local_mbox_t( *this ) );
 	m_named_mboxes_dictionary[ name ] = named_mbox_info_t( mbox_ref );
 
@@ -107,7 +107,7 @@ mbox_core_t::create_local_mbox(
 				*this ) );
 	}
 
-	// ≈сли не нашли, то надо создавать.
+	// There is no mbox with such name. New mbox should be created.
 	mbox_ref_t mbox_ref( new local_mbox_t(
 		*this,
 		*lock_ptr.release() ) );
@@ -143,10 +143,10 @@ mbox_core_t::allocate_mutex()
 void
 mbox_core_t::deallocate_mutex( ACE_RW_Thread_Mutex & m )
 {
-	// ≈сли мутекс не нашь, это значит что он был создан
-	// и преписан mbox-у пользователем, и мы его удал€ем.
 	if( !m_mbox_mutex_pool.deallocate_mutex( m ) )
 	{
+		// Mutex is not from pool. Assume that is was created by user
+		// and should be deleted.
 		delete &m;
 	}
 }
