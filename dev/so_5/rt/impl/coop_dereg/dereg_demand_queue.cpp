@@ -34,7 +34,6 @@ dereg_demand_queue_t::push( agent_coop_t * coop )
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-		// Если надо обслуживать.
 		if( m_in_service )
 		{
 			was_empty = m_demands.empty();
@@ -56,8 +55,7 @@ dereg_demand_queue_t::pop(
 	{
 		if( m_in_service && m_demands.empty() )
 		{
-			// Нужно ждать наступления
-			// какого-нибудь события.
+			// We should wait for some event.
 			m_not_empty.wait();
 		}
 		else
@@ -74,24 +72,23 @@ dereg_demand_queue_t::start_service()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// Выставляем флаг - начать работу очереди.
 	m_in_service = true;
 }
 
 void
 dereg_demand_queue_t::stop_service()
 {
-	bool need_signal_not_empty;
+	bool need_wakeup_signal = false;
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-		// Выставляем флаг - прекратить работу очереди.
 		m_in_service = false;
-		need_signal_not_empty = m_demands.empty();
+		// If demands queue is empty then someone could wait on
+		// object lock. That thread should be waked up.
+		need_wakeup_signal = m_demands.empty();
 	}
 
-	// Если кто-то ждет - сигналим.
-	if( need_signal_not_empty)
+	if( need_wakeup_signal )
 		m_not_empty.signal();
 }
 

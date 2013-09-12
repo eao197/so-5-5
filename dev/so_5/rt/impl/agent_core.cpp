@@ -20,12 +20,12 @@ namespace impl
 
 agent_core_t::agent_core_t(
 	so_environment_t & so_environment,
-	unsigned int agent_coop_mutex_pool,
+	unsigned int agent_coop_mutex_pool_size,
 	unsigned int agent_queue_mutex_pool_size,
 	coop_listener_unique_ptr_t coop_listener )
 	:
 		m_so_environment( so_environment ),
-		m_agent_coop_mutex_pool( agent_coop_mutex_pool ),
+		m_agent_coop_mutex_pool( agent_coop_mutex_pool_size ),
 		m_agent_queue_mutex_pool( agent_queue_mutex_pool_size ),
 		m_deregistration_started_cond( m_coop_operations_lock ),
 		m_deregistration_finished_cond( m_coop_operations_lock ),
@@ -48,19 +48,20 @@ agent_core_t::start()
 void
 agent_core_t::shutdown()
 {
-	// »нициируем дерегистрацию всех коопераций.
+	// Deregistration of all cooperations should be initiated.
 	deregister_all_coop();
 
-	// ∆дем дерегистрации всех коопераций.
+	// Deregistration of all cooperations should be finished.
 	wait_all_coop_to_deregister();
 
-	// «авершаем нить дерегистратора агентов.
+	// Notify a dedicated thread.
 	m_coop_dereg_executor.shutdown();
 }
 
 void
 agent_core_t::wait()
 {
+	// The dedicated thread should be stopped.
 	m_coop_dereg_executor.wait();
 }
 
@@ -106,10 +107,10 @@ agent_core_t::register_coop(
 
 		agent_coop->bind_agents_to_coop();
 
-		// ƒалее необходим замок.
+		// All the following actions should be taken under the lock.
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-		// ѕровер€ем нет ли такого имени в данный момент.
+		// Name should be unique.
 		if( m_registered_coop.end() !=
 			m_registered_coop.find( coop_name ) ||
 			m_deregistered_coop.end() !=
@@ -160,17 +161,17 @@ agent_core_t::deregister_coop(
 	agent_coop_ref_t coop;
 
 	{
-		// Ќужен замок.
+		// All the following actions should be taken under the lock.
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-		// ≈сли коопераци€ и так среди дерегистрированных, то выходим.
+		// No action if cooperation is already in deregistration process.
 		if( m_deregistered_coop.end() !=
 			m_deregistered_coop.find( coop_name ) )
 		{
 			return 0;
 		}
 
-		// ≈сли кооперации нет среди зарегистрированных, то это ошибка.
+		// It is an error if cooperation is not registered.
 		coop_map_t::iterator it = m_registered_coop.find( coop_name );
 		if( m_registered_coop.end() == it )
 		{
@@ -181,18 +182,14 @@ agent_core_t::deregister_coop(
 				"\" not found among registered cooperations" );
 		}
 
-		// –аз така€ коопераци€ есть, то перенесем ее в список
-		// дерегистрируемых коопераций.
 		coop = it->second;
 
-		//”дал€ем из зарегистрированных.
 		m_registered_coop.erase( it );
 
-		// ѕереносим кооперацию в список дерегистрируемых.
 		m_deregistered_coop[ coop_name ] = coop;
 	}
 
-	// ќтмечаем всех агентов как дерегистрируемых.
+	// All agents of cooperation should be marked as deregistered.
 	coop->undefine_all_agents();
 
 	return 0;
@@ -215,10 +212,8 @@ agent_core_t::final_deregister_coop(
 
 		m_deregistered_coop.erase( coop_name );
 
-		// ≈сли мы находимс€ в режиме завершени€ работы,
-		// когда должны дерегистрироватьс€ все кооперации,
-		// тогда в случае если это последн€€ коопераци€,
-		// надо просигналить что это последн€€ коопераци€.
+		// If we are inside shutdown process and this is the last
+		// cooperation then special flag should be set.
 		need_signal_dereg_finished =
 			m_deregistration_started && m_deregistered_coop.empty();
 	}
@@ -255,8 +250,6 @@ agent_core_t::wait_for_start_deregistration()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-	// ≈сли дерегистраци€ еще не началась, то
-	// ожидаем сигнала о ее начале.
 	if( !m_deregistration_started )
 		m_deregistration_started_cond.wait();
 }
@@ -265,7 +258,6 @@ void
 agent_core_t::coop_undefine_all_agents(
 	agent_core_t::coop_map_t::value_type & coop )
 {
-	// ќтмечаем всех агентов как дерегистрируемых.
 	coop.second->undefine_all_agents();
 }
 
@@ -285,13 +277,6 @@ agent_core_t::deregister_all_coop()
 
 	m_registered_coop.clear();
 	m_deregistration_started = true;
-
-	// NOTE: мы здесь не отсылаем сигнал о том
-	// что m_deregistration_finished в случае если m_deregistered_coop
-	// пуст, потому что deregister_all_coop() и wait_all_coop_to_deregister()
-	// вызываютс€ на одной нити друг за другом, а значит если
-	// коопераций никаких и нет, то wait_all_coop_to_deregister()
-	// и не будет ожидать событи€.
 }
 
 void
@@ -299,11 +284,11 @@ agent_core_t::wait_all_coop_to_deregister()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-	// ≈сли есть не до конца дерегистрированные кооперации,
-	// то будем ожидать сигнала.
+	// Must wait for a signal is there are cooperations in
+	// deregistration process.
 	if( !m_deregistered_coop.empty() )
 	{
-		// ќжидаем сигнала.
+		// Wait for deregistration finish.
 		m_deregistration_finished_cond.wait();
 	}
 }

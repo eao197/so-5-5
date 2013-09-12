@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief ќчередь за€вок на дерегистрацию коопераций.
+	\brief A cooperation deregistration waiting queue definition.
 */
 
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__DEREG_DEMAND_QUEUE_HPP_ )
@@ -31,14 +31,12 @@ namespace coop_dereg
 // dereg_demand_queue_t
 //
 
-//! ќчередь за€вок.
+//! A cooperation deregistration waiting queue.
 /*!
-	“ак же хранит признак необходимости завершени€
-	работы.
-
-	ѕредназначена дл€ использовани€ несколькими
-	нит€ми одновременно.
-*/
+ * Thread safe.
+ *
+ * Also stores shutdown flag.
+ */
 class dereg_demand_queue_t
 {
 	public:
@@ -47,46 +45,47 @@ class dereg_demand_queue_t
 		dereg_demand_queue_t();
 		~dereg_demand_queue_t();
 
-		//! ѕоместить за€вку на исполнение событий в очередь.
+		//! Put cooperation into queue.
 		void
 		push( agent_coop_t * coop );
 
-		//! ¬з€ть первую за€вку.
+		//! Get cooperations from queue.
 		/*!
-			≈сли за€вок в очереди нет, то текуща€ нить
-			засыпает до по€влени€ за€вок в очереди, либо
-			до выставлени€ признака завершени€ работы.
-
-			 огда работа завершена, то пиремник не будет содержать за€вок.
-		*/
+		 * Will block if queue is empty.
+		 *
+		 * Return no cooperations if shutdown flag is set.
+		 */
 		void
 		pop(
-			/*! ѕриемник зa€вок. */
+			/*! Demands receiver. */
 			dereg_demand_container_t & demands );
 
-		//! Ќачать обслуживание за€вок.
+		//! Initiate working.
 		void
 		start_service();
 
-		//! ќстановить обслуживание за€вок.
+		//! Finish working.
+		/*!
+		 * Sets up shutdown flag.
+		 */
 		void
 		stop_service();
 
 	private:
-		//!  онтейнер очереди.
+		//! Waiting queue.
 		dereg_demand_container_t m_demands;
 
-		//! —инхронизаци€.
-		//! \{
+		//! Object lock.
 		ACE_Thread_Mutex m_lock;
-		ACE_Condition_Thread_Mutex m_not_empty;
-		//! \}
 
-		//! ‘лаг - обслуживать ли клиентов очереди?.
-		/*! ѕринимает значени€:
-			true - надо продолжать работу - обслуживать методы push/pop.
-			false - прекратить обслуживание.
-		*/
+		//! Condition variable for waking up sleeping thread.
+		ACE_Condition_Thread_Mutex m_not_empty;
+
+		//! Working status.
+		/*!
+		 * Value true means that queue is in working state.
+		 * Value false serves as shutdown flag.
+		 */
 		bool m_in_service;
 };
 

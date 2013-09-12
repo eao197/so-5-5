@@ -90,10 +90,17 @@ namespace so_5
 	namespace rt
 	{
 		/*!
-		 * Details of SObjectizer run-time implementations.
+		 * \brief Details of SObjectizer run-time implementations.
 		 */
 		namespace impl
 		{
+			/*!
+			 * \brief Details of cooperation deregistration implementation
+			 */
+			namespace coop_dereg
+			{
+			} /* namespace coop_dereg */
+
 		} /* namespace impl */
 
 	} /* namespace rt */

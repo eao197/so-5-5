@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс для обеспечения агентов и их коопераций мьютексами.
+	\brief A class for a part of agent/environment functionality.
 */
 
 #if !defined( _SO_5__RT__IMPL__AGENT_CORE_HPP_ )
@@ -44,7 +44,7 @@ namespace impl
 // agent_core_t
 //
 
-//! Класс, для обеспечения агентов мьютексами.
+//! A class for a part of agent/environment functionality.
 class agent_core_t
 {
 		agent_core_t( const agent_core_t & );
@@ -53,142 +53,141 @@ class agent_core_t
 
 	public:
 		explicit agent_core_t(
-			//! Среда SObjectizer.
+			//! SObjectizer environment.
 			so_environment_t & so_environment_impl,
-			//! Размер пула мутексов для коопераций.
-			unsigned int agent_coop_mutex_pool,
-			//! Размер пула мутексов для локальных очередей агентов.
+			//! Size of mutex pool for cooperations.
+			unsigned int agent_coop_mutex_pool_size,
+			//! Size of mutex pool for agent queues.
 			unsigned int agent_queue_mutex_pool_size,
-			//! Слущатель действий над кооперациями.
+			//! Cooperation action listener.
 			coop_listener_unique_ptr_t coop_listener );
 
 		~agent_core_t();
 
-		//! Инициализировать ядро.
+		//! Do initialization.
 		void
 		start();
 
-		//! Инициировать остановку.
+		//! Send a shutdown signal.
 		void
 		shutdown();
 
-		//! Ожидать окончания.
+		//! Blocking wait for complete shutdown.
 		void
 		wait();
 
-		//! Операции с мутексом кооперпаций.
-		//! \{
-		//! Взять мутекс в пользование.
+		/*!
+		 * \name Methods for working with cooperation mutexes.
+		 * \{
+		 */
+		//! Get a cooperation mutex.
 		ACE_Thread_Mutex &
 		allocate_agent_coop_mutex();
 
-		//! Отказаться от использования мутекса.
+		//! Return cooperation mutex.
 		void
 		deallocate_agent_coop_mutex(
 			ACE_Thread_Mutex & m );
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! Создать локальную очередь для агента.
+		//! Create a local event queue for an agent.
 		local_event_queue_unique_ptr_t
 		create_local_queue();
 
-		//! Зарегистрировать кооперацию.
+		//! Register cooperation.
 		ret_code_t
 		register_coop(
-			//! Кооперация, агентов которую надо зарегистрировать.
+			//! Cooperation to be registered.
 			agent_coop_unique_ptr_t agent_coop,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Дерегистрировать кооперацию.
+		//! Deregister cooperation.
 		ret_code_t
 		deregister_coop(
-			//! Имя дерегистрируемой кооперации.
+			//! Name of cooperation being deregistered.
 			const nonempty_name_t & name,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-
-		//! Уведомить о готовности кооперации
-		//! к окончательной дерегистрации.
+		//! Notification about readiness of cooperation deregistration.
 		void
 		ready_to_deregister_notify(
 			agent_coop_t * coop );
 
-		//! Окончательно дерегистрировать кооперацию.
+		//! Do final actions of cooperation deregistration.
 		void
 		final_deregister_coop(
-			//! Имя дерегистрируемой кооперации.
+			//! Name of cooperation to be deregistered.
 			/*!
-				\note Параметр должен быть получен копией,
-				т.к. к методу обращается сам обхект кооперации,
-				а в результате работы он уничтожается. Поэтому,
-				принимать ссылку на аттрибут объекта, который будет
-				уничтожен - не корректно.
+			 * Name of cooperation should be passed by value because
+			 * reference could become invalid during work of this method.
 			*/
 			const std::string coop_name );
 
-		//! Инициировать начало дерегистрации.
+		//! Initiate start of cooperation deregistration.
 		void
 		start_deregistration();
 
-		//! Ожидать сигнала о начале дерегистрации.
+		//! Wait for signal about start of cooperation deregistration.
 		void
 		wait_for_start_deregistration();
 
-		//! Дерегистрировать все кооперации.
+		//! Deregisted all cooperations.
 		/*!
-			Когда завершается работа SO, то все кооперации
-			дерегистрируются.
+		 * All cooperations should be deregistered at SObjectize shutdown.
 		*/
 		void
 		deregister_all_coop();
 
-		//! Ожидать пока все кооперации не буду тдерегистрированы.
+		//! Wait for end of all cooperations deregistration.
 		void
 		wait_all_coop_to_deregister();
 
 	private:
-		//! Тип карты для зарегистрированных коопераций.
+		//! Typedef for map from cooperation name to cooperation.
 		typedef std::map<
 				std::string,
 				agent_coop_ref_t >
 			coop_map_t;
 
-		//! Метод для дерегистрации кооперации с std::for_each.
+		//! An auxiliary method for std::for_each.
 		static void
 		coop_undefine_all_agents( agent_core_t::coop_map_t::value_type & coop );
 
+		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;
 
-		//! Пул мутексов для коопераций агентов.
+		//! Mutex pool for cooperations.
 		util::mutex_pool_t< ACE_Thread_Mutex > m_agent_coop_mutex_pool;
 
-		//! Пул мутексов для очередей событий агентов.
+		//! Mutex pool for agent's event queues.
 		util::mutex_pool_t< ACE_Thread_Mutex > m_agent_queue_mutex_pool;
 
-		//! Замок на операции с кооперациями.
+		//! Lock for operations on cooperations.
 		ACE_Thread_Mutex m_coop_operations_lock;
 
-		//! Условная переменная, что дерегистрация начата.
+		//! Condition variable for deregistration start indication.
 		ACE_Condition_Thread_Mutex m_deregistration_started_cond;
 
-		//! Условная переменная, что дерегистрация завершена.
+		//! Condition variable for deregistration finish indication.
 		ACE_Condition_Thread_Mutex m_deregistration_finished_cond;
 
-		//! Флаг о начале дерегистрации всех коопераций.
+		//! Indicator for all cooperation deregistration.
 		bool m_deregistration_started;
 
-		//! Зарегистрированные кооперации.
+		//! Map of registered cooperations.
 		coop_map_t m_registered_coop;
 
-		//! Кооперации, которые помечены для дерегистрации.
+		//! Map of cooperations being deregistered.
 		coop_map_t m_deregistered_coop;
 
-		//! Нить окончательной дерегистрации коопераций.
+		//! Cooperation deregistration thread.
 		coop_dereg::coop_dereg_executor_thread_t m_coop_dereg_executor;
 
-		//! Слущатель действий над кооперациями.
+		//! Cooperation actions listener.
 		coop_listener_unique_ptr_t m_coop_listener;
 };
 

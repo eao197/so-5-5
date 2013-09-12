@@ -37,7 +37,7 @@ coop_dereg_executor_thread_t::~coop_dereg_executor_thread_t()
 void
 coop_dereg_executor_thread_t::start()
 {
-	// Выставляем очереди флаг, что надо работать.
+	// Queue must be informed.
 	m_dereg_demand_queue.start_service();
 
 	SO_5_ABORT_ON_ACE_ERROR(

@@ -4,18 +4,13 @@
 
 /*!
 	\file
-	\brief Функция для сравнения указателей
-	на методы обработчики событий.
+	\brief A function to compare pointers to methods.
 */
 
 #if !defined( _SO_5__RT__IMPL__CMP_METHOD_PTR_HPP_ )
 #define _SO_5__RT__IMPL__CMP_METHOD_PTR_HPP_
 
 #include <cstring>
-
-#include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/message.hpp>
-#include <so_5/rt/h/event_data.hpp>
 
 namespace so_5
 {
@@ -30,10 +25,9 @@ namespace impl
 // cmp_method_ptr
 //
 
-//! Сравнить указатели на метод класса агента.
+//! A function to compare pointers to methods.
 /*!
-	\return true если указатели на методы равны,
-	false если указатели на методы не равны.
+	\return true if pointers are equal, false otherwise.
 */
 
 inline bool

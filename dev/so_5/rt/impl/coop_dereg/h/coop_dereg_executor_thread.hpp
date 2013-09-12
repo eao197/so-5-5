@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief ќчередь за€вок на дерегистрацию коопераций.
+	\brief A definition for dedicated thread for cooperation deregistration.
 */
 
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__COOP_DEREG_EXECUTOR_THREAD_HPP_ )
@@ -30,54 +30,51 @@ namespace coop_dereg
 // coop_dereg_executor_thread_t
 //
 
-//!  ласс нити дерегистратора коопераций.
+//! A dedicated for cooperation deregistration thread.
 /*!
-	ƒл€ того чтобы отв€зка агентов от диспетчеров происходила не
-	на нити одного из агентов кооперации, а на независимой от
-	коопераций нити, при поступлении момента, когда все агенты
-	кооперации завершили выполнение своих действий, коопераци€
-	ставит себ€ в очередь на дерегистрацию, котора€ обрабатываетс€
-	на служебной нити agent_core.
-*/
+ * This thread is used for doing actions of cooperation deregistration.
+ * To execute those actions a cooperation is put itsefl to special
+ * deregistration queue. This thread handles that queue.
+ */
 class coop_dereg_executor_thread_t
 {
 	public:
 		coop_dereg_executor_thread_t();
 		~coop_dereg_executor_thread_t();
 
-		//! «апустить нить.
+		//! Launch thread.
 		void
 		start();
 
-		//! ƒать сигнал к останову работы.
+		//! Send a shutdown signal to thread.
 		void
 		shutdown();
 
-		//! ќжидать завершени€ работы.
+		//! Wait for thread shutdown.
 		void
 		wait();
 
-		//! ѕоставить кооперацию в очередь на дерегистрацию.
+		//! Push cooperation to waiting queue.
 		void
 		push_dereg_demand(
 			agent_coop_t * coop );
 
 	protected:
-		//! ќсновное тело циклической работы.
+		//! Thread body.
 		void
 		body();
 
-		//! “очка входа в нить дл€ ACE_Thread_Manager.
+		//! Thread entry point for ACE_Thread_Manager.
 		static ACE_THR_FUNC_RETURN
 		entry_point( void * self_object );
 
 	private:
-		//! ќчередь за€вок на дерегистрацию коопераций.
+		//! Waiting queue.
 		dereg_demand_queue_t m_dereg_demand_queue;
 
-		//! »дентификатор нити, созданной дл€ данного объекта.
+		//! This thread id.
 		/*!
-			\note «начение актуально только после вызова start().
+			\note Has actual value only after start().
 		*/
 		ACE_thread_t m_tid;
 };
