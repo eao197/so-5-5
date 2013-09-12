@@ -54,13 +54,11 @@ disp_core_t::query_named_dispatcher(
 	named_dispatcher_map_t::iterator it =
 		m_named_dispatcher_map.find( disp_name );
 
-	// Если найден такой диспетчер, то вернем его.
 	if( m_named_dispatcher_map.end() != it )
 	{
 		return it->second;
 	}
 
-	// Диспетчер не найден.
 	return dispatcher_ref_t();
 }
 
@@ -148,7 +146,8 @@ disp_core_t::handle_exception(
 	const std::string & coop_name )
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_exception_logger_lock );
-		m_event_exception_logger->log_exception( event_exception, coop_name );
+
+	m_event_exception_logger->log_exception( event_exception, coop_name );
 
 	return m_event_exception_handler->handle_exception(
 		m_so_environment,

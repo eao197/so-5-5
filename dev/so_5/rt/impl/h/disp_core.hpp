@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс для обеспечения работы с диспетчерами.
+	\brief A definition of utility class for work with dispatchers.
 */
 
 #if !defined( _SO_5__RT__IMPL__DISP_CORE_HPP_ )
@@ -32,7 +32,7 @@ namespace impl
 // disp_core_t
 //
 
-//! Класс для обеспечения работы с диспетчерами.
+//! A utility class for work with dispatchers.
 class disp_core_t
 	:
 		public disp_evt_except_handler_t
@@ -46,70 +46,69 @@ class disp_core_t
 
 		virtual ~disp_core_t();
 
-		//! Получить диспетчер по умолчанию.
+		//! Get the default dispatcher.
 		dispatcher_t &
 		query_default_dispatcher();
 
-		//! Получить именованный диспетчер.
+		//! Get a named dispatcher.
 		/*!
-			\return Если диспетчер с таким именем есть,
-			то вернется dispatcher_ref_t, который указывает на него,
-			в противном случае вернется dispatcher_ref_t на 0.
+			\return null reference if dispatcher with \a disp_name
+			has not been found.
 		*/
 		dispatcher_ref_t
 		query_named_dispatcher(
 			const std::string & disp_name );
 
-		//! Запустить работу всех диспетчеров.
+		//! Start all dispatchers.
 		ret_code_t
 		start();
 
-		//! Сообщить всем диспетчерам, что надо завершать работу.
+		//! Send shutdown signal for all dispatchers.
 		void
 		shutdown();
 
-		//! Ждать завершения всех диспетчеров.
+		//! Blocking wait for complete shutdown of all dispatchers.
 		void
 		wait();
 
-		//! Установить другой логер исключений.
+		//! Install exception logger.
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t && logger );
 
-		//! Установить другой обработчик исключений.
+		//! Install exception handler.
 		void
 		install_exception_handler(
 			event_exception_handler_unique_ptr_t && handler );
 
-		//! Обработать исключение.
+		//! Handle an exception.
 		/*!
-			Логирует исключение и создает его обработчик.
+		 * Calls exception logger and handler.
 		*/
 		virtual event_exception_response_action_unique_ptr_t
 		handle_exception(
-			//! Ссылка на экземпляр возникшего исключения.
+			//! Exception caught.
 			const std::exception & event_exception,
-			//! Имя кооперации, которой принадлежит агент.
+			//! A cooperation to which agent is belong.
 			const std::string & coop_name );
 
 	private:
-		//! Среда SObjectizer.
+		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;
 
-		//!Диспетчер по умолчанию.
+		//! Default dispatcher.
 		dispatcher_unique_ptr_t m_default_dispatcher;
 
-		//! Именованные диспетчеры.
+		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;
 
-		//! Замок для замещения логера исключений.
+		//! Exception logger object lock.
 		ACE_Thread_Mutex m_exception_logger_lock;
 
-		//! Логер исключений.
+		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
 
-		//! Обработчик исключений.
+		//! Exception handler.
 		event_exception_handler_unique_ptr_t m_event_exception_handler;
 };
 

@@ -79,7 +79,7 @@ layer_core_t::~layer_core_t()
 {
 }
 
-//! ѕоиск сло€ по массиву.
+//! Find layer in container.
 inline so_layer_list_t::const_iterator
 search_for_layer(
 	const so_layer_list_t & layers,
@@ -89,6 +89,7 @@ search_for_layer(
 		it = layers.begin(),
 		it_end = layers.end();
 
+//FIXME: a simple binary search should be used.
 	for(
 		size_t size = std::distance( it, it_end );
 		size > 0;
@@ -96,8 +97,7 @@ search_for_layer(
 	{
 		if( size <= 8 )
 		{
-			// ≈сли осталось мало слоев дл€ поиска,
-			// то ищем перебором.
+			// Too few items, use simple enumeration.
 			while( it != it_end )
 			{
 				if( type == it->m_true_type )
@@ -108,7 +108,7 @@ search_for_layer(
 		}
 		else
 		{
-			// ≈сли слоев много, то бинарный поиск.
+			// Too many layers, use binary search.
 			so_layer_list_t::const_iterator it_center =
 				it + size / 2;
 
@@ -129,7 +129,7 @@ so_layer_t *
 layer_core_t::query_layer(
 	const type_wrapper_t & type ) const
 {
-	// —начала делаем поиск по сло€м по умолчанию.
+	// Try search between default layers first.
 	so_layer_list_t::const_iterator layer_it = search_for_layer(
 		m_default_layers,
 		type );
@@ -137,9 +137,9 @@ layer_core_t::query_layer(
 	if( m_default_layers.end() != layer_it )
 		return layer_it->m_layer.get();
 
+	// Layer not found yet. Search extra layers.
 	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
-	// ≈сли слой не найден, то
-	// пытаемс€ найти его среди дополнительных слоев.
+
 	layer_it = search_for_layer(
 		m_extra_layers,
 		type );
@@ -245,8 +245,6 @@ layer_core_t::add_extra_layer(
 			throwing_strategy,
 			"trying to add extra layer that already exists in default list" );
 
-	//  огда ищем по дополнительным сло€м
-	// уже надо ставить защиту.
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
 
 	if( m_extra_layers.end() != search_for_layer( m_extra_layers, type ) )
@@ -255,8 +253,6 @@ layer_core_t::add_extra_layer(
 			throwing_strategy,
 			"trying to add extra layer that already exists in extra list" );
 
-	// “акого сло€ нет, тогда добавл€ем прив€зываем его к
-	// so_environment.
 	layer->bind_to_environment( m_env );
 
 	const ret_code_t rc = layer->start();
