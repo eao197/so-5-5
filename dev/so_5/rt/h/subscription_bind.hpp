@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Шаблонный класс для подписки агентов на сообщения.
+	\brief A definition of the template for subcription to messages.
 */
 
 #if !defined( _SO_5__RT__SUBSCRIPTION_BIND_HPP_ )
@@ -34,35 +34,40 @@ namespace rt
 // agent_owns_state()
 //
 
-//! Проверить является ли агент владельцем состояния.
+//! Does agent own this state?
 SO_5_EXPORT_FUNC_SPEC( ret_code_t )
 agent_owns_state(
+	//! Agent to be checked.
 	agent_t & agent,
+	//! State to check.
 	const state_t * state,
-	//! Флаг - бросать ли исключение в случае ошибки.
+	//! Exception strategy.
 	throwing_strategy_t throwing_strategy );
 
-//! Проверить является ли агент приводимым к данному типу.
+//! Is agent convertible to specified type.
+/*!
+ * \tparam AGENT Target type of type conversion to be checked.
+ */
 template< class AGENT >
 ret_code_t
 agent_convertable_to(
-	//! Агент, приводимость которого к типу AGENT проверяется.
+	//! Object to be checked.
 	agent_t * agent,
+	//! Receiver of casted pointer (in case if conversion available).
 	AGENT * & casted_agent,
-	//! Флаг - бросать ли исключение в случае ошибки.
+	//! Exception strategy.
 	throwing_strategy_t throwing_strategy )
 {
 	ret_code_t res = 0;
 	casted_agent = dynamic_cast< AGENT * >( agent );
 
-	// Если агент не приводится к заданному типу,
-	// то это будет ошибкой.
+	// Was conversion successful?
 	if( nullptr == casted_agent )
 	{
-		// Агент не является заданным типом.
+		// No actual type of agent is not convertible to AGENT.
 		res = rc_agent_incompatible_type_conversion;
 
-		// Если надо бросать исключение, то бросаем его.
+		// Handling exception strategy.
 		if( THROW_ON_ERROR == throwing_strategy )
 		{
 			std::string error_msg = "Unable convert agent to type ";
@@ -80,44 +85,47 @@ agent_convertable_to(
 //
 
 /*!
-	Класс для создании подписки агента на сообщения от mbox.
+ * \brief A class for creating subscription to messages from mbox.
 */
 class SO_5_TYPE subscription_bind_t
 {
 	public:
 		subscription_bind_t(
+			//! Agent to subscribe.
 			agent_t & agent,
+			//! Mbox for messages to be subscribed.
 			const mbox_ref_t & mbox_ref );
 
 		~subscription_bind_t();
 
-		//! Определить состояние в котором
-		//! должно произойти событие.
+		//! Set up a state in which events are allowed to be processed.
 		subscription_bind_t &
 		in(
-			//! Состояние агента в котором возможна обработка сообщения.
+			//! State in which events are allowed.
 			const state_t & state );
 
-		//! Подписаться на сообщение.
+		//! Make subscription to message.
 		template< class MESSAGE, class AGENT >
 		ret_code_t
 		event(
-			//! Метод обработки сообщения.
+			//! Event handling method.
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 		{
-			// Проверяем чтобы агент являлся владельцем состояния.
+			// Agent should be owner of the state.
 			ret_code_t res = agent_owns_state(
 				m_agent,
 				m_state,
 				throwing_strategy );
 
 			if( res )
+				// This is possible only if throwing_strategy != THROW_ON_ERROR.
+				// So simply return error code.
 				return res;
 
 			AGENT * casted_agent = nullptr;
-			// Проверяем чтобы агент был агентом заданного типа.
+			// Agent should have right type.
 			res = agent_convertable_to< AGENT >(
 				&m_agent,
 				casted_agent,
@@ -139,26 +147,28 @@ class SO_5_TYPE subscription_bind_t
 				throwing_strategy );
 		}
 
-		//! Подписаться на сообщение.
+		//! Make subscription to message.
 		template< class MESSAGE, class AGENT >
 		ret_code_t
 		event(
-			//! Метод обработки сообщения.
+			//! Event handling method.
 			void (AGENT::*pfn)( const not_null_event_data_t< MESSAGE > & ),
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 		{
-			// Проверяем чтобы агент являлся владельцем состояния.
+			// Agent should be owner of the state.
 			ret_code_t res = agent_owns_state(
 				m_agent,
 				m_state,
 				throwing_strategy );
 
 			if( res )
+				// This is possible only if throwing_strategy != THROW_ON_ERROR.
+				// So simply return error code.
 				return res;
 
-			AGENT * casted_agent = 0;
-			// Проверяем чтобы агент был агентом заданного типа.
+			AGENT * casted_agent = nullptr;
+			// Agent should have right type.
 			res = agent_convertable_to< AGENT >(
 				&m_agent,
 				casted_agent,
@@ -181,23 +191,23 @@ class SO_5_TYPE subscription_bind_t
 		}
 
 	private:
-		//! Внутренний метод создания подписчика.
+		//! Create event subscription.
 		ret_code_t
 		create_event_subscription(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Ссылка на mbox.
+			//! Mbox for messages.
 			mbox_ref_t & mbox_ref,
-			//! Вызыватель обработчика.
+			//! Event caller.
 			const event_handler_caller_ref_t & ehc,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Агент, который подписывается.
+		//! Agent to which we are subscribing.
 		agent_t & m_agent;
-		//! Ссылка на mbox к которому делается подписка.
+		//! Mbox for messages to subscribe.
 		mbox_ref_t m_mbox_ref;
-		//! Состояние в котором хочется получать сообщения.
+		//! State for events.
 		const state_t * m_state;
 };
 
@@ -206,43 +216,47 @@ class SO_5_TYPE subscription_bind_t
 //
 
 /*!
-	Класс для изъятия подписки агента на сообщения от mbox.
+ * \brief A class for unsubscribing from messages.
 */
 class SO_5_TYPE subscription_unbind_t
 {
 	public:
 		subscription_unbind_t(
+			//! Agent to be unbound.
 			agent_t & agent,
+			//! Mbox of messages to be unsubscribed.
 			const mbox_ref_t & mbox_ref );
 
 		~subscription_unbind_t();
 
-		//! Определить состояние в котором
-		//! должно произойти событие.
+		//! Set up event for which events are being processed.
 		subscription_unbind_t &
 		in(
-			//! Состояние агента в котором была возможна обработка сообщения.
+			//! State in which events are allowed.
 			const state_t & state );
 
+		//! Unsubscribe event.
 		template< class MESSAGE, class AGENT >
 		ret_code_t
 		event(
-			//! Обработчик события.
+			//! Event handling method.
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 		{
-			// Проверяем чтобы агент являлся владельцем состояния.
+			// Agent should be owner of the state.
 			ret_code_t res = agent_owns_state(
 				m_agent,
 				m_state,
 				throwing_strategy );
 
 			if( res )
+				// This is possible only if throwing_strategy != THROW_ON_ERROR.
+				// So simply return error code.
 				return res;
 
 			AGENT * casted_agent = nullptr;
-			// Проверяем чтобы агент был агентом заданного типа.
+			// Agent should have right type.
 			res = agent_convertable_to< AGENT >(
 				&m_agent,
 				casted_agent,
@@ -266,25 +280,28 @@ class SO_5_TYPE subscription_unbind_t
 				throwing_strategy );
 		}
 
+		//! Unsubscribe event.
 		template< class MESSAGE, class AGENT >
 		ret_code_t
 		event(
-			//! Обработчик события.
+			//! Event handling method.
 			void (AGENT::*pfn)( const not_null_event_data_t< MESSAGE > & ),
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 		{
-			// Проверяем чтобы агент являлся владельцем состояния.
+			// Agent should be owner of the state.
 			ret_code_t res = agent_owns_state(
 				m_agent,
 				m_state,
 				throwing_strategy );
 
 			if( res )
+				// This is possible only if throwing_strategy != THROW_ON_ERROR.
+				// So simply return error code.
 				return res;
 
-			AGENT * casted_agent = 0;
-			// Проверяем чтобы агент был агентом заданного типа.
+			AGENT * casted_agent = nullptr;
+			// Agent should have right type.
 			res = agent_convertable_to< AGENT >(
 				&m_agent,
 				casted_agent,
@@ -309,23 +326,23 @@ class SO_5_TYPE subscription_unbind_t
 		}
 
 	private:
-		//! Внутренний метод создания отписчика.
+		//! Destroy event subscription.
 		ret_code_t
 		destroy_event_subscription(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! mbox.
 			mbox_ref_t & mbox_ref,
-			//! Вызыватель обработчика.
+			//! Event caller.
 			const event_handler_caller_ref_t & ehc,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Агент, который подписывается.
+		//! Agent to be processed.
 		agent_t & m_agent;
-		//! Ссылка на mbox к которому делается подписка.
+		//! Mbox for messages to be unsubscribed.
 		mbox_ref_t m_mbox_ref;
-		//! Состояние в котором хочется получать сообщения.
+		//! State to be processed.
 		const state_t * m_state;
 };
 
@@ -334,3 +351,4 @@ class SO_5_TYPE subscription_unbind_t
 } /* namespace so_5 */
 
 #endif
+

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Интерфейс слоя SObjectizer.
+	\brief An addition layer for SObjectizer Environment definition.
 */
 
 #if !defined( _SO_5__RT__SO_LAYER_HPP_ )
@@ -41,14 +41,8 @@ class layer_core_t;
 // so_layer_t
 //
 
-//! Интерфейс слоя SObjectizer.
+//! An interface of additional SObjectizer Environment layer.
 /*!
-	Нужен для механизма дополнительных слоев  SObjectizer.
-
-	\note Хоть контроль за работой слоя и определен в секции public, но
-	при создании собственных слоев желательно его прятать
-	в секцию  protected или private, чтобы исключить
-	возможность вызова методов контроля слоя в пользовательском коде.
 */
 class SO_5_TYPE so_layer_t
 {
@@ -58,57 +52,55 @@ class SO_5_TYPE so_layer_t
 		virtual ~so_layer_t();
 
 
-		//! \name Контроль работы слоя.
-		//! \{
-
-		//! Запустить слой.
+		//! Start hook.
 		/*!
-			Реализация по умолчанию ничего не делает.
-		*/
+		 * Default implementation do nothing.
+		 */
 		virtual ret_code_t
 		start();
 
-		//! Инициировать завершение выполнения слоя.
+		//! Shutdown signal hook.
 		/*!
-			Реализация по умолчанию ничего не делает.
-		*/
+		 * Default implementation do nothing.
+		 */
 		virtual void
 		shutdown();
 
-		//! Ожидание завершения слоя.
+		//! Waiting for complete shutdown of layer.
 		/*!
-			Реализация по умолчанию ничего не делает.
+		 * Default implementation do nothing and returned immediately.
 		*/
 		virtual void
 		wait();
-		//! \}
 
 	protected:
-		//! Получить среду SObjectizer.
+		//! Access to SObjectizer Environment.
 		/*!
-			Если слой не привязан к SObjectizer,
-			то выбрасывается исключение.
-		*/
+		 * Throws an exception if layer is not bound to
+		 * SObjectizer Environment.
+		 */
 		so_environment_t &
 		so_environment();
 
 	private:
-		//! Привязать к среде SObjectizer.
+		//! Bind layer to SObjectizer Environment.
 		void
 		bind_to_environment( so_environment_t * env );
 
-		//! Cреде SObjectizer на которую наложен данный слой.
+		//! SObjectizer Environment to which layer is bound.
+		/*!
+		 * Has actual value only after binding to environment.
+		 */
 		so_environment_t * m_so_environment;
 };
 
-//! Псевдоним unique_ptr для so_layer_t.
+//! Typedef for layer's autopointer.
 typedef std::unique_ptr< so_layer_t > so_layer_unique_ptr_t;
 
-//! Псевдоним разделяемого указателя на so_layer_t.
-typedef std::shared_ptr< so_layer_t >
-	so_layer_ref_t;
+//! Typedef for layer's smart pointer.
+typedef std::shared_ptr< so_layer_t > so_layer_ref_t;
 
-//! Псевдоним для карты типов к слоям.
+//! Typedef for map from layer typeid to layer.
 typedef std::map< type_wrapper_t, so_layer_ref_t > so_layer_map_t;
 
 } /* namespace rt */
@@ -116,3 +108,4 @@ typedef std::map< type_wrapper_t, so_layer_ref_t > so_layer_map_t;
 } /* namespace so_5 */
 
 #endif
+

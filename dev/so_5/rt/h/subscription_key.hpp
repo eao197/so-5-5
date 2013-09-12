@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Ключ подписки у mbox.
+	\brief A definition for subsciption key for mbox.
 */
 
 #if !defined( _SO_5__RT__SUBSCRIPTION_KEY_HPP_ )
@@ -22,29 +22,30 @@ namespace so_5
 namespace rt
 {
 
-//! Ключ для std::map для хранения подписок агента
-//! на соообщения либо же их перехват.
+//! A class for which can be used to indentify message and mbox pair.
 struct SO_5_TYPE subscription_key_t
 {
+	//! Constructor.
 	subscription_key_t(
 		const type_wrapper_t & type_wrapper,
 		const mbox_ref_t & mbox );
 
 	~subscription_key_t();
 
-	//! Оператор сравнения для того чтобы быть ключем в std::map.
+	//! Operator less than.
 	bool
 	operator < (
 		const subscription_key_t & subscription_key ) const;
 
+	//! Equality operator.
 	bool
 	operator == (
 		const subscription_key_t & subscription_key ) const;
 
-	//! Ссылка на mbox.
+	//! Message type identifier.
 	const type_wrapper_t m_type_wrapper;
 
-	//! Ссылка на mbox.
+	//! Reference to mbox.
 	const mbox_ref_t m_mbox;
 };
 

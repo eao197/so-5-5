@@ -117,3 +117,4 @@ subscription_unbind_t::destroy_event_subscription(
 } /* namespace rt */
 
 } /* namespace so_5 */
+

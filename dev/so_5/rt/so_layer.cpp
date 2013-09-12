@@ -42,7 +42,7 @@ so_layer_t::so_environment()
 	if( nullptr == m_so_environment )
 	{
 		throw so_5::exception_t(
-			"so_environment isn't binded to this layer",
+			"so_environment isn't bound to this layer",
 			rc_layer_not_binded_to_so_env );
 	}
 
@@ -58,3 +58,4 @@ so_layer_t::bind_to_environment( so_environment_t * env )
 } /* namespace rt */
 
 } /* namespace so_5 */
+

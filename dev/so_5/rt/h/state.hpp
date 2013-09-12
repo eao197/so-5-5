@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс для определения состояний.
+	\brief A class for agent state definition.
 */
 
 #if !defined( _SO_5__RT__STATE_HPP_ )
@@ -29,8 +29,7 @@ class agent_t;
 // state_base_t
 //
 
-//! Базовый класс для состояния, который прячет
-//! конструктор и делает state_t дружественным классом.
+//! A special base class for state.
 class SO_5_TYPE state_base_t
 {
 	private:
@@ -44,7 +43,7 @@ class SO_5_TYPE state_base_t
 // state_t
 //
 
-//! Класс для задания состояний агентов.
+//! Class for representing agent state.
 class SO_5_TYPE state_t
 	:
 		private state_base_t
@@ -63,22 +62,19 @@ class SO_5_TYPE state_t
 		bool
 		operator == ( const state_t & state ) const;
 
-		//! Получить строковое название состояния.
+		//! Get textual name of the state.
 		const std::string &
 		query_name() const;
 
-		//! Является ли агент владельцем состояния?
+		//! Does agent own this state?
 		bool
 		is_target( const agent_t * agent ) const;
 
 	private:
-		//! Указатель на агент, который владеет этим состоянием.
-		/*! Служит для проверки того, что агент
-			входит в состояние которым сам владеет.
-		*/
+		//! Owner of this state.
 		const agent_t * const m_target_agent;
 
-		//! Название состояния.
+		//! State name.
 		const std::string m_state_name;
 };
 
