@@ -1,6 +1,6 @@
 /*
-	Пример работы с диспетчерами.
-*/
+ * A sample of working with dispatchers.
+ */
 
 #include <iostream>
 #include <sstream>
@@ -8,16 +8,16 @@
 #include <ace/OS.h>
 #include <ace/Log_Msg.h>
 
-// Загружаем основные заголовочные файлы SObjectizer.
+// Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// Диспетчеры.
+// SObjectizer dispatchers.
 #include <so_5/disp/one_thread/h/pub.hpp>
 #include <so_5/disp/active_group/h/pub.hpp>
 #include <so_5/disp/active_obj/h/pub.hpp>
 
-// C++ описание класса агента.
+// A class for agent.
 class a_disp_user_t
 	:
 		public so_5::rt::agent_t
@@ -35,11 +35,11 @@ class a_disp_user_t
 		virtual ~a_disp_user_t()
 		{}
 
-		// Обработка начала работы агента в системе.
+		// A reaction to start of work in SObjectizer.
 		virtual void
 		so_evt_start();
 
-		// Обработка завершения работы агента в системе.
+		// A reaction to finish of work in SObjectizer.
 		virtual void
 		so_evt_finish();
 
@@ -47,7 +47,7 @@ class a_disp_user_t
 		const std::string m_name;
 };
 
-// Макрос для формата сообщений, выводимых с помощью ACE logging.
+// A helper macro for ACE Logging.
 #define AGENT_MSG( s ) "TID:%t %T " s
 
 void
@@ -56,7 +56,7 @@ a_disp_user_t::so_evt_start()
 	ACE_DEBUG(( LM_INFO,
 		AGENT_MSG( "%s.so_evt_start(): start pause\n" ), m_name.c_str() ));
 
-	// Засыпаем на одну секунду
+	// Sleeping for some time.
 	ACE_OS::sleep( 1 );
 
 	ACE_DEBUG(( LM_INFO,
@@ -69,14 +69,14 @@ a_disp_user_t::so_evt_finish()
 	ACE_DEBUG(( LM_INFO,
 		AGENT_MSG( "%s.so_evt_finish(): start pause\n" ), m_name.c_str() ));
 
-	// Засыпаем на одну секунду
+	// Sleeping for some time.
 	ACE_OS::sleep( 1 );
 
 	ACE_DEBUG(( LM_INFO,
 		AGENT_MSG( "%s.so_evt_finish(): finish pause\n" ), m_name.c_str() ));
 }
 
-// Создать имя агента.
+// Helper function for making name of an agent.
 std::string
 create_agent_name( const std::string & base, int i )
 {
@@ -87,16 +87,15 @@ create_agent_name( const std::string & base, int i )
 }
 
 
-// Инициализация окружения
+// SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Создаем кооперацию.
+	// Creating cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Добавляем в кооперацию агентов, которые будут работать
-	// с диспетчером SObjectizer по умолчанию.
+	// Adding agents which will work on default dispatcher.
 	for( int i = 0; i < 4; ++i )
 	{
 		const std::string name = create_agent_name( "default_disp", i+1 );
@@ -106,8 +105,7 @@ init( so_5::rt::so_environment_t & env )
 				new a_disp_user_t( env, name ) ) );
 	}
 
-	// Добавляем в кооперацию агентов, которые будут работать
-	// с диспетчером single_thread.
+	// Adding agents which will work on dispatcher with name 'single_thread'.
 	for( int i = 0; i < 3; ++i )
 	{
 		const std::string name = create_agent_name( "single_thread", i+1 );
@@ -118,8 +116,8 @@ init( so_5::rt::so_environment_t & env )
 				"single_thread" ) );
 	}
 
-	// Добавляем в кооперацию агентов, которые будут работать
-	// с диспетчером active_group в группе A.
+	// Adding agents which will work on dispatcher with active groups
+	// named 'active_group'. Agents will be bound to group 'A'.
 	for( int i = 0; i < 2; ++i )
 	{
 		const std::string name = create_agent_name( "active_group_A", i+1 );
@@ -131,8 +129,8 @@ init( so_5::rt::so_environment_t & env )
 				"A" ) );
 	}
 
-	// Добавляем в кооперацию агентов, которые будут работать
-	// с диспетчером active_group в группе B.
+	// Adding agents which will work on dispatcher with active groups
+	// named 'active_group'. Agents will be bound to group 'B'.
 	for( int i = 0; i < 2; ++i )
 	{
 		const std::string name = create_agent_name( "active_group_B", i+1 );
@@ -144,8 +142,8 @@ init( so_5::rt::so_environment_t & env )
 				"B" ) );
 	}
 
-	// Добавляем в кооперацию агентов, которые будут работать
-	// с диспетчером active_object.
+	// Adding agents which will work on dispatcher for active objects.
+	// This dispatcher should have name 'active_obj'.
 	for( int i = 0; i < 4; ++i )
 	{
 		const std::string name = create_agent_name( "active_obj", i+1 );
@@ -156,10 +154,10 @@ init( so_5::rt::so_environment_t & env )
 				"active_obj" ) );
 	}
 
-	// Регистрируем кооперацию.
+	// Registering cooperation.
 	env.register_coop( std::move( coop ) );
 
-	// Инициируем завершение.
+	// Stopping SObjectizer.
 	env.stop();
 }
 

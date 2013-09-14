@@ -1,15 +1,15 @@
 /*
-	Пример простейшего агента.
-*/
+ * A sample of the simpliest agent.
+ */
 
 #include <iostream>
 
-// Загружаем основные заголовочные файлы SObjectizer.
+// Main SObjectizer headers.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 #include <so_5/rt/h/coop_listener.hpp>
 
-// C++ описание класса агента.
+// An agent class definition.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -18,35 +18,35 @@ class a_hello_t
 
 	public:
 		a_hello_t( so_5::rt::so_environment_t & env )
-			:
-				 // Передаем среду SObjectizer, к которой принадлежит агент.
-				base_type_t( env )
+			: base_type_t( env )
 		{}
 
 		virtual ~a_hello_t()
 		{}
 };
 
-// Инициализация окружения
+// SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Создаем кооперацию.
+	// Creating cooperation.
 	so_5::rt::nonempty_name_t coop_name( "coop" );
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		coop_name );
 
-	// Добавляем в кооперацию агента.
+	// Adding agent to cooperation.
 	coop->add_agent(
 		so_5::rt::agent_ref_t(
 			new a_hello_t( env ) ) );
 
-	// Регистрируем кооперацию.
+	// Registering cooperation.
 	env.register_coop( std::move( coop ) );
 
+	// Stopping SObjectizer.
 	env.stop();
 }
 
+// A class for listening cooperation events.
 class coop_listener_impl_t
 	:
 		public so_5::rt::coop_listener_t
@@ -55,7 +55,7 @@ class coop_listener_impl_t
 		virtual ~coop_listener_impl_t()
 		{}
 
-		// Метод обработки регистрации кооперации.
+		// A reaction to cooperation registration.
 		virtual void
 		on_registered(
 			so_5::rt::so_environment_t & so_env,
@@ -65,7 +65,7 @@ class coop_listener_impl_t
 				<< coop_name << "'\n";
 		}
 
-		// Метод обработки дерегистрации кооперации.
+		// A reaction to cooperation deregistration.
 		virtual void
 		on_deregistered(
 			so_5::rt::so_environment_t & so_env,
@@ -84,6 +84,8 @@ main( int, char ** )
 		so_5::api::run_so_environment(
 			&init,
 			so_5::rt::so_environment_params_t()
+				// Adding cooperation listener to show what happened
+				// with sample cooperation.
 				.coop_listener(
 					so_5::rt::coop_listener_unique_ptr_t(
 						new coop_listener_impl_t ) )  );

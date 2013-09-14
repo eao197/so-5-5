@@ -1,13 +1,13 @@
 /*
-  Демострация обмена сообщениями.
-*/
+ * A sample of message interchange.
+ */
 
 #include <iostream>
 
 #include <ace/OS.h>
 #include <ace/Time_Value.h>
 
-// Загружаем основные заголовочные файлы SObjectizer.
+// Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
@@ -24,9 +24,9 @@ class msg_hello_to_all
 				m_mbox( mbox )
 		{}
 
-		// Имя отправителя.
+		// Name of sender.
 		const std::string m_sender;
-		// Mbox отправителя.
+		// Mbox of sender.
 		const so_5::rt::mbox_ref_t m_mbox;
 };
 
@@ -41,12 +41,12 @@ class msg_hello_to_you
 				m_sender( sender )
 		{}
 
-		// Имя отправителя.
+		// Name of sender.
 		const std::string m_sender;
 };
 
 
-// C++ описание класса агента.
+// An agent class.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -67,11 +67,11 @@ class a_hello_t
 		virtual ~a_hello_t()
 		{}
 
-		// Определение агента.
+		// Definition of agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
-		// Обработка начала работы агента в системе.
+		// A reaction to start of work in SObjectizer.
 		virtual void
 		so_evt_start();
 
@@ -84,20 +84,20 @@ class a_hello_t
 			const so_5::rt::event_data_t< msg_hello_to_you > & evt_data );
 
 	private:
-		// Имя агента.
+		// Agent name.
 		const std::string m_agent_name;
 
-		// Mbox данного агента.
+		// Agent mbox.
 		so_5::rt::mbox_ref_t m_self_mbox;
 
-		// Общий mbox для всех агентов.
+		// Common mbox for all sample agents.
 		so_5::rt::mbox_ref_t m_common_mbox;
 };
 
 void
 a_hello_t::so_define_agent()
 {
-	// Подписываемся на сообщения.
+	// Subscription to messages.
 	so_subscribe( m_common_mbox )
 		.event( &a_hello_t::evt_hello_to_all );
 
@@ -110,7 +110,7 @@ a_hello_t::so_evt_start()
 {
 	std::cout << m_agent_name << ".so_evt_start" << std::endl;
 
-	// Отсылаем всем приветствие.
+	// Send greeting to all agents.
 	m_common_mbox->deliver_message( std::unique_ptr< msg_hello_to_all >(
 		new msg_hello_to_all(
 			m_agent_name,
@@ -124,7 +124,7 @@ a_hello_t::evt_hello_to_all(
 	std::cout << m_agent_name << ".evt_hello_to_all: "
 		<< evt_data->m_sender << std::endl;
 
-	// Если привествие слали не мы, то отошлем ответ.
+	// If this agent is not the sender then reply should be sent.
 	if( m_agent_name != evt_data->m_sender )
 	{
 		so_5::rt::mbox_ref_t mbox = evt_data->m_mbox;
@@ -141,14 +141,15 @@ a_hello_t::evt_hello_to_you(
 		<< evt_data->m_sender << std::endl;
 }
 
+// SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Создаем кооперацию.
+	// Creating cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Добавляем в кооперацию агентов.
+	// Adding agents to cooperation.
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env, "alpha" ) ) );
 	coop->add_agent( so_5::rt::agent_ref_t(
@@ -156,10 +157,10 @@ init( so_5::rt::so_environment_t & env )
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env, "gamma" ) ) );
 
-	// Регистрируем кооперацию.
+	// Registering cooperation.
 	env.register_coop( std::move( coop ) );
 
-	// Даем время агентам обменяться сообщениями.
+	// Give some time to agents.
 	ACE_OS::sleep( ACE_Time_Value( 0, 200*1000 ) );
 	env.stop();
 }

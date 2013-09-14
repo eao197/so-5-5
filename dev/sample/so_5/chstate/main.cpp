@@ -1,11 +1,15 @@
 /*
-	Пример простейшего агента, который имеет несколько состояний.
-	Агент имеет несколько разных обработчиков одного и того же сообщения.
-	В начале работы агент организует периодическую отправку.
-	Каждый обработчик переводит агента в следующее состояние,
-	а обработчик последнего состояния заершает работу SObjectizer Environment.
-	Переход из состояния в состояние фиксируется с помощью слушателя состояний.
-*/
+ * A sample of the simpliest agent which has several states.
+ * The agent uses different handlers for the same message.
+ * In the beginning of its work agent initiates periodic message.
+ * Then agent handles this messages and switches from one state
+ * to another.
+ *
+ * A work of SObjectizer Environment is finished after agent
+ * switched to the final state.
+ *
+ * State switching is fixed by state listener.
+ */
 
 #include <iostream>
 #include <time.h>
@@ -13,23 +17,21 @@
 #include <ace/OS.h>
 #include <ace/Time_Value.h>
 
-// Загружаем основные заголовочные файлы SObjectizer.
+// Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// Периодическое сообщение.
+// Periodic message.
 class msg_periodic
 	:
 		public so_5::rt::message_t
 {};
 
-// Слушатель состояния, который будет выводить
-// инормацию о переходах.
+// State listener for fixing state changes.
 class state_monitor_t
 	:
 		public so_5::rt::agent_state_listener_t
 {
-	// Подсказка, какой это слушатель.
 	const std::string m_type_hint;
 
 	public:
@@ -41,12 +43,9 @@ class state_monitor_t
 		virtual ~state_monitor_t()
 		{}
 
-		// Определяем реакцию на смену состояния.
 		virtual void
 		changed(
-			// Агент, чье состояние изменилось.
 			so_5::rt::agent_t &,
-			// Текущее состояния агента.
 			const so_5::rt::state_t & state )
 		{
 			std::cout << m_type_hint << " agent changed state to "
@@ -55,14 +54,14 @@ class state_monitor_t
 		}
 };
 
-// C++ описание класса агента.
+// A sample agent class.
 class a_state_swither_t
 	:
 		public so_5::rt::agent_t
 {
 		typedef so_5::rt::agent_t base_type_t;
 
-		// Состояния агента:
+		// Agent states.
 		so_5::rt::state_t m_state_1;
 		so_5::rt::state_t m_state_2;
 		so_5::rt::state_t m_state_3;
@@ -82,51 +81,53 @@ class a_state_swither_t
 		virtual ~a_state_swither_t()
 		{}
 
-		// Определение агента.
+		// Definition of agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
-		// Обработка начала работы агента в системе.
+		// Reaction to start into SObjectizer.
 		virtual void
 		so_evt_start();
 
-		// Обработчик сообщения msg_periodic в состоянии по умолчанию.
+		// Message handler for default state.
 		void
 		evt_handler_default(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Обработчик сообщения msg_periodic в состоянии m_state_1.
+		// Message handler for state_1.
 		void
 		evt_handler_1(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Обработчик сообщения msg_periodic в состоянии m_state_2.
+		// Message handler for state_2.
 		void
 		evt_handler_2(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Обработчик сообщения msg_periodic в состоянии m_state_3.
+		// Message handler for state_3.
 		void
 		evt_handler_3(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Обработчик сообщения msg_periodic в состоянии m_state_shutdown.
+		// Message handler for shutdown_state.
 		void
 		evt_handler_shutdown(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
 	private:
-		// Mbox данного агента.
+		// Mbox for that agent.
 		so_5::rt::mbox_ref_t m_self_mbox;
 
-		// Таймерный идентификатор для периодического сообщения.
+		// Timer event id.
+		// If we do not store it the periodic message will
+		// be canceled automatically.
 		so_5::timer_thread::timer_id_ref_t m_timer_id;
 };
 
 void
 a_state_swither_t::so_define_agent()
 {
-	// Подписываемся на сообщения.
+	// Subsription to message.
 	so_subscribe( m_self_mbox )
 		.event( &a_state_swither_t::evt_handler_default );
 
@@ -154,13 +155,11 @@ a_state_swither_t::so_evt_start()
 	std::cout << asctime( localtime( &t ) )
 		<< "a_state_swither_t::so_evt_start()" << std::endl;
 
-	// Отсылаем периодическое сообщение.
-	m_timer_id =
-		so_environment()
-			.schedule_timer< msg_periodic >(
-				m_self_mbox,
-				1 * 1000,
-				1 * 1000 );
+	// Periodic message should be initiated.
+	m_timer_id = so_environment().schedule_timer< msg_periodic >(
+			m_self_mbox,
+			1 * 1000,
+			1 * 1000 );
 }
 
 void
@@ -171,7 +170,7 @@ a_state_swither_t::evt_handler_default(
 	std::cout << asctime( localtime( &t ) )
 		<< "evt_handler_default" << std::endl;
 
-	// Переходим в следующее состояние.
+	// Switching to next state.
 	so_change_state( m_state_1 );
 }
 
@@ -184,7 +183,7 @@ a_state_swither_t::evt_handler_1(
 		<< "evt_handler_1, state: " << so_current_state().query_name()
 		<< std::endl;
 
-	// Переходим в следующее состояние.
+	// Switching to next state.
 	so_change_state( m_state_2 );
 }
 
@@ -197,7 +196,7 @@ a_state_swither_t::evt_handler_2(
 		<< "evt_handler_2, state: " << so_current_state().query_name()
 		<< std::endl;
 
-	// Переходим в следующее состояние.
+	// Switching to next state.
 	so_change_state( m_state_3 );
 }
 
@@ -210,7 +209,7 @@ a_state_swither_t::evt_handler_3(
 		<< "evt_handler_3, state: " << so_current_state().query_name()
 		<< std::endl;
 
-	// Переходим в следующее состояние.
+	// Switching to next state.
 	so_change_state( m_state_shutdown );
 }
 
@@ -224,40 +223,40 @@ a_state_swither_t::evt_handler_shutdown(
 		<< so_current_state().query_name()
 		<< std::endl;
 
-	// Переходим в начальное состояние.
+	// Switching to the default state.
 	so_change_state( so_default_state() );
 
+	// Finishing SObjectizer work.
 	std::cout << "Stop sobjectizer..." << std::endl;
-	// Завершаем работу.
 	so_environment().stop();
 }
 
-// Объект статического слушателя, который не уничтожается агентом.
+// State listener.
 state_monitor_t g_state_monitor( "nondestroyable_listener" );
 
-// Инициализация окружения
+// SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Агент.
 	so_5::rt::agent_ref_t ag( new a_state_swither_t( env ) );
 
-	// Добавляем статического слушателя.
+	// Adding state listener. Its life-time is not controlled by agent.
 	ag->so_add_nondestroyable_listener( g_state_monitor );
 
-	// Добавляем динамического слушателя.
+	// Adding another state listener.
+	// Its life-time is controlled by agent.
 	ag->so_add_destroyable_listener(
 		so_5::rt::agent_state_listener_unique_ptr_t(
 			new state_monitor_t( "destroyable_listener" ) ) );
 
-	// Создаем кооперацию.
+	// Creating cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Добавляем в кооперацию агента.
+	// Adding agent to cooperation.
 	coop->add_agent( ag );
 
-	// Регистрируем кооперацию.
+	// Registering cooperation.
 	env.register_coop( std::move( coop ) );
 }
 
