@@ -26,7 +26,7 @@ void_dispatcher_t::~void_dispatcher_t()
 ret_code_t
 void_dispatcher_t::start()
 {
-	// Этот метод не должен вызываться у объектов данонго класса.
+	// This method cannot be called on objects of this class.
 	std::abort();
 	return 0;
 }
@@ -34,7 +34,7 @@ void_dispatcher_t::start()
 void
 void_dispatcher_t::shutdown()
 {
-	// Этот метод не должен вызываться у объектов данонго класса.
+	// This method cannot be called on objects of this class.
 	std::abort();
 }
 
@@ -50,7 +50,7 @@ void_dispatcher_t::put_event_execution_request(
 	const agent_ref_t &,
 	unsigned int )
 {
-	// Игнорируем.
+	// Do nothing.
 }
 
 } /* namespace impl */
@@ -58,3 +58,4 @@ void_dispatcher_t::put_event_execution_request(
 } /* namespace rt */
 
 } /* namespace so_5 */
+

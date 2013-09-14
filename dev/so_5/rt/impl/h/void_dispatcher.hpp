@@ -4,10 +4,7 @@
 
 /*!
 	\file
-	\brief Реализация интерфейс диспетчера - so_5::rt::dispatcher_t,
-	которая ничего не делает. Объект данного класс подставляется всем
-	агентам в качестве начального диспетчера, до того, как они
-	будут привязаны к реальному диспетчеру.
+	\brief A definition of special empty implementation of dispatcher interface.
 */
 
 #if !defined( _SO_5__RT__IMPL__VOID_DISPATCHER_HPP_ )
@@ -28,8 +25,11 @@ namespace impl
 // void_dispatcher_t
 //
 
-//! Класс - заглушка для диспетчера, которая подставляется
-//! агентам при их создании.
+//! A special empty implementation of dispatcher interface.
+/*!
+ * A reference to instance of that class is passed to all agents
+ * before they will be bound to actual dispatchers.
+ */
 class void_dispatcher_t
 	:
 		public dispatcher_t
@@ -38,8 +38,6 @@ class void_dispatcher_t
 		void_dispatcher_t();
 		virtual ~void_dispatcher_t();
 
-		//! Реализация методов базового класса.
-		//! \{
 		virtual ret_code_t
 		start();
 
@@ -51,12 +49,8 @@ class void_dispatcher_t
 
 		virtual void
 		put_event_execution_request(
-			//! Агент событие которого надо запланировать.
 			const agent_ref_t & agent_ref,
-			//! Количество событий,
-			//! которые должны произайти у этого агента.
 			unsigned int request_count );
-		//! \}
 };
 
 } /* namespace impl */

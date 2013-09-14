@@ -20,7 +20,6 @@ namespace impl
 //
 
 message_consumer_link_t::message_consumer_link_t(
-	//! Ссылка на агента.
 	const agent_ref_t & agent_ref )
 	:
 		m_event_handler_caller( new event_caller_block_t ),
@@ -50,7 +49,6 @@ void
 message_consumer_link_t::dispatch(
 	const message_ref_t & message )
 {
-	// указываем агенту запланировать событие.
 	agent_t::call_push_event(
 		*m_agent_ref,
 		m_event_handler_caller,
@@ -62,3 +60,4 @@ message_consumer_link_t::dispatch(
 } /* namespace rt */
 
 } /* namespace so_5 */
+

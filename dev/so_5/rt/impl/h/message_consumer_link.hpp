@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Интерфейсный класс для звена цепи потребителей сообщения.
+	\brief An interface class for message consumer chain element.
 
 */
 
@@ -25,7 +25,6 @@ namespace so_5
 namespace rt
 {
 
-// Сообщаем, что есть такой класс.
 class message_ref_t;
 
 namespace impl
@@ -33,11 +32,11 @@ namespace impl
 
 class message_consumer_link_t;
 
-//! Класс unique_ptr для message_consumer_link_t.
+//! Typedef for message_consumer_link autopointer.
 typedef std::unique_ptr< message_consumer_link_t >
 	message_consumer_link_unique_ptr_t;
 
-//! Умный указатель с подсчетом ссылок на message_consumer_link_t.
+//! Typedef for message_consumer_link smart pointer.
 typedef std::shared_ptr< message_consumer_link_t >
 	message_consumer_link_ref_t;
 
@@ -45,65 +44,67 @@ typedef std::shared_ptr< message_consumer_link_t >
 // message_consumer_link_t
 //
 
-//! Интерфейсный класс для звена цепочки потребителей сообщения.
+//! An interface class for message consumer chain element.
 class message_consumer_link_t
 {
 	public:
+		//! Constructor.
 		message_consumer_link_t(
-			//! Ссылка на агента.
+			//! Agent which consumed message.
 			const agent_ref_t & agent_ref );
 
 		~message_consumer_link_t();
 
-		//! Диспетчеризировать сообщение.
+		//! Dispatch message to consumer.
 		void
 		dispatch( const message_ref_t & message );
 
-		//! Установить левого соседа.
+		//! Set link to left node in chain.
 		void
 		set_left(
 			const message_consumer_link_ref_t & left );
 
-		//! Установить правого соседа.
+		//! Set link to right node in chain.
 		void
 		set_right(
 			const message_consumer_link_ref_t & right );
 
-		//! Получить левого соседа.
+		//! Get link to left node in chain.
 		inline const message_consumer_link_ref_t &
 		query_left() const
 		{
 			return m_left;
 		}
 
-		//! Получить правого соседа.
+		//! Get link to right node in chain.
 		inline const message_consumer_link_ref_t
 		query_right() const
 		{
 			return m_right;
 		}
 
-		//! Является ли элемент первым в цепочке.
+		//! Is item the head of chain?
 		inline bool
 		is_first()
 		{
 			return 0 == m_left.get();
 		}
 
-		//! Является ли элемент последним в цепочке.
+		//! Is item the tail of chain?
 		inline bool
 		is_last()
 		{
 			return 0 == m_right.get();
 		}
 
+		//! Read-only access to event caller.
 		inline const event_caller_block_ref_t &
 		event_caller_block() const
 		{
 			return m_event_handler_caller;
 		}
 
-		//! Получить вызывателей.
+		//! Read-write access to event caller.
 		inline event_caller_block_ref_t &
 		event_caller_block()
 		{
@@ -111,17 +112,16 @@ class message_consumer_link_t
 		}
 
 	protected:
-		//! Левый сосед.
+		//! Left node in chain.
 		message_consumer_link_ref_t m_left;
 
-		//! Правый сосед.
+		//! Right node in chain.
 		message_consumer_link_ref_t m_right;
 
-		//! Блок вызыватель обработчика.
+		//! Event handler caller.
 		event_caller_block_ref_t m_event_handler_caller;
 
-		//! Ссылка на агента, к обработчику которого данная привязка
-		//! и существует.
+		//! Agent-consumer.
 		agent_ref_t m_agent_ref;
 };
 
@@ -132,3 +132,4 @@ class message_consumer_link_t
 } /* namespace so_5 */
 
 #endif
+

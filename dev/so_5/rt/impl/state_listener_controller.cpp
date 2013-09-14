@@ -22,8 +22,7 @@ namespace /* ananymous */
 // destroyable_listener_item_t
 //
 
-//! Ёлемент списка слушателей,
-//! котрый не уничтожает подконтрольного слушател€.
+//! A listener wrapper for listener which life-time is controlled by agent.
 class destroyable_listener_item_t
 	:
 		public agent_state_listener_t
@@ -38,12 +37,9 @@ class destroyable_listener_item_t
 		virtual ~destroyable_listener_item_t()
 		{}
 
-		//! ¬ызываетс€ после успешной смены состо€ни€ агента.
 		virtual void
 		changed(
-			//! јгент, чье состо€ние изменилось.
 			agent_t & agent,
-			//! “екущего состо€ни€ агента.
 			const state_t & state )
 		{
 			m_state_listener->changed( agent, state );
@@ -57,8 +53,7 @@ class destroyable_listener_item_t
 // nondestroyable_listener_item_t
 //
 
-//! Ёлемент списка слушателей,
-//! котрый не уничтожает подконтрольного слушател€.
+//! A listener wrapper for listener which life-time is controlled by user.
 class nondestroyable_listener_item_t
 	:
 		public agent_state_listener_t
@@ -73,12 +68,9 @@ class nondestroyable_listener_item_t
 		virtual ~nondestroyable_listener_item_t()
 		{}
 
-		//! ¬ызываетс€ после успешной смены состо€ни€ агента.
 		virtual void
 		changed(
-			//! јгент, чье состо€ние изменилось.
 			agent_t & agent,
-			//! “екущего состо€ни€ агента.
 			const state_t & state )
 		{
 			m_state_listener.changed( agent, state );
@@ -88,52 +80,19 @@ class nondestroyable_listener_item_t
 		agent_state_listener_t & m_state_listener;
 };
 
-//
-// state_listener_controller
-//
-
-//! ‘унктор дл€ обработки смены состо€ний.
-class state_change_functor
-{
-	public:
-		state_change_functor(
-			//! јгент, чье состо€ние изменилось.
-			agent_t & agent,
-			//! “екущего состо€ни€ агента.
-			const state_t & state )
-			:
-				m_agent( agent ),
-				m_state( state )
-		{}
-
-		void
-		operator () ( agent_state_listener_ref_t & listener )
-		{
-			listener->changed( m_agent, m_state );
-		}
-
-	private:
-		//! јгент, чье состо€ние изменилось.
-		agent_t & m_agent;
-		//! “екущего состо€ни€ агента.
-		const state_t & m_state;
-};
-
 } /* ananymous namespace */
 
 void
 state_listener_controller_t::changed(
-	//! јгент, чье состо€ние изменилось.
 	agent_t & agent,
-	//! “екущего состо€ни€ агента.
 	const state_t & state )
 {
-	state_change_functor scf( agent, state );
-
 	std::for_each(
 		m_listeners.begin(),
 		m_listeners.end(),
-		scf );
+		[&agent, &state]( agent_state_listener_ref_t & listener ) {
+			listener->changed( agent, state );
+		} );
 }
 
 void

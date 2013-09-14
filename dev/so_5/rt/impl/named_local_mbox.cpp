@@ -34,7 +34,6 @@ named_local_mbox_t::named_local_mbox_t(
 
 named_local_mbox_t::~named_local_mbox_t()
 {
-	// Удалить именованный mbox.
 	m_mbox_core->destroy_mbox( m_name );
 }
 

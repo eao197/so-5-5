@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Реализация именованного mbox-а.
+	\brief A definition of named local mbox.
 */
 
 #if !defined( _SO_5__RT__IMPL__NAMED_LOCAL_MBOX_HPP_ )
@@ -32,14 +32,12 @@ namespace impl
 // named_local_mbox_t
 //
 
-//! Локальный именованный mbox.
+//! A class for named local mbox.
 /*!
-	В конструкторе получает реальный mbox, которому делегирует
-	все обязанности mbox-а.
-	Сам класс нужен для реализации согласованного подстчета сылок
-	на именованные mbox-ы. Отличие подсчета ссылок на именованный mbox
-	от анонимного заключается в том, что надо
-	иметь единый именованный mbox в рамках Sobjectizer Environment.
+ * This class in necessary because there is a difference between
+ * reference counting for anonymous and named local mboxes. Named
+ * local mboxes should have only one instance inside
+ * SObjectizer Environment.
 */
 class named_local_mbox_t
 	:
@@ -55,101 +53,78 @@ class named_local_mbox_t
 	public:
 		virtual ~named_local_mbox_t();
 
-		//! Переопределение методов базового класса.
-		//! \{
-
-		//! Получить имя.
 		virtual const std::string &
 		query_name() const;
 
 	protected:
-		//! Добавить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Add a first event handler for a consumer.
 		virtual void
 		subscribe_first_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который
-			//! будет вставлен.
+			//! A consumer to be added.
 			std::unique_ptr< impl::message_consumer_link_t > &
 				message_consumer_link,
-			//! Первый вызыватель, который будет вставлен.
+			//! Event handler to be added to consumer.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref );
 
-		//! Добавить потребителя сообщения,
-		//! который является обработчиком события.
-		/*!
-			Метод вызывается, когда агент подписывается на
-			тип сообщение, на которое он ранее уже подписывался.
-		*/
+		//! Add another event handler for a consumer.
 		virtual ret_code_t
 		subscribe_more_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который содержит
-			//! ранее созданные подписки.
+			//! Message consumer to be modified.
 			impl::message_consumer_link_t * message_consumer_link,
-			//! Очередной вызыватель для подписки.
+			//! Event handler to be added to consumer.
 			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Удалить потребителя сообщения,
-		//! который является обработчиком события.
+		//! Remove event handler for consumer.
 		virtual ret_code_t
 		unsubscribe_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который содержит
-			//! ранее созданные подписки.
+			//! Message consumer to be modified.
 			impl::message_consumer_link_t *
 				message_consumer_link,
-			//! Вызыватель, который надо удалить.
+			//! Event handler to be removed.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref,
-			//! Приемник для флага, является ли удаляемый
-			//! вызыватель последним в подписке агента на заданный
-			//! тип сообщения.
+			//! Receives true if the last event handler was removed.
 			bool & is_last_subscription,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Удалить всю подписку агента на заданный тип сообщения.
-		//! \note Вызывается при дерегистрации агента,
-		//! когда надо удалять все его подписки,
-		//! а не отдельные вызыватели.
+		//! Remove all consumer subscriptions.
 		virtual void
 		unsubscribe_event_handler(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который содержит
-			//! ранее созданные подписки.
+			//! Consumer to be removed.
 			impl::message_consumer_link_t *
 				message_consumer_link );
 		//! \}
 
-		//! Отправить всем подписчикам сообщение.
+		//! Deliver message to all consumers.
 		void
 		deliver_message(
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref );
 
-		//! Адрес для проведения операция сравнения.
-		/*!
-			Возвращает адрес подконтрольного mbox-а.
-		*/
+		//! Get data for comparision.
 		virtual const mbox_t *
 		cmp_ordinal() const;
 
 	private:
-		//! Название mbox-а, если он именованный.
+		//! Mbox name.
 		const std::string m_name;
 
-		//! Создатель данного mbox-а.
+		//! An utility for that mbox.
 		impl::mbox_core_ref_t m_mbox_core;
 
-		//! Реальный mbox.
+		//! Actual mbox.
 		mbox_ref_t m_mbox;
 };
 

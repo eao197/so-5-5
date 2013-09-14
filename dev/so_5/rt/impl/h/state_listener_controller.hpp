@@ -4,18 +4,7 @@
 
 /*!
 	\file
-	\brief  онтроллер слушателей состо€ни€ агента.
-
-	 онтроллер слушателей состо€ни€ агента хранит весь список
-	слушателей и при необходимости инициирует обработку
-	смены состо€ни€ агентами всеми слушател€ми.
-
-	“.к. ¬ладение слушател€ми может принадлежать агенту а может и нет,
-	то список состоит из элементов двух типов:
-	те которые уничтажают слушателс€ при собственном уничтожении,
-	и те которые при собственном уничтожении ничего не делают.
-	ќба типа элементов представл€ют собой реализацию agent_state_listener_t,
-	которые передают обработку смены состо€ни€ подконтрольным им слушател€м.
+	\brief A definition of agent state listener controller.
 */
 
 #if !defined( _SO_5__RT__IMPL__STATE_LISTENER_CONTROLLER_HPP_ )
@@ -38,7 +27,7 @@ namespace impl
 // state_listener_controller
 //
 
-//!  онтроллер слушателей состо€ни€ агента.
+//! An agent state listener controller.
 class state_listener_controller_t
 {
 	public:
@@ -48,38 +37,36 @@ class state_listener_controller_t
 		~state_listener_controller_t()
 		{}
 
-		//! ќбработка смены состо€ни€.
+		//! Handle state change.
 		void
 		changed(
-			//! јгент, чье состо€ние изменилось.
+			//! Agent which state has been changed.
 			agent_t & agent,
-			//! “екущего состо€ни€ агента.
+			//! The current agent state.
 			const state_t & state );
 
-		//! ƒобавить слушател€,
-		//! врем€ жизни которого не контролируетс€.
+		//! Add a listener which life-time is controlled by user.
 		void
 		so_add_nondestroyable_listener(
 			agent_state_listener_t & state_listener );
 
-		//! ƒобавить слушателс€,
-		//! владение которым забираетс€.
+		//! Add a listener which life-time is controlled by agent.
 		void
 		so_add_destroyable_listener(
 			agent_state_listener_unique_ptr_t state_listener );
 
 	private:
-		//! ƒобавить слушател€.
+		//! Add a listener.
 		void
 		add_listener(
 			const agent_state_listener_ref_t & agent_state_listener_ref );
 
-		//! “ип списка слушателей.
+		//! Typedef for listener container type.
 		typedef std::vector<
 				agent_state_listener_ref_t >
 			agent_state_listener_array_t;
 
-		//! —лушатели состо€ний агента.
+		//! Listeners.
 		agent_state_listener_array_t m_listeners;
 };
 

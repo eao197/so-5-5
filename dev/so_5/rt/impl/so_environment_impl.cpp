@@ -103,10 +103,6 @@ so_environment_impl_t::single_timer(
 			delay_msec,
 			0 ) );
 
-	// timer_id не запоминаем и никакой обертки timer_id_ref_t
-	// не создаем. Т.о. мы теряем инфу необходимую для отмены события
-	// и оно выполнется (если, конечно, успеет до того как остановят SO)
-	// в любом случае.
 	m_timer_thread->schedule_act( timer_act );
 }
 
@@ -138,7 +134,6 @@ so_environment_impl_t::run(
 	{
 		const ret_code_t rc = m_layer_core.start();
 
-		// Если запустить слои не удалось, то выходим.
 		if( rc )
 		{
 			return so_5::util::apply_throwing_strategy(
@@ -148,25 +143,21 @@ so_environment_impl_t::run(
 			return rc;
 		}
 
-		//-------------------------------------------------------
-		// Стартуем диспетчеров.
+		// Starting dispatchers...
 		m_disp_core.start();
 
-		// Стартуем таймерную нить.
+		// Starting timer...
 		m_timer_thread->start();
 
-		// Стартуем ядро агентов.
+		// Starting an agent utility...
 		m_agent_core.start();
-		//-------------------------------------------------------
 
-
-		//  Выбросил ли init() исключение.
+//FIXME: those actions could be moved to dedicated method.
 		bool init_threw = false;
-		// Причина исключения в init().
 		std::string init_exception_reason;
 		try
 		{
-			// Инициализируем среду.
+			// Initilizing environment.
 			env.init();
 		}
 		catch( const std::exception & ex )
@@ -176,30 +167,29 @@ so_environment_impl_t::run(
 			env.stop();
 		}
 
-		// Ожидаем сигнала о начале дерегистрации.
+		// Wait for deregistration signal...
 		m_agent_core.wait_for_start_deregistration();
 
-		// Завершаем работу всех коопераций и агентов.
+		// All agents should start their shutdown...
 		m_agent_core.shutdown();
 
-		// Уведомляем компоненты о завершении работы.
+		// Informs about shutdown...
 		m_timer_thread->shutdown();
 		m_disp_core.shutdown();
 
-		// Ждем агентов.
+		// Wait for agents...
 		m_agent_core.wait();
 
-		// Ждем таймерную нить.
+		// Wait timer...
 		m_timer_thread->wait();
 
-		// Ждем диспетчеров.
+		// Wait dispatcher...
 		m_disp_core.wait();
 
-		// Ждем завершения работы всех слоев.
-		// Завершаем дополнительные слои.
+		// Shutdown and wait extra layers.
 		m_layer_core.shutdown_extra_layers();
 		m_layer_core.wait_extra_layers();
-		// Завершаем основные слои.
+		// Shutdown and wait default layers.
 		m_layer_core.shutdown_default_layers();
 		m_layer_core.wait_default_layers();
 
@@ -232,7 +222,7 @@ so_environment_impl_t::run(
 void
 so_environment_impl_t::stop()
 {
-	// Инициируем завершение работы всех коопераций.
+	// Sends shutdown signal for all agents.
 	m_agent_core.start_deregistration();
 }
 
@@ -247,3 +237,4 @@ so_environment_impl_t::query_public_so_environment()
 } /* namespace rt */
 
 } /* namespace so_5 */
+

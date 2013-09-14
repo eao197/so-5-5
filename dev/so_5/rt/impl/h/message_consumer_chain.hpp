@@ -3,7 +3,7 @@
 */
 /*!
 	\file
-	\brief Класс цепочки потребителей сообщения.
+	\brief A definition of class for message consumer chain.
 */
 #if !defined( _SO_5__RT__IMPL__MESSAGE_CONSUMER_CHAIN_HPP_ )
 #define _SO_5__RT__IMPL__MESSAGE_CONSUMER_CHAIN_HPP_
@@ -27,38 +27,35 @@ namespace impl
 // message_consumer_chain_t
 //
 
-//! Класс который содержит цепочку потребителей сообщения.
+//! A class for storing message consumer chain.
 class message_consumer_chain_t
 {
 	public:
 		message_consumer_chain_t();
 		virtual ~message_consumer_chain_t();
 
-		//! Добавить потребителя сообщения в конец цепочки.
-		/*!
-			Через этот метод добавлябются потребители сообщения,
-			которые несут за собой привязку к обработчику событий
-			и должны вставать в конец.
-		*/
+		//! Add consumer to the end of chain.
 		void
 		push(
-			//! Очередной потребитель сообщения.
-			message_consumer_link_ref_t
-				message_consumer_link );
+			//! Message consumer to be added.
+			message_consumer_link_ref_t message_consumer_link );
 
+		//! Remove element from chain head.
 		void
 		pop_front();
 
+		//! Remove element from chain tail.
 		void
 		pop_back();
 
-		//! Получить начало цепочки потребителей сообщения.
+		//! Get head of the chain.
 		inline message_consumer_link_ref_t &
 		query_head()
 		{
 			return m_front_link;
 		}
 
+		//! Is chain empty?
 		inline bool
 		is_empty() const
 		{
@@ -66,16 +63,17 @@ class message_consumer_chain_t
 		}
 
 	private:
-		//! Первый элемент цепочки.
+		//! Chain head.
 		message_consumer_link_ref_t m_front_link;
-		//! Последний элемент цепочки.
+		//! Chain tail.
 		message_consumer_link_ref_t m_back_link;
 };
 
-//! Умный указатель с подсчетом ссылок на message_consumer_chain_t.
+//! Typedef for message_consumer_chain smart pointer.
 typedef std::shared_ptr< message_consumer_chain_t >
 	message_consumer_chain_ref_t;
 
+//! Typedef for map from message type to message_consumer_chain.
 typedef std::map<
 		type_wrapper_t,
 		message_consumer_chain_ref_t >

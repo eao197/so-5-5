@@ -52,8 +52,8 @@ message_distributor_t::push_more(
 		event_handler_caller_ref,
 	throwing_strategy_t throwing_strategy )
 {
-	if( message_consumer_link->event_caller_block()
-		->has( event_handler_caller_ref ) )
+	if( message_consumer_link->event_caller_block()->has(
+			event_handler_caller_ref ) )
 	{
 		return so_5::util::apply_throwing_strategy(
 			rc_evt_handler_already_provided,
@@ -93,8 +93,6 @@ message_distributor_t::pop(
 
 	if( ehc )
 	{
-		// ≈сли это тот самый метод который был подписан,
-		// то будем удал€ть.
 		if( impl::cmp_method_ptr(
 				ehc->ordinal(),
 				ehc->ordinal_size(),
@@ -143,9 +141,7 @@ message_distributor_t::pop(
 	if( !message_consumer_link->is_first() &&
 		!message_consumer_link->is_last() )
 	{
-		// ≈сли это внутренне звено цепи,
-		// то саму цепочку искать не надо,
-		// а надо только извлечь звено.
+		// If this item inside a chain then chain should be modified.
 		message_consumer_link->query_right()->set_left(
 			message_consumer_link->query_left() );
 
@@ -154,19 +150,18 @@ message_distributor_t::pop(
 	}
 	else
 	{
-		// ≈сли имеем дело с началом либо концом цепочки,
-		// то надо доставать саму цепь.
+		// Special cases for head/tail of chain.
 		message_consumer_chain_t &
 			message_consumer_chain = provide_message_consumer_chain(
 				type_wrapper );
 
-		// »звлекаем либо начало либо конец.
+		// Handling of head/tail cases.
 		if( message_consumer_link->is_first() )
 			message_consumer_chain.pop_front();
 		else
 			message_consumer_chain.pop_back();
 
-		// ≈сли цепочка выродилась, то удал€ем ее.
+		// Empty chain should be removed.
 		if( message_consumer_chain.is_empty() )
 			m_msg_type_to_consumer_chain_map.erase(
 				type_wrapper );
@@ -182,7 +177,7 @@ message_distributor_t::distribute_message(
 		m_msg_type_to_consumer_chain_map.find(
 			type_wrapper );
 
-	// ≈сли така€ цепочка есть.
+	// Distribute message only if message consumer chain exists.
 	if( m_msg_type_to_consumer_chain_map.end() != it )
 	{
 
@@ -208,12 +203,11 @@ message_distributor_t::provide_message_consumer_chain(
 
 	if( m_msg_type_to_consumer_chain_map.end() != it )
 	{
-		// ≈сли така€ цепочка есть, то вернем ее.
+		// Message consumer chain found.
 		return *(it->second);
 	}
 
-	// ≈сли такой цепочки еще не существует, то создаем
-	// и возвращаем ее.
+	// New chain should be created.
 	message_consumer_chain_ref_t
 		new_chain( new message_consumer_chain_t );
 

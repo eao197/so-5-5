@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Класс, который распределяет сообщения их потребителям.
+	\brief A class which does distribution for message to consumers.
 */
 
 #if !defined( _SO_5__RT__IMPL__MESSAGE_DISTRIBUTOR_HPP_ )
@@ -21,12 +21,11 @@ namespace rt
 namespace impl
 {
 
+//! A class which does distribution for message to consumers.
 /*!
-	Класс, который хранит инфраструктуру
-	<b>тип сообщения => потребитель сообщения</b>.
-	Добавляет новых потребителей и в случае вырождения
-	какой-либо цепочки для определенного типа сообщений
-	удаляет ее.
+ * This class servers two things:
+ * - make, store and maintenance of message consumers data;
+ * - distribution a message to its consumers.
 */
 class message_distributor_t
 {
@@ -34,90 +33,71 @@ class message_distributor_t
 		message_distributor_t();
 		virtual ~message_distributor_t();
 
-		//! Добавить потребителя сообщения в конец цепочки.
-		/*!
-			Через этот метод добавлябются потребители сообщения,
-			которые несут за собой привязку к обработчику событий
-			и должны вставать в конец.
-		*/
+		//! Add a first event handler for a consumer.
 		void
 		push_first(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который
-			//! будет вставлен.
+			//! Message consumer.
 			std::unique_ptr< impl::message_consumer_link_t > &
 				message_consumer_link,
-			//! Первый вызыватель, который будет вставлен.
+			//! Event handler.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref );
 
+		//! Add another event handler for a consumer.
 		ret_code_t
 		push_more(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который содержит
-			//! ранее созданные подписки.
+			//! Message consumer to me modified.
 			impl::message_consumer_link_t * message_consumer_link,
-			//! Очередной вызыватель для подписки.
+			//! Event handler.
 			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Добавить потребителя сообщения в конец цепочки.
-		/*!
-			Через этот метод добавлябются потребители сообщения,
-			которые несут за собой привязку к обработчику событий
-			и должны вставать в конец.
-		*/
+		//! Remove event handler for a consumer.
 		ret_code_t
 		pop(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который содержит
-			//! ранее созданные подписки.
+			//! Message consumer to me modified.
 			impl::message_consumer_link_t *
 				message_consumer_link,
-			//! Вызыватель, который надо удалить.
+			//! Event handler to be removed.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref,
-			//! Приемник для флага, является ли удаляемый
-			//! вызыватель последним в подписке агента на заданный
-			//! тип сообщения.
+			//! Receives true if the last event handler was removed.
 			bool & is_last_subscription,
-			//! Бросать ли исключения в случае подписки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Удалить всю подписку данного агента на данный
-		//! тип сообщений.
+		//! Remove all event handlers for a consumer.
 		void
 		pop(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Указатель на потребителя сообщения, который содержит
-			//! ранее созданные подписки.
-			impl::message_consumer_link_t *
-				message_consumer_link );
+			//! Message consumer to be removed.
+			impl::message_consumer_link_t * message_consumer_link );
 
-		//! Разослать сообщение потребителям.
+		//! Deliver message to consumers.
 		void
 		distribute_message(
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref );
 
 	private:
+		//! Get a message chain for message type given.
 		/*!
-			Получить ссылку на цепочку потребителей
-			заданного типа сообщений.
-			Если цепочки для данного типа сообщений
-			еще не существует, то она будет создана и добавлена.
-		*/
+		 * Creates new chain if there no chain for that message type.
+		 */
 		message_consumer_chain_t &
 		provide_message_consumer_chain(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper );
 
-		//! Карта тип сообщения => цепочка потребителей.
+		//! Map from message types to message consumers.
 		msg_type_to_consumer_chain_map_t
 			m_msg_type_to_consumer_chain_map;
 };
@@ -129,3 +109,4 @@ class message_distributor_t
 } /* namespace so_5 */
 
 #endif
+

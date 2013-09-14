@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Реализация среды исполнения so_5.
+	\brief An implementation of SObjectizer Environment.
 */
 
 #if !defined( _SO_5__RT__IMPL__SO_ENVIRONMENT_IMPL_HPP_ )
@@ -31,7 +31,7 @@ namespace impl
 // so_environment_impl_t
 //
 
-//! Реализация среды so_5.
+//! An implementation of SObjectizer Environment.
 class so_environment_impl_t
 {
 	public:
@@ -42,8 +42,10 @@ class so_environment_impl_t
 		~so_environment_impl_t();
 
 
-		//! \name Работа с mbox-ами.
-		//! \{
+		/*!
+		 * \name Method for work with mboxes.
+		 * \{
+		 */
 		inline mbox_ref_t
 		create_local_mbox()
 		{
@@ -52,7 +54,7 @@ class so_environment_impl_t
 
 		inline mbox_ref_t
 		create_local_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const nonempty_name_t & nonempty_name )
 		{
 			return m_mbox_core->create_local_mbox( nonempty_name );
@@ -60,11 +62,10 @@ class so_environment_impl_t
 
 		inline mbox_ref_t
 		create_local_mbox(
-			//! Имя mbox-а.
+			//! Mbox name.
 			const nonempty_name_t & nonempty_name,
-			//! Замок созданный пользователем
-			std::unique_ptr< ACE_RW_Thread_Mutex >
-				lock_ptr )
+			//! A user supplied mbox lock.
+			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 		{
 			return m_mbox_core->create_local_mbox(
 				nonempty_name,
@@ -73,46 +74,49 @@ class so_environment_impl_t
 
 		inline mbox_ref_t
 		create_local_mbox(
-			//! Замок созданный пользователем
-			std::unique_ptr< ACE_RW_Thread_Mutex >
-				lock_ptr )
+			//! A user supplied mbox lock.
+			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 		{
 			return m_mbox_core->create_local_mbox( std::move( lock_ptr ) );
 		}
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! Создать мутекс для кооперации агентов.
+		//! Create a lock for agent cooperation.
 		inline ACE_Thread_Mutex &
 		create_agent_coop_mutex()
 		{
 			return m_agent_core.allocate_agent_coop_mutex();
 		}
 
-		//! Уничтожить мутекс для кооперации агентов.
+		//! Release a lock for agent cooperation.
 		inline void
 		destroy_agent_coop_mutex( ACE_Thread_Mutex & m )
 		{
 			return m_agent_core.deallocate_agent_coop_mutex( m );
 		}
 
-		//! Создать локальную очередь для агента.
+		//! Create local agent event queue.
 		inline local_event_queue_unique_ptr_t
 		create_local_queue()
 		{
 			return m_agent_core.create_local_queue();
 		}
 
-		//! \name Диспетчеры.
-		//! \{
+		/*!
+		 * \name Methods for work with dispatchers.
+		 * \{
+		 */
 
-		//! Получить диспетчер по умолчанию.
+		//! Get default dispatcher.
 		inline dispatcher_t &
 		query_default_dispatcher()
 		{
 			return m_disp_core.query_default_dispatcher();
 		}
 
-		//! Получить диспетчер по имени.
+		//! Get named dispatcher.
 		inline dispatcher_ref_t
 		query_named_dispatcher(
 			const std::string & disp_name )
@@ -120,7 +124,7 @@ class so_environment_impl_t
 			return m_disp_core.query_named_dispatcher( disp_name );
 		}
 
-		//! Установить логер исключений.
+		//! Set up exception logger.
 		inline void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t && logger )
@@ -128,24 +132,28 @@ class so_environment_impl_t
 			m_disp_core.install_exception_logger( std::move( logger ) );
 		}
 
-		//! Установить обработчик исключений.
+		//! Set up exception handler.
 		inline void
 		install_exception_handler(
 			event_exception_handler_unique_ptr_t && handler )
 		{
 			m_disp_core.install_exception_handler( std::move( handler ) );
 		}
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Работа с кооперациями.
-		//! \{
+		/*!
+		 * \name Methods for work with cooperations.
+		 * \{
+		 */
 
-		//! Зарегистрировать кооперацию.
+		//! Register an agent cooperation.
 		ret_code_t
 		register_coop(
-			//! Кооперация, агентов которую надо зарегистрировать.
+			//! Cooperation to be registered.
 			agent_coop_unique_ptr_t agent_coop,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy )
 		{
 			return m_agent_core.register_coop(
@@ -153,20 +161,19 @@ class so_environment_impl_t
 				throwing_strategy );
 		}
 
-		//! Дерегистрировать кооперацию.
+		//! Deregister an agent cooperation.
 		ret_code_t
 		deregister_coop(
-			//! Имя дерегистрируемой кооперации.
+			//! Cooperation to be deregistered.
 			const nonempty_name_t & name,
-			//! Флаг - бросать ли исключение в случае ошибки.
+			//! Exception strategy.
 			throwing_strategy_t throwing_strategy )
 		{
 			return m_agent_core.deregister_coop(
 				name, throwing_strategy );
 		}
 
-		//! Уведомить о готовности кооперации
-		//! к окончательной дерегистрации.
+		//! Notification about readiness to deregistration.
 		inline void
 		ready_to_deregister_notify(
 			agent_coop_t * coop )
@@ -174,56 +181,63 @@ class so_environment_impl_t
 			m_agent_core.ready_to_deregister_notify( coop );
 		}
 
-		//! Окончательно дерегистрировать кооперацию.
+		//! Do the final actions of cooperation deregistration.
 		inline void
 		final_deregister_coop(
-			//! Имя дерегистрируемой кооперации.
+			//! Name of cooperation to be deregistered.
 			const std::string & coop_name )
 		{
 			m_agent_core.final_deregister_coop( coop_name );
 		}
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Работа с таймерными событиями.
-		//! \{
+		/*!
+		 * \name Methods for work with timer events.
+		 * \{
+		 */
 
-		//! Запланировать таймерное событие.
+		//! Schedule timer event.
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
-			//! Тип сообщения
+			//! Message type.
 			const rt::type_wrapper_t & type_wrapper,
-			//! Сообщение
+			//! Message to be sent.
 			const message_ref_t & msg,
-			//! mbox на который надо отсылать сообщение.
+			//! Mbox receiver.
 			const mbox_ref_t & mbox,
-			//! Задержка перед первой отправкой сообщений.
+			//! A delay for the first sent.
 			unsigned int delay_msec,
-			//! Период отправки сообщений, для отложенных сообщений
-			//! period_msec == 0.
+			//! Timeout for periodic delivery.
+			//! Should be 0 for delayed messages.
 			unsigned int period_msec );
 
-		//! Запланировать единичное таймерное событие,
-		//! которое нельзя отменить.
+		//! Schedule a single-shot timer event.
 		void
 		single_timer(
-			//! Тип сообщения.
+			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Сообщение.
+			//! Message to be sent.
 			const message_ref_t & msg,
-			//! mbox на который надо отсылать сообщение.
+			//! Mbox receiver.
 			const mbox_ref_t & mbox,
-			//! Задержка перед отправкой сообщений.
+			//! A delay for the delivery.
 			unsigned int delay_msec );
 
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Работа слоями.
-		//! \{
+		/*!
+		 * \name Methods for work with layers.
+		 * \{
+		 */
 		so_layer_t *
 		query_layer(
 			const type_wrapper_t & type ) const;
 
-		//! Добавить дополнительный слой.
+		//! Add an extra layer.
 		/*!
 			\see layer_core_t::add_extra_layer().
 		*/
@@ -232,43 +246,47 @@ class so_environment_impl_t
 			const type_wrapper_t & type,
 			const so_layer_ref_t & layer,
 			throwing_strategy_t throwing_strategy );
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! \name Запуск, инициализация и остановка.
-		//! \{
+		/*!
+		 * \name Start, initialization, shutting down.
+		 * \{
+		 */
 		ret_code_t
 		run(
 			so_environment_t & env,
-			//! Флаг - бросать ли исключение в случае ошибки.
 			throwing_strategy_t throwing_strategy );
 
 		void
 		stop();
-		//! \}
+		/*!
+		 * \}
+		 */
 
-		//! Получить ссылку на публичный экземпляр so_environment.
+		//! Get reference to SObjectizer Environment.
 		so_environment_t &
 		query_public_so_environment();
 
 	private:
-		//! Ядро подсистемы mbox-ов.
+		//! An utility for mboxes.
 		mbox_core_ref_t m_mbox_core;
 
-		//! Ядро подсистемы агентов.
+		//! An utility for agents/cooperations.
 		agent_core_t m_agent_core;
 
-		//! Ядро подсистемы диспетчеров.
+		//! An utility for dispatchers.
 		disp_core_t m_disp_core;
 
-		//! Ядро подсистемы слоев.
+		//! An utility for layers.
 		layer_core_t m_layer_core;
 
-		//! Ссылка на публичный экземпляр среды SO.
+		//! Reference to SObjectizer Environment.
 		so_environment_t & m_public_so_environment;
 
-		//! Таймерная нить.
-		so_5::timer_thread::timer_thread_unique_ptr_t
-			m_timer_thread;
+		//! Timer.
+		so_5::timer_thread::timer_thread_unique_ptr_t m_timer_thread;
 };
 
 } /* namespace impl */
