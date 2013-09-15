@@ -1,0 +1,45 @@
+/*!
+ * \example so_5/chstate/main.cpp
+ */
+
+/*!
+ * \example so_5/coop_listener/main.cpp
+ */
+
+/*!
+ * \example so_5/disp/main.cpp
+ */
+
+/*!
+ * \example so_5/exception_handler/main.cpp
+ */
+
+/*!
+ * \example so_5/exception_logger/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_all/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_delay/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_evt_handler/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_periodic/main.cpp
+ */
+
+/*!
+ * \example so_5/hello_world/main.cpp
+ */
+
+/*!
+ * \example so_5/layer/main.cpp
+ */
+
+// vim:ft=cpp.doxygen
