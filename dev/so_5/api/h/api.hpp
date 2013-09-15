@@ -427,8 +427,8 @@ run_so_environment_on_object(
 	//! Exception strategy.
 	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 {
-	auto init = [obj, init_func]( so_5::rt::so_environment_t & env ) {
-			(obj::*init_func)( env );
+	auto init = [&obj, init_func]( so_5::rt::so_environment_t & env ) {
+			(obj.*init_func)( env );
 		};
 
 	impl::so_quick_environment_t< decltype(init) > env( init, env_params );
@@ -449,8 +449,9 @@ run_so_environment_on_object(
 	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 {
 	return run_so_environment_on_object(
-			obj, method,
-			so_5::rt::so_environment_params_t,
+			obj,
+			init_func,
+			so_5::rt::so_environment_params_t(),
 			throwing_strategy );
 }
 

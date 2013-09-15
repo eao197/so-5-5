@@ -39,5 +39,7 @@ Mxx_ru::setup_target(
 		required_prj( "test/so_5/layer/layer_query/prj.ut.rb" )
 		required_prj( "test/so_5/layer/extra_layer_query/prj.ut.rb" )
 		required_prj( "test/so_5/layer/extra_layer_errors/prj.ut.rb" )
+
+		required_prj( "test/so_5/api/run_so_environment/prj.ut.rb" )
 	}
 )
