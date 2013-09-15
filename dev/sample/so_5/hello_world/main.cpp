@@ -1,14 +1,14 @@
 /*
-	Пример простейшего агента.
-*/
+ * A sample of the simpliest agent.
+ */
 
 #include <iostream>
 
-// Загружаем основные заголовочные файлы SObjectizer.
+// Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// C++ описание класса агента.
+// Definition of agent for SObjectizer.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -17,25 +17,23 @@ class a_hello_t
 
 	public:
 		a_hello_t( so_5::rt::so_environment_t & env )
-			:
-				 // Передаем среду SObjectizer, к которой принадлежит агент.
-				base_type_t( env )
+			: base_type_t( env )
 		{}
 		virtual ~a_hello_t()
 		{}
 
-		// Обработка начала работы агента в системе.
+		// A reaction to start of work in SObjectizer.
 		virtual void
 		so_evt_start()
 		{
 			std::cout << "Hello, world! This is SObjectizer v.5."
 				<< std::endl;
 
-			// Завершаем работу примера.
+			// Shutting down SObjectizer.
 			so_environment().stop();
 		}
 
-		// Обработка завершения работы агента в системе.
+		// A reaction to finish of work in SObjectizer.
 		virtual void
 		so_evt_finish()
 		{
@@ -44,20 +42,20 @@ class a_hello_t
 		}
 };
 
-// Инициализация окружения
+// SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Создаем кооперацию.
+	// Creating cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Добавляем в кооперацию агента.
+	// Adding agent to cooperation.
 	coop->add_agent(
 		so_5::rt::agent_ref_t(
 			new a_hello_t( env ) ) );
 
-	// Регистрируем кооперацию.
+	// Registering cooperation.
 	env.register_coop( std::move( coop ) );
 }
 

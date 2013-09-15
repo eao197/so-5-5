@@ -3,15 +3,8 @@
 
 #include <ace/OS.h>
 
-#include <so_5/rt/h/message.hpp>
-#include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
-#include <so_5/rt/h/agent_coop.hpp>
-#include <so_5/rt/h/state.hpp>
-#include <so_5/rt/h/event_data.hpp>
-#include <so_5/rt/h/local_mbox.hpp>
-#include <so_5/rt/h/mbox_ref.hpp>
-#include <so_5/rt/h/so_environment.hpp>
+#include <so_5/api/h/api.hpp>
+#include <so_5/rt/h/rt.hpp>
 
 struct my_message
 	:
@@ -44,13 +37,16 @@ class my_agent_t
 	:
 		public so_5::rt::agent_t
 {
+		typedef so_5::rt::agent_t base_type_t;
+
 		const so_5::rt::state_t m_first_state;
 		const so_5::rt::state_t m_second_state;
 	public:
 
 		my_agent_t(
+			so_5::rt::so_environment_t & env,
 			const so_5::rt::mbox_ref_t & mbox_ref )
-			:
+			:	base_type_t( env ),
 				m_first_state( self_ptr() ),
 				m_second_state( self_ptr() ),
 				m_mbox_ref( mbox_ref )
@@ -90,8 +86,7 @@ class my_agent_t
 void
 my_agent_t::so_define_agent()
 {
-	// Регистрация
-
+	// Subscription.
 	so_subscribe( m_mbox_ref )
 		.in( m_first_state )
 			.event( &my_agent_t::my_event_handler );
@@ -119,7 +114,8 @@ my_agent_t::unsubscribe_event_handler(
 		message )
 {
 	std::cout << "unsubscribe_event_handler()!!\n";
-	// Дерегистрация
+
+	// Unsubscription.
 
 	so_unsubscribe( m_mbox_ref )
 	.in( m_first_state )
@@ -180,9 +176,9 @@ class so_environment_t
 				so_5::rt::nonempty_name_t( "first_coop" ) );
 
 			coop->add_agent( so_5::rt::agent_ref_t(
-				new my_agent_t( m_test_mbox ) ) );
+				new my_agent_t( *this, m_test_mbox ) ) );
 
-			so_5::ret_code_t rc = register_coop( coop );
+			so_5::ret_code_t rc = register_coop( std::move(coop) );
 			std::cout << "\nrc = " << rc << "\n\n";
 
 			ACE_OS::sleep( 10 );

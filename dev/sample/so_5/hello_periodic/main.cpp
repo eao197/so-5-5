@@ -1,7 +1,6 @@
 /*
-	Пример простейшего агента, который посылает себе
-	периодическое сообщение.
-*/
+ * A sample of simple agent which sends a periodic message to itself.
+ */
 
 #include <iostream>
 #include <time.h>
@@ -9,26 +8,27 @@
 #include <ace/OS.h>
 #include <ace/Time_Value.h>
 
-// Загружаем основные заголовочные файлы SObjectizer.
+// Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// Сообщение о необходимости выдать приветствие.
+// Hello message.
 class msg_hello_periodic
 	:
 		public so_5::rt::message_t
 {
 	public:
-		// Сообщение с приветствием.
+		// Greeting.
 		std::string m_message;
 };
 
+// Stop message.
 class msg_stop_signal
 	:
 		public so_5::rt::message_t
 {};
 
-// C++ описание класса агента.
+// An agent class definition.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -45,40 +45,40 @@ class a_hello_t
 		virtual ~a_hello_t()
 		{}
 
-		// Определение агента.
+		// Definition of agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
-		// Обработка начала работы агента в системе.
+		// A reaction to start of work in SObjectizer.
 		virtual void
 		so_evt_start();
 
-		// Обработчик сообщения msg_hello_periodic.
+		// Hello message handler.
 		void
 		evt_hello_periodic(
 			const so_5::rt::event_data_t< msg_hello_periodic > & msg );
 
-		// Обработчик сигнала о завершении работы.
+		// Stop message handler.
 		void
 		evt_stop_signal(
 			const so_5::rt::event_data_t< msg_stop_signal > & );
 
 	private:
-		// Mbox данного агента.
+		// Agent's mbox.
 		so_5::rt::mbox_ref_t m_self_mbox;
 
-		// Таймерные идентификаторы для периодических сообщений.
+		// Timer events' identifiers.
 		so_5::timer_thread::timer_id_ref_t m_hello_timer_id;
 		so_5::timer_thread::timer_id_ref_t m_stop_timer_id;
 
-		// Количество обработок периодического сообщения.
+		// How much timer event has been processed.
 		unsigned int m_evt_count;
 };
 
 void
 a_hello_t::so_define_agent()
 {
-	// Подписываемся на сообщения.
+	// Subscription to messages.
 	so_subscribe( m_self_mbox )
 		.event( &a_hello_t::evt_hello_periodic );
 
@@ -96,22 +96,25 @@ a_hello_t::so_evt_start()
 	std::unique_ptr< msg_hello_periodic > msg( new msg_hello_periodic );
 	msg->m_message = "Hello, periodic!";
 
-	// Отсылаем приветствие.
+	// Sending a greeting.
 	m_hello_timer_id =
 		so_environment()
 			.schedule_timer< msg_hello_periodic >(
 				std::move( msg ),
 				m_self_mbox,
+				// Delay for a second.
 				1 * 1000,
+				// Repeat every second.
 				1 * 1000 );
 
-	// Отсылаем отложенное сообщение-сигнал
-	// для завершения работы.
+	// Sending a stop signal.
 	m_stop_timer_id =
 		so_environment()
 			.schedule_timer< msg_stop_signal >(
 				m_self_mbox,
+				// Delay for two seconds.
 				2 * 1000,
+				// Not a periodic.
 				0 );
 }
 
@@ -125,14 +128,13 @@ a_hello_t::evt_hello_periodic(
 
 	if( 5 == ++m_evt_count )
 	{
-		// Отменяем таймерное событие.
+		// Stops hello message.
 		m_hello_timer_id.release();
 	}
 	else
 	{
-		// Переназначаем отложенную отправку
-		// сообщения-сигнала о завершении работы.
-		// Предшествующая отправка должна быть отменена.
+		// Reschedule stop signal.
+		// Previous stop signal should be canceled.
 		m_stop_timer_id =
 			so_environment()
 				.schedule_timer< msg_stop_signal >(
@@ -150,23 +152,23 @@ a_hello_t::evt_stop_signal(
 	std::cout << asctime( localtime( &t ) )
 		<< "Stop SObjectizer..." << std::endl;
 
-	// Завершаем работу.
+	// Shutting down SObjectizer.
 	so_environment().stop();
 }
 
-// Инициализация окружения
+// SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Создаем кооперацию.
+	// Creating cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Добавляем в кооперацию агента.
+	// Adding agent to cooperation.
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env ) ) );
 
-	// Регистрируем кооперацию.
+	// Registering cooperation.
 	env.register_coop( std::move( coop ) );
 }
 
@@ -185,3 +187,4 @@ main( int, char ** )
 
 	return 0;
 }
+
