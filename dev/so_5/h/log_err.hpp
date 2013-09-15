@@ -36,7 +36,7 @@
  * Usage sample:
  * \code
  * SO_5_ABORT_ON_ACE_ERROR(
- * 	ACE_Thread_Manager::instance()->spawn( *параметры* ) );
+ * 	ACE_Thread_Manager::instance()->spawn( *params* ) );
  * \endcode
  */
 #define SO_5_ABORT_ON_ACE_ERROR(action) do { \

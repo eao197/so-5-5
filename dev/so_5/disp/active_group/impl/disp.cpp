@@ -53,9 +53,8 @@ dispatcher_t::shutdown()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	// Ќачинаем завершение работы,
-	// с этого момента, новые диспетчеры под группы агентов не создаютс€,
-	// а старые не уничтожаютс€.
+	// Starting shutdown process.
+	// New groups will not be created. But old groups remain.
 	m_shutdown_started = true;
 
 	std::for_each(

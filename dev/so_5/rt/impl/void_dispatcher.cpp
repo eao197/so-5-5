@@ -41,7 +41,7 @@ void_dispatcher_t::shutdown()
 void
 void_dispatcher_t::wait()
 {
-	// Этот метод не должен вызываться у объектов данонго класса.
+	// This method cannot be called on objects of this class.
 	std::abort();
 }
 

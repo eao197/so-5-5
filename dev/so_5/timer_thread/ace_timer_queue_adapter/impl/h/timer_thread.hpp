@@ -135,9 +135,10 @@ class timer_thread_t
 		 */
 
 	private:
-		//! Удалить все имеющиеся в таймере события.
-		//! \note Применяется только в конце при завершении
-		//! таймерной нити.
+		//! Cancel all timer events.
+		/*!
+		 * \attention Should be used only at the end of thread work.
+		 */
 		void
 		cancel_all();
 

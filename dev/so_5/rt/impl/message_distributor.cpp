@@ -181,7 +181,7 @@ message_distributor_t::distribute_message(
 	if( m_msg_type_to_consumer_chain_map.end() != it )
 	{
 
-		// it->second - это message_consumer_chain_ref_t
+		// it->second is message_consumer_chain_ref_t
 		message_consumer_link_t * current =
 			it->second->query_head().get();
 

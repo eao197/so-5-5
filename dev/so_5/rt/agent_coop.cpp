@@ -163,8 +163,8 @@ agent_coop_t::bind_agents_to_disp()
 		throw;
 	}
 
-	// Если все агенты кооперации зарегистрировались нормально,
-	// то устанавливаем колличество активных агентов.
+	// A total count of all active agents should be set because
+	// all agents are successfully registered.
 	m_working_agents_count = m_agent_array.size();
 }
 
