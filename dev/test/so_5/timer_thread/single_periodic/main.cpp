@@ -1,12 +1,5 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается и регистрируется кооперация с одним агентом.
-		который отправляет себе периодическое сообщение,
-		получив которое в 5 раз отменяет таймерное событие отправки сообщения,
-		и отправляет себе отложенно сообщение в результате которого
-		завершает работу.
+ * A test for scheduling and canceling delayed/periodic message.
 */
 
 #include <iostream>
@@ -62,7 +55,7 @@ class test_agent_t
 		virtual void
 		so_evt_start()
 		{
-			// Отправляем отложенное на 1 секунду сообщение.
+			// Schedule periodic message.
 			m_timer_ref = so_environment().schedule_timer< test_message >(
 				m_test_mbox,
 				150,
@@ -114,9 +107,8 @@ test_agent_t::evt_test(
 {
 	if( m_test_evt_count == ++m_evt_count )
 	{
-		// Переприсвоение автоматически отменит
-		// предыдущее таймерное событие.
-		m_timer_ref = m_timer_ref =
+		// Reschedule message. Old timer event should be released.
+		m_timer_ref = 
 			so_environment().schedule_timer< stop_message >(
 				m_test_mbox,
 				400,

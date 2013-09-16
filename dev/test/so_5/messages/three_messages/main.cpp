@@ -1,12 +1,6 @@
 /*
-	“естирование сообщений.
-
-	—уть теста:
-		—оздаетс€ и регистрируетс€ коопераци€,
-		котора€ содержит всего 1 агент, который подписываетс€
-		на несколько типов сообщений.
-		«атем каждое сообщение он должен получить, только по 1 разу.
-*/
+ * A test for receiving different messages.
+ */
 
 #include <iostream>
 #include <exception>
@@ -25,7 +19,6 @@ struct test_message_1
 		public so_5::rt::message_t
 {
 	test_message_1(): m_year_1( 2010 ), m_year_2( 2011 ) {}
-	virtual ~test_message_1(){}
 
 	int m_year_1;
 	int m_year_2;
@@ -36,7 +29,6 @@ struct test_message_2
 		public so_5::rt::message_t
 {
 	test_message_2(): m_so( "SObjectizer" ), m_ver( "5" ) {}
-	virtual ~test_message_2(){}
 
 	std::string m_so;
 	std::string m_ver;
@@ -47,7 +39,6 @@ struct test_message_3
 		public so_5::rt::message_t
 {
 	test_message_3(): m_where( "Gomel" ) {}
-	virtual ~test_message_3(){}
 
 	std::string m_where;
 };
@@ -216,3 +207,4 @@ main( int argc, char * argv[] )
 
 	return 0;
 }
+

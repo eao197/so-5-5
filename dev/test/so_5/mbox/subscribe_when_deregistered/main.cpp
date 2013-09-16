@@ -1,15 +1,7 @@
 /*
-	Тестирование подписки отписки агента к именованному mbox-у.
-
-	Суть теста:
-		Создается кооперация с несколькими агентами, каждый из них
-		активный агент. Агенты в so_evt_start() выполняют цикл
-		подписки/отписки на сообщения, пока не будет сигнала
-		завершения работы. В so_evt_finish() агенты выполняют подписки,
-		которые не должны иметь эффекта.
-
-		Тест прогоняется несколько раз.
-*/
+ * A test for subscription inside so_evt_finish() where they
+ * should have no effects.
+ */
 
 #include <iostream>
 #include <exception>
@@ -68,7 +60,7 @@ class test_agent_t
 		ABORT_HANDLER( handler5, msg5 )
 
 	private:
-		// Mbox агента, на который будет вестись подписка.
+		// Mbox for subscription.
 		so_5::rt::mbox_ref_t m_mbox;
 };
 
@@ -78,9 +70,8 @@ test_agent_t::so_define_agent()
 {
 }
 
-// Флаг выполнять ли подписку.
+// A flag which enables subscription.
 so_5::atomic_counter_t g_continue_subscr_circle = 1;
-
 
 void
 test_agent_t::so_evt_start()
@@ -184,6 +175,4 @@ main( int, char ** )
 
 	return 0;
 }
-
-
 

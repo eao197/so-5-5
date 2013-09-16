@@ -1,11 +1,6 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается и регистрируется кооперация,
-		агент этой кооперации имеет несколько состояний,
-		в которых он подписывается на сообщение,
-		а в своем начальном событии отписывается от него.
+ * A test for checking message subscription/unsubscription inside
+ * agent's states.
 */
 
 #include <iostream>
@@ -69,7 +64,7 @@ class test_agent_t
 		evt_in_state_3(
 			const so_5::rt::event_data_t< test_message > & );
 
-		// Количество вызовов обработчика событий.
+		// How much every handler has been called.
 		static int m_handler_in_state_default_calls;
 		static int m_handler_in_state_1_calls;
 		static int m_handler_in_state_2_calls;
@@ -77,10 +72,6 @@ class test_agent_t
 
 	private:
 		so_5::rt::mbox_ref_t m_test_mbox;
-
-		typedef void (test_agent_t::*event_t)(
-				const so_5::rt::event_data_t< test_message > & );
-		event_t ptr_evt_in_state_default;;
 };
 
 int test_agent_t::m_handler_in_state_default_calls = 0;
@@ -119,30 +110,28 @@ operator<<( std::ostream & to, method_ptr_dumper_t<T, V> a )
 void
 test_agent_t::so_define_agent()
 {
-ptr_evt_in_state_default = &test_agent_t::evt_in_state_default;
-std::cout << "* " << method_ptr_dumper(ptr_evt_in_state_default) << std::endl;
-	// Подписываемся на сообщение в состоянии по умолчанию.
+	// Subscribe for message in default state...
 	so_subscribe( m_test_mbox )
 		.in( so_default_state() )
 			.event(
 				&test_agent_t::evt_in_state_default,
 				so_5::THROW_ON_ERROR );
 
-	// В первом состоянии.
+	// ...in first state...
 	so_subscribe( m_test_mbox )
 		.in( m_first_state )
 			.event(
 				&test_agent_t::evt_in_state_1,
 				so_5::THROW_ON_ERROR );
 
-	// Во втором состоянии.
+	// ...in second state...
 	so_subscribe( m_test_mbox )
 		.in( m_second_state )
 			.event(
 				&test_agent_t::evt_in_state_2,
 				so_5::THROW_ON_ERROR );
 
-	// В третьем состоянии.
+	// ...in third state...
 	so_subscribe( m_test_mbox )
 		.in( m_third_state )
 			.event(
@@ -153,28 +142,23 @@ std::cout << "* " << method_ptr_dumper(ptr_evt_in_state_default) << std::endl;
 void
 test_agent_t::so_evt_start()
 {
-event_t ptr2 = &test_agent_t::evt_in_state_default;
-std::cout << "- " << method_ptr_dumper(ptr2) << std::endl;
-std::cout << "-- ptr_evt_in_state_default "
-<< ((ptr_evt_in_state_default == ptr2) ? "==" : "!=")
-<< " ptr2" << std::endl;
-	// Отписываемся от сообщения в состоянии по умолчанию.
+	// Unsubscribe from message in default state...
 	so_unsubscribe( m_test_mbox )
 		.in( so_default_state() )
 			.event(
 				&test_agent_t::evt_in_state_default,
 				so_5::THROW_ON_ERROR );
 
-	// В первом состоянии.
+	// ...in first state...
 	so_unsubscribe( m_test_mbox )
 		.in( m_first_state )
 			.event(
 				&test_agent_t::evt_in_state_1,
 				so_5::THROW_ON_ERROR );
 
-	// Во втором состоянии не отписываемся.
+	// ...keep subscription for second state...
 
-	// В третьем состоянии.
+	// ...but unsubscribe in third state...
 	so_unsubscribe( m_test_mbox )
 		.in( m_third_state )
 			.event(
@@ -183,7 +167,7 @@ std::cout << "-- ptr_evt_in_state_default "
 
 	m_test_mbox->deliver_message< test_message >();
 
-	// Меняем состояние.
+	// Change state.
 	so_change_state( m_second_state, so_5::THROW_ON_ERROR );
 }
 
@@ -191,7 +175,7 @@ void
 test_agent_t::evt_in_state_default(
 	const so_5::rt::event_data_t< test_message > & )
 {
-	// Этот обработчик не должен вызываться.
+	// Expect this handler will not be called.
 	++m_handler_in_state_default_calls;
 }
 
@@ -199,7 +183,7 @@ void
 test_agent_t::evt_in_state_1(
 	const so_5::rt::event_data_t< test_message > & )
 {
-	// Этот обработчик не должен вызываться.
+	// Expect this handler will not be called.
 	++m_handler_in_state_1_calls;
 }
 
@@ -216,7 +200,7 @@ void
 test_agent_t::evt_in_state_3(
 	const so_5::rt::event_data_t< test_message > & )
 {
-	// Этот обработчик не должен вызываться.
+	// Expect this handler will not be called.
 	++m_handler_in_state_3_calls;
 }
 
@@ -278,3 +262,4 @@ main( int argc, char * argv[] )
 
 	return 0;
 }
+

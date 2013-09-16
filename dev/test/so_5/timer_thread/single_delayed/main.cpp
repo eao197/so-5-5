@@ -1,10 +1,6 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается и регистрируется кооперация с одним агентом.
-		который отправляет себе отложенное сообщение.
-*/
+ * A test for delayed message.
+ */
 
 #include <iostream>
 #include <map>
@@ -51,7 +47,7 @@ class test_agent_t
 		virtual void
 		so_evt_start()
 		{
-			// Отправляем отложенное на 1 секунду сообщение.
+			// Send a delayed for 1 second message.
 			m_timer_ref = so_environment().schedule_timer< test_message >(
 				m_test_mbox,
 				1000,

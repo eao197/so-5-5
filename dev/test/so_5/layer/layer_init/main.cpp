@@ -1,10 +1,6 @@
 /*
-	Тестирование слоев.
-
-	Суть теста:
-		В SObjectizer внедряется слой и проверяется вызываются ли у него
-		методы инициализации и остановки и в каком порядке.
-*/
+ * A test for checking layer initialization.
+ */
 
 #include <iostream>
 #include <map>

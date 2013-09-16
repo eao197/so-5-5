@@ -1,16 +1,13 @@
 /*
-	Тестирование подписки отписки агента к именованному mbox-у.
-
-	Суть теста:
-		Создается кооперация с одним агентом.
-		Агент подписывается на несколько сообщений от именованного mbox-а,
-		который каждый раз получает с помощью
-		so_environment_t::create_local_mbox(name).
-		Затем агент отписывается от них с помощью таким же образом
-		получаемого mbox-а.
-		Далее высылает себе эти сообщения которые он не должен
-		получить, и отсылает себе сигнал о завершении работы.
-*/
+ * A test of subscription/unsubscription for named mbox.
+ *
+ * A cooperation with one agent is created.
+ * That agent subscribes itself to several messages from named mbox.
+ * Then agent unsubscribes itself from those messages.
+ * Then agent sents messages to itself.
+ * No messages should be received. If any of those messages is
+ * received then work is aborted.
+ */
 
 #include <iostream>
 #include <exception>
@@ -146,6 +143,4 @@ main( int, char ** )
 
 	return 0;
 }
-
-
 

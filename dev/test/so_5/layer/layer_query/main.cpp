@@ -1,10 +1,6 @@
 /*
-	Тестирование слоев.
-
-	Суть теста:
-		В SObjectizer внедряется несколько слоев
-		затем проверяется что их можно получить.
-*/
+ * A test for layers set and get.
+ */
 
 #include <iostream>
 #include <map>

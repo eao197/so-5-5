@@ -1,16 +1,6 @@
 /*
-	Тестирование обработки сообщений в различных состояниях.
-
-	Суть теста:
-		Создается и регистрируется кооперация,
-		которая содержит всего 1 агент, который меняет состояние
-		и шлет себе сообщения которые должны обрабатываться
-		разными обработчиками в зависимости от состояния.
-		Причем он регистрирует обработчики для состояний
-		в том же порядке как и затем меняет эти состояния.
-
-		Каждый обработчик должен сработать только по 1 разу.
-*/
+ * A test for messages handling in difference states.
+ */
 
 #include <iostream>
 #include <exception>
@@ -74,7 +64,7 @@ class test_agent_t
 		evt_in_state_3(
 			const so_5::rt::event_data_t< test_message > & );
 
-		// Количество вызовов обработчика событий.
+		// Count for event handlers calls.
 		static int m_handler_in_state_default_calls;
 		static int m_handler_in_state_1_calls;
 		static int m_handler_in_state_2_calls;
@@ -92,24 +82,24 @@ int test_agent_t::m_handler_in_state_3_calls = 0;
 void
 test_agent_t::so_define_agent()
 {
-	// Подписываемся на сообщение в состоянии по умолчанию.
+	// Subscribe to message in default state...
 	so_subscribe( m_test_mbox )
 			.event(
 				&test_agent_t::evt_in_state_default );
 
-	// В первом состоянии.
+	// ...in first state...
 	so_subscribe( m_test_mbox )
 		.in( m_first_state )
 			.event(
 				&test_agent_t::evt_in_state_1 );
 
-	// Во втором состоянии.
+	// ...in second state...
 	so_subscribe( m_test_mbox )
 		.in( m_second_state )
 			.event(
 				&test_agent_t::evt_in_state_2 );
 
-	// В третьем состоянии.
+	// ...in third state.
 	so_subscribe( m_test_mbox )
 		.in( m_third_state )
 			.event(
@@ -129,7 +119,7 @@ test_agent_t::evt_in_state_default(
 	++m_handler_in_state_default_calls;
 	m_test_mbox->deliver_message< test_message >();
 
-	// Меняем состояние после отправки сообщения.
+	// Change state after message has been sent.
 	so_change_state( m_first_state );
 }
 
@@ -139,7 +129,7 @@ test_agent_t::evt_in_state_1(
 {
 	++m_handler_in_state_1_calls;
 
-	// Меняем состояние до отправки сообщения
+	// Change state before message will be sent.
 	so_change_state( m_second_state );
 
 	m_test_mbox->deliver_message< test_message >();
@@ -151,7 +141,7 @@ test_agent_t::evt_in_state_2(
 {
 	++m_handler_in_state_2_calls;
 
-	// Меняем состояние до отправки сообщения
+	// Change state before message will be sent.
 	so_change_state( m_third_state );
 
 	m_test_mbox->deliver_message< test_message >();
@@ -165,7 +155,7 @@ test_agent_t::evt_in_state_3(
 
 	std::cout << "Stop\n";
 
-	// Останавливаемся.
+	// Shutting down.
 	so_environment().stop();
 }
 

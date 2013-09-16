@@ -1,10 +1,6 @@
 /*
-	“естирование слоев.
-
-	—уть теста:
-		ƒелаютс€ попытки поставить слой который уже есть
-		и слой по нулевому указателю.
-*/
+ * A tests for layers.
+ */
 
 #include <array>
 #include <iostream>
@@ -178,35 +174,35 @@ UT_UNIT_TEST( check_errors )
 
 	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
 
-	// ѕопытка добавить слой, который уже есть среди основных.
+	// Try to set up layer which is already set.
 	UT_CHECK_EQ(
 		so_5::rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 0 > >( new test_layer_t< 0 > ),
 			so_5::DO_NOT_THROW_ON_ERROR ) );
 
-	// ѕопытка добавить слой, по нулевому указателю.
+	// Try to set up layer by zero pointer.
 	UT_CHECK_EQ(
 		so_5::rc_trying_to_add_nullptr_extra_layer,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 1 > >( nullptr ),
 			so_5::DO_NOT_THROW_ON_ERROR ) );
 
-	// —лой должен быть добавлен.
+	// Try to add new layer. No errors expected.
 	UT_CHECK_EQ(
 		0,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ),
 			so_5::DO_NOT_THROW_ON_ERROR ) );
 
-	// ѕовторное добавление слое не должно пройти.
+	// Try to add layer which is already set.
 	UT_CHECK_EQ(
 		so_5::rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ),
 			so_5::DO_NOT_THROW_ON_ERROR ) );
 
-	// —лой, который не удаетс€ запустить.
+	// Try to add layer which is failed to start.
 	UT_CHECK_EQ(
 		so_5::rc_unable_to_start_extra_layer,
 		so_env.add_extra_layer(
@@ -226,29 +222,29 @@ UT_UNIT_TEST( check_exceptions )
 
 	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
 
-	// ѕопытка добавить слой, который уже есть среди основных.
+	// Try to set up layer which is already set.
 	UT_CHECK_THROW(
 		so_5::exception_t,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 0 > >( new test_layer_t< 0 > ) ) );
 
-	// ѕопытка добавить слой, по нулевому указателю.
+	// Try to set up layer by zero pointer.
 	UT_CHECK_THROW(
 		so_5::exception_t,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 1 > >( nullptr ) ) );
 
-	// —лой должен быть добавлен.
+	// Try to add new layer. No errors expected.
 	so_env.add_extra_layer(
 		std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ) );
 
-	// ѕовторное добавление слое не должно пройти.
+	// Try to add layer which is already set.
 	UT_CHECK_THROW(
 		so_5::exception_t,
 		so_env.add_extra_layer(
 			std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ) ) );
 
-	// —лой, который не удаетс€ запустить.
+	// Try to add layer which is failed to start.
 	UT_CHECK_THROW(
 		so_5::exception_t,
 		so_env.add_extra_layer(
