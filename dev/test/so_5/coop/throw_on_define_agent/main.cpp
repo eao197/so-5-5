@@ -1,12 +1,6 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается кооперация В которой много агентов.
-		Один из агентов в своем методе so_define_agent
-		бросает исключение и кооперация не должна быть
-		зарегистрирована, а агенты должны быть уничтожены.
-*/
+ * A test for handling of exception during so_define_agent() calling.
+ */
 
 #include <iostream>
 #include <map>
@@ -59,8 +53,7 @@ class a_ordinary_t
 				.in( so_default_state() )
 					.event( &a_ordinary_t::some_handler );
 
-			// Даем поставить что-то в локальную очередь.
-			// но до привязки агента к диспетчеру.
+			// Give some time to agent which sends messages.
 			ACE_OS::sleep( ACE_Time_Value( 0, 10*1000 ) );
 		}
 
@@ -75,7 +68,7 @@ class a_ordinary_t
 void
 a_ordinary_t::so_evt_start()
 {
-	// этот метод не должен вызываться.
+	// This method should not be called.
 	std::cerr << "error: a_ordinary_t::so_evt_start called.";
 	std::abort();
 }
@@ -86,7 +79,7 @@ void
 a_ordinary_t::some_handler(
 	const so_5::rt::event_data_t< some_message > & msg )
 {
-	// этот метод не должен вызываться.
+	// This method should not be called.
 	std::cerr << "error: a_ordinary_t::some_handler called.";
 	std::abort();
 }
@@ -120,12 +113,12 @@ class a_throwing_t
 void
 a_throwing_t::so_evt_start()
 {
-	// этот метод не должен вызываться.
+	// This method should not be called.
 	std::cerr << "error: a_throwing_t::so_evt_start called.";
 	std::abort();
 }
 
-// Агент, который шлет сообщения.
+// An agent which sends messages.
 class a_message_sender_t
 	:
 		public so_5::rt::agent_t
@@ -196,7 +189,7 @@ reg_coop(
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_ordinary_t( env ) ) );
 
-	// Тот, кто бросит исключение.
+	// An agent which will throw an exception.
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_throwing_t( env ) ) );
 

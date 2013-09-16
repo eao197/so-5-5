@@ -1,15 +1,5 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается кооперация которая регистрирует,
-		дополнительную кооперацию.
-		Агент в дополнительной кооперации дерегистрирует свою
-		кооперацию и сообщает исходной кооперации, что он
-		отработал. Исходная кооперация инициирует
-		завершение работы SO.
-
-		Агенты не подписываются ни на какие сообщения и ничего не делают.
+ * A test for register cooperation from another cooperation.
 */
 
 #include <iostream>
@@ -54,17 +44,12 @@ class a_slave_t
 		{}
 
 		virtual void
-		so_define_agent()
-		{}
-
-		virtual void
 		so_evt_start()
 		{
 			so_environment().deregister_coop(
 				so_5::rt::nonempty_name_t( so_coop_name() ) );
 
-			m_master_mbox
-				->deliver_message< slave_coop_finished_signal >();
+			m_master_mbox->deliver_message< slave_coop_finished_signal >();
 		}
 
 	private:
@@ -86,10 +71,6 @@ class a_master_t
 		{}
 
 		virtual ~a_master_t()
-		{}
-
-		virtual void
-		so_define_agent()
 		{}
 
 		virtual void
@@ -119,17 +100,12 @@ class a_master_t
 		void
 		evt_slave_finished(
 			const so_5::rt::event_data_t< slave_coop_finished_signal > &
-				message );
+				message )
+		{
+			std::cout << "Shutdown\n";
+			so_environment().stop();
+		}
 };
-
-void
-a_master_t::evt_slave_finished(
-	const so_5::rt::event_data_t< slave_coop_finished_signal > &
-		message )
-{
-	std::cout << "Shotdown\n";
-	so_environment().stop();
-}
 
 void
 init( so_5::rt::so_environment_t & env )

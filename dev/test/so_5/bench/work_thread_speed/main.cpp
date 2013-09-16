@@ -1,11 +1,11 @@
-/* »змерение производительности работы рабочей нити.
+/*
+ * Working thread perfomance benchmark.
  *
- * »змерение производитс€ следующим образом:
- *      - –егистрируютс€ пары, получатель-отправитель,
- *        которые работают на диспетчере активных групп;
- *      - ƒетали теста определ€ютс€ конфигурационным файлом.
- *
- *      - измер€етс€ врем€ работы цикла отсылки и обработки.
+ * Benchmark is performed the following way:
+ * - pairs of senders-receivers are registered. They are working
+ *   on active_group dispatcher;
+ * - benchmarking details are set in configuration file;
+ * - a processing time is measured.
  */
 
 #include <iostream>
@@ -87,7 +87,7 @@ int main( int argc, char **argv )
 		so_environment_t env( cfg_file );
 		rc = env.run();
 
-		// ќжидаем окончательного завершени€ работы всех потоков.
+		// Wait for finish of all threads.
 		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )

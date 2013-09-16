@@ -1,6 +1,6 @@
 /*
-	јгент, который принимает и обрабатывает сообщени€.
-*/
+ * An agent which receives and handles messages.
+ */
 
 #include "a_bench_receiver.hpp"
 #include "a_bench_arbiter.hpp"

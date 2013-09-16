@@ -1,7 +1,7 @@
 /*
-	јгент, который регистрирует кооперацию нагрузочных агентов,
-	засекает врем€ и отмечает завершение работы.
-*/
+ * An agent which registers cooperation of benchmarks agents,
+ * fixes moments of the start and the end of work.
+ */
 
 #if !defined( _SO_5__TEST__BENCH__WORK_THREAD_SPEED__A_BENCH_ARBITER_HPP_ )
 #define _SO_5__TEST__BENCH__WORK_THREAD_SPEED__A_BENCH_ARBITER_HPP_
@@ -13,8 +13,7 @@
 
 #include <so_5/rt/h/rt.hpp>
 
-// —ообщение о том что некоторый агент
-// завершил обрабатывать сообщени€.
+// A message to finish processing.
 struct msg_bench_finish
 	:
 		public so_5::rt::message_t
@@ -30,7 +29,7 @@ struct msg_bench_finish
 	unsigned int m_message_count;
 };
 
-// —ообщение о том получател€м надо начать посылать сообщени€.
+// A message to start processing.
 struct msg_bench_start
 	:
 		public so_5::rt::message_t
@@ -41,7 +40,7 @@ struct msg_bench_start
 
 
 
-// јгент который нагружаетс€ пачками сообщений.
+// A benchmark arbiter class.
 class a_bench_arbiter_t
 	:
 		public so_5::rt::agent_t
@@ -64,44 +63,43 @@ class a_bench_arbiter_t
 		virtual ~a_bench_arbiter_t()
 		{}
 
-		// ќпределение агента.
 		virtual void
 		so_define_agent();
 
-		// ќбработка начала работы агента в системе.
-		// —тарт теста. –егистрируетс€ тестова€ коопераци€
-		// и засекаетс€ врем€.
+		// Create benchmark agents.
+		// Fix the moment of start.
+		// Start benchmark.
 		void
 		so_evt_start();
 
-		// ќбработка сообщени€ о завершении
-		// обработки сообщений некоторым агентом.
+		// A reaction to message of end of processing from some agent.
 		void
 		evt_on_bench_finish(
 			const so_5::rt::event_data_t< msg_bench_finish > & msg );
 
 	private:
-		// —обственный mbox агента.
 		so_5::rt::mbox_ref_t	m_self_mbox;
 
-		//  оличество агентов которые еще работают.
+		// A total count of receivers.
 		unsigned int m_recivers_total;
 
-		//  оличество агентов которые еще работают.
+		// A count of currently working receivers.
 		unsigned int m_recivers_in_work;
 
-		//  оличество обработанных сообщений.
+		// A total count of messages processed.
 		unsigned int m_total_message_count;
 
-		// »м€ конфига теста.
+		// Name of config file.
 		const std::string m_cfg_file;
 
-		// «асечка начала работы.
+		// Timestamp of start of benchmark.
 		ACE_Time_Value m_start_time;
 
 		std::vector< unsigned int > m_msg_bloks_size;
 
+		// Names of senders.
 		std::set< std::string >  m_senders;
+		// Names of receivers.
 		std::set< std::string >  m_receivers;
 };
 

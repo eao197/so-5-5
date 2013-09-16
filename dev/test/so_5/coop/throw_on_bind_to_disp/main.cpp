@@ -1,10 +1,6 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается кооперация, в которой много агентов.
-		При привязке одного из агентов к диспетчеру бросается исключение.
-*/
+ * A test of handling an exception during binding to dispatcher.
+ */
 
 #include <iostream>
 #include <map>
@@ -63,8 +59,7 @@ class a_ordinary_t
 				.in( so_default_state() )
 					.event( &a_ordinary_t::some_handler );
 
-			// Даем поставить что-то в локальную очередь.
-			// но до привязки агента к диспетчеру.
+			// Give time to test message sender.
 			ACE_OS::sleep( ACE_Time_Value( 0, 10*1000 ) );
 		}
 
@@ -79,7 +74,6 @@ class a_ordinary_t
 void
 a_ordinary_t::so_evt_start()
 {
-	// Может вызваться.
 	++g_evt_count;
 }
 
@@ -87,7 +81,6 @@ void
 a_ordinary_t::some_handler(
 	const so_5::rt::event_data_t< some_message > & msg )
 {
-	// может вызваться.
 	++g_evt_count;
 }
 
@@ -150,14 +143,12 @@ class throwing_disp_binder_t
 void
 a_throwing_t::so_evt_start()
 {
-	// этот метод не должен вызываться,
-	// потому что при привязке этого агента к диспетчеру
-	// бросается исключение.
+	// This method should not be called.
 	std::cerr << "error: a_throwing_t::so_evt_start called.";
 	std::abort();
 }
 
-// Агент, который шлет сообщения.
+// An agent which send message.
 class a_message_sender_t
 	:
 		public so_5::rt::agent_t
@@ -228,7 +219,7 @@ reg_coop(
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_ordinary_t( env ) ) );
 
-	// Тот, кто бросит исключение.
+	// This agent will throw an exception during binding for dispatcher.
 	coop->add_agent(
 		so_5::rt::agent_ref_t( new a_throwing_t( env ) ),
 		so_5::rt::disp_binder_unique_ptr_t(
@@ -278,7 +269,6 @@ main( int argc, char * argv[] )
 			throw std::runtime_error( "g_agents_count != 0" );
 		}
 
-		// Сколько обработчиков успело отработать.
 		std::cout << "event handled: " << g_evt_count.value() << "\n";
 	}
 	catch( const std::exception & ex )

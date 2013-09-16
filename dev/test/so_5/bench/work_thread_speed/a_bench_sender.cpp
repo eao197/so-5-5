@@ -1,6 +1,6 @@
 /* 
-	Агент, который отправляет сообщения.
-*/
+ * An agent which sends messages.
+ */
 #include <iostream>
 
 #include "a_bench_sender.hpp"
@@ -10,14 +10,14 @@ void
 a_bench_sender_t::so_define_agent()
 {
 	so_subscribe( m_arbiter_mbox )
-		.event( &a_bench_sender_t::evt_genetrate_pack );
+		.event( &a_bench_sender_t::evt_generate_pack );
 
 	so_subscribe( m_self_mbox )
-		.event( &a_bench_sender_t::evt_genetrate_pack );
+		.event( &a_bench_sender_t::evt_generate_pack );
 }
 
 void
-a_bench_sender_t::evt_genetrate_pack(
+a_bench_sender_t::evt_generate_pack(
 	const so_5::rt::event_data_t< msg_bench_start > & msg )
 {
 	const unsigned int curr_pack_size = 
@@ -35,14 +35,12 @@ a_bench_sender_t::evt_genetrate_pack(
 
 	if( m_sent_message_count < m_message_count )
 	{
-		// Если отправили не все сообщения,
-		// то инициируем себя вновь.
+		// Not all messages sent. We should reinitiate youself.
 		m_self_mbox->deliver_message< msg_bench_start >();
 	}
 	else
 	{
-		// Если отправили все сообщения, то 
-		// посылаем сообщение о завершении работы.
+		// All messages send. We should finish work.
 		m_target_mbox->deliver_message< msg_finish_work >();
 	}
 }

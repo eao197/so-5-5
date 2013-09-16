@@ -1,15 +1,11 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается и регистрируется несколько коопераций.
-		Агентам отправляется сообщение.
-		Затем часть коопераций дерегистрируется.
-		И снова агентам отправляется сообшение.
-
-		Агенты подписываются на одно сообщение.
-
-*/
+ * Another test of registering and deregistering cooperations.
+ *
+ * Several cooperations are registered.
+ * A message is sent to agents.
+ * Part of cooperations are deregistered.
+ * Another message is sent to agents.
+ */
 
 #include <iostream>
 #include <map>
@@ -60,21 +56,15 @@ class test_agent_t
 		virtual void
 		so_define_agent();
 
-		virtual void
-		so_evt_start()
-		{
-			// Ничего не делаем.
-		}
-
 		void
 		evt_test(
 			const so_5::rt::event_data_t< test_message > &
 				msg );
 
-		// Количество живых агентов.
+		// Count of life agents.
 		static so_5::atomic_counter_t m_agent_count;
 
-		// Количество вызовов обработчика событий.
+		// Count of evt_test calls.
 		static so_5::atomic_counter_t m_message_rec_cnt;
 
 	private:
@@ -132,13 +122,14 @@ init( so_5::rt::so_environment_t & env )
 	reg_coop( "test_coop_5", test_mbox, env );
 	reg_coop( "test_coop_6", test_mbox, env );
 
-	// Дадим агентам время подписаться.
+	// Give time to subscription.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
+	// Initiate message.
 	env.create_local_mbox( g_test_mbox_name )
 		->deliver_message< test_message >();
 
-	// Даем выполниться событиям
+	// Give time to process message.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
 	unsigned int x = test_agent_t::m_agent_count.value();
@@ -147,6 +138,7 @@ init( so_5::rt::so_environment_t & env )
 		throw std::runtime_error(
 			"check 1: test_agent_t::m_agent_count != test_agent_t::m_message_rec_cnt" );
 
+	// Deregister some cooperations.
 	env.deregister_coop( so_5::rt::nonempty_name_t(
 		"test_coop_1" ), so_5::THROW_ON_ERROR );
 
@@ -158,11 +150,14 @@ init( so_5::rt::so_environment_t & env )
 
 	test_agent_t::m_message_rec_cnt = 0;
 
+	// Give time to finish deregistration.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
+
+	// Send another message.
 	env.create_local_mbox( g_test_mbox_name )
 		->deliver_message< test_message >();
 
-	// Даем выполниться событиям
+	// Give time to process message.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
 	x = test_agent_t::m_agent_count.value();

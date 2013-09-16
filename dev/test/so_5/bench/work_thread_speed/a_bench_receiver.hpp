@@ -1,13 +1,13 @@
 /*
-	Агент, который принимает и обрабатывает сообщения.
-*/
+ * An agent which receives and handles messages.
+ */
 
 #if !defined( _SO_5__TEST__BENCH__WORK_THREAD_SPEED__A_BENCH_RECEIVER_HPP_ )
 #define _SO_5__TEST__BENCH__WORK_THREAD_SPEED__A_BENCH_RECEIVER_HPP_
 
 #include <so_5/rt/h/rt.hpp>
 
-// Тестовое сообщение.
+// Test message.
 struct msg_some_message
 	:
 		public so_5::rt::message_t
@@ -23,7 +23,7 @@ struct msg_some_message
 	unsigned int m_message_id;
 };
 
-// Сообщение о завершении работы.
+// Message to finish work.
 struct msg_finish_work
 	:
 		public so_5::rt::message_t
@@ -32,7 +32,7 @@ struct msg_finish_work
 	{}
 };
 
-// Агент который нагружается пачками сообщений.
+// A receiver for bunch of messages.
 class a_bench_receiver_t
 	:
 		public so_5::rt::agent_t
@@ -42,9 +42,9 @@ class a_bench_receiver_t
 	public:
 		a_bench_receiver_t(
 			so_5::rt::so_environment_t & env,
-			// mbox откуда принимать сообщения.
+			// Receiver mbox.
 			const so_5::rt::mbox_ref_t & target_mbox,
-			// mbox арбитра.
+			// Arbiter mbox.
 			const so_5::rt::mbox_ref_t & arbiter_mbox )
 			:
 				base_type_t( env ),
@@ -60,25 +60,24 @@ class a_bench_receiver_t
 		virtual void
 		so_define_agent();
 
-		// Обработка сообщений.
+		// Handle test message.
 		void
 		evt_bench(
 			const so_5::rt::event_data_t< msg_some_message > & msg );
 
-		// Завершение работы агента.
-		// Обработка последнего сообщения.
+		// Handle end of work.
 		void
 		evt_finish(
 			const so_5::rt::event_data_t< msg_finish_work > & msg );
 
 	private:
-		// mbox, откуда принимать сообщения.
+		// Receiver mbox.
 		so_5::rt::mbox_ref_t	m_target_mbox;
 
-		// mbox арбитра.
+		// Arbiter mbox.
 		so_5::rt::mbox_ref_t	m_arbiter_mbox;
 
-		// Количество обработанных тестовых сообщений.
+		// Count of messages processed.
 		unsigned int m_processed_msg_count;
 };
 

@@ -1,13 +1,9 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается и регистрируется кооперпация,
-		после чего создается кооперация с таким же именем.
-		Кооперация с повторяющимся именем, не должна быть зарегистрирована.
-
-		Агенты не подписываются ни на какие сообщения и ничего не делают.
-*/
+ * Cooperation registration test.
+ *
+ * A cooperation is registered. Then an attempt of registering another
+ * cooperation with the same name is made. This attempt should fail.
+ */
 
 #include <iostream>
 #include <map>
@@ -20,6 +16,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/h/ret_code.hpp>
 
+// A dummy agent to be placed into test cooperation.
 class test_agent_t
 	:
 		public so_5::rt::agent_t
@@ -34,12 +31,6 @@ class test_agent_t
 		{}
 
 		virtual ~test_agent_t() {}
-
-		// virtual void
-		// so_define_agent()
-		// {
-			// // Агент не подписывается ни на что.
-		// }
 };
 
 void
@@ -53,7 +44,7 @@ init( so_5::rt::so_environment_t & env )
 		so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
 	env.register_coop( std::move( coop) , so_5::THROW_ON_ERROR );
 
-	// Создаем дубликат с таким же именем.
+	// Create a duplicate.
 	coop = env.create_coop( so_5::rt::nonempty_name_t( coop_name ) );
 	coop->add_agent(
 		so_5::rt::agent_ref_t( new test_agent_t( env ) ) );

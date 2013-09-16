@@ -1,6 +1,6 @@
-/*
-	Агент, который отправляет сообщения.
-*/
+/* 
+ * An agent which sends messages.
+ */
 
 #if !defined( _SO_5__TEST__BENCH__WORK_THREAD_SPEED__A_BENCH_SENDER_HPP_ )
 #define _SO_5__TEST__BENCH__WORK_THREAD_SPEED__A_BENCH_SENDER_HPP_
@@ -11,7 +11,7 @@
 
 #include "a_bench_arbiter.hpp"
 
-// Агент который нагружается пачками сообщений.
+// An agent which generates bunches of test messages.
 class a_bench_sender_t
 	:
 		public so_5::rt::agent_t
@@ -21,13 +21,13 @@ class a_bench_sender_t
 	public:
 		a_bench_sender_t(
 			so_5::rt::so_environment_t & env,
-			// mbox, куда отправлять сообщения.
+			// Target mbox.
 			const so_5::rt::mbox_ref_t & target_mbox,
-			// mbox арбитра.
+			// Arbiter mbox.
 			const so_5::rt::mbox_ref_t & arbiter_mbox,
-			// Количество сообщений.
+			// Messages count.
 			unsigned int message_count,
-			// Размеры отправляемых за раз сообщений
+			// Sizes of bunches.
 			const std::vector< unsigned int > & packs_size )
 			:
 				base_type_t( env ),
@@ -46,30 +46,30 @@ class a_bench_sender_t
 		virtual void
 		so_define_agent();
 
-		// Сгенерировать пачку сообщений.
+		// Generate next bunch of messages.
 		void
-		evt_genetrate_pack(
+		evt_generate_pack(
 			const so_5::rt::event_data_t< msg_bench_start > & msg );
 
 private:
-	// Собственный mbox агента.
+	// Self mbox.
 	so_5::rt::mbox_ref_t	m_self_mbox;
 
-	// mbox, куда отправлять сообщения.
+	// Target mbox.
 	so_5::rt::mbox_ref_t	m_target_mbox;
 
-	// mbox арбитра.
+	// Arbiter mbox.
 	so_5::rt::mbox_ref_t	m_arbiter_mbox;
 
-	// Количество посылаемых сообщений.
+	// Messages to send.
 	const unsigned int m_message_count;
 
-	// Количество отосланных на данный момент сообщений.
+	// Count of messages sent.
 	unsigned int m_sent_message_count;
 
 	unsigned int m_iteration_count;
 
-	// Размеры пачек сообщений.
+	// Sizes of messages bunches.
 	const std::vector< unsigned int > & m_packs_size;
 };
 

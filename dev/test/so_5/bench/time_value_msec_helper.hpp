@@ -1,9 +1,9 @@
 /*
- * Вспомогательная функция для удобного извлечения миллисекунд
- * из ACE_Time_Value.
+ * Auxilary function for simple extraction of milliseconds
+ * value from ACE_Time_Value.
  *
- * Появилась из-за того, что под VisualStudio 2005 метод
- * ACE_Time_Value::msec() работает не так, как под VisualStudio 2003.
+ * It is here because of difference of ACE_Time_Value::msec()
+ * under VisualStudio 2005 and 2003.
  */
 #if !defined( TEST__BENCH__TIME_VALUE_MSEC_HELPER_HPP )
 #define TEST__BENCH__TIME_VALUE_MSEC_HELPER_HPP

@@ -1,13 +1,9 @@
 /*
-	Тестирование привязок к диспетчерам.
-
-	Суть теста:
-		Создается и регистрируется кооперация,
-		агенты которой привязываются к разным диспетчерам.
-		Затем агент отправитель - шлет сообщения,
-		агенту принимателю.
-
-*/
+ * A test for dispatcher binders.
+ *
+ * A cooperation is registered. Agents of cooperation is
+ * bound to different dispatchers.
+ */
 
 #include <iostream>
 #include <exception>
@@ -24,10 +20,10 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
-// По сколько сообщений отправлять за раз.
+// Count of messages to be sent at once.
 const unsigned int g_send_at_once = 10;
 
-// Сколько раз отправители будут отпралять сообщения.
+// A count of message bunches.
 const unsigned int g_send_session_count = 100;
 
 struct test_message
@@ -40,7 +36,7 @@ struct test_message
 	bool m_is_last;
 };
 
-// Сообщение для посылки сообщений отправителем
+// A signal to start sending.
 struct send_message_signal
 	:
 		public so_5::rt::message_t
@@ -82,13 +78,13 @@ class test_agent_sender_t
 				msg );
 
 	private:
-		// Какая по счету это отправка.
+		// A counter of bunch sent.
 		unsigned int m_send_session_complited;
 
-		// Куда отправлять сообщения?
+		// Receiver mbox.
 		so_5::rt::mbox_ref_t m_mbox_receiver;
 
-		// Mbox для отсылки сообщений себе.
+		// Self mbox.
 		so_5::rt::mbox_ref_t m_notification_mbox;
 };
 
@@ -121,8 +117,7 @@ test_agent_sender_t::evt_send_messages(
 
 	++m_send_session_complited;
 
-	// Если все сессии отправки сообщений завершили, то
-	// шлем последнее сообщение.
+	// If all bunches are sent then final message should be sent.
 	if( g_send_session_count <= m_send_session_complited )
 	{
 		std::unique_ptr< test_message > tm( new test_message );
@@ -167,7 +162,7 @@ class test_agent_receiver_t
 				msg );
 
 	private:
-		// Откуда принимать сообщения?
+		// A source of messages.
 		so_5::rt::mbox_ref_t m_source_mbox;
 };
 
@@ -185,7 +180,7 @@ test_agent_receiver_t::evt_test(
 	const so_5::rt::event_data_t< test_message > &
 		msg )
 {
-	// Если это последнее сообщение то останавливаемся.
+	// Stop if this is the last message.
 	if( msg->m_is_last )
 		so_environment().stop();
 }

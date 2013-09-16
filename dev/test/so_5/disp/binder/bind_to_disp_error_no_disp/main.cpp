@@ -1,10 +1,6 @@
 /*
-	Тестирование привязок к диспетчерам.
-
-	Суть теста:
-		Создается и регистрируется кооперация c одним агентом,
-		который получает привзяку к несуществующему диспетчеру.
-*/
+ * A test of trying to bind agent to missing dispatcher.
+ */
 
 #include <iostream>
 #include <exception>
@@ -69,7 +65,7 @@ main( int argc, char * argv[] )
 				.mbox_mutex_pool_size( 2 )
 				.agent_event_queue_mutex_pool_size( 2 )  );
 
-		// Ожидаем окончательного завершения работы всех потоков.
+		// Wait all threads to finish.
 		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )

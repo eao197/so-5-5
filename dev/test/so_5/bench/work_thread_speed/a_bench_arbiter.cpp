@@ -1,7 +1,7 @@
 /*
-	јгент, который регистрирует кооперацию нагрузочных агентов,
-	засекает врем€ и отмечает завершение работы.
-*/
+ * An agent which registers cooperation of benchmarks agents,
+ * fixes moments of the start and the end of work.
+ */
 
 #include <exception>
 #include <stdexcept>
@@ -54,16 +54,16 @@ a_bench_arbiter_t::so_evt_start()
 			throw std::runtime_error(
 				"0 bench agents found in cfg file" );
 
-		// регистрируем все пары отправитель-получатель
+		// Registering all sender-receiver pairs.
 		for( int i = 0; i < tag.m_bench_pair.size(); ++i )
 		{
 			const tag_bench_pair_t & curr = tag.m_bench_pair.at( i );
 
-			// mbox получател€ сообщений.
+			// Receiver mbox.
 			so_5::rt::mbox_ref_t reciver_mbox =
 				so_environment().create_local_mbox();
 
-			// регистрируем получател€ сообщений.
+			// Registering receiver.
 			{
 				so_5::rt::agent_coop_unique_ptr_t coop =
 					so_environment().create_coop(
@@ -91,7 +91,7 @@ a_bench_arbiter_t::so_evt_start()
 			}
 			++m_recivers_total;
 
-			// регистрируем отправител€ сообщений.
+			// Registering sender.
 			{
 				so_5::rt::agent_coop_unique_ptr_t coop =
 					so_environment().create_coop(
@@ -128,14 +128,11 @@ a_bench_arbiter_t::so_evt_start()
 		return;
 	}
 
-	// //ƒаем всем врем€ на регистрацию.
-	// ACE_OS::sleep( 1 );
-
 	m_recivers_in_work = m_recivers_total;
-	//засекаем врем€ и даем всем комманду на старт.
+	// Fixing time and...
 	m_start_time = ACE_OS::gettimeofday();
 
-	// —ообщаем о начале теста
+	// ...staring the benchmark.
 	m_self_mbox->deliver_message< msg_bench_start >();
 }
 
@@ -159,7 +156,8 @@ a_bench_arbiter_t::evt_on_bench_finish(
 			<< m_total_message_count / work_time << " msgs/sec"
 			<< std::endl;
 
-		// «авершение работы SObjectizer.
+		// Shutting down SObjectizer.
 		so_environment().stop();
 	}
 }
+

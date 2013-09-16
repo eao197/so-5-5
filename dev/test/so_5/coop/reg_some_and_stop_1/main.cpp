@@ -1,13 +1,8 @@
 /*
-	Тестирование регистрации коопераций.
-
-	Суть теста:
-		Создается и регистрируется несколько коопераций.
-		Затем часть из них дерегистрируется, а часть остается
-		в системе до завершения работы SO.
-
-		Агенты не подписываются ни на какие сообщения и ничего не делают.
-*/
+ * Testing a cooperation registration/deregistration.
+ *
+ * Several cooperations are registered. Then part of them are deregistered.
+ */
 
 #include <iostream>
 #include <map>
@@ -19,6 +14,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
+// A dummy agent to be placed into test cooperations.
 class test_agent_t
 	:
 		public so_5::rt::agent_t
@@ -33,18 +29,6 @@ class test_agent_t
 		{}
 
 		virtual ~test_agent_t() {}
-
-		virtual void
-		so_define_agent()
-		{
-			// Агент не подписывается ни на что.
-		}
-
-		virtual void
-		so_evt_start()
-		{
-			// Ничего не делаем.
-		}
 };
 
 void

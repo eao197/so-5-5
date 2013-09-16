@@ -1,14 +1,6 @@
 /*
-	Тестирование подписки обработчиков, которые
-	подписываются на гарантировано инстанцированные сообщения.
-
-	Суть теста:
-		Создается кооперация с одним агентом.
-		Агент подписывается на собщение с помощью
-		so_5::rt::not_null_event_data_t, далее агенту
-		отсылается сообщение сигнал, которое не должно
-		обрабатываться.
-*/
+ * A test of subscription to messages which cannot be null.
+ */
 
 #include <iostream>
 #include <exception>
@@ -61,7 +53,7 @@ class test_agent_t
 		}
 
 	private:
-		// Mbox агента, на который будет вестись подписка.
+		// A mbox for subscription.
 		so_5::rt::mbox_ref_t m_mbox;
 };
 

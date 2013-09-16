@@ -1,11 +1,6 @@
 /*
-	Тестирование привязок к диспетчерам.
-
-	Суть теста:
-		Создается и регистрируется кооперация,
-		агенты которой привязываются к диспетчеру
-		с активными агентами.
-*/
+ * A test of binding of agent to active object dispatcher.
+ */
 
 #include <iostream>
 #include <exception>
@@ -145,7 +140,7 @@ main( int argc, char * argv[] )
 		if( !test_agent_t::ok() )
 			throw std::runtime_error( "!test_agent_t::ok()" );
 
-		// Ожидаем окончательного завершения работы всех потоков.
+		// Wait all threads to finish.
 		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
@@ -156,3 +151,4 @@ main( int argc, char * argv[] )
 
 	return 0;
 }
+

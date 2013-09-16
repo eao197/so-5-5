@@ -1,11 +1,6 @@
 /*
-	Тестирование привязок к диспетчерам.
-
-	Суть теста:
-		Создается и регистрируется кооперация c одним агентом,
-		который получает привзяку к диспетчеру одного типа,
-		а диспетчер с таким именем на самом деле имеет другой тип.
-*/
+ * A test of trying to bind agent to dispatcher with different type.
+ */
 
 #include <iostream>
 #include <exception>
@@ -76,7 +71,7 @@ main( int argc, char * argv[] )
 					so_5::rt::nonempty_name_t( "active_obj" ),
 					so_5::disp::active_obj::create_disp() ) );
 
-		// Ожидаем окончательного завершения работы всех потоков.
+		// Wait all threads to finish.
 		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
