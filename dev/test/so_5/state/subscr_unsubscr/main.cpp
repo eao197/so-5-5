@@ -77,6 +77,10 @@ class test_agent_t
 
 	private:
 		so_5::rt::mbox_ref_t m_test_mbox;
+
+		typedef void (test_agent_t::*event_t)(
+				const so_5::rt::event_data_t< test_message > & );
+		event_t ptr_evt_in_state_default;;
 };
 
 int test_agent_t::m_handler_in_state_default_calls = 0;
@@ -84,12 +88,39 @@ int test_agent_t::m_handler_in_state_1_calls = 0;
 int test_agent_t::m_handler_in_state_2_calls = 0;
 int test_agent_t::m_handler_in_state_3_calls = 0;
 
-char g_agent_num = '0';
+template< class T, class V >
+struct method_ptr_dumper_t
+{
+	typedef void (T::*method_ptr)(V);
+
+	method_ptr m_ptr;
+	method_ptr_dumper_t( method_ptr ptr ) : m_ptr(ptr) {}
+};
+
+template< class T, class V >
+method_ptr_dumper_t< T, V >
+method_ptr_dumper( void (T::*ptr)(V) )
+{
+	return method_ptr_dumper_t<T, V>(ptr);
+}
+
+template< class T, class V >
+std::ostream &
+operator<<( std::ostream & to, method_ptr_dumper_t<T, V> a )
+{
+	const char * p = (const char *)&a.m_ptr;
+	for( size_t i = 0; i != sizeof(a.m_ptr); ++i )
+	{
+		to << static_cast<short>(p[i]) << ",";
+	}
+	return to;
+}
+
 void
 test_agent_t::so_define_agent()
 {
-	++g_agent_num;
-
+ptr_evt_in_state_default = &test_agent_t::evt_in_state_default;
+std::cout << "* " << method_ptr_dumper(ptr_evt_in_state_default) << std::endl;
 	// Подписываемся на сообщение в состоянии по умолчанию.
 	so_subscribe( m_test_mbox )
 		.in( so_default_state() )
@@ -122,6 +153,11 @@ test_agent_t::so_define_agent()
 void
 test_agent_t::so_evt_start()
 {
+event_t ptr2 = &test_agent_t::evt_in_state_default;
+std::cout << "- " << method_ptr_dumper(ptr2) << std::endl;
+std::cout << "-- ptr_evt_in_state_default "
+<< ((ptr_evt_in_state_default == ptr2) ? "==" : "!=")
+<< " ptr2" << std::endl;
 	// Отписываемся от сообщения в состоянии по умолчанию.
 	so_unsubscribe( m_test_mbox )
 		.in( so_default_state() )

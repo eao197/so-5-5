@@ -49,8 +49,9 @@ class std_event_exception_logger_t
 			const std::string & coop_name )
 		{
 			std::cerr
-				<< "Sobjectizer event exception cought: "
+				<< "SObjectizer event exception caught: "
 				<< event_exception.what()
+				<< "; cooperation: '" << coop_name << "'"
 				<< std::endl;
 		}
 };
