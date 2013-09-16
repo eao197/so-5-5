@@ -52,21 +52,6 @@ class hook_event_caller_t
 		 * \name Inherited methods implementation.
 		 * \{
 		 */
-		virtual char *
-		ordinal() const
-		{
-			// Should never be called for that class.
-			std::abort();
-			return 0;
-		}
-
-		virtual size_t
-		ordinal_size() const
-		{
-			// Should never be called for that class.
-			std::abort();
-			return 0;
-		}
 
 		virtual type_wrapper_t
 		type_wrapper() const
@@ -76,6 +61,13 @@ class hook_event_caller_t
 			type_wrapper_t fake( typeid( message_t ) );
 			return fake;
 		};
+
+		virtual bool
+		member_func_pointer_identical_to(
+			const event_handler_caller_t & ) const
+		{
+			return false;
+		}
 		/*!
 		 * \}
 		 */
@@ -410,7 +402,7 @@ agent_t::bind_to_disp(
 		m_local_event_queue->size() );
 }
 
-//! Make textual representation of subscription key. 
+//! Make textual representation of subscription key.
 inline std::string
 subscription_key_string( const subscription_key_t & sk )
 {

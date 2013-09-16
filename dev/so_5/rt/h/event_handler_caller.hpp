@@ -11,6 +11,8 @@
 #if !defined( _SO_5__RT__EVENT_HANDLER_CALLER_HPP_ )
 #define _SO_5__RT__EVENT_HANDLER_CALLER_HPP_
 
+#include <cstdio>
+
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
@@ -70,17 +72,15 @@ class SO_5_TYPE event_handler_caller_t
 		virtual type_wrapper_t
 		type_wrapper() const = 0;
 
-		//! Value for event caller comparision.
-		virtual char *
-		ordinal() const = 0;
-
-		//! Value for event caller comparision.
-		virtual size_t
-		ordinal_size() const = 0;
-
 		//! Target state for the event.
 		virtual const state_t *
 		target_state() const;
+
+		//! Checks whether underlying member function pointer is identical
+		//! to one that is specified in ehc.
+		virtual bool
+		member_func_pointer_identical_to(
+			const event_handler_caller_t & ehc ) const = 0;
 };
 
 //
@@ -110,7 +110,8 @@ class real_event_handler_caller_t
 				m_pfn( pfn ),
 				m_agent( agent ),
 				m_target_state( target_state )
-		{}
+		{
+		}
 
 		virtual ~real_event_handler_caller_t()
 		{}
@@ -119,18 +120,6 @@ class real_event_handler_caller_t
 		type_wrapper() const
 		{
 			return type_wrapper_t( typeid( MESSAGE ) );
-		}
-
-		virtual char *
-		ordinal() const
-		{
-			return (char *) &m_pfn;
-		}
-
-		virtual size_t
-		ordinal_size() const
-		{
-			return sizeof( FN_PTR_T );
 		}
 
 		virtual const state_t *
@@ -155,6 +144,21 @@ class real_event_handler_caller_t
 
 			return execute;
 		};
+
+		virtual bool
+		member_func_pointer_identical_to(
+			const event_handler_caller_t & ehc ) const
+		{
+			decltype(this) casted_ehc = dynamic_cast< decltype(this) >( &ehc );
+
+			if( nullptr != casted_ehc )
+			{
+				// Natural pointer comparisson.
+				return m_pfn == casted_ehc->m_pfn;
+			}
+
+			return false;
+		}
 
 	private:
 		//! State for which event is enabled.
@@ -206,18 +210,6 @@ class not_null_data_real_event_handler_caller_t
 			return type_wrapper_t( typeid( MESSAGE ) );
 		}
 
-		virtual char *
-		ordinal() const
-		{
-			return (char *) &m_pfn;
-		}
-
-		virtual size_t
-		ordinal_size() const
-		{
-			return sizeof( FN_PTR_T );
-		}
-
 		virtual const state_t *
 		target_state() const
 		{
@@ -243,6 +235,21 @@ class not_null_data_real_event_handler_caller_t
 
 			return execute;
 		};
+
+		virtual bool
+		member_func_pointer_identical_to(
+			const event_handler_caller_t & ehc ) const
+		{
+			decltype(this) casted_ehc = dynamic_cast< decltype(this) >( &ehc );
+
+			if( nullptr != casted_ehc )
+			{
+				// Natural pointer comparisson.
+				return m_pfn == casted_ehc->m_pfn;
+			}
+
+			return false;
+		}
 
 	private:
 		//! State for which event is enabled.

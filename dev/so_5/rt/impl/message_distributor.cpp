@@ -93,11 +93,7 @@ message_distributor_t::pop(
 
 	if( ehc )
 	{
-		if( impl::cmp_method_ptr(
-				ehc->ordinal(),
-				ehc->ordinal_size(),
-				event_handler_caller_ref->ordinal(),
-				event_handler_caller_ref->ordinal_size() ) )
+		if( ehc->member_func_pointer_identical_to( *event_handler_caller_ref ) )
 		{
 			new_event_caller_block->erase(  event_handler_caller_ref );
 		}
