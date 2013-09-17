@@ -1,136 +1,293 @@
+/*
+ * A sample of using mbox for subscribing unsubscribing messages.
+ */
+
 #include <iostream>
 #include <string>
 
 #include <ace/OS.h>
 
-#include <so_5/api/h/api.hpp>
+// Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
+#include <so_5/api/h/api.hpp>
 
+
+// State sequence for sample agent.
+enum sample_state_t
+{
+	DEFAULT_STATE,
+	FIRST_STATE,
+	SECOND_STATE,
+};
+
+// Message for changing state.
+struct change_state_message
+	:
+		public so_5::rt::message_t
+{
+	// Helper factory for creating ready to send messages.
+	static std::unique_ptr< change_state_message >
+	create( sample_state_t state )
+	{
+		return std::unique_ptr< change_state_message >(
+			 new change_state_message( state ) );
+	}
+
+	change_state_message(
+		sample_state_t next_state )
+		:
+			m_next_state( next_state )
+	{}
+
+	const sample_state_t m_next_state;
+};
+
+// Sample message.
 struct my_message
 	:
 		public so_5::rt::message_t
 {
-	my_message() {}
-	virtual ~my_message(){}
+	// Helper factory for creating ready to send messages.
+	static std::unique_ptr< my_message >
+	create( int x )
+	{
+		std::unique_ptr< my_message >
+			result( new my_message );
 
+		result->x = x;
+
+		return result;
+	}
+
+	// Some data.
 	int x;
 };
 
-struct my_unsubscribe_signal
-	:
-		public so_5::rt::message_t
-{
-};
-
+// Another sample message.
 struct my_another_message
 	:
 		public so_5::rt::message_t
 {
-	my_another_message() {}
-	virtual ~my_another_message(){}
+	// Helper factory for creating ready to send messages.
+	static std::unique_ptr< my_another_message >
+	create( const std::string & s )
+	{
+		std::unique_ptr< my_another_message >
+			result( new my_another_message );
 
+		result->s = s;
+
+		return result;
+	}
+
+	// Some data.
 	std::string s;
 };
 
-
+// Sample message for demonstrtion of subscription/unsubscription.
 class my_agent_t
 	:
 		public so_5::rt::agent_t
 {
 		typedef so_5::rt::agent_t base_type_t;
-
-		const so_5::rt::state_t m_first_state;
-		const so_5::rt::state_t m_second_state;
 	public:
 
 		my_agent_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & mbox_ref )
-			:	base_type_t( env ),
-				m_first_state( self_ptr() ),
-				m_second_state( self_ptr() ),
-				m_mbox_ref( mbox_ref )
-		{}
+			so_5::rt::so_environment_t & env );
 
 		virtual ~my_agent_t() {}
 
+		// Definition of agent for SObjectizer.
+		virtual void
+		so_define_agent();
+
+		// A reaction to start of work in SObjectizer.
+		virtual void
+		so_evt_start();
+
+		// Handle change state.
+		void
+		change_state_event_handler(
+			const so_5::rt::event_data_t< change_state_message > &
+				message );
+
+		// Handle my_message.
 		void
 		my_event_handler(
 			const so_5::rt::event_data_t< my_message > &
 				message );
 
+		// Handle my_another_message.
 		void
 		my_another_event_handler(
 			const so_5::rt::event_data_t< my_another_message > &
 				message );
 
-		virtual void
-		so_define_agent();
-
-		virtual void
-		so_evt_start()
-		{
-			std::cout << "so_evt_start()!!\n";
-			m_mbox_ref->deliver_message< my_unsubscribe_signal >();
-		}
-
-		void
-		unsubscribe_event_handler(
-			const so_5::rt::event_data_t< my_unsubscribe_signal > &
-				message );
-
 	private:
-		so_5::rt::mbox_ref_t m_mbox_ref;
+		// Unsubscribe events in current state.
+		void
+		unsubscribe_events();
+
+		// Agent states.
+		const so_5::rt::state_t m_first_state;
+		const so_5::rt::state_t m_second_state;
+
+		// Agent mbox.
+		so_5::rt::mbox_ref_t m_mbox;
 };
+
+my_agent_t::my_agent_t(
+	so_5::rt::so_environment_t & env )
+	:
+		base_type_t( env ),
+		m_first_state( self_ptr(), "state_1" ),
+		m_second_state( self_ptr(), "state_2" ),
+		m_mbox( env.create_local_mbox() )
+{
+}
 
 void
 my_agent_t::so_define_agent()
 {
-	// Subscription.
-	so_subscribe( m_mbox_ref )
+	std::cout << "so_define_agent()" << std::endl;
+
+	so_subscribe( m_mbox )
 		.in( m_first_state )
-			.event( &my_agent_t::my_event_handler );
+		.event( &my_agent_t::change_state_event_handler );
+	so_subscribe( m_mbox )
+		.in( m_second_state )
+		.event( &my_agent_t::change_state_event_handler );
+	so_subscribe( m_mbox )
+		.event( &my_agent_t::change_state_event_handler );
 
-	so_subscribe( m_mbox_ref )
+	so_subscribe( m_mbox )
 		.in( m_first_state )
-			.event( &my_agent_t::my_another_event_handler );
+		.event( &my_agent_t::my_event_handler );
 
-	so_subscribe( m_mbox_ref )
+	std::cout
+		<< "\tsubscribe my_event_handler in "
+		<< m_first_state.query_name()
+		<< std::endl;
+
+	so_subscribe( m_mbox )
+		.in( m_first_state )
+		.event( &my_agent_t::my_another_event_handler );
+
+	std::cout
+		<< "\tsubscribe my_another_event_handler in "
+		<< m_first_state.query_name()
+		<< std::endl;
+
+	so_subscribe( m_mbox )
 		.in( m_second_state )
-			.event( &my_agent_t::my_event_handler );
+		.event( &my_agent_t::my_event_handler );
 
-	so_subscribe( m_mbox_ref )
+	std::cout
+		<< "\tsubscribe my_event_handler in "
+		<< m_second_state.query_name()
+		<< std::endl;
+
+	so_subscribe( m_mbox )
 		.in( m_second_state )
-			.event( &my_agent_t::my_another_event_handler );
+		.event( &my_agent_t::my_another_event_handler );
 
-	so_subscribe( m_mbox_ref )
-		.in( so_default_state() )
-			.event( &my_agent_t::unsubscribe_event_handler );
+	std::cout
+		<< "\tsubscribe my_another_event_handler in "
+		<< m_second_state.query_name()
+		<< std::endl;
 }
 
 void
-my_agent_t::unsubscribe_event_handler(
-	const so_5::rt::event_data_t< my_unsubscribe_signal > &
+my_agent_t::so_evt_start()
+{
+	std::cout << "so_evt_start()" << std::endl;
+
+	std::cout << "\tsend sample messages sequence for state changes" << std::endl;
+		// Send a siries of messages.
+
+	// Switch to first state and hande messages.
+	m_mbox->deliver_message( change_state_message::create( FIRST_STATE ) );
+}
+
+void
+my_agent_t::change_state_event_handler(
+	const so_5::rt::event_data_t< change_state_message > &
 		message )
 {
-	std::cout << "unsubscribe_event_handler()!!\n";
+	std::cout << "change_state_event_handler()" << std::endl;
+
+	if( DEFAULT_STATE == message->m_next_state )
+	{
+		so_change_state( so_default_state() );
+		std::cout << "\tswitch to default state and shutdown..." << std::endl;
+		so_environment().stop();
+	}
+	else
+	{
+		if( FIRST_STATE == message->m_next_state )
+		{
+			so_change_state( m_first_state );
+
+			std::cout
+				<< "\tswitch to "
+				<< so_current_state().query_name()
+				<< std::endl;
+
+			m_mbox->deliver_message( my_message::create( 42 ) );
+			m_mbox->deliver_message( my_another_message::create( "SObjectizer" ) );
+
+			std::cout
+				<< "\tmessages sent"
+				<< std::endl;
+
+			// Messages must be received, because when they were sent
+			// agent was subscribed on them.
+
+			unsubscribe_events(); // Has no affect on messages delivered before.
+
+			// Switch to second.
+			m_mbox->deliver_message( change_state_message::create( SECOND_STATE ) );
+		}
+		else if( SECOND_STATE == message->m_next_state )
+		{
+			so_change_state( m_second_state );
+
+			std::cout
+				<< "\tswitch to "
+				<< so_current_state().query_name()
+				<< std::endl;
+
+			unsubscribe_events(); // Affect on messages delivered after it.
+
+			// Messages will not be received.
+			m_mbox->deliver_message( my_message::create( -42 ) );
+			m_mbox->deliver_message( my_another_message::create( "rezitcejbOS" ) );
+
+			std::cout
+				<< "\tmessages sent"
+				<< std::endl;
+
+			// Switch to default.
+			m_mbox->deliver_message( change_state_message::create( DEFAULT_STATE ) );
+		}
+	}
+}
+
+void
+my_agent_t::unsubscribe_events()
+{
+	std::cout
+		<< "\tunsubscribe events in "
+		<< so_current_state().query_name()
+		<< std::endl;
 
 	// Unsubscription.
 
-	so_unsubscribe( m_mbox_ref )
-	.in( m_first_state )
+	so_unsubscribe( m_mbox )
+		.in( so_current_state() )
 		.event( &my_agent_t::my_event_handler );
-
-	so_unsubscribe( m_mbox_ref )
-	.in( m_first_state )
-		.event( &my_agent_t::my_another_event_handler );
-
-	so_unsubscribe( m_mbox_ref )
-	.in( m_second_state )
-		.event( &my_agent_t::my_event_handler );
-
-	so_unsubscribe( m_mbox_ref )
-	.in( m_second_state )
+	so_unsubscribe( m_mbox )
+		.in( so_current_state() )
 		.event( &my_agent_t::my_another_event_handler );
 }
 
@@ -139,8 +296,11 @@ my_agent_t::my_event_handler(
 	const so_5::rt::event_data_t< my_message > &
 		message )
 {
-	std::cout << " my_agent_t::my_method:\t"
-		<< "message.x = " << message->x << "\n";
+	std::cout << "my_event_handler()" << std::endl;
+
+	std::cout
+		<< "\tcurrent state is " << so_current_state().query_name() << std::endl
+		<< "\tmessage.x = " << message->x << std::endl;
 }
 
 void
@@ -148,55 +308,38 @@ my_agent_t::my_another_event_handler(
 	const so_5::rt::event_data_t< my_another_message > &
 		message )
 {
-	std::cout << " my_agent_t::my_another_event_handler:\t"
-		<< "message.s = '" << message->s << "'\n";
+	std::cout << "my_another_event_handler()" << std::endl;
+
+	std::cout
+		<< "\tcurrent state is " << so_current_state().query_name() << std::endl
+		<< "\tmessage.s = " << message->s << std::endl;
 }
 
 
-class so_environment_t
-	:
-		public so_5::rt::so_environment_t
+void
+init( so_5::rt::so_environment_t & env )
 {
-		typedef so_5::rt::so_environment_t base_type_t;
-	public:
-		so_environment_t()
-			:
-				base_type_t( so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size( 16 ) ),
-				m_test_mbox( create_local_mbox(
-					so_5::rt::nonempty_name_t( "test_mbox" ) ) )
-		{}
+	so_5::rt::agent_coop_unique_ptr_t coop =
+		env.create_coop( "sample_coop" );
 
-		virtual ~so_environment_t(){}
+	coop->add_agent(
+		so_5::rt::agent_ref_t( new my_agent_t( env ) ) );
 
-		virtual void
-		init()
-		{
-			so_5::rt::agent_coop_unique_ptr_t coop = create_coop(
-				so_5::rt::nonempty_name_t( "first_coop" ) );
-
-			coop->add_agent( so_5::rt::agent_ref_t(
-				new my_agent_t( *this, m_test_mbox ) ) );
-
-			so_5::ret_code_t rc = register_coop( std::move(coop) );
-			std::cout << "\nrc = " << rc << "\n\n";
-
-			ACE_OS::sleep( 10 );
-			stop();
-		}
-
-	private:
-		so_5::rt::mbox_ref_t	m_test_mbox;
-
-};
+	env.register_coop( std::move(coop) );
+}
 
 int
 main( int, char ** )
 {
-	std::cout << "test mboxes \n\n";
-
-	so_environment_t so_5_env;
-	so_5_env.run();
+	try
+	{
+		so_5::api::run_so_environment( &init );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
 
 	return 0;
 }
