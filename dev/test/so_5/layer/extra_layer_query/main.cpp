@@ -11,6 +11,7 @@
 #include <ace/OS.h>
 #include <ace/Thread_Manager.h>
 #include <ace/Thread_Mutex.h>
+#include <ace/Condition_Thread_Mutex.h>
 #include <ace/Guard_T.h>
 
 #include <cpp_util_2/h/defs.hpp>
@@ -87,6 +88,34 @@ wait( so_5::rt::so_environment_t & env )
 	}
 }
 
+class init_finish_signal_mixin_t
+{
+	public :
+		init_finish_signal_mixin_t()
+			:	m_init_finish_signal( m_init_finish_lock )
+		{
+			m_init_finish_lock.acquire();
+		}
+
+		void
+		wait_for_init_finish()
+		{
+			m_init_finish_signal.wait( m_init_finish_lock );
+		}
+
+	protected :
+		void
+		init_finished()
+		{
+			ACE_Guard< ACE_Thread_Mutex > lock( m_init_finish_lock );
+			m_init_finish_signal.signal();
+		}
+
+	private :
+		ACE_Thread_Mutex m_init_finish_lock;
+		ACE_Condition_Thread_Mutex m_init_finish_signal;
+};
+
 } /* namespace separate_so_thread */
 
 std::array< so_5::rt::so_layer_t *, 64 > last_created_objects;
@@ -121,8 +150,8 @@ class test_layer_t
 };
 
 class so_environment_t
-	:
-		public so_5::rt::so_environment_t
+	:	public so_5::rt::so_environment_t
+	,	public separate_so_thread::init_finish_signal_mixin_t
 {
 		typedef so_5::rt::so_environment_t base_type_t;
 	public:
@@ -151,6 +180,8 @@ class so_environment_t
 				add_extra_layer( std::move( m_tl2 ) );
 			if( nullptr != m_tl3.get() )
 				add_extra_layer( std::move( m_tl3 ) );
+
+			init_finished();
 		}
 
 	private:
@@ -189,7 +220,7 @@ UT_UNIT_TEST( check_all_exist )
 
 	separate_so_thread::start( so_env );
 
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
+	so_env.wait_for_init_finish();
 
 	check_layers_match( tl1, tl2, tl3, so_env );
 
@@ -209,7 +240,7 @@ UT_UNIT_TEST( check_1_2_exist )
 
 	separate_so_thread::start( so_env );
 
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
+	so_env.wait_for_init_finish();
 
 	check_layers_match( tl1, tl2, tl3, so_env );
 
@@ -229,7 +260,7 @@ UT_UNIT_TEST( check_1_3_exist )
 
 	separate_so_thread::start( so_env );
 
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
+	so_env.wait_for_init_finish();
 
 	check_layers_match( tl1, tl2, tl3, so_env );
 
@@ -249,7 +280,7 @@ UT_UNIT_TEST( check_2_3_exist )
 
 	separate_so_thread::start( so_env );
 
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
+	so_env.wait_for_init_finish();
 
 	check_layers_match( tl1, tl2, tl3, so_env );
 
