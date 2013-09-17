@@ -6,11 +6,6 @@
 #include <map>
 #include <exception>
 
-#include <ace/OS.h>
-#include <ace/Thread_Manager.h>
-#include <ace/Thread_Mutex.h>
-#include <ace/Guard_T.h>
-
 #include <cpp_util_2/h/defs.hpp>
 
 #include <so_5/rt/h/rt.hpp>
@@ -19,72 +14,7 @@
 
 #include <utest_helper_1/h/helper.hpp>
 
-namespace separate_so_thread
-{
-
-ACE_THR_FUNC_RETURN
-entry_point( void * env )
-{
-	try
-	{
-		so_5::rt::so_environment_t * so_env =
-			reinterpret_cast< so_5::rt::so_environment_t * >( env );
-
-		so_env->run();
-	}
-	catch( const std::exception & ex )
-	{
-		std::cerr << "error: " << ex.what() << std::endl;
-		std::abort();
-	}
-
-	return 0;
-}
-
-typedef std::map<
-		so_5::rt::so_environment_t *,
-		ACE_thread_t >
-	env_tid_map_t;
-
-env_tid_map_t		g_env_tid_map;
-ACE_Thread_Mutex	g_lock;
-
-void
-start( so_5::rt::so_environment_t & env )
-{
-	ACE_Guard< ACE_Thread_Mutex > lock( g_lock );
-
-	if( g_env_tid_map.end() == g_env_tid_map.find( &env ) )
-	{
-		ACE_thread_t tid;
-
-		if( -1  == ACE_Thread_Manager::instance()->spawn(
-			entry_point,
-			&env,
-			THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED,
-			&tid ) )
-		{
-			throw std::runtime_error( "unable_to start so thread" );
-		}
-
-		g_env_tid_map[ &env ] = tid;
-	}
-}
-
-void
-wait( so_5::rt::so_environment_t & env )
-{
-	ACE_Guard< ACE_Thread_Mutex > lock( g_lock );
-
-	env_tid_map_t::iterator it = g_env_tid_map.find( &env );
-	if( g_env_tid_map.end() != it )
-	{
-		ACE_Thread_Manager::instance()->join( it->second );
-		g_env_tid_map.erase( it );
-	}
-}
-
-} /* namespace separate_so_thread */
+#include "../separate_so_thread_inl.cpp"
 
 void * last_created_objects[ 64 ];
 
@@ -118,8 +48,8 @@ class test_layer_t
 };
 
 class so_environment_t
-	:
-		public so_5::rt::so_environment_t
+	:	public so_5::rt::so_environment_t
+	,	public separate_so_thread::init_finish_signal_mixin_t
 {
 		typedef so_5::rt::so_environment_t base_type_t;
 	public:
@@ -146,6 +76,7 @@ class so_environment_t
 		init()
 		{
 			stop();
+			init_finished();
 		}
 };
 
@@ -177,80 +108,45 @@ UT_UNIT_TEST( check_all_exist )
 
 	so_environment_t so_env( tl1, tl2, tl3 );
 
-	separate_so_thread::start(
-		so_env );
-
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
-
-	check_layers_match( tl1, tl2, tl3, so_env );
-
-	so_env.stop();
-
-	separate_so_thread::wait(
-		so_env );
+	separate_so_thread::run_on( so_env, [&]() {
+			check_layers_match( tl1, tl2, tl3, so_env );
+		} );
 }
 
 UT_UNIT_TEST( check_1_2_exist )
 {
 	test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
-	// test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
 	so_environment_t so_env( tl1, tl2, 0 );
 
-	separate_so_thread::start(
-		so_env );
-
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
-
-	check_layers_match( tl1, tl2, 0, so_env );
-
-	so_env.stop();
-
-	separate_so_thread::wait(
-		so_env );
+	separate_so_thread::run_on( so_env, [&]() {
+			check_layers_match( tl1, tl2, 0, so_env );
+		} );
 }
 
 UT_UNIT_TEST( check_1_3_exist )
 {
 	test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
-	// test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
 	so_environment_t so_env( tl1, 0, tl3 );
 
-	separate_so_thread::start(
-		so_env );
-
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
-
-	check_layers_match( tl1, 0, tl3, so_env );
-
-	so_env.stop();
-
-	separate_so_thread::wait(
-		so_env );
+	separate_so_thread::run_on( so_env, [&]() {
+			check_layers_match( tl1, 0, tl3, so_env );
+		} );
 }
 
 UT_UNIT_TEST( check_2_3_exist )
 {
-	//test_layer_t< 1 > * tl1 = new test_layer_t< 1 >;
 	test_layer_t< 2 > * tl2 = new test_layer_t< 2 >;
 	test_layer_t< 3 > * tl3 = new test_layer_t< 3 >;
 
 	so_environment_t so_env( 0, tl2, tl3 );
 
-	separate_so_thread::start(
-		so_env );
-
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
-
-	check_layers_match( 0, tl2, tl3, so_env );
-
-	so_env.stop();
-
-	separate_so_thread::wait(
-		so_env );
+	separate_so_thread::run_on( so_env, [&]() {
+			check_layers_match( 0, tl2, tl3, so_env );
+		} );
 }
 
 #define CHECK_LAYER_EXISTANCE( so_env, N ) \
