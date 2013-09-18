@@ -1,15 +1,22 @@
 /*!
 
-\page so_5__version so_5: Список модификаций
+\page so_5__version so_5: Version History
 
-\section so_5__1_0 5.1.0 "Джимара"
+\section so_5__1_2 5.1.2
 
-	Переписан транспортный слой. Добавлен механизм обработки исключени,
-	выбрасываемых обработчиками событий. Добавлен механизм слушателя
-	коопераций.
+	All comments in code have been translated to English.
 
-\section so_5__0_0 5.0.0 "Ушба"
+	Some small code improvements and refactoring.
 
-	Агенты, механизм mbox-ов, диспетчеризация событий,
-	таймерная нить, механизм слоев, транспорт.
+\section so_5__1_0 5.1.0 "Jimara"
+
+	Transport layer has been rewritten.
+
+	An exception handler/logger facility has been added.
+
+	A cooperation listener has been added.
+
+\section so_5__0_0 5.0.0 "Ushba"
+
+	A first version of new generation of SObjectizer.
 */

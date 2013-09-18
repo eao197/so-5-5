@@ -217,6 +217,8 @@ class SO_5_TYPE subscription_bind_t
 
 /*!
  * \brief A class for unsubscribing from messages.
+ *
+ * \deprecated Will be removed in v.5.2.
 */
 class SO_5_TYPE subscription_unbind_t
 {

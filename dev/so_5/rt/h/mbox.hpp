@@ -157,6 +157,9 @@ class SO_5_TYPE mbox_t
 			throwing_strategy_t throwing_strategy ) = 0;
 
 		//! Remove message handler.
+		/*!
+		 * \deprecated Will be removed in v.5.2.
+		 */
 		virtual ret_code_t
 		unsubscribe_event_handler(
 			//! Message type.

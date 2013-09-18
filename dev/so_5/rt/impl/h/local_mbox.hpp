@@ -86,6 +86,9 @@ class local_mbox_t
 			throwing_strategy_t throwing_strategy );
 
 		//! Remove event handler.
+		/*!
+		 * \deprecated Will be removed in v.5.2.
+		 */
 		virtual ret_code_t
 		unsubscribe_event_handler(
 			//! Message type.

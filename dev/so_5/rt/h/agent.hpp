@@ -390,6 +390,8 @@ class SO_5_TYPE agent_t
 
 		//! Initiate unsubscription.
 		/*!
+			\deprecated Will be removed in v.5.2.
+
 			Usage sample:
 			\code
 			void
@@ -612,6 +614,9 @@ class SO_5_TYPE agent_t
 			throwing_strategy_t throwing_strategy );
 
 		//! Destroy agent and mbox binding.
+		/*!
+		 * \deprecated Will be removed in v.5.2.
+		 */
 		ret_code_t
 		destroy_event_subscription(
 			//! Message type.
