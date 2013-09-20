@@ -61,13 +61,6 @@ class hook_event_caller_t
 			type_wrapper_t fake( typeid( message_t ) );
 			return fake;
 		};
-
-		virtual bool
-		member_func_pointer_identical_to(
-			const event_handler_caller_t & ) const
-		{
-			return false;
-		}
 		/*!
 		 * \}
 		 */

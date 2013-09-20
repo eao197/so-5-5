@@ -75,12 +75,6 @@ class SO_5_TYPE event_handler_caller_t
 		//! Target state for the event.
 		virtual const state_t *
 		target_state() const;
-
-		//! Checks whether underlying member function pointer is identical
-		//! to one that is specified in ehc.
-		virtual bool
-		member_func_pointer_identical_to(
-			const event_handler_caller_t & ehc ) const = 0;
 };
 
 //
@@ -144,21 +138,6 @@ class real_event_handler_caller_t
 
 			return execute;
 		};
-
-		virtual bool
-		member_func_pointer_identical_to(
-			const event_handler_caller_t & ehc ) const
-		{
-			decltype(this) casted_ehc = dynamic_cast< decltype(this) >( &ehc );
-
-			if( nullptr != casted_ehc )
-			{
-				// Natural pointer comparisson.
-				return m_pfn == casted_ehc->m_pfn;
-			}
-
-			return false;
-		}
 
 	private:
 		//! State for which event is enabled.
@@ -235,21 +214,6 @@ class not_null_data_real_event_handler_caller_t
 
 			return execute;
 		};
-
-		virtual bool
-		member_func_pointer_identical_to(
-			const event_handler_caller_t & ehc ) const
-		{
-			decltype(this) casted_ehc = dynamic_cast< decltype(this) >( &ehc );
-
-			if( nullptr != casted_ehc )
-			{
-				// Natural pointer comparisson.
-				return m_pfn == casted_ehc->m_pfn;
-			}
-
-			return false;
-		}
 
 	private:
 		//! State for which event is enabled.
