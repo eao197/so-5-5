@@ -90,17 +90,6 @@ test_agent_t::so_evt_start()
 				.event( &test_agent_t::handler4 );
 			so_subscribe( m_mbox )
 				.event( &test_agent_t::handler5 );
-
-			so_unsubscribe( m_mbox )
-				.event( &test_agent_t::handler1 );
-			so_unsubscribe( m_mbox )
-				.event( &test_agent_t::handler2 );
-			so_unsubscribe( m_mbox )
-				.event( &test_agent_t::handler3 );
-			so_unsubscribe( m_mbox )
-				.event( &test_agent_t::handler4 );
-			so_unsubscribe( m_mbox )
-				.event( &test_agent_t::handler5 );
 		}
 	}
 	catch( const std::exception & )

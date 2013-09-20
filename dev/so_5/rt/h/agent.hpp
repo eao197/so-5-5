@@ -366,7 +366,7 @@ class SO_5_TYPE agent_t
 		 */
 
 		/*!
-		 * \name Subscription and unsubscription methods.
+		 * \name Subscription methods.
 		 * \{
 		 */
 
@@ -386,27 +386,6 @@ class SO_5_TYPE agent_t
 		subscription_bind_t
 		so_subscribe(
 			//! Mbox for messages to subscribe.
-			const mbox_ref_t & mbox_ref );
-
-		//! Initiate unsubscription.
-		/*!
-			\deprecated Will be removed in v.5.2.
-
-			Usage sample:
-			\code
-			void
-			a_sample_t::evt_smth(
-				const so_5::rt::event_data_t< message_one_t > & msg )
-			{
-				so_unsubscribe( m_mbox_target )
-					.in( m_state_one )
-						.event( &a_sample_t::evt_sample_handler );
-			}
-			\endcode
-		*/
-		subscription_unbind_t
-		so_unsubscribe(
-			//! Mbox for messages to unsubscribe.
 			const mbox_ref_t & mbox_ref );
 		/*!
 		 * \}
@@ -604,21 +583,6 @@ class SO_5_TYPE agent_t
 		//! Create binding between agent and mbox.
 		ret_code_t
 		create_event_subscription(
-			//! Message type.
-			const type_wrapper_t & type_wrapper,
-			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
-			//! Event handler caller.
-			const event_handler_caller_ref_t & ehc,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
-
-		//! Destroy agent and mbox binding.
-		/*!
-		 * \deprecated Will be removed in v.5.2.
-		 */
-		ret_code_t
-		destroy_event_subscription(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.

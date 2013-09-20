@@ -21,7 +21,6 @@ Mxx_ru::setup_target(
 		required_prj( "test/so_5/messages/three_messages/prj.ut.rb" )
 
 		required_prj( "test/so_5/state/change_state/prj.ut.rb" )
-		required_prj( "test/so_5/state/subscr_unsubscr/prj.ut.rb" )
 
 		required_prj( "test/so_5/coop/duplicate_name/prj.ut.rb" )
 		required_prj( "test/so_5/coop/reg_some_and_stop_1/prj.ut.rb" )
@@ -30,8 +29,6 @@ Mxx_ru::setup_target(
 		required_prj( "test/so_5/coop/throw_on_define_agent/prj.ut.rb" )
 		required_prj( "test/so_5/coop/throw_on_bind_to_disp/prj.ut.rb" )
 
-		required_prj( "test/so_5/mbox/named_mbox_subsc_unsubscr/prj.ut.rb" )
-		required_prj( "test/so_5/mbox/named_mbox_subsc_unsubscr_diff_state/prj.ut.rb" )
 		required_prj( "test/so_5/mbox/subscribe_when_deregistered/prj.ut.rb" )
 
 

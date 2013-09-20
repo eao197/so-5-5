@@ -271,12 +271,6 @@ agent_t::so_subscribe( const mbox_ref_t & mbox_ref )
 	return subscription_bind_t( *this, mbox_ref );
 }
 
-subscription_unbind_t
-agent_t::so_unsubscribe( const mbox_ref_t & mbox_ref )
-{
-	return subscription_unbind_t( *this, mbox_ref );
-}
-
 void
 agent_t::so_define_agent()
 {
@@ -465,57 +459,6 @@ agent_t::create_event_subscription(
 	return 0;
 }
 
-ret_code_t
-agent_t::destroy_event_subscription(
-	const type_wrapper_t & type_wrapper,
-	mbox_ref_t & mbox_ref,
-	const event_handler_caller_ref_t & ehc,
-	throwing_strategy_t throwing_strategy )
-{
-	subscription_key_t subscr_key(
-		type_wrapper,
-		mbox_ref );
-
-	ACE_Guard< ACE_Thread_Mutex > lock( m_agent_coop->m_lock );
-
-	consumers_map_t::iterator it =
-		m_event_consumers_map.find( subscr_key );
-
-	// If that subscription is not found then it is error.
-	if( m_event_consumers_map.end() == it )
-	{
-		const std::string msg_type =
-			type_wrapper.query_type_info().name();
-
-		return so_5::util::apply_throwing_strategy(
-			rc_no_event_handler_provided,
-			throwing_strategy,
-			"no event handler provided for this params "
-			"(message type, mbox), where " +
-			subscription_key_string( subscr_key ) );
-	}
-
-	bool is_last_subscription = false;
-	ret_code_t rc = mbox_ref->unsubscribe_event_handler(
-		type_wrapper,
-		it->second,
-		ehc,
-		is_last_subscription,
-		throwing_strategy );
-
-	if( 0 != rc )
-		return rc;
-
-	// If it is the last subscription for that message and that mbox
-	// then this subscription should be destroyed.
-	if( is_last_subscription )
-	{
-		m_event_consumers_map.erase( it );
-	}
-
-	return 0;
-}
-
 void
 agent_t::destroy_all_subscriptions()
 {
@@ -527,7 +470,7 @@ agent_t::destroy_all_subscriptions()
 	for(; it != it_end; ++it )
 	{
 		mbox_ref_t mbox( it->first.m_mbox );
-		mbox->unsubscribe_event_handler(
+		mbox->unsubscribe_event_handlers(
 			it->first.m_type_wrapper,
 			it->second );
 	}

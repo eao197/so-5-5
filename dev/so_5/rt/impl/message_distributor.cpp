@@ -74,60 +74,6 @@ message_distributor_t::push_more(
 	return 0;
 }
 
-
-ret_code_t
-message_distributor_t::pop(
-	const type_wrapper_t & type_wrapper,
-	message_consumer_link_t * message_consumer_link,
-	const event_handler_caller_ref_t &
-		event_handler_caller_ref,
-	bool & is_last_subscription,
-	throwing_strategy_t throwing_strategy )
-{
-	event_caller_block_ref_t new_event_caller_block(
-		new event_caller_block_t(
-			*message_consumer_link->event_caller_block() ) );
-
-	const event_handler_caller_t * ehc =
-		new_event_caller_block->find( event_handler_caller_ref );
-
-	if( ehc )
-	{
-		if( ehc->member_func_pointer_identical_to( *event_handler_caller_ref ) )
-		{
-			new_event_caller_block->erase(  event_handler_caller_ref );
-		}
-		else
-		{
-			return so_5::util::apply_throwing_strategy(
-				rc_event_handler_match_error,
-				throwing_strategy,
-				std::string( "method doesn't match subscribed one for message " ) +
-				type_wrapper.query_type_info().name() );
-		}
-	}
-	else
-	{
-		return so_5::util::apply_throwing_strategy(
-			rc_no_event_handler_provided,
-			throwing_strategy,
-			std::string( "no event handler provided for message " ) +
-			type_wrapper.query_type_info().name() );
-	}
-
-	message_consumer_link->event_caller_block() =
-		new_event_caller_block;
-
-	is_last_subscription = new_event_caller_block->is_empty();
-
-	if( is_last_subscription )
-	{
-		pop( type_wrapper, message_consumer_link );
-	}
-
-	return 0;
-}
-
 void
 message_distributor_t::pop(
 	const type_wrapper_t & type_wrapper,

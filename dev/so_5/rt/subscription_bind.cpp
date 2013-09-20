@@ -74,46 +74,6 @@ subscription_bind_t::create_event_subscription(
 		throwing_strategy );
 }
 
-//
-// subscription_unbind_t
-//
-
-subscription_unbind_t::subscription_unbind_t(
-	agent_t & agent,
-	const mbox_ref_t & mbox_ref )
-	:
-		m_agent( agent ),
-		m_mbox_ref( mbox_ref ),
-		m_state( &m_agent.so_default_state() )
-{
-}
-
-subscription_unbind_t::~subscription_unbind_t()
-{
-}
-
-subscription_unbind_t &
-subscription_unbind_t::in(
-	const state_t & state )
-{
-	m_state = &state;
-	return *this;
-}
-
-ret_code_t
-subscription_unbind_t::destroy_event_subscription(
-	const type_wrapper_t & type_wrapper,
-	mbox_ref_t & mbox_ref,
-	const event_handler_caller_ref_t & ehc,
-	throwing_strategy_t throwing_strategy )
-{
-	return m_agent.destroy_event_subscription(
-		type_wrapper,
-		mbox_ref,
-		ehc,
-		throwing_strategy );
-}
-
 } /* namespace rt */
 
 } /* namespace so_5 */

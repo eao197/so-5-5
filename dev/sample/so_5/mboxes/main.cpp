@@ -1,5 +1,5 @@
 /*
- * A sample of using mbox for subscribing unsubscribing messages.
+ * A sample of using mbox for subscribing messages.
  */
 
 #include <iostream>
@@ -10,7 +10,6 @@
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
-
 
 // State sequence for sample agent.
 enum sample_state_t
@@ -51,8 +50,7 @@ struct my_message
 	static std::unique_ptr< my_message >
 	create( int x )
 	{
-		std::unique_ptr< my_message >
-			result( new my_message );
+		std::unique_ptr< my_message > result( new my_message );
 
 		result->x = x;
 
@@ -72,8 +70,7 @@ struct my_another_message
 	static std::unique_ptr< my_another_message >
 	create( const std::string & s )
 	{
-		std::unique_ptr< my_another_message >
-			result( new my_another_message );
+		std::unique_ptr< my_another_message > result( new my_another_message );
 
 		result->s = s;
 
@@ -84,14 +81,14 @@ struct my_another_message
 	std::string s;
 };
 
-// Sample message for demonstrtion of subscription/unsubscription.
+// Sample message for demonstrtion of subscription.
 class my_agent_t
 	:
 		public so_5::rt::agent_t
 {
 		typedef so_5::rt::agent_t base_type_t;
-	public:
 
+	public:
 		my_agent_t(
 			so_5::rt::so_environment_t & env );
 
@@ -124,10 +121,6 @@ class my_agent_t
 				message );
 
 	private:
-		// Unsubscribe events in current state.
-		void
-		unsubscribe_events();
-
 		// Agent states.
 		const so_5::rt::state_t m_first_state;
 		const so_5::rt::state_t m_second_state;
@@ -160,12 +153,15 @@ my_agent_t::so_define_agent()
 	so_subscribe( m_mbox )
 		.event( &my_agent_t::change_state_event_handler );
 
+	std::cout << "\tsubscribe my_event_handler in "
+		<< m_first_state.query_name()
+		<< std::endl;
+
 	so_subscribe( m_mbox )
 		.in( m_first_state )
 		.event( &my_agent_t::my_event_handler );
 
-	std::cout
-		<< "\tsubscribe my_event_handler in "
+	std::cout << "\tsubscribe my_another_event_handler in "
 		<< m_first_state.query_name()
 		<< std::endl;
 
@@ -173,28 +169,13 @@ my_agent_t::so_define_agent()
 		.in( m_first_state )
 		.event( &my_agent_t::my_another_event_handler );
 
-	std::cout
-		<< "\tsubscribe my_another_event_handler in "
-		<< m_first_state.query_name()
+	std::cout << "\tsubscribe my_event_handler in "
+		<< m_second_state.query_name()
 		<< std::endl;
 
 	so_subscribe( m_mbox )
 		.in( m_second_state )
 		.event( &my_agent_t::my_event_handler );
-
-	std::cout
-		<< "\tsubscribe my_event_handler in "
-		<< m_second_state.query_name()
-		<< std::endl;
-
-	so_subscribe( m_mbox )
-		.in( m_second_state )
-		.event( &my_agent_t::my_another_event_handler );
-
-	std::cout
-		<< "\tsubscribe my_another_event_handler in "
-		<< m_second_state.query_name()
-		<< std::endl;
 }
 
 void
@@ -203,7 +184,7 @@ my_agent_t::so_evt_start()
 	std::cout << "so_evt_start()" << std::endl;
 
 	std::cout << "\tsend sample messages sequence for state changes" << std::endl;
-		// Send a siries of messages.
+	// Send a siries of messages.
 
 	// Switch to first state and hande messages.
 	m_mbox->deliver_message( change_state_message::create( FIRST_STATE ) );
@@ -211,8 +192,7 @@ my_agent_t::so_evt_start()
 
 void
 my_agent_t::change_state_event_handler(
-	const so_5::rt::event_data_t< change_state_message > &
-		message )
+	const so_5::rt::event_data_t< change_state_message > & message )
 {
 	std::cout << "change_state_event_handler()" << std::endl;
 
@@ -228,22 +208,13 @@ my_agent_t::change_state_event_handler(
 		{
 			so_change_state( m_first_state );
 
-			std::cout
-				<< "\tswitch to "
-				<< so_current_state().query_name()
+			std::cout << "\tswitch to " << so_current_state().query_name()
 				<< std::endl;
 
 			m_mbox->deliver_message( my_message::create( 42 ) );
 			m_mbox->deliver_message( my_another_message::create( "SObjectizer" ) );
 
-			std::cout
-				<< "\tmessages sent"
-				<< std::endl;
-
-			// Messages must be received, because when they were sent
-			// agent was subscribed on them.
-
-			unsubscribe_events(); // Has no affect on messages delivered before.
+			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to second.
 			m_mbox->deliver_message( change_state_message::create( SECOND_STATE ) );
@@ -252,20 +223,15 @@ my_agent_t::change_state_event_handler(
 		{
 			so_change_state( m_second_state );
 
-			std::cout
-				<< "\tswitch to "
+			std::cout << "\tswitch to "
 				<< so_current_state().query_name()
 				<< std::endl;
 
-			unsubscribe_events(); // Affect on messages delivered after it.
-
-			// Messages will not be received.
 			m_mbox->deliver_message( my_message::create( -42 ) );
+			// Message should not be received.
 			m_mbox->deliver_message( my_another_message::create( "rezitcejbOS" ) );
 
-			std::cout
-				<< "\tmessages sent"
-				<< std::endl;
+			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to default.
 			m_mbox->deliver_message( change_state_message::create( DEFAULT_STATE ) );
@@ -274,27 +240,8 @@ my_agent_t::change_state_event_handler(
 }
 
 void
-my_agent_t::unsubscribe_events()
-{
-	std::cout
-		<< "\tunsubscribe events in "
-		<< so_current_state().query_name()
-		<< std::endl;
-
-	// Unsubscription.
-
-	so_unsubscribe( m_mbox )
-		.in( so_current_state() )
-		.event( &my_agent_t::my_event_handler );
-	so_unsubscribe( m_mbox )
-		.in( so_current_state() )
-		.event( &my_agent_t::my_another_event_handler );
-}
-
-void
 my_agent_t::my_event_handler(
-	const so_5::rt::event_data_t< my_message > &
-		message )
+	const so_5::rt::event_data_t< my_message > & message )
 {
 	std::cout << "my_event_handler()" << std::endl;
 
@@ -343,3 +290,4 @@ main( int, char ** )
 
 	return 0;
 }
+

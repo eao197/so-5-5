@@ -85,34 +85,13 @@ class local_mbox_t
 			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Remove event handler.
-		/*!
-		 * \deprecated Will be removed in v.5.2.
-		 */
-		virtual ret_code_t
-		unsubscribe_event_handler(
-			//! Message type.
-			const type_wrapper_t & type_wrapper,
-			//! Message consumer for that message.
-			impl::message_consumer_link_t *
-				message_consumer_link,
-			//! Event caller to be removed.
-			const event_handler_caller_ref_t &
-				event_handler_caller_ref,
-			//! Last event handler indicator.
-			//! Should receive \a true if removed event caller was
-			//! the last event handler for message.
-			bool & is_last_subscription,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
-
 		//! Remove all subscription for message specified.
 		/*!
 		 * This method is called during agent deregistration when
 		 * all agent subscriptions should be removed.
 		 */
 		virtual void
-		unsubscribe_event_handler(
+		unsubscribe_event_handlers(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer for agent.

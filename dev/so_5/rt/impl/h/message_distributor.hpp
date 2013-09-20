@@ -57,22 +57,6 @@ class message_distributor_t
 			//! Exception strategy.
 			throwing_strategy_t throwing_strategy );
 
-		//! Remove event handler for a consumer.
-		ret_code_t
-		pop(
-			//! Message type.
-			const type_wrapper_t & type_wrapper,
-			//! Message consumer to me modified.
-			impl::message_consumer_link_t *
-				message_consumer_link,
-			//! Event handler to be removed.
-			const event_handler_caller_ref_t &
-				event_handler_caller_ref,
-			//! Receives true if the last event handler was removed.
-			bool & is_last_subscription,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
-
 		//! Remove all event handlers for a consumer.
 		void
 		pop(

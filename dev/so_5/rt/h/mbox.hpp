@@ -156,27 +156,9 @@ class SO_5_TYPE mbox_t
 			//! Exception strategy.
 			throwing_strategy_t throwing_strategy ) = 0;
 
-		//! Remove message handler.
-		/*!
-		 * \deprecated Will be removed in v.5.2.
-		 */
-		virtual ret_code_t
-		unsubscribe_event_handler(
-			//! Message type.
-			const type_wrapper_t & type_wrapper,
-			//! Message consumer for that message.
-			impl::message_consumer_link_t *
-				message_consumer_link,
-			//! Message handler to be removed.
-			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Receiver for last subscription indicator.
-			bool & is_last_subscription,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy ) = 0;
-
 		//! Remove all message handlers.
 		virtual void
-		unsubscribe_event_handler(
+		unsubscribe_event_handlers(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer for that message.

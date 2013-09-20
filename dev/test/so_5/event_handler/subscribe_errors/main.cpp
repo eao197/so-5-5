@@ -56,8 +56,7 @@ class test_agent_t
 		evt_handler1(
 			const so_5::rt::event_data_t< msg_test > & )
 		{
-			std::cerr << "Error: evt_handler1 called..." << std::endl;
-			ACE_OS::abort();
+			// Should be called in default state.
 		}
 
 		void
@@ -101,8 +100,6 @@ test_agent_t::so_evt_start()
 {
 	// Subscribe by one handler.
 	// Then trying to subscribe by another handler. Error expected.
-	// Then trying to unsubscribe by another handler. Error expected.
-	// Then unsubscribing by that handler. No errors expected.
 	CHECK_AND_ABORT( 0 == so_subscribe( m_mbox ).event(
 			&test_agent_t::evt_handler1, so_5::DO_NOT_THROW_ON_ERROR ) );
 	CHECK_AND_ABORT( 0 == so_subscribe( m_mbox ).in( m_state_a ).event(
@@ -129,29 +126,6 @@ test_agent_t::so_evt_start()
 	CHECK_AND_ABORT( 0 != so_subscribe( m_mbox ).in( m_state_b ).event(
 			&test_agent_t::evt_handler2, so_5::DO_NOT_THROW_ON_ERROR ) );
 	CHECK_AND_ABORT( 0 != so_subscribe( m_mbox ).in( m_state_b ).event(
-			&test_agent_t::evt_handler3, so_5::DO_NOT_THROW_ON_ERROR ) );
-
-
-	CHECK_AND_ABORT( 0 != so_unsubscribe( m_mbox ).event(
-			&test_agent_t::evt_handler2, so_5::DO_NOT_THROW_ON_ERROR ) );
-	CHECK_AND_ABORT( 0 != so_unsubscribe( m_mbox ).event(
-			&test_agent_t::evt_handler2, so_5::DO_NOT_THROW_ON_ERROR ) );
-
-	CHECK_AND_ABORT( 0 != so_unsubscribe( m_mbox ).in( m_state_a ).event(
-			&test_agent_t::evt_handler1, so_5::DO_NOT_THROW_ON_ERROR ) );
-	CHECK_AND_ABORT( 0 != so_unsubscribe( m_mbox ).in( m_state_a ).event(
-			&test_agent_t::evt_handler3, so_5::DO_NOT_THROW_ON_ERROR ) );
-
-	CHECK_AND_ABORT( 0 != so_unsubscribe( m_mbox ).in( m_state_b ).event(
-			&test_agent_t::evt_handler1, so_5::DO_NOT_THROW_ON_ERROR ) );
-	CHECK_AND_ABORT( 0 != so_unsubscribe( m_mbox ).in( m_state_b ).event(
-			&test_agent_t::evt_handler2, so_5::DO_NOT_THROW_ON_ERROR ) );
-
-	CHECK_AND_ABORT( 0 == so_unsubscribe( m_mbox ).event(
-			&test_agent_t::evt_handler1, so_5::DO_NOT_THROW_ON_ERROR ) );
-	CHECK_AND_ABORT( 0 == so_unsubscribe( m_mbox ).in( m_state_a ).event(
-			&test_agent_t::evt_handler2, so_5::DO_NOT_THROW_ON_ERROR ) );
-	CHECK_AND_ABORT( 0 == so_unsubscribe( m_mbox ).in( m_state_b ).event(
 			&test_agent_t::evt_handler3, so_5::DO_NOT_THROW_ON_ERROR ) );
 
 	m_mbox->deliver_message< msg_test >();

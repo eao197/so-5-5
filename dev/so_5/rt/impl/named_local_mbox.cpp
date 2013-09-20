@@ -63,31 +63,13 @@ named_local_mbox_t::subscribe_more_event_handler(
 		throwing_strategy );
 }
 
-ret_code_t
-named_local_mbox_t::unsubscribe_event_handler(
-	const type_wrapper_t & type_wrapper,
-	impl::message_consumer_link_t *
-		message_consumer_link,
-	const event_handler_caller_ref_t &
-		event_handler_caller_ref,
-	bool & is_last_subscription,
-	throwing_strategy_t throwing_strategy )
-{
-	return m_mbox->unsubscribe_event_handler(
-		type_wrapper,
-		message_consumer_link,
-		event_handler_caller_ref,
-		is_last_subscription,
-		throwing_strategy );
-}
-
 void
-named_local_mbox_t::unsubscribe_event_handler(
+named_local_mbox_t::unsubscribe_event_handlers(
 	const type_wrapper_t & type_wrapper,
 	impl::message_consumer_link_t *
 		message_consumer_link )
 {
-	return m_mbox->unsubscribe_event_handler(
+	return m_mbox->unsubscribe_event_handlers(
 		type_wrapper,
 		message_consumer_link );
 }

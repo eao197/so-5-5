@@ -75,27 +75,8 @@ local_mbox_t::subscribe_more_event_handler(
 		throwing_strategy );
 }
 
-ret_code_t
-local_mbox_t::unsubscribe_event_handler(
-	const type_wrapper_t & type_wrapper,
-	impl::message_consumer_link_t *
-		message_consumer_link,
-	const event_handler_caller_ref_t &
-		event_handler_caller_ref,
-	bool & is_last_subscription,
-	throwing_strategy_t throwing_strategy )
-{
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
-	return m_message_distributor.pop(
-		type_wrapper,
-		message_consumer_link,
-		event_handler_caller_ref,
-		is_last_subscription,
-		throwing_strategy );
-}
-
 void
-local_mbox_t::unsubscribe_event_handler(
+local_mbox_t::unsubscribe_event_handlers(
 	const type_wrapper_t & type_wrapper,
 	impl::message_consumer_link_t *
 		message_consumer_link )
