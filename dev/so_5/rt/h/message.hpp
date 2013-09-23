@@ -11,6 +11,7 @@
 #define _SO_5__RT__MESSAGE_HPP_
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/exception.hpp>
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
 #include <type_traits>
