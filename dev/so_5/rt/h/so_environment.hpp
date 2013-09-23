@@ -15,6 +15,7 @@
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox_ref.hpp>
+#include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
