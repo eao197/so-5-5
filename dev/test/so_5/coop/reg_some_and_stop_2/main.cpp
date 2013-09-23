@@ -22,13 +22,7 @@
 
 so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
-struct test_message
-	:
-		public so_5::rt::message_t
-{
-	test_message() {}
-	virtual ~test_message(){}
-};
+struct test_message : public so_5::rt::signal_t {};
 
 class test_agent_t
 	:
@@ -58,8 +52,7 @@ class test_agent_t
 
 		void
 		evt_test(
-			const so_5::rt::event_data_t< test_message > &
-				msg );
+			const so_5::rt::event_data_t< test_message > & msg );
 
 		// Count of life agents.
 		static so_5::atomic_counter_t m_agent_count;
@@ -87,8 +80,7 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::rt::event_data_t< test_message > &
-		msg )
+	const so_5::rt::event_data_t< test_message > & msg )
 {
 	++m_message_rec_cnt;
 }
@@ -126,8 +118,7 @@ init( so_5::rt::so_environment_t & env )
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
 	// Initiate message.
-	env.create_local_mbox( g_test_mbox_name )
-		->deliver_message< test_message >();
+	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
@@ -136,7 +127,8 @@ init( so_5::rt::so_environment_t & env )
 	x -= test_agent_t::m_message_rec_cnt.value();
 	if( 0 != x )
 		throw std::runtime_error(
-			"check 1: test_agent_t::m_agent_count != test_agent_t::m_message_rec_cnt" );
+			"check 1: test_agent_t::m_agent_count != "
+			"test_agent_t::m_message_rec_cnt" );
 
 	// Deregister some cooperations.
 	env.deregister_coop( so_5::rt::nonempty_name_t(
@@ -154,8 +146,7 @@ init( so_5::rt::so_environment_t & env )
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
 	// Send another message.
-	env.create_local_mbox( g_test_mbox_name )
-		->deliver_message< test_message >();
+	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
@@ -164,7 +155,8 @@ init( so_5::rt::so_environment_t & env )
 	x -= test_agent_t::m_message_rec_cnt.value();
 	if( 0 != x )
 		throw std::runtime_error(
-			"check 2: test_agent_t::m_agent_count != test_agent_t::m_message_rec_cnt" );
+			"check 2: test_agent_t::m_agent_count != "
+			"test_agent_t::m_message_rec_cnt" );
 
 	env.stop();
 

@@ -9,13 +9,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-struct test_message
-	:
-		public so_5::rt::message_t
-{
-	test_message() {}
-	virtual ~test_message(){}
-};
+struct test_message : public so_5::rt::signal_t {};
 
 class test_agent_t
 	:
@@ -109,7 +103,7 @@ test_agent_t::so_define_agent()
 void
 test_agent_t::so_evt_start()
 {
-	m_test_mbox->deliver_message< test_message >();
+	m_test_mbox->deliver_signal< test_message >();
 }
 
 void
@@ -117,7 +111,7 @@ test_agent_t::evt_in_state_default(
 	const so_5::rt::event_data_t< test_message > & )
 {
 	++m_handler_in_state_default_calls;
-	m_test_mbox->deliver_message< test_message >();
+	m_test_mbox->deliver_signal< test_message >();
 
 	// Change state after message has been sent.
 	so_change_state( m_first_state );
@@ -132,7 +126,7 @@ test_agent_t::evt_in_state_1(
 	// Change state before message will be sent.
 	so_change_state( m_second_state );
 
-	m_test_mbox->deliver_message< test_message >();
+	m_test_mbox->deliver_signal< test_message >();
 }
 
 void
@@ -144,7 +138,7 @@ test_agent_t::evt_in_state_2(
 	// Change state before message will be sent.
 	so_change_state( m_third_state );
 
-	m_test_mbox->deliver_message< test_message >();
+	m_test_mbox->deliver_signal< test_message >();
 }
 
 void

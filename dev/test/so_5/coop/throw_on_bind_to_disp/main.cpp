@@ -21,13 +21,7 @@ so_5::atomic_counter_t g_evt_count = 0;
 
 so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
-struct some_message
-	:
-		public so_5::rt::message_t
-{
-	some_message() {}
-	virtual ~some_message(){}
-};
+struct some_message : public so_5::rt::signal_t {};
 
 class a_ordinary_t
 	:
@@ -68,7 +62,7 @@ class a_ordinary_t
 
 		void
 		some_handler(
-			const so_5::rt::event_data_t< some_message > & msg );
+			const so_5::rt::event_data_t< some_message > & );
 };
 
 void
@@ -79,7 +73,7 @@ a_ordinary_t::so_evt_start()
 
 void
 a_ordinary_t::some_handler(
-	const so_5::rt::event_data_t< some_message > & msg )
+	const so_5::rt::event_data_t< some_message > & )
 {
 	++g_evt_count;
 }
@@ -181,7 +175,7 @@ class a_message_sender_t
 			int msg_cnt = 0;
 			while( time_limit > ACE_OS::gettimeofday() )
 			{
-				mbox->deliver_message< some_message >();
+				mbox->deliver_signal< some_message >();
 				++msg_cnt;
 			}
 		}

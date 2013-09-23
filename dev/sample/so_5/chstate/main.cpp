@@ -22,10 +22,7 @@
 #include <so_5/api/h/api.hpp>
 
 // Periodic message.
-class msg_periodic
-	:
-		public so_5::rt::message_t
-{};
+class msg_periodic : public so_5::rt::signal_t {};
 
 // State listener for fixing state changes.
 class state_monitor_t

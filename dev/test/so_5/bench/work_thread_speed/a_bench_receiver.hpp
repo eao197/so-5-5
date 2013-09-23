@@ -25,12 +25,8 @@ struct msg_some_message
 
 // Message to finish work.
 struct msg_finish_work
-	:
-		public so_5::rt::message_t
-{
-	virtual ~msg_finish_work()
-	{}
-};
+	: public so_5::rt::signal_t
+{};
 
 // A receiver for bunch of messages.
 class a_bench_receiver_t

@@ -31,11 +31,8 @@ struct msg_bench_finish
 
 // A message to start processing.
 struct msg_bench_start
-	:
-		public so_5::rt::message_t
+	: public so_5::rt::signal_t
 {
-	virtual ~msg_bench_start()
-	{}
 };
 
 

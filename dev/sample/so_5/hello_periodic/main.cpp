@@ -23,10 +23,7 @@ class msg_hello_periodic
 };
 
 // Stop message.
-class msg_stop_signal
-	:
-		public so_5::rt::message_t
-{};
+class msg_stop_signal : public so_5::rt::signal_t {};
 
 // An agent class definition.
 class a_hello_t

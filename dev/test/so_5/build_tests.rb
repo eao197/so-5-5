@@ -15,7 +15,6 @@ Mxx_ru::setup_target(
 		required_prj( "test/so_5/disp/binder/bind_to_disp_error_no_disp/prj.ut.rb" )
 		required_prj( "test/so_5/disp/binder/bind_to_disp_error_disp_type_mismatch/prj.ut.rb" )
 
-		required_prj( "test/so_5/event_handler/not_null_event_handler/prj.ut.rb" )
 		required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
 
 		required_prj( "test/so_5/messages/three_messages/prj.ut.rb" )

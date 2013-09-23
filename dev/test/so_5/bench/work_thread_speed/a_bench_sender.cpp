@@ -36,11 +36,11 @@ a_bench_sender_t::evt_generate_pack(
 	if( m_sent_message_count < m_message_count )
 	{
 		// Not all messages sent. We should reinitiate youself.
-		m_self_mbox->deliver_message< msg_bench_start >();
+		m_self_mbox->deliver_signal< msg_bench_start >();
 	}
 	else
 	{
 		// All messages send. We should finish work.
-		m_target_mbox->deliver_message< msg_finish_work >();
+		m_target_mbox->deliver_signal< msg_finish_work >();
 	}
 }

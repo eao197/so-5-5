@@ -133,7 +133,7 @@ a_bench_arbiter_t::so_evt_start()
 	m_start_time = ACE_OS::gettimeofday();
 
 	// ...staring the benchmark.
-	m_self_mbox->deliver_message< msg_bench_start >();
+	m_self_mbox->deliver_signal< msg_bench_start >();
 }
 
 void

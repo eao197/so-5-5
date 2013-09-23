@@ -128,6 +128,15 @@ const int rc_mbox_duplicating_name = 80;
 
 //! The name of mbox is unknown.
 const int rc_mbox_unable_to_find_mbox = 81;
+
+//! Null message data.
+/*!
+ * \since v.5.2.0
+ *
+ * An attempt to deliver message_t by nullptr pointer to it is an error.
+ * A signal should be used for that.
+ */
+const int rc_null_message_data = 82;
 //! \}
 
 //! \name Error codes for delayed or repeated events.

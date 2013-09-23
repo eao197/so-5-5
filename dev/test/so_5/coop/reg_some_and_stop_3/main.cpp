@@ -17,13 +17,7 @@
 
 so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
-struct slave_coop_finished_signal
-	:
-		public so_5::rt::message_t
-{
-	slave_coop_finished_signal() {}
-	virtual ~slave_coop_finished_signal(){}
-};
+struct slave_coop_finished_signal : public so_5::rt::signal_t {};
 
 class a_slave_t
 	:
@@ -49,7 +43,7 @@ class a_slave_t
 			so_environment().deregister_coop(
 				so_5::rt::nonempty_name_t( so_coop_name() ) );
 
-			m_master_mbox->deliver_message< slave_coop_finished_signal >();
+			m_master_mbox->deliver_signal< slave_coop_finished_signal >();
 		}
 
 	private:
@@ -99,8 +93,7 @@ class a_master_t
 
 		void
 		evt_slave_finished(
-			const so_5::rt::event_data_t< slave_coop_finished_signal > &
-				message )
+			const so_5::rt::event_data_t< slave_coop_finished_signal > & )
 		{
 			std::cout << "Shutdown\n";
 			so_environment().stop();

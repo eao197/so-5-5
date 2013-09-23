@@ -2,6 +2,22 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__2_0 5.2.0 "Tetnuld"
+
+	A template not_null_event_data_t and all related stuff have been removed.
+
+	A new base class for all signals (e.g. messages without any data)
+	introduced. Since then all signals classes should be derived from
+	so_5::rt::signal_t.
+
+	Special checks for inheritance from so_5::rt::message_t and
+	so_5::rt::signal_t inserted into deliver_message/deliver_signal and
+	schedule_timer methods. Those checks work in compile-time.
+
+	Special checks for not-null message pointers inserted into deliver_message
+	and schedult_timer methods. So it is impossible to use those methods to send
+	null messages. Signals should be used for this purpose.
+
 \section so_5__1_2 5.1.2
 
 	All comments in code have been translated to English.

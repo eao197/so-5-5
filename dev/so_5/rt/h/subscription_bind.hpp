@@ -147,49 +147,6 @@ class SO_5_TYPE subscription_bind_t
 				throwing_strategy );
 		}
 
-		//! Make subscription to message.
-		template< class MESSAGE, class AGENT >
-		ret_code_t
-		event(
-			//! Event handling method.
-			void (AGENT::*pfn)( const not_null_event_data_t< MESSAGE > & ),
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
-		{
-			// Agent should be owner of the state.
-			ret_code_t res = agent_owns_state(
-				m_agent,
-				m_state,
-				throwing_strategy );
-
-			if( res )
-				// This is possible only if throwing_strategy != THROW_ON_ERROR.
-				// So simply return error code.
-				return res;
-
-			AGENT * casted_agent = nullptr;
-			// Agent should have right type.
-			res = agent_convertable_to< AGENT >(
-				&m_agent,
-				casted_agent,
-				throwing_strategy );
-
-			if( res )
-				return res;
-
-			event_handler_caller_ref_t event_handler_caller_ref(
-				new not_null_data_real_event_handler_caller_t< MESSAGE, AGENT >(
-					pfn,
-					*casted_agent,
-					m_state ) );
-
-			return create_event_subscription(
-				type_wrapper_t( typeid( MESSAGE ) ),
-				m_mbox_ref,
-				event_handler_caller_ref,
-				throwing_strategy );
-		}
-
 	private:
 		//! Create event subscription.
 		ret_code_t

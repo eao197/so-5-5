@@ -14,12 +14,8 @@
 #include <so_5/api/h/api.hpp>
 
 struct test_message
-	:
-		public so_5::rt::message_t
-{
-	test_message() {}
-	virtual ~test_message(){}
-};
+	: public so_5::rt::signal_t
+{};
 
 class test_agent_t
 	:

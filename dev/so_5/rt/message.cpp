@@ -31,6 +31,17 @@ message_t::operator = ( const message_t & )
 {
 }
 
+//
+// signal_t
+//
+
+signal_t::signal_t()
+{}
+
+signal_t::~signal_t()
+{}
+
 } /* namespace rt */
 
 } /* namespace so_5 */
+

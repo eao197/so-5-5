@@ -14,20 +14,12 @@
 #include <so_5/api/h/api.hpp>
 
 struct test_message
-	:
-		public so_5::rt::message_t
-{
-	test_message() {}
-	virtual ~test_message(){}
-};
+	: public so_5::rt::signal_t
+{};
 
 struct stop_message
-	:
-		public so_5::rt::message_t
-{
-	stop_message() {}
-	virtual ~stop_message(){}
-};
+	: public so_5::rt::signal_t
+{};
 
 class test_agent_t
 	:
@@ -64,13 +56,11 @@ class test_agent_t
 
 		void
 		evt_test(
-			const so_5::rt::event_data_t< test_message > &
-				msg );
+			const so_5::rt::event_data_t< test_message > & msg );
 
 		void
 		evt_stop(
-			const so_5::rt::event_data_t< stop_message > &
-				msg );
+			const so_5::rt::event_data_t< stop_message > & msg );
 
 		static int	m_evt_count;
 		static const int m_test_evt_count;
@@ -102,8 +92,7 @@ test_agent_t::so_define_agent()
 
 void
 test_agent_t::evt_test(
-	const so_5::rt::event_data_t< test_message > &
-		msg )
+	const so_5::rt::event_data_t< test_message > & msg )
 {
 	if( m_test_evt_count == ++m_evt_count )
 	{
@@ -117,8 +106,7 @@ test_agent_t::evt_test(
 }
 void
 test_agent_t::evt_stop(
-	const so_5::rt::event_data_t< stop_message > &
-		msg )
+	const so_5::rt::event_data_t< stop_message > & msg )
 {
 	so_environment().stop();
 }

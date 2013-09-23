@@ -526,6 +526,8 @@ class SO_5_TYPE so_environment_t
 			//! Value 0 indicates delayed only message.
 			unsigned int period_msec )
 		{
+			ensure_message_with_actual_data( msg.get() );
+
 			return schedule_timer(
 				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
@@ -548,6 +550,8 @@ class SO_5_TYPE so_environment_t
 			//! Value 0 indicates delayed only message.
 			unsigned int period_msec )
 		{
+			ensure_message_with_actual_data( msg.get() );
+
 			return schedule_timer(
 				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
@@ -568,6 +572,8 @@ class SO_5_TYPE so_environment_t
 			//! Value 0 indicates delayed only signal.
 			unsigned int period_msec )
 		{
+			ensure_signal< MESSAGE >();
+
 			return schedule_timer(
 				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t(),
@@ -587,6 +593,8 @@ class SO_5_TYPE so_environment_t
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
+			ensure_message_with_actual_data( msg.get() );
+
 			single_timer(
 				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
@@ -603,6 +611,8 @@ class SO_5_TYPE so_environment_t
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
+			ensure_signal< MESSAGE >();
+
 			single_timer(
 				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t(),

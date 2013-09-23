@@ -20,10 +20,7 @@ class msg_hello
 };
 
 // Stop message.
-class msg_stop_signal
-	:
-		public so_5::rt::message_t
-{};
+class msg_stop_signal : public so_5::rt::signal_t {};
 
 // An agent class.
 class a_hello_t
@@ -52,7 +49,7 @@ class a_hello_t
 		// Delayed message handler.
 		void
 		evt_hello_delay(
-			const so_5::rt::not_null_event_data_t< msg_hello > & msg );
+			const so_5::rt::event_data_t< msg_hello > & msg );
 
 		// Stop signal handler.
 		void
@@ -95,7 +92,7 @@ a_hello_t::so_evt_start()
 
 void
 a_hello_t::evt_hello_delay(
-	const so_5::rt::not_null_event_data_t< msg_hello > & msg )
+	const so_5::rt::event_data_t< msg_hello > & msg )
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) )

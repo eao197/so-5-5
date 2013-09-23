@@ -38,12 +38,8 @@ struct test_message
 
 // A signal to start sending.
 struct send_message_signal
-	:
-		public so_5::rt::message_t
-{
-	send_message_signal() {}
-	virtual ~send_message_signal() {}
-};
+	: public so_5::rt::signal_t
+{};
 
 class test_agent_sender_t
 	:
@@ -100,13 +96,12 @@ test_agent_sender_t::so_define_agent()
 void
 test_agent_sender_t::so_evt_start()
 {
-	m_notification_mbox->deliver_message< send_message_signal >();
+	m_notification_mbox->deliver_signal< send_message_signal >();
 }
 
 void
 test_agent_sender_t::evt_send_messages(
-	const so_5::rt::event_data_t< send_message_signal > &
-		msg )
+	const so_5::rt::event_data_t< send_message_signal > & msg )
 {
 	for( int i = 0; i < g_send_at_once; ++i )
 	{
@@ -127,7 +122,7 @@ test_agent_sender_t::evt_send_messages(
 	}
 	else
 	{
-		m_notification_mbox->deliver_message< send_message_signal >();
+		m_notification_mbox->deliver_signal< send_message_signal >();
 	}
 }
 
