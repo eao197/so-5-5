@@ -53,7 +53,7 @@ typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
  * Agents are added to cooperation by add_agent() method.
  *
  * After addition to cooperation the cooperation tooks care about
- * agent life-time.
+ * agent lifetime.
  */
 class SO_5_TYPE agent_coop_t
 {

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for binding agent to dispatcher with single
+	\brief Interface for binding agent to a dispatcher with the single
 	working thread.
 */
 
@@ -27,7 +27,7 @@ namespace one_thread
 namespace impl
 {
 
-//! Agent to dispatcher binder.
+//! Agent dispatcher binder.
 class disp_binder_t
 	:
 		public so_5::rt::disp_binder_t
@@ -49,7 +49,7 @@ class disp_binder_t
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:
-		//! Name of dispatcher to be bound to.
+		//! Name of the dispatcher to be bound to.
 		const std::string m_disp_name;
 };
 

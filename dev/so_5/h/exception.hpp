@@ -28,7 +28,7 @@ class SO_5_TYPE exception_t
 	:
 		public std::runtime_error
 {
-		//! Typedef for base type.
+		//! Typedef for the base type.
 		typedef std::runtime_error base_type_t;
 	public:
 		exception_t(

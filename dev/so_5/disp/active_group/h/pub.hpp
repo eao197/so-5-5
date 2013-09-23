@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Functions for creating and binding to active group dispatcher.
+	\brief Functions for creating and binding to the active group dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_GROUP__PUB_HPP_ )
@@ -26,11 +26,11 @@ namespace disp
 namespace active_group
 {
 
-//! Creates dispatcher.
+//! Creates the dispatcher.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::dispatcher_unique_ptr_t )
 create_disp();
 
-//! Creates dispatcher binder.
+//! Creates the dispatcher binder.
 SO_5_EXPORT_FUNC_SPEC( so_5::rt::disp_binder_unique_ptr_t )
 create_disp_binder(
 	//! Dispatcher name.

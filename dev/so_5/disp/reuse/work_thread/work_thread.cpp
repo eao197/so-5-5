@@ -52,17 +52,17 @@ demand_queue_t::push(
 	{
 		const bool demands_empty_before_service = m_demands.empty();
 
-		// Assume that new demand should be added to queue.
+		// Assume that the new demand should be added to queue.
 		bool create_new_demand_needed = true;
 
 		// Is queue was not empty...
 		if( !demands_empty_before_service )
 		{
-			// ...and last demand in queue is for the same agent...
+			// ...and the last demand in the queue is for the same agent...
 			demand_t & dmnd = m_demands.back();
 			if( agent_ref == dmnd.m_agent_ref )
 			{
-				// ... then only demand counter should be incremented.
+				// ... then only the demand counter should be incremented.
 				dmnd.m_event_cnt += event_cnt;
 				create_new_demand_needed = false;
 			}
@@ -124,7 +124,7 @@ demand_queue_t::stop_service()
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
 		m_in_service = false;
-		// If demands queue is empty then someone is waiting
+		// If the demands queue is empty then someone is waiting
 		// for new demands inside pop().
 		is_someone_waiting_us = m_demands.empty();
 	}
@@ -208,7 +208,7 @@ work_thread_t::body()
 		{
 			while( m_continue_work.value() == WORK_THREAD_CONTINUE )
 			{
-				// If local queue is empty then we should try
+				// If the local queue is empty then we should try
 				// to get new demands.
 				if( demands.empty() )
 					result = m_queue.pop( demands );

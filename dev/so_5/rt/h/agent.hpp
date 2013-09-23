@@ -54,47 +54,46 @@ class agent_coop_t;
 
 //! A base class for agents.
 /*!
-	An agent in SObjctizer should be derived from agent_t.
+	An agent in SObjctizer should be derived from the agent_t.
 
 	The base class provides various methods whose could be splitted into
 	the following groups:
-	\li methods for interaction with SObjectizer;
+	\li methods for the interaction with SObjectizer;
 	\li predefined hook-methods which are called during: cooperation
-	registration, starting and stopping of agent;
-	\li methods for message subscription and unsubscription;
-	\li methods for working with agent state;
+	registration, starting and stopping of an agent;
+	\li methods for the message subscription and unsubscription;
+	\li methods for working with an agent state;
 
-	<b>Methods for interaction with SObjectizer</b>
+	<b>Methods for the interaction with SObjectizer</b>
 
-	Method so_5::rt::agent_t::so_environment() serves for access to
-	SObjectizer Environment (and, therefore, to all methods of
+	Method so_5::rt::agent_t::so_environment() serves for access to the 
+	SObjectizer Environment (and, therefore, to all methods of the 
 	SObjectizer Environment).
-	This method could be called immediatelly after agent creation.
-	This is because agent is bound to SObjectizer Environment during
-	creation process.
+	This method could be called immediatelly after the agent creation.
+	This is because agent is bound to the SObjectizer Environment during
+	the creation process.
 
 	<b>Hook methods</b>
 
-	Base class defines several hook-methods. Its default implementation
+	The base class defines several hook-methods. Its default implementation
 	do nothing.
 
 	Method agent_t::so_define_agent() is called just before agent will
-	started by SObjectizer as a part of agent registration process.
-	It should be reimplemented for initial subscription of agent
+	started by SObjectizer as a part of the agent registration process.
+	It should be reimplemented for the initial subscription of the agent
 	to messages.
 
-	There are two hook-methods related to important agent's life-time events:
+	There are two hook-methods related to important agent's lifetime events:
 	agent_t::so_evt_start() and agent_t::so_evt_finish(). They are called
 	by SObjectizer in next circumstances:
-	- method so_evt_start() is called when agent is starting its work
-	  inside SObjectizer. At that moment the agent cooperation is
-	  successfully registered and all agent are bound to their working
-	  threads;
+	- method so_evt_start() is called when the agent is starting its work
+	  inside of SObjectizer. At that moment all agents are defined (all 
+	  their methods agent_t::so_define_agent() have executed);
 	- method so_evt_finish() is called during the agent's cooperation
 	  deregistration just after agent processed the last pending event.
 
 	Methods so_evt_start() and so_evt_finish() are called by SObjectizer and
-	user can just reimplement them to implement agent-specific logic.
+	user can just reimplement them to implement the agent-specific logic.
 
 	<b>Message subscription and unsubscription methods</b>
 
@@ -105,28 +104,28 @@ class agent_coop_t;
 		evt_handler(
 			const so_5::rt::event_data_t< MESSAGE > & msg );
 	\endcode
-	Where \c evt_handler is a name of event handler, \c MESSAGE is a message
-	type.
+	Where \c evt_handler is a name of the event handler, \c MESSAGE is a 
+	message type.
 
 	Class so_5::rt::event_data_t is a wrapper on pointer to an instance of \c
 	MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. The pointer to \c
-	MESSAGE could be nullptr. It happens in case when message has no actual data
-	and servers just a signal about something.
+	MESSAGE could be nullptr. It happens in case when the message has no 
+	actual data and servers just a signal about something.
 
-	Subscription to a message is performed by method so_subscribe().
-	This method returns an instance of so_5::rt::subscription_bind_t which
-	does all actual actions of subscription process. That instance already
-	knowns agents and message mbox and uses default agent state for
+	Subscription to a message is performed by the method so_subscribe().
+	This method returns an instance of the so_5::rt::subscription_bind_t which
+	does all actual actions of the subscription process. That instance already
+	knowns agents and message mbox and uses the default agent state for
 	the event subscription (binding to different state is also possible). 
 
-	<b>Methods for working with agent state</b>
+	<b>Methods for working with an agent state</b>
 
-	Agent can change its state by so_change_state() method.
+	The agent can change its state by his so_change_state() method.
 
-	An attempt to switch agent to the state which belongs to different
+	An attempt to switch agent to the state which belongs to the another
 	agent is an error. If state is belong to the same agent there are
 	no possibility to any run-time errors. In this case changing agent
-	state is very safe operation.
+	state is a very safe operation.
 
 	In some cases it is necessary to detect agent state switching.
 	For example for application monitoring purposes. That could be done
@@ -134,11 +133,10 @@ class agent_coop_t;
 
 	Any count of state listeners could be set for an agent. There are
 	two methods for that:
-	- so_add_nondestroyable_listener() is for listeners whose life-time
-	  are controlled by programmer, not by SObjectizer;
-	- so_add_destroyable_listener() is for listeners whose life-time
-	  should be controlled by SObjectizer. For those listeners agent tooks
-	  care about their deleting.
+	- so_add_nondestroyable_listener() is for listeners whose lifetime
+	  are controlled by a programmer, not by SObjectizer;
+	- so_add_destroyable_listener() is for listeners whose lifetime
+	  must be controlled by agent itself.
 */
 class SO_5_TYPE agent_t
 	:
@@ -280,8 +278,8 @@ class SO_5_TYPE agent_t
 
 		//! Add state listener to agent.
 		/*!
-		 * A programmer should guaranteed that life-time of
-		 * \a state_listener is exceed life-time of the agent.
+		 * A programmer should guaranteed that lifetime of
+		 * \a state_listener is exceed lifetime of the agent.
 		 */
 		void
 		so_add_nondestroyable_listener(

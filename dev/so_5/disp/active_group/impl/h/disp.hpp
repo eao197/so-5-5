@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief The real class of active group dispatcher
+	\brief The real class of the active group dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_GROUP__IMPL__DISP_HPP_ )
@@ -65,16 +65,17 @@ class dispatcher_t
 		/*!
 		 * \brief Schedule event processing for the agent.
 		 *
-		 * \note Should not be called directly for this dispatcher.
+		 * \attention Shall not be called directly for this dispatcher.
+		 * \note event_count is useless in this class.
 		 */
 		virtual void
 		put_event_execution_request(
 			const so_5::rt::agent_ref_t &,
-			unsigned int);
+			unsigned int event_count );
 		//! \}
 
 		/*!
-		 * \brief Get the dispatcher for specified active group.
+		 * \brief Get the dispatcher for the specified active group.
 		 *
 		 * If name \a group_name is unknown then a new dispatcher
 		 * thread is started. This thread is marked as it has one
@@ -87,7 +88,7 @@ class dispatcher_t
 		query_disp_for_group( const std::string & group_name );
 
 		/*!
-		 * \brief Release the dispatcher for specified active group.
+		 * \brief Release the dispatcher for the specified active group.
 		 *
 		 * Decrements working agent count for the thread of
 		 * \a group_name. If there no more working agents left then
@@ -98,7 +99,7 @@ class dispatcher_t
 		release_disp_for_group( const std::string & group_name );
 
 	private:
-		//! Auxiliary class for working agent counting.
+		//! Auxiliary class for the working agent counting.
 		struct disp_with_ref_t
 		{
 			disp_with_ref_t()
@@ -118,7 +119,7 @@ class dispatcher_t
 			unsigned int m_user_agent;
 		};
 
-		//! Typedef for mapping from group names to single thread
+		//! Typedef for mapping from group names to a single thread
 		//! dispatcher.
 		typedef std::map<
 				std::string,
@@ -128,7 +129,7 @@ class dispatcher_t
 		//! A map of dispatchers for active groups.
 		active_group_disp_map_t m_group_disp;
 
-		//! Shutdown indication flag.
+		//! Shutdown of the indication flag.
 		bool m_shutdown_started;
 
 		//! This object lock.

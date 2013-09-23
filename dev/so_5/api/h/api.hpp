@@ -4,11 +4,11 @@
 
 /*!
 	\file
-	\brief Function for starting SObjectizer.
+	\brief Function for the SObjectizer starting.
 
-	It is not necessary to derive a class from so_5::rt::so_environment_t
-	to start SObjectizer Environment. SObjectizer contains several functions
-	which make SObjectizer Environment launching process easier.
+	It is not necessary to derive a class from the so_5::rt::so_environment_t
+	to start a SObjectizer Environment. SObjectizer contains several functions
+	which make a SObjectizer Environment launching process easier.
 
 	This file contains declarations of that functions.
 */
@@ -31,7 +31,7 @@ namespace api
 namespace impl
 {
 
-//! Auxiliary class for SObjectizer launcing.
+//! Auxiliary class for the SObjectizer launching.
 /*!
  * It is used as wrapper on various types of initialization routines.
  */
@@ -62,7 +62,7 @@ class so_quick_environment_t
 		}
 
 	private:
-		//! Initialization routine;
+		//! Initialization routine.
 		INIT m_init;
 };
 
@@ -72,7 +72,7 @@ class so_quick_environment_t
 typedef void (*pfn_so_environment_init_t)(
 		so_5::rt::so_environment_t & );
 
-//! Launch SObjectizer Environment with arguments.
+//! Launch a SObjectizer Environment with arguments.
 /*!
 Example:
 
@@ -105,7 +105,7 @@ main( int argc, char * argv[] )
 */
 inline so_5::ret_code_t
 run_so_environment(
-	//! Pointer to initialization routine.
+	//! Pointer to the initialization routine.
 	pfn_so_environment_init_t init_func,
 	//! Environment's parameters.
 	const so_5::rt::so_environment_params_t & env_params,
@@ -119,7 +119,7 @@ run_so_environment(
 	return env.run( throwing_strategy );
 }
 
-//! Launch SObjectizer Environment with default arguments.
+//! Launch a SObjectizer Environment with default arguments.
 /*!
 Example:
 \code
@@ -155,7 +155,7 @@ main( int argc, char * argv[] )
 */
 inline so_5::ret_code_t
 run_so_environment(
-	//! Pointer to initialization routine.
+	//! Pointer to the initialization routine.
 	pfn_so_environment_init_t init_func,
 	//! Exception strategy.
 	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
@@ -166,18 +166,18 @@ run_so_environment(
 			throwing_strategy );
 }
 
-//! Launch SObjectizer Environment with parametrized initialization routine
+//! Launch a SObjectizer Environment with the parametrized initialization routine
 //! and Enviroment parameters.
 /*!
 
-Allows to pass additional argument to initialization process.
+Allows to pass an additional argument to the initialization process.
 \code
 void
 init(
 	so_5::rt::so_environment_t & env,
 	const std::string & server_addr )
 {
-	// Make cooperation.
+	// Make a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "test_server_application" ),
 		so_5::disp::active_obj::create_disp_binder(
@@ -198,7 +198,7 @@ init(
 	coop->add_agent( serv );
 	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
 
-	// Register cooperation.
+	// Register the cooperation.
 	so_5::ret_code_t rc = env.register_coop( coop );
 
 	// Error handling and program termination should be handled here.
@@ -236,7 +236,7 @@ so_5::ret_code_t
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
-		Should has prototype: <i>void init( env, my_param )</i>.
+		The prototype: <i>void init( env, my_param )</i> is required.
 	*/
 	INIT init_func,
 	//! Initialization routine argument.
@@ -257,17 +257,17 @@ run_so_environment_with_parameter(
 	return env.run( throwing_strategy );
 }
 
-//! Launch SObjectizer Environment with parametrized initialization routine.
+//! Launch a SObjectizer Environment with the parametrized initialization routine.
 /*!
 
-Allows to pass additional argument to initialization process.
+Allows to pass an additional argument to the initialization process.
 \code
 void
 init(
 	so_5::rt::so_environment_t & env,
 	const std::string & server_addr )
 {
-	// Make cooperation.
+	// Make a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "test_server_application" ),
 		so_5::disp::active_obj::create_disp_binder(
@@ -288,7 +288,7 @@ init(
 	coop->add_agent( serv );
 	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
 
-	// Register cooperation.
+	// Register the cooperation.
 	so_5::ret_code_t rc = env.register_coop( coop );
 
 	// Error handling and program termination should be handled here.
@@ -327,7 +327,7 @@ so_5::ret_code_t
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
-		Should has prototype: <i>void init( env, my_param )</i>.
+		The prototype: <i>void init( env, my_param )</i> is required.
 	*/
 	INIT init_func,
 	//! Initialization routine argument.
@@ -340,7 +340,7 @@ run_so_environment_with_parameter(
 			throwing_strategy );
 }
 
-//! Launch SObjectizer Environment by a class method and with
+//! Launch a SObjectizer Environment by a class method and with
 //! specified Environment parameters.
 /*!
 
@@ -354,7 +354,7 @@ struct client_data_t
 	void
 	init( so_5::rt::so_environment_t & env )
 	{
-		// Make cooperation.
+		// Make a cooperation.
 		so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 			so_5::rt::nonempty_name_t( "test_client_application" ),
 			so_5::disp::active_obj::create_disp_binder(
@@ -378,7 +378,7 @@ struct client_data_t
 		coop->add_agent( client );
 		coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
 
-		// Register cooperation.
+		// Register the cooperation.
 		so_5::ret_code_t rc = env.register_coop( coop );
 
 		// Error handling and program termination should be handled here.
@@ -418,7 +418,7 @@ template< class OBJECT, class METHOD >
 so_5::ret_code_t
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
-	//! initialization routine.
+	//! the initialization routine.
 	OBJECT & obj,
 	//! Initialization routine.
 	METHOD init_func,
@@ -436,12 +436,12 @@ run_so_environment_on_object(
 	return env.run( throwing_strategy );
 }
 
-//! Launch SObjectizer Environment by a class method.
+//! Launch a SObjectizer Environment by a class method.
 template< class OBJECT, class METHOD >
 so_5::ret_code_t
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
-	//! initialization routine.
+	//! the initialization routine.
 	OBJECT & obj,
 	//! Initialization routine.
 	METHOD init_func,

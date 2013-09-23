@@ -1,5 +1,5 @@
 /*
-	SObjectizer 4
+	SObjectizer 5
 */
 
 #include <so_5/disp/active_obj/h/pub.hpp>

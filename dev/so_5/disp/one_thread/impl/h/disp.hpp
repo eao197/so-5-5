@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief The real class of dispatcher with single working thread.
+	\brief The real class of a dispatcher with the single working thread.
 */
 
 #if !defined( _SO_5__DISP__ONE_THREAD__IMPL__DISP_HPP_ )
@@ -30,7 +30,7 @@ namespace impl
 //
 
 /*!
-	\brief A dispatcher with single working thread and event queue.
+	\brief A dispatcher with the single working thread and an event queue.
 */
 class dispatcher_t
 	:

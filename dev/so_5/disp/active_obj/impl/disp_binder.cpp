@@ -42,7 +42,7 @@ disp_binder_t::bind_agent(
 	// If the dispatcher is found then agent should be bound to it.
 	if( disp_ref.get() )
 	{
-		// It should be active objects dispatcher.
+		// It should be an active objects dispatcher.
 		dispatcher_t * disp = dynamic_cast< dispatcher_t * >( disp_ref.get() );
 
 		if( nullptr == disp )
@@ -62,7 +62,7 @@ disp_binder_t::bind_agent(
 		}
 		catch( ... )
 		{
-			// Dispatcher for agent should be removed.
+			// Dispatcher for the agent should be removed.
 			disp->destroy_disp_for_agent( *agent_ref );
 			throw;
 		}
@@ -85,7 +85,7 @@ disp_binder_t::unbind_agent(
 
 	if( disp_ref.get() )
 	{
-		// This should be active_obj dispatcher because binding
+		// This should be an active_obj dispatcher because binding
 		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 

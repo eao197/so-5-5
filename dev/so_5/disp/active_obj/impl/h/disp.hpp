@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Real class of active objects dispatcher.
+	\brief Real class of the active objects dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_OBJ__IMPL__DISP_HPP_ )
@@ -62,7 +62,7 @@ class dispatcher_t
 		wait();
 
 		/*!
-		 * \note Should not be called for this type of dispatchers directlly.
+		 * \attention Shall not be called directly for this dispatcher.
 		 */
 		virtual void
 		put_event_execution_request(

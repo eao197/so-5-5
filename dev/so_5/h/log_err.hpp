@@ -16,7 +16,7 @@
 #include <ace/Log_Msg.h>
 
 /*!
-	\brief Macros to create format string for using with ACE logging.
+	\brief Macros to create a format string for using with ACE logging.
 
 	Usage sample:
 	\code
@@ -26,12 +26,12 @@
 #define SO_5_LOG_FMT(s) "[%D PID:%P TID:%t] %M -- " s " @%N:%l\n"
 
 /*!
- * \brief Macro for return value control and abort the program
+ * \brief Macro for the return value control and abort the program
  * if necessary.
  *
- * Should be used for the cases when error is not expected. And if
- * it is impossible to continue in case of error. For example if
- * attempt to add value into hash map is failed.
+ * Should be used in cases when an error is not expected. And if
+ * it is impossible to continue in the case of an error. For example if
+ * attempt to add a value into the hash map is failed.
  *
  * Usage sample:
  * \code

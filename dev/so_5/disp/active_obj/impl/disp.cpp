@@ -83,7 +83,7 @@ dispatcher_t::put_event_execution_request(
 	const so_5::rt::agent_ref_t & agent_ref,
 	unsigned int event_count )
 {
-	// This methods should not be called.
+	// This method shall not be called!
 	std::abort();
 }
 

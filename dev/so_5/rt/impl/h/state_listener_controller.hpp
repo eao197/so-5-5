@@ -45,12 +45,12 @@ class state_listener_controller_t
 			//! The current agent state.
 			const state_t & state );
 
-		//! Add a listener which life-time is controlled by user.
+		//! Add a listener which lifetime is controlled by user.
 		void
 		so_add_nondestroyable_listener(
 			agent_state_listener_t & state_listener );
 
-		//! Add a listener which life-time is controlled by agent.
+		//! Add a listener which lifetime is controlled by agent.
 		void
 		so_add_destroyable_listener(
 			agent_state_listener_unique_ptr_t state_listener );

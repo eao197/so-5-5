@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for binding agent to active object dispatcher.
+	\brief Interface for binding agent to an active object dispatcher.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_OBJ__IMPL__DISP_BINDER_HPP_ )
@@ -26,7 +26,7 @@ namespace active_obj
 namespace impl
 {
 
-//! Agent to dispatcher binder.
+//! Agent dispatcher binder.
 class disp_binder_t
 	:
 		public so_5::rt::disp_binder_t
@@ -47,7 +47,7 @@ class disp_binder_t
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:
-		//! Name of dispatcher to be bound to.
+		//! Name of the dispatcher to be bound to.
 		const std::string m_disp_name;
 };
 

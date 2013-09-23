@@ -38,7 +38,7 @@ namespace work_thread
 //! Element of queue of demands to process agent events.
 struct demand_t
 {
-	//! Agent which events should be dispatched.
+	//! Agent which events will be dispatched.
 	so_5::rt::agent_ref_t m_agent_ref;
 
 	//! Count of events to dispatch.
@@ -50,7 +50,7 @@ struct demand_t
 	{}
 
 	demand_t(
-		//! Agent which events should be dispatched.
+		//! Agent which events will be dispatched.
 		const so_5::rt::agent_ref_t & agent_ref,
 		//! Count of events to dispatch.
 		unsigned int event_cnt )
@@ -60,7 +60,7 @@ struct demand_t
 	{}
 };
 
-//! Typedef for demands queue container.
+//! Typedef for demands of queue container.
 typedef std::deque< demand_t > demand_container_t;
 
 //
@@ -69,9 +69,9 @@ typedef std::deque< demand_t > demand_container_t;
 
 //! Queue of demands to process agent events.
 /*!
-	Have shutdown flag inside.
+	demand_queue_t has shutdown flag inside.
 
-	Thread safe and indendent to use by several concurrent threads.
+	Thread safe and is intended to be used by several concurrent threads.
 */
 class demand_queue_t
 {
@@ -82,27 +82,27 @@ class demand_queue_t
 		//! Put demand into queue.
 		void
 		push(
-			//! Agent which events should be dispatched.
+			//! Agent which events will be dispatched.
 			const so_5::rt::agent_ref_t & agent_ref,
 			//! Count of events to dispatch.
 			unsigned int event_cnt );
 
 		enum
 		{
-			//! Demand has been extracted
+			//! Demand has been extracted.
 			demand_extracted = 1,
 			//! Demand has not been extracted because of shutdown.
 			shutting_down = 2,
-			//! Demand has not been extracted because demand queue is empty.
+			//! Demand has not been extracted because the demand queue is empty.
 			no_demands = 3
 		};
 
-		//! Try to extract demands from queue.
+		//! Try to extract demands from the queue.
 		/*!
 			If there is no demands in queue then current thread
 			will sleep until:
-			- demand put in queue;
-			- shutdown signal.
+			- the new demand is put in the queue;
+			- a shutdown signal.
 		*/
 		int
 		pop(
@@ -125,7 +125,7 @@ class demand_queue_t
 		//! Demand queue.
 		demand_container_t m_demands;
 
-		//! \name Objects for thread safety.
+		//! \name Objects for the thread safety.
 		//! \{
 		ACE_Thread_Mutex m_lock;
 		ACE_Condition_Thread_Mutex m_not_empty;
@@ -133,8 +133,8 @@ class demand_queue_t
 
 		//! Service flag.
 		/*!
-			true -- should do the service, methods push/pop should work.
-			false -- service should be stopped.
+			true -- shall do the service, methods push/pop must work.
+			false -- the service is stopped or will be stopped.
 		*/
 		bool m_in_service;
 };
@@ -145,9 +145,9 @@ class demand_queue_t
 
 //! Working thread.
 /*!
- * Working thread should be used inside some dispatcher.
- * And life time of dispatcher object should be longer than
- * life time of working thread object.
+ * Working thread should be used inside of some dispatcher.
+ * And the lifetime of the dispatcher object must be longer than
+ * the lifetime of the working thread object.
  */
 class work_thread_t
 {
@@ -157,26 +157,34 @@ class work_thread_t
 
 		~work_thread_t();
 
-		//! Shedule event for agent.
+		//! Shedule event(s) for the agent.
+		/*!
+		 * \note In most cases event_count is equal to 1.
+		 * The only case when \a event_count can be greater than 1 is 
+		 * when disp_binder switches from the void-dispatcher to the 
+		 * real-dispatcher.
+		 * \see g_void_dispatcher.
+		 * \see agent_t::bind_to_disp().
+		*/
 		void
 		put_event_execution_request(
-			//! Agent for which events should be sheduled.
+			//! Events will be sheduled to this agent.
 			const so_5::rt::agent_ref_t & agent_ref,
 			//! Count of events to be scheduled.
 			unsigned int event_count );
 
-		//! Start working thread.
+		//! Start the working thread.
 		void
 		start();
 
-		//! Send shutdown signal to working thread.
+		//! Send the shutdown signal to the working thread.
 		void
 		shutdown();
 
-		//! Wait full stop of working thread.
+		//! Wait the full stop of the working thread.
 		/*!
-		 * All non-processed demands from queue will be destroyed
-		 * after stop of working thread.
+		 * All non-processed demands from the queue will be destroyed
+		 * after a stop of the working thread.
 		 */
 		void
 		wait();
@@ -200,7 +208,7 @@ class work_thread_t
 			//! Bunch of demands to be processed.
 			demand_container_t & executed_demands );
 
-		//! Thread entry point for ACE_Thread_Manager.
+		//! Thread entry point for the ACE_Thread_Manager.
 		static ACE_THR_FUNC_RETURN
 		entry_point( void * self_object );
 
@@ -223,16 +231,16 @@ class work_thread_t
 		 */
 		ACE_Atomic_Op< ACE_Thread_Mutex, long > m_continue_work;
 
-		//! Thread identifier for that object.
+		//! Thread identifier for this object.
 		/*!
-			\note Has actual value only after start().
+			\note m_tid has the actual value only after start().
 		*/
 		ACE_thread_t m_tid;
 
-		//! Owner of that working thread.
+		//! Owner of this working thread.
 		/*!
 		 * This reference is necessary to handle exceptions.
-		 * The exception handler is get from dispatcher.
+		 * The exception handler is got from the dispatcher.
 		 */
 		rt::dispatcher_t & m_disp;
 };

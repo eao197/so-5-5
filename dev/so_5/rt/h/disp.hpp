@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for dispatcher definition.
+	\brief Interface for the dispatcher definition .
 */
 
 #if !defined( _SO_5__RT__DISP_HPP_ )
@@ -30,7 +30,7 @@ namespace rt
 // disp_evt_except_handler_t
 //
 
-//! Interface for exception handler for dispatcher.
+//! Interface of the exception handler for the dispatcher.
 class SO_5_TYPE disp_evt_except_handler_t
 {
 	public:
@@ -41,7 +41,7 @@ class SO_5_TYPE disp_evt_except_handler_t
 		handle_exception(
 			//! Exception which was caught.
 			const std::exception & event_exception,
-			//! Cooperation name for agent who threw the exception.
+			//! Cooperation name of an agent which threw the exception.
 			const std::string & coop_name ) = 0;
 };
 
@@ -53,13 +53,13 @@ class SO_5_TYPE disp_evt_except_handler_t
 /*!
  * Dispatcher schedules and calls agents' events.
  *
- * Each agent is binded to dispatcher during registration.
- * A dispatcher_binder_t object is used for that.
+ * Each agent is binded to a dispatcher during registration.
+ * A dispatcher_binder_t object is used for this.
  *
- * Each agent stores its events in own event queue. When event is
+ * Each agent stores its events in the own event queue. When event is
  * stored in queue agent informs its dispatcher about it. Dispatcher
- * should schedule agent for event execution on agent's working thread
- * context.
+ * should schedule the agent for the event execution on 
+ * the agent's working thread context.
  */
 class SO_5_TYPE dispatcher_t
 {
@@ -76,26 +76,26 @@ class SO_5_TYPE dispatcher_t
 			return this;
 		}
 
-		//! Launch dispatcher.
+		//! Launch the dispatcher.
 		/*!
-		 * \return 0 If dispatcher started successfully. Not-null value
-		 * indicates that dispatcher cannot be started.
+		 * \retval 0 if dispatcher has started successfully. 
+		 * \retval not-null indicates that the dispatcher cannot be started.
 		 */
 		virtual ret_code_t
 		start() = 0;
 
 		//! Signal about shutdown.
 		/*!
-		 * Dispatcher should initiate actions for shutting down all
-		 * working threads. This method should not block caller until
+		 * Dispatcher must initiate actions for shutting down of all
+		 * working threads. This method shall not block caller until
 		 * all threads have beed stopped.
 		 */
 		virtual void
 		shutdown() = 0;
 
-		//! Wait for full stop of dispatcher.
+		//! Wait for the full stop of dispatcher.
 		/*!
-		 * This method should block caller until all working thread
+		 * This method must block caller until all working threads
 		 * have been stopped.
 		 */
 		virtual void
@@ -109,16 +109,16 @@ class SO_5_TYPE dispatcher_t
 			//! Count of events for that agent.
 			unsigned int event_count ) = 0;
 
-		//! Set exception handler.
+		//! Set an exception handler.
 		/*!
-		 * Caller should take care about 
-		 * \a disp_evt_except_handler life-time.
+		 * \attention Caller must guarantee that the \a disp_evt_except_handler 
+		 * is alive while the dispatcher is in use.
 		 */
 		void
 		set_disp_event_exception_handler(
 			disp_evt_except_handler_t & disp_evt_except_handler );
 
-		//! Access to current exception handler.
+		//! Access to the current exception handler.
 		disp_evt_except_handler_t &
 		query_disp_evt_except_handler();
 
@@ -127,14 +127,14 @@ class SO_5_TYPE dispatcher_t
 		disp_evt_except_handler_t * m_disp_evt_except_handler;
 };
 
-//! Typedef for dispatcher autopointer.
+//! Typedef of the dispatcher autopointer.
 typedef std::unique_ptr< dispatcher_t > dispatcher_unique_ptr_t;
 
-//! Typedef for dispatcher smart pointer.
+//! Typedef of the dispatcher smart pointer.
 typedef std::shared_ptr< dispatcher_t >
 	dispatcher_ref_t;
 
-//! Typedef for map from dispatcher name to dispather.
+//! Typedef of the map from dispatcher name to a dispather.
 typedef std::map<
 		std::string,
 		dispatcher_ref_t >

@@ -22,7 +22,7 @@ namespace /* ananymous */
 // destroyable_listener_item_t
 //
 
-//! A listener wrapper for listener which life-time is controlled by agent.
+//! A listener wrapper for listener which lifetime is controlled by agent.
 class destroyable_listener_item_t
 	:
 		public agent_state_listener_t
@@ -53,7 +53,7 @@ class destroyable_listener_item_t
 // nondestroyable_listener_item_t
 //
 
-//! A listener wrapper for listener which life-time is controlled by user.
+//! A listener wrapper for listener which lifetime is controlled by user.
 class nondestroyable_listener_item_t
 	:
 		public agent_state_listener_t

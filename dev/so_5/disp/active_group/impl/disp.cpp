@@ -82,9 +82,9 @@ dispatcher_t::wait()
 void
 dispatcher_t::put_event_execution_request(
 	const so_5::rt::agent_ref_t &,
-	unsigned int )
+	unsigned int event_count )
 {
-	// This method should not be called!
+	// This method shall not be called!
 	std::abort();
 }
 
@@ -101,7 +101,7 @@ dispatcher_t::query_disp_for_group( const std::string & group_name )
 	active_group_disp_map_t::iterator it =
 		m_group_disp.find( group_name );
 
-	// If there is a dispatcher for active group it should be returned.
+	// If there is a dispatcher for an active group it should be returned.
 	if( m_group_disp.end() != it )
 	{
 		++(it->second.m_user_agent);

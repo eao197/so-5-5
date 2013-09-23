@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Agent to dispatcher binder interface.
+	\brief Agent dispatcher binder interface.
 */
 
 #if !defined( _SO_5__DISP__ACTIVE_GROUP__IMPL__DISP_BINDER_HPP_ )
@@ -26,7 +26,7 @@ namespace active_group
 namespace impl
 {
 
-//! Agent to dispatcher binder interface.
+//! Agent dispatcher binder interface.
 class disp_binder_t
 	:
 		public so_5::rt::disp_binder_t
@@ -38,23 +38,23 @@ class disp_binder_t
 
 		virtual ~disp_binder_t();
 
-		//! Bind agent to dispatcher.
+		//! Bind agent to a dispatcher.
 		virtual void
 		bind_agent(
 			so_5::rt::impl::so_environment_impl_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
-		//! Unbind agent from dispatcher.
+		//! Unbind agent from the dispatcher.
 		virtual void
 		unbind_agent(
 			so_5::rt::impl::so_environment_impl_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:
-		//! Name of dispatcher to be bound to.
+		//! Dispatcher name to be bound to.
 		const std::string m_disp_name;
 
-		//! Name of active group to be included in.
+		//! Active group name to be included in.
 		const std::string m_group_name;
 };
 
