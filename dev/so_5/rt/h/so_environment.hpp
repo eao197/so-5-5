@@ -14,7 +14,7 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
-#include <so_5/rt/h/mbox_ref.hpp>
+#include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/disp.hpp>

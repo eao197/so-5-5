@@ -13,7 +13,7 @@
 
 #include <so_5/rt/h/message.hpp>
 
-#include <so_5/rt/h/mbox_ref.hpp>
+#include <so_5/rt/h/mbox.hpp>
 
 #include <type_traits>
 

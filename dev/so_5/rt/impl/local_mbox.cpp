@@ -6,7 +6,7 @@
 
 #include <ace/Guard_T.h>
 
-#include <so_5/rt/h/mbox_ref.hpp>
+#include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/impl/h/local_mbox.hpp>
 
 namespace so_5

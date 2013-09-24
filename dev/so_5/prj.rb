@@ -41,7 +41,6 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "message_ref.cpp" )
 
 		cpp_source( "mbox.cpp" )
-		cpp_source( "mbox_ref.cpp" )
 		cpp_source( "subscription_key.cpp" )
 		cpp_source( "subscription_bind.cpp" )
 

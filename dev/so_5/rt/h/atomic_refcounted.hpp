@@ -13,6 +13,8 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 
+#include <type_traits>
+
 namespace so_5
 {
 
@@ -68,6 +70,194 @@ class SO_5_TYPE atomic_refcounted_t
 	private:
 		//! Object reference count.
 		atomic_counter_t m_ref_counter;
+};
+
+//
+// smart_atomic_reference_t
+//
+/*!
+ * \since v.5.2.0
+ * \brief Template class for smart reference wrapper on atomic_refcounted_t.
+ *
+ * \tparam T class which must be derived from atomic_refcounted_t.
+ */
+template< class T >
+class smart_atomic_reference_t
+{
+		static void ensure_right_T()
+		{
+			static_assert(
+					std::is_base_of< atomic_refcounted_t, T >::value,
+					"T must be derived from atomic_refcounted_t" );
+		}
+
+	public :
+		//! Default constructor.
+		/*!
+		 * Constructs null reference.
+		 */
+		smart_atomic_reference_t()
+			:	m_obj( nullptr )
+		{
+			ensure_right_T();
+		}
+		//! Constructor for a raw pointer.
+		smart_atomic_reference_t( T * obj )
+			:	m_obj( obj )
+		{
+			ensure_right_T();
+			take_object();
+		}
+		//! Copy constructor.
+		smart_atomic_reference_t( const smart_atomic_reference_t & o )
+			:	m_obj( o.m_obj )
+		{
+			ensure_right_T();
+			take_object();
+		}
+		//! Move constructor.
+		smart_atomic_reference_t( smart_atomic_reference_t && o )
+			:	m_obj( o.m_obj )
+		{
+			ensure_right_T();
+			o.m_obj = nullptr;
+		}
+
+		//! Destructor.
+		~smart_atomic_reference_t()
+		{
+			dismiss_object();
+		}
+
+		//! Copy operator.
+		smart_atomic_reference_t &
+		operator=( const smart_atomic_reference_t & o )
+		{
+			smart_atomic_reference_t t( o );
+			swap( t );
+			return *this;
+		}
+
+		//! Move operator.
+		smart_atomic_reference_t &
+		operator=( smart_atomic_reference_t && o )
+		{
+			if( &o != this )
+			{
+				dismiss_object();
+				m_obj = o.m_obj;
+				o.m_obj = nullptr;
+			}
+			return *this;
+		}
+
+		//! Swap values.
+		void
+		swap( smart_atomic_reference_t & o )
+		{
+			T * t = m_obj;
+			m_obj = o.m_obj;
+			o.m_obj = t;
+		}
+
+		//! Is null reference?
+		bool
+		empty() const
+		{
+			return nullptr != m_obj;
+		}
+
+		/*!
+		 * \name Access to object.
+		 * \{
+		 */
+		T *
+		get() const
+		{
+			return m_obj;
+		}
+
+		T *
+		operator->()
+		{
+			return m_obj;
+		}
+
+		const T *
+		operator->() const
+		{
+			return m_obj;
+		}
+
+		T &
+		operator*()
+		{
+			return *m_obj;
+		}
+
+		const T &
+		operator*() const
+		{
+			return *m_obj;
+		}
+		/*!
+		 * \}
+		 */
+
+		/*!
+		 * \name Comparision
+		 * \{
+		 */
+		bool operator==( const smart_atomic_reference_t & o ) const
+		{
+			T * p1 = get();
+			T * p2 = get();
+			if( p1 == nullptr && p2 == nullptr )
+				return true;
+			if( p1 != nullptr && p2 != nullptr )
+				return (*p1) == (*p2);
+			return false;
+		}
+
+		bool operator<( const smart_atomic_reference_t & o ) const
+		{
+			T * p1 = get();
+			T * p2 = get();
+			if( p1 == nullptr && p2 == nullptr )
+				return false;
+			if( p1 != nullptr && p2 != nullptr )
+				return (*p1) < (*p2);
+			if( p1 == nullptr && p2 != nullptr )
+				return true;
+			return false;
+		}
+		/*!
+		 * \}
+		 */
+
+	private :
+		//! Object controlled by smart reference.
+		T * m_obj;
+
+		//! Increment reference count to object if not null.
+		void
+		take_object()
+		{
+			if( m_obj )
+				m_obj->inc_ref_count();
+		}
+
+		//! Decrement reference count to object and delete it if needed.
+		void
+		dismiss_object()
+		{
+			if( m_obj )
+				if( 0 == m_obj->dec_ref_count() )
+				{
+					delete m_obj;
+					m_obj = nullptr;
+				}
+		}
 };
 
 } /* namespace rt */

@@ -15,7 +15,7 @@
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/type_wrapper.hpp>
-#include <so_5/rt/h/mbox_ref.hpp>
+#include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/message_ref.hpp>
 
 namespace so_5

@@ -15,7 +15,6 @@
 
 #include <so_5/rt/h/agent_ref.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/mbox_ref.hpp>
 
 #include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/message_distributor.hpp>

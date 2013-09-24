@@ -17,7 +17,6 @@
 #include <so_5/rt/h/state.hpp>
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/mbox_ref.hpp>
 #include <so_5/rt/h/so_environment.hpp>
 
 #endif

@@ -22,7 +22,7 @@
 
 #include <so_5/util/h/mutex_pool.hpp>
 
-#include <so_5/rt/h/mbox_ref.hpp>
+#include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/rt/h/mbox.hpp>

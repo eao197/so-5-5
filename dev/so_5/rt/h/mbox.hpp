@@ -48,7 +48,6 @@ class named_local_mbox_t;
 
 class agent_t;
 class agent_ref_t;
-class mbox_ref_t;
 class message_ref_t;
 
 //
@@ -80,9 +79,10 @@ class SO_5_TYPE mbox_t
 		private atomic_refcounted_t
 {
 		friend class agent_t;
-		friend class mbox_ref_t;
 		friend class impl::named_local_mbox_t;
 		friend class so_5::timer_thread::timer_act_t;
+
+		friend class smart_atomic_reference_t< mbox_t >;
 
 		mbox_t( const mbox_t & );
 		void
@@ -122,6 +122,17 @@ class SO_5_TYPE mbox_t
 		//! Get mbox name.
 		virtual const std::string &
 		query_name() const = 0;
+
+		/*!
+		 * \name Comparision.
+		 * \{
+		 */
+		bool operator==( const mbox_t & o ) const;
+
+		bool operator<( const mbox_t & o ) const;
+		/*!
+		 * \}
+		 */
 
 	protected:
 		//! Add very first message handler.
@@ -214,6 +225,15 @@ mbox_t::deliver_signal()
 		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t() );
 }
+
+//
+// mbox_ref_t
+//
+//! Smart reference for mbox_t.
+/*!
+ * \note Defined as typedef since v.5.2.0
+ */
+typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
 
 } /* namespace rt */
 
