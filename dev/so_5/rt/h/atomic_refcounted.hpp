@@ -211,7 +211,7 @@ class smart_atomic_reference_t
 		bool operator==( const smart_atomic_reference_t & o ) const
 		{
 			T * p1 = get();
-			T * p2 = get();
+			T * p2 = o.get();
 			if( p1 == nullptr && p2 == nullptr )
 				return true;
 			if( p1 != nullptr && p2 != nullptr )
@@ -222,7 +222,7 @@ class smart_atomic_reference_t
 		bool operator<( const smart_atomic_reference_t & o ) const
 		{
 			T * p1 = get();
-			T * p2 = get();
+			T * p2 = o.get();
 			if( p1 == nullptr && p2 == nullptr )
 				return false;
 			if( p1 != nullptr && p2 != nullptr )
