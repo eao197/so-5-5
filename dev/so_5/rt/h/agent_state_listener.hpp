@@ -29,20 +29,20 @@ class state_t;
 // agent_state_listener_t
 //
 
-//! Interface of agent state listener.
+//! Interface of the agent state listener.
 /*!
- * This interface intended for cases where agent state switches
+ * This interface is intended for cases where the agent state switches
  * should be observed or monitored. A "state listener" is an object
- * which could be attached to an agent and the agent will inform
- * listener about state changes. Such state listeners should implement
+ * which can be attached to an agent and the agent will inform
+ * the listener about state changes. Such state listeners should implement
  * this interface.
  *
- * A non-limited counte of state listeners could be attached to an agent.
- * For each of them agent will call changed() method inside
- * so_5::rt::agent_t::so_change_state().
+ * A unlimited count of state listeners may be attached to the agent.
+ * Agent will call changed() method inside of 
+ * so_5::rt::agent_t::so_change_state() for each of them.
  *
- * \attention It is important not to change agent state inside changed().
- * Because this could lead to infinite recursion.
+ * \attention It is important not to change the agent state inside of changed().
+ * Because this could lead to the infinite recursion.
  */
 class SO_5_TYPE agent_state_listener_t
 	:
@@ -53,7 +53,7 @@ class SO_5_TYPE agent_state_listener_t
 
 		//! Hook method for state changes.
 		/*!
-		 * Agent calls this method after successful change of state.
+		 * Agent calls this method after successful change of the state.
 		 */
 		virtual void
 		changed(
@@ -63,11 +63,11 @@ class SO_5_TYPE agent_state_listener_t
 			const state_t & state ) = 0;
 };
 
-//! Typedef for agent_state_listener autopointer.
+//! Typedef for the agent_state_listener autopointer.
 typedef std::unique_ptr< agent_state_listener_t >
 	agent_state_listener_unique_ptr_t;
 
-//! Typedef for agent_state_listener smart pointer.
+//! Typedef for the agent_state_listener smart pointer.
 typedef std::shared_ptr< agent_state_listener_t >
 	agent_state_listener_ref_t;
 

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Definition of template class event_data.
+	\brief Definition of the template class event_data.
 */
 
 
@@ -25,9 +25,9 @@ namespace rt
 
 class mbox_t;
 
-//! Template for message incapsulation.
+//! Template for the message incapsulation.
 /*!
-	Used to wrap a message which is the source for agent event.
+	Used to wrap a message which is the source for the agent event.
 
 	Usage sample:
 	\code
@@ -39,7 +39,7 @@ class mbox_t;
 	}
 	\endcode
 
-	\tparam MSG type of message.
+	\tparam MSG type of the message.
 */
 template< class MSG >
 class event_data_t
@@ -50,7 +50,7 @@ class event_data_t
 			:	m_message_instance( message_instance )
 		{}
 
-		//! Access to message.
+		//! Access to the message.
 		const MSG&
 		operator * () const
 		{
@@ -59,7 +59,7 @@ class event_data_t
 			return *m_message_instance;
 		}
 
-		//! Access to raw message pointer.
+		//! Access to the raw message pointer.
 		const MSG *
 		get() const
 		{
@@ -68,7 +68,7 @@ class event_data_t
 			return m_message_instance;
 		}
 
-		//! Access to message via pointer.
+		//! Access to the message via pointer.
 		const MSG *
 		operator -> () const
 		{

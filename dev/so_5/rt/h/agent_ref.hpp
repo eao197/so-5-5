@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Smart reference to agent definition.
+	\brief Smart reference to the agent definition.
 */
 
 #if !defined( _SO_5__RT__AGENT_REF_HPP_ )
@@ -20,16 +20,16 @@ namespace rt
 
 class agent_t;
 
-//! Smart reference to agent.
+//! Smart reference to an agent.
 /*!
  * Uses agent's reference counting mechanism.
  */
 class SO_5_TYPE agent_ref_t
 {
 	public:
-		/*! Creates null reference. */
+		/*! Creates a null reference. */
 		agent_ref_t();
-		/*! Gets control on \a agent. */
+		/*! Gets control on the \a agent. */
 		explicit agent_ref_t(
 			agent_t * agent );
 
@@ -53,35 +53,35 @@ class SO_5_TYPE agent_ref_t
 
 		~agent_ref_t();
 
-		//! Raw pointer to refered agent.
+		//! Raw pointer to the refered agent.
 		inline agent_t *
 		get() const
 		{
 			return m_agent_ptr;
 		}
 
-		//! Access to agent via pointer.
+		//! Access to the agent via pointer.
 		inline agent_t *
 		operator -> ()
 		{
 			return m_agent_ptr;
 		}
 
-		//! Access to agent via pointer.
+		//! Access to the agent via pointer.
 		inline const agent_t *
 		operator -> () const
 		{
 			return m_agent_ptr;
 		}
 
-		//! Non-const reference to agent.
+		//! Non-const reference to the agent.
 		inline agent_t &
 		operator * ()
 		{
 			return *m_agent_ptr;
 		}
 
-		//! Const reference to agent.
+		//! Const reference to the agent.
 		inline const agent_t &
 		operator * () const
 		{
@@ -102,13 +102,13 @@ class SO_5_TYPE agent_ref_t
 
 		//! Decrement agent reference count.
 		/*!
-		 * Deletes agent if reference count becames 0.
+		 * Deletes agent if reference count became 0.
 		 */
 		void
 		dec_agent_ref_count();
 
 		/*!
-		 * Release control on agent.
+		 * Release control on the agent.
 		 */
 		inline agent_t *
 		release_pointer()

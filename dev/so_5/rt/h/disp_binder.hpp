@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for dispatcher binders definition.
+	\brief Interface for the dispatcher binders definition.
 */
 
 #if !defined( _SO_5__RT__DISP_BINDER_HPP_ )
@@ -38,7 +38,7 @@ class so_environment_t;
 
 //! Interface for dispatcher binders.
 /*!
- * Dispatcher binders are used in agent registration process to
+ * Dispatcher binders are used in the agent registration process to
  * binding of agents to desired dispatchers.
  */
 class SO_5_TYPE disp_binder_t
@@ -47,7 +47,7 @@ class SO_5_TYPE disp_binder_t
 		disp_binder_t();
 		virtual ~disp_binder_t();
 
-		//! Bind agent to dispatcher.
+		//! Bind agent to the dispatcher.
 		virtual void
 		bind_agent(
 			//! SObjectizer Environment where agent/cooperation/dispatcher

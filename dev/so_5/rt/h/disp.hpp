@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for the dispatcher definition .
+	\brief Interface for the dispatcher definition.
 */
 
 #if !defined( _SO_5__RT__DISP_HPP_ )
@@ -53,12 +53,12 @@ class SO_5_TYPE disp_evt_except_handler_t
 /*!
  * Dispatcher schedules and calls agents' events.
  *
- * Each agent is binded to a dispatcher during registration.
+ * Each agent is binded to a dispatcher during the registration.
  * A dispatcher_binder_t object is used for this.
  *
  * Each agent stores its events in the own event queue. When event is
- * stored in queue agent informs its dispatcher about it. Dispatcher
- * should schedule the agent for the event execution on 
+ * stored in the queue an agent informs its dispatcher about it. 
+ * The dispatcher should schedule the agent for the event execution on 
  * the agent's working thread context.
  */
 class SO_5_TYPE dispatcher_t
@@ -86,16 +86,16 @@ class SO_5_TYPE dispatcher_t
 
 		//! Signal about shutdown.
 		/*!
-		 * Dispatcher must initiate actions for shutting down of all
+		 * Dispatcher must initiate actions for the shutting down of all
 		 * working threads. This method shall not block caller until
 		 * all threads have beed stopped.
 		 */
 		virtual void
 		shutdown() = 0;
 
-		//! Wait for the full stop of dispatcher.
+		//! Wait for the full stop of the dispatcher.
 		/*!
-		 * This method must block caller until all working threads
+		 * This method must block the caller until all working threads
 		 * have been stopped.
 		 */
 		virtual void
@@ -104,7 +104,7 @@ class SO_5_TYPE dispatcher_t
 		//! Schedule execution of agent events.
 		virtual void
 		put_event_execution_request(
-			//! Agent which events should be executed.
+			//! Events of this agent should be executed.
 			const agent_ref_t & agent_ref,
 			//! Count of events for that agent.
 			unsigned int event_count ) = 0;

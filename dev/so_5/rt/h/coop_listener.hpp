@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for cooperation listener definition.
+	\brief Interface for the cooperation listener definition.
 */
 
 #if !defined( _SO_5__RT__COOP_LISTENER_HPP_ )
@@ -27,12 +27,12 @@ class so_environment_t;
 // coop_listener_t
 //
 
-//! Interface for cooperation listener.
+//! Interface for the cooperation listener.
 /*!
- * Cooperation listener intended for observation moments of
+ * Cooperation listener is intended for observation moments of
  * cooperation registrations and deregistrations.
  *
- * \attention SObjectizer doesn't synchronize calls to
+ * \attention SObjectizer doesn't synchronize calls to the 
  * on_registered() and on_deregistered(). If this is a problem
  * then programmer should take care about object's thread safety.
  */
@@ -41,9 +41,10 @@ class SO_5_TYPE coop_listener_t
 	public:
 		virtual ~coop_listener_t();
 
-		//! Hook for cooperation registration event.
+		//! Hook for the cooperation registration event.
 		/*!
-		 * Called right after cooperation successfully registered.
+		 * Method will be called right after the successful 
+		 * cooperation registration.
 		 */
 		virtual void
 		on_registered(
@@ -52,9 +53,9 @@ class SO_5_TYPE coop_listener_t
 			//! Cooperation which was registered.
 			const std::string & coop_name ) = 0;
 
-		//! Hook for cooperation deregistration event.
+		//! Hook for the cooperation deregistration event.
 		/*!
-		 * Called right after cooperation fully deregistered.
+		 * Method will be called right after full cooperation deregistration.
 		 */
 		virtual void
 		on_deregistered(
@@ -64,7 +65,7 @@ class SO_5_TYPE coop_listener_t
 			const std::string & coop_name ) = 0;
 };
 
-//! Typedef for coop_listener autopointer.
+//! Typedef for the coop_listener autopointer.
 typedef std::unique_ptr< coop_listener_t > coop_listener_unique_ptr_t;
 
 } /* namespace rt */

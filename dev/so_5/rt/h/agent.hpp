@@ -54,7 +54,7 @@ class agent_coop_t;
 
 //! A base class for agents.
 /*!
-	An agent in SObjctizer should be derived from the agent_t.
+	An agent in SObjctizer must be derived from the agent_t.
 
 	The base class provides various methods whose could be splitted into
 	the following groups:
@@ -66,7 +66,7 @@ class agent_coop_t;
 
 	<b>Methods for the interaction with SObjectizer</b>
 
-	Method so_5::rt::agent_t::so_environment() serves for access to the 
+	Method so_5::rt::agent_t::so_environment() serves for the access to the 
 	SObjectizer Environment (and, therefore, to all methods of the 
 	SObjectizer Environment).
 	This method could be called immediatelly after the agent creation.
@@ -97,7 +97,7 @@ class agent_coop_t;
 
 	<b>Message subscription and unsubscription methods</b>
 
-	Any method with the following prototype can be used as event
+	Any method with the following prototype can be used as an event
 	handler:
 	\code
 		void
@@ -107,15 +107,15 @@ class agent_coop_t;
 	Where \c evt_handler is a name of the event handler, \c MESSAGE is a 
 	message type.
 
-	Class so_5::rt::event_data_t is a wrapper on pointer to an instance of \c
-	MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. The pointer to \c
-	MESSAGE could be nullptr. It happens in case when the message has no 
-	actual data and servers just a signal about something.
+	The class so_5::rt::event_data_t is a wrapper on pointer to an instance 
+	of the \c MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. 
+	The pointer to \c MESSAGE can be nullptr. It happens in case when 
+	the message has no actual data and servers just a signal about something.
 
-	Subscription to a message is performed by the method so_subscribe().
+	A subscription to the message is performed by the method so_subscribe().
 	This method returns an instance of the so_5::rt::subscription_bind_t which
 	does all actual actions of the subscription process. That instance already
-	knowns agents and message mbox and uses the default agent state for
+	knows agents and message mbox and uses the default agent state for
 	the event subscription (binding to different state is also possible). 
 
 	<b>Methods for working with an agent state</b>
@@ -150,20 +150,20 @@ class SO_5_TYPE agent_t
 	public:
 		//! Constructor.
 		/*!
-			Agent should be bound to SObjectizer Environment during
+			Agent must be bound to SObjectizer Environment during
 			its creation. And that binding cannot be changed anymore.
 		*/
 		explicit agent_t(
-			//! The Environment for that agent is created.
+			//! The Environment for this agent must exist.
 			so_environment_t & env );
 
 		virtual ~agent_t();
 
-		//! Get raw pointer to itself.
+		//! Get the raw pointer of itself.
 		/*!
-			This method is intended for use in member initialization
+			This method is intended for use in the member initialization
 			list instead 'this' to suppres compiler warnings.
-			For example for agent state initialization:
+			For example for an agent state initialization:
 			\code
 			class a_sample_t
 				:
@@ -193,11 +193,11 @@ class SO_5_TYPE agent_t
 		//! Hook on agent start inside SObjectizer.
 		/*!
 			It is guaranteed that this method will be called first
-			just after end of cooperation registration process.
+			just after end of the cooperation registration process.
 
 			During cooperation registration agent is bound to some
 			working thread. And the first method which is called for
-			the agent on that working thread context is that method.
+			the agent on that working thread context is this method.
 
 			\code
 			class a_sample_t
@@ -225,7 +225,7 @@ class SO_5_TYPE agent_t
 			It is guaranteed that this method will be called last
 			just before deattaching agent from it's working thread.
 
-			This method could be used to perform some cleanup
+			This method should be used to perform some cleanup
 			actions on it's working thread.
 			\code
 			class a_sample_t
@@ -244,7 +244,7 @@ class SO_5_TYPE agent_t
 
 				if( so_current_state() == m_db_error_happened )
 				{
-					// Delete DB connection on the same thread where
+					// Delete the DB connection on the same thread where
 					// connection was established and where some
 					// error happened.
 					m_db.release();
@@ -262,40 +262,40 @@ class SO_5_TYPE agent_t
 			return *m_current_state_ptr;
 		}
 
-		//! Name of agent's cooperation.
+		//! Name of the agent's cooperation.
 		/*!
-		 * \note It is safe to use this method when agent is working inside
-		 * SObjectizer because agent could be registered only in some
+		 * \note It is safe to use this method when agent is working inside of
+		 * SObjectizer because agent can be registered only in some
 		 * cooperation. When agent is not registered in SObjectizer this
 		 * method should be used with care.
 		 *
 		 * \throw so_5::exception_t If agent doesn't belong to any cooperation.
 		 *
-		 * \return Name of cooperation if agent is bound to a cooperation.
+		 * \return Cooperation name if agent is bound to the cooperation.
 		 */
 		const std::string &
 		so_coop_name() const;
 
-		//! Add state listener to agent.
+		//! Add a state listener to the agent.
 		/*!
 		 * A programmer should guaranteed that lifetime of
-		 * \a state_listener is exceed lifetime of the agent.
+		 * \a state_listener is exceeds lifetime of the agent.
 		 */
 		void
 		so_add_nondestroyable_listener(
 			agent_state_listener_t & state_listener );
 
-		//! Add state listener to agent.
+		//! Add a state listener to the agent.
 		/*!
-		 * Agent tooks care of destruction of \a state_listener.
+		 * Agent takes care of the \a state_listener destruction.
 		 */
 		void
 		so_add_destroyable_listener(
 			agent_state_listener_unique_ptr_t state_listener );
 
-		//! Push an event to agent's event queue.
+		//! Push an event to the agent's event queue.
 		/*!
-			This method is used by SObjectizer for agent's event scheduling.
+			This method is used by SObjectizer for the agent's event scheduling.
 		*/
 		static inline void
 		call_push_event(
@@ -306,14 +306,14 @@ class SO_5_TYPE agent_t
 			agent.push_event( event_handler_caller, message );
 		}
 
-		//! Run event handler for next event.
+		//! Run the event handler for the next event.
 		/*!
-			This method is used by dispatcher/working thread for
-			event handler execution.
+			This method is used by a dispatcher/working thread for
+			the event handler execution.
 		*/
 		static inline void
 		call_next_event(
-			//! Agents which events should be executed.
+			//! Agent which event will be executed.
 			agent_t & agent )
 		{
 			agent.exec_next_event();
@@ -330,7 +330,7 @@ class SO_5_TYPE agent_t
 
 	protected:
 		/*!
-		 * \name Methods for working with agent state.
+		 * \name Methods for working with the agent state.
 		 * \{
 		 */
 
@@ -338,7 +338,7 @@ class SO_5_TYPE agent_t
 		const state_t &
 		so_default_state() const;
 
-		//! Change state.
+		//! Method changes state.
 		/*!
 			Usage sample:
 			\code
@@ -346,8 +346,8 @@ class SO_5_TYPE agent_t
 			a_sample_t::evt_smth(
 				const so_5::rt::event_data_t< message_one_t > & msg )
 			{
-				// If something wrong with message then we should
-				// switch to error_state.
+				// If something wrong with the message then we should
+				// switch to the error_state.
 				if( error_in_data( *msg ) )
 					so_change_state( m_error_state );
 			}
@@ -396,11 +396,11 @@ class SO_5_TYPE agent_t
 
 		//! Hook on define agent for SObjectizer.
 		/*!
-			This method is called by SObjectizer during cooperation
+			This method is called by SObjectizer during the cooperation
 			registration process before agent will be bound to its
 			working thread.
 
-			May be used by agent to make necessary message subscriptions.
+			Should be used by the agent to make necessary message subscriptions.
 
 			Usage sample;
 			\code
@@ -473,7 +473,7 @@ class SO_5_TYPE agent_t
 		 */
 
 	public:
-		//! Access to SObjectizer Environment for that agent is belong.
+		//! Access to the SObjectizer Environment which this agent is belong.
 		/*!
 			Usage sample for other cooperation registration:
 			\code
@@ -495,7 +495,7 @@ class SO_5_TYPE agent_t
 			}
 			\endcode
 
-			Usage sample for SObjectizer shutting down:
+			Usage sample for the SObjectizer shutting down:
 			\code
 			void
 			a_sample_t::evt_last_event(
@@ -510,23 +510,23 @@ class SO_5_TYPE agent_t
 		so_environment();
 
 	private:
-		//! Make agent reference.
+		//! Make an agent reference.
 		/*!
 		 * This is an internal SObjectizer method. It is called when
-		 * it is guaranteed that agent is still necessary and something
+		 * it is guaranteed that the agent is still necessary and something
 		 * has reference to it.
 		 */
 		agent_ref_t
 		create_ref();
 
 		/*!
-		 * \name Embedding agent into SObjectize run-time.
+		 * \name Embedding agent into the SObjectizer run-time.
 		 * \{
 		 */
 
-		//! Bind agent to cooperation.
+		//! Bind agent to the cooperation.
 		/*!
-		 * Initializes internal cooperation pointer.
+		 * Initializes an internal cooperation pointer.
 		 *
 		 * Drops m_is_coop_deregistered to false.
 		 */
@@ -535,22 +535,23 @@ class SO_5_TYPE agent_t
 			//! Cooperation for that agent.
 			agent_coop_t & coop );
 
-		//! Bind agent to SObjectizer Environment.
+		//! Bind agent to the SObjectizer Environment.
 		/*!
-		 * Called from agent constructor.
+		 * Method is called from the agent constructor.
 		 *
-		 * Initializes internal SObjectizer Environment pointer.
+		 * Method initializes the internal SObjectizer Environment pointer.
 		 */
 		void
 		bind_to_environment(
 			impl::so_environment_impl_t & env_impl );
 
-		//! Bind agent to dispatcher.
+		//! Bind agent to the dispatcher.
 		/*!
-		 * Initializes internal dispatcher poiner.
+		 * Method initializes the internal dispatcher poiner.
 		 *
-		 * Checks local event queue. If queue is not empty then
-		 * tells dispatcher to schedule agent for event processing.
+		 * Method checks the local event queue. If the queue is not empty then
+		 * method tells to dispatcher to schedule the agent 
+		 * for the event processing.
 		 */
 		void
 		bind_to_disp(
@@ -558,14 +559,14 @@ class SO_5_TYPE agent_t
 
 		//! Agent definition driver.
 		/*!
-		 * Calls so_define_agent() and then stores agent definition flag.
+		 * Method calls so_define_agent() and then stores an agent definition flag.
 		 */
 		void
 		define_agent();
 
 		//! Agent undefinition deriver.
 		/*!
-		 * Destroys all agent subscriptions.
+		 * Method destroys all agent subscriptions.
 		*/
 		void
 		undefine_agent();
@@ -602,19 +603,19 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 
-		//! Push event into local event queue.
+		//! Push event into the local event queue.
 		void
 		push_event(
-			//! Event handler caller for event.
+			//! Event handler caller for an event.
 			const event_caller_block_ref_t & event_handler_caller,
 			//! Event message.
 			const message_ref_t & message );
 
-		//! Execute next event.
+		//! Execute the next event.
 		/*!
-		 * \attention Should be called only on working thread contex.
+		 * \attention Must be called only on working thread context.
 		 *
-		 * \attention It is assumed that local event queue is not empty.
+		 * \pre The local event queue must be not empty.
 		 */
 		void
 		exec_next_event();
@@ -630,7 +631,7 @@ class SO_5_TYPE agent_t
 
 		//! Agent definition flag.
 		/*!
-		 * Set to true after successful return from so_define_agent().
+		 * Set to true after a successful return from the so_define_agent().
 		 */
 		bool m_was_defined;
 
@@ -638,7 +639,7 @@ class SO_5_TYPE agent_t
 		std::unique_ptr< impl::state_listener_controller_t >
 			m_state_listener_controller;
 
-		//! Typedef for map from subscriptions to event handlers.
+		//! Typedef for the map from subscriptions to event handlers.
 		typedef std::map<
 				subscription_key_t,
 				impl::message_consumer_link_t * >
@@ -654,21 +655,21 @@ class SO_5_TYPE agent_t
 		//! SObjectizer Environment for which the agent is belong.
 		impl::so_environment_impl_t * m_so_environment_impl;
 
-		//! Dispatcher for that agent.
+		//! Dispatcher of this agent.
 		/*!
 		 * By default this pointer points to a special stub.
-		 * This stub do nothing but allows to safely call method for
+		 * This stub do nothing but allows safely call method for
 		 * events scheduling.
 		 *
-		 * This pointer received actual value after binding
-		 * agent to real dispatcher.
+		 * This pointer received the actual value after binding
+		 * agent to the real dispatcher.
 		 */
 		dispatcher_t * m_dispatcher;
 
-		//! Cooperation to which agent is belong.
+		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;
 
-		//! Is cooperation deregistration in progress?
+		//! Is the cooperation deregistration in progress?
 		bool m_is_coop_deregistered;
 };
 

@@ -56,7 +56,7 @@ const int rc_agent_incompatible_type_conversion = 15;
 //! A zero pointer is detected.
 const int rc_zero_ptr_to_coop = 20;
 
-//! Name of the cooperation is not unique.
+//! Cooperation name is not unique.
 const int rc_coop_with_specified_name_is_already_registered = 21;
 
 //! Cooperation has the null reference to an agent or dispatcher binding.
@@ -80,7 +80,8 @@ const int rc_disp_start_failed = 30;
 //! Unable to create a dispatcher.
 const int rc_disp_create_failed = 31;
 
-//! The expected type of dispatcher and actual type of the agent dispatcher are not the same.
+//! The expected type of dispatcher and the actual type of the 
+//! agent dispatcher are not the same.
 const int rc_disp_type_mismatch = 32;
 
 //! \}
@@ -98,11 +99,11 @@ const int rc_no_event_handler_provided = 41;
 //! Unable to deregister that handler.
 /*!
  * There is a handler for the event/mbox/state, but it is another handler.
- * Not the one is specified for deregistration.
+ * Not the one is specified for the deregistration.
  */
 const int rc_event_handler_match_error = 42;
 
-//! Agent doesn't own that state.
+//! Agent doesn't own this state.
 const int rc_agent_is_not_the_state_owner = 43;
 
 //! An interceptor for the event/mbox/state is already registered.
@@ -112,10 +113,10 @@ const int rc_intercept_handler_already_provided = 44;
 //! cannot be deregistered.
 const int rc_no_interception_handler_provided = 45;
 
-//! Unable to deregister that interceptor.
+//! Unable to deregister this interceptor.
 /*!
  * There is an interceptor for the event/mbox/state, but it is another handler.
- * Not the one is specified for deregistration.
+ * Not the one is specified for the deregistration.
  */
 const int rc_interception_handler_match_error = 46;
 //! \}
@@ -134,7 +135,7 @@ const int rc_mbox_unable_to_find_mbox = 81;
  * \since v.5.2.0
  *
  * An attempt to deliver message_t by nullptr pointer to it is an error.
- * A signal should be used for that.
+ * A signal should be used for this.
  */
 const int rc_null_message_data = 82;
 //! \}
@@ -149,16 +150,16 @@ const int rc_unable_to_schedule_timer_act = 90;
 //! \name Error codes for layers.
 //! \{
 
-//! The layer is not bound to the SObjectizer environment.
+//! The layer is not bound to the SObjectizer Environment.
 const int rc_layer_not_binded_to_so_env = 100;
 
 //! Unable to bind a layer by the null pointer to it.
 const int rc_trying_to_add_nullptr_extra_layer = 101;
 
-//! The layer is already bound to the SObjectizer environment as a default layer.
+//! The layer is already bound to the SObjectizer Environment as a default layer.
 const int rc_trying_to_add_extra_layer_that_already_exists_in_default_list = 102;
 
-//! The layer is already bound to the SObjectizer environment as an extra layer.
+//! The layer is already bound to the SObjectizer Environment as an extra layer.
 const int rc_trying_to_add_extra_layer_that_already_exists_in_extra_list = 103;
 
 //! Layer initialization is failed.

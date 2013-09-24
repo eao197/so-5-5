@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Base class for object with reference counting definition.
+	\brief The base class for the object with a reference counting definition.
 */
 
 #if !defined( _SO_5__RT__ATOMIC_REFCOUNTED_HPP_ )
@@ -19,9 +19,9 @@ namespace so_5
 namespace rt
 {
 
-//! Base class for object with reference counting.
+//! The base class for the object with a reference counting.
 /*!
- * Should be used as base class. Smart reference for such objects
+ * Should be used as a base class. The smart reference for such objects
  * should be defined for derived classes (for example so_5::rt::agent_ref_t).
 */
 class SO_5_TYPE atomic_refcounted_t
@@ -36,7 +36,7 @@ class SO_5_TYPE atomic_refcounted_t
 			const atomic_refcounted_t & );
 
 	public:
-		//! Default constructor
+		//! Default constructor.
 		/*!
 		 * Sets reference counter to 0.
 		 */
@@ -48,7 +48,7 @@ class SO_5_TYPE atomic_refcounted_t
 		 */
 		~atomic_refcounted_t();
 
-		//! Increment reference count.
+		//! Increments reference count.
 		inline void
 		inc_ref_count()
 		{

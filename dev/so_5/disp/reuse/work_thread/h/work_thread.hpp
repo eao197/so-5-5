@@ -71,7 +71,8 @@ typedef std::deque< demand_t > demand_container_t;
 /*!
 	demand_queue_t has shutdown flag inside.
 
-	Thread safe and is intended to be used by several concurrent threads.
+	demand_queue_t is thread safe and is intended to be used by 
+	several concurrent threads.
 */
 class demand_queue_t
 {
@@ -79,7 +80,7 @@ class demand_queue_t
 		demand_queue_t();
 		~demand_queue_t();
 
-		//! Put demand into queue.
+		//! Put demand into the queue.
 		void
 		push(
 			//! Agent which events will be dispatched.

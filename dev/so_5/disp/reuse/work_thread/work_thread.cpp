@@ -100,7 +100,7 @@ demand_queue_t::pop(
 		else
 		{
 			// Queue is empty. We should wait for a demand or
-			// shutdown signal.
+			// a shutdown signal.
 			m_not_empty.wait();
 		}
 	}

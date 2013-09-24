@@ -10,7 +10,7 @@
 	to start a SObjectizer Environment. SObjectizer contains several functions
 	which make a SObjectizer Environment launching process easier.
 
-	This file contains declarations of that functions.
+	This file contains declarations of these functions.
 */
 
 #if !defined( _SO_5__API__API_HPP_ )
@@ -166,8 +166,8 @@ run_so_environment(
 			throwing_strategy );
 }
 
-//! Launch a SObjectizer Environment with the parametrized initialization routine
-//! and Enviroment parameters.
+//! Launch a SObjectizer Environment with the parametrized 
+//! initialization routine and Enviroment parameters.
 /*!
 
 Allows to pass an additional argument to the initialization process.

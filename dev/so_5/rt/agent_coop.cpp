@@ -183,7 +183,7 @@ agent_coop_t::unbind_agents_from_disp(
 void
 agent_coop_t::agent_finished()
 {
-	// If it is last working agent then Environment should be
+	// If it is the last working agent then Environment should be
 	// informed that cooperation is ready to be deregistered.
 	if( 0 == --m_working_agents_count )
 	{

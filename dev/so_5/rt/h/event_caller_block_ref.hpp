@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Smart reference to event_caller_block definition.
+	\brief Smart reference to the event_caller_block definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_CALLER_BLOCK_REF_HPP_ )
@@ -24,7 +24,7 @@ class event_caller_block_t;
 // event_caller_block_ref_t
 //
 
-//! Smart reference to event_caller_block.
+//! Smart reference to the event_caller_block.
 class SO_5_TYPE event_caller_block_ref_t
 {
 	public:
@@ -65,7 +65,7 @@ class SO_5_TYPE event_caller_block_ref_t
 	private:
 		//! Decrement reference count.
 		/*!
-		 * Deletes event_caller_block if reference counter became 0.
+		 * Deletes event_caller_block if reference counter become 0.
 		 */
 		void
 		dec_event_caller_block_ref_count();

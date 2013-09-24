@@ -40,19 +40,25 @@ class so_environment_impl_t;
 class so_environment_t;
 class agent_coop_t;
 
-//! Typedef for agent_coop autopointer.
+//! Typedef for the agent_coop autopointer.
 typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
 
 //! Agent cooperation.
 /*!
- * The main purpose of cooperation is introduce several agents into
- * SObjectizer as a whole. A cooperation should be registered
- * (e.g. all agents from cooperations should be registered). If an agent from
- * cooperation cannot be registered then whole cooperation is not registered.
+ * The main purpose of the cooperation is the introducing of several agents into
+ * SObjectizer as a single unit. A cooperation should be registered.
  *
- * Agents are added to cooperation by add_agent() method.
+ * For the cooperation to be successfuly registered all of its agents must 
+ * successfuly pass registration steps (so-define, bind to the dispatcher). 
+ * If at least one agent from this cooperation fails to pass any of 
+ * mentioned steps, the cooperation will not be registered and 
+ * all of agents will run procedures opposite to registration 
+ * steps (unbind from the dispatcher, so-undefine) which had been successfuly 
+ * taken for the particulary agent in the reverse order.
  *
- * After addition to cooperation the cooperation tooks care about
+ * Agents are added to the cooperation by the add_agent() method.
+ *
+ * After addition to the cooperation the cooperation takes care about
  * agent lifetime.
  */
 class SO_5_TYPE agent_coop_t
@@ -89,18 +95,18 @@ class SO_5_TYPE agent_coop_t
 
 		//! Add agent to cooperation.
 		/*!
-		 * Cooperation tooks care about agent lifetime.
+		 * Cooperation takes care about agent lifetime.
 		 *
-		 * Default dispatcher binding is used for agent.
+		 * Default dispatcher binding is used for the agent.
 		 */
 		ret_code_t
 		add_agent(
 			const agent_ref_t & agent_ref );
 
-		//! Add agent to cooperation with dispatcher binding.
+		//! Add agent to the cooperation with the dispatcher binding.
 		/*!
-		 * Instead of default dispatcher binding the \a disp_binder
-		 * is used for that agent during cooperation registration.
+		 * Instead of the default dispatcher binding the \a disp_binder
+		 * is used for this agent during the cooperation registration.
 		 */
 		ret_code_t
 		add_agent(
@@ -111,7 +117,7 @@ class SO_5_TYPE agent_coop_t
 
 		//! Internal SObjectizer method.
 		/*!
-		 * Informs cooperation about full finishing of agent work.
+		 * Informs cooperation about full finishing of agent's work.
 		 */
 		static inline void
 		call_agent_finished( agent_coop_t & coop )
@@ -121,7 +127,7 @@ class SO_5_TYPE agent_coop_t
 
 		//! Internal SObjectizer method.
 		/*!
-		 * Initiate final deregistration stage.
+		 * Initiate a final deregistration stage.
 		 */
 		static inline void
 		call_final_deregister_coop( agent_coop_t * coop )
@@ -148,42 +154,42 @@ class SO_5_TYPE agent_coop_t
 			disp_binder_ref_t m_binder;
 		};
 
-		//! Typedef for agent information container.
+		//! Typedef for the agent information container.
 		typedef std::vector< agent_with_disp_binder_t > agent_array_t;
 
-		//! Bind agents to cooperation.
+		//! Bind agents to the cooperation.
 		void
 		bind_agents_to_coop();
 
-		//! Call define_agent method for all cooperation agents.
+		//! Calls define_agent method for all cooperation agents.
 		void
 		define_all_agents();
 
-		//! Call undefine_agent method for all cooperation agents.
+		//! Calls undefine_agent method for all cooperation agents.
 		void
 		undefine_all_agents();
 
-		//! Call undefine_agent method for the agent specified.
+		//! Calls undefine_agent method for the agent specified.
 		/*!
-		 * Call undefine_agent for all agents in range
+		 * Calls undefine_agent for all agents in range
 		 * [m_agent_array.begin(), it).
 		 */
 		void
 		undefine_some_agents(
-			//! Right border of processing range.
+			//! Right border of the processing range.
 			agent_array_t::iterator it );
 
-		//! Bind agents to dispatcher.
+		//! Bind agents to the dispatcher.
 		void
 		bind_agents_to_disp();
 
-		//! Unbind agent from dispatcher.
+		//! Unbind agent from the dispatcher.
 		/*!
 		 * Unbinds all agents in range [m_agent_array.begin(), it).
 		 */
 		void
 		unbind_agents_from_disp(
-			//! Right border of processing range.
+			//! Right border of the processing range.
 			agent_array_t::iterator it );
 
 		//! Process signal about finished work of an agent.
@@ -193,12 +199,12 @@ class SO_5_TYPE agent_coop_t
 		 * no more events in its queue it informs cooperation about this.
 		 *
 		 * When cooperation detects that all agents have finished their
-		 * work it initiates agents destruction.
+		 * work it initiates the agent's destruction.
 		 */
 		void
 		agent_finished();
 
-		//! Do final deregistration stage.
+		//! Do the final deregistration stage.
 		void
 		final_deregister_coop();
 
@@ -211,7 +217,7 @@ class SO_5_TYPE agent_coop_t
 		//! Agent undefinition flag.
 		bool m_agents_are_undefined;
 
-		//! Default agent to dispatcher binder.
+		//! Default agent to the dispatcher binder.
 		disp_binder_ref_t m_coop_disp_binder;
 
 		//! Cooperation agents.
@@ -224,7 +230,7 @@ class SO_5_TYPE agent_coop_t
 		atomic_counter_t m_working_agents_count;
 };
 
-//! Typedef for agent_coop smart pointer.
+//! Typedef for the agent_coop smart pointer.
 typedef std::shared_ptr< agent_coop_t > agent_coop_ref_t;
 
 } /* namespace rt */

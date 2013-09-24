@@ -32,7 +32,7 @@ namespace /* ananymous */
 // hook_event_caller_t
 //
 
-//! Base class for starting and finishing event calling.
+//! The base class for starting and finishing event calling.
 class hook_event_caller_t
 	:
 		public event_handler_caller_t
@@ -74,9 +74,9 @@ class hook_event_caller_t
 //
 
 /*!
- * \brief Hook for staring event.
+ * \brief Hook for the starting event.
  *
- * That event is added into event queue as first event to
+ * That event is added into the event queue as first event to
  * call so_5::rt::so_evt_start().
  */
 class start_hook_event_caller_t
@@ -116,9 +116,9 @@ class start_hook_event_caller_t
 
 
 /*!
- * \brief Hook for staring event.
+ * \brief Hook for the starting event.
  *
- * That event is used to call so_5::rt::so_evt_start().
+ * This event is used to call so_5::rt::so_evt_start().
  */
 class finish_hook_event_caller_t
 	:
@@ -151,7 +151,7 @@ class finish_hook_event_caller_t
 };
 
 /*!
- * A stub for initial value of so_5::rt::agent_t::m_dispatcher.
+ * A stub for the initial value of the so_5::rt::agent_t::m_dispatcher.
  */
 impl::void_dispatcher_t g_void_dispatcher;
 
@@ -174,7 +174,7 @@ agent_t::agent_t(
 		m_agent_coop( 0 ),
 		m_is_coop_deregistered( false )
 {
-	// Bind to environment should be done.
+	// Bind to the environment should be done.
 	bind_to_environment( env.so_environment_impl() );
 }
 
@@ -307,7 +307,7 @@ agent_t::undefine_agent()
 					event_caller_block,
 					message_ref_t() ) );
 
-			// Dispatcher should be informed about that event.
+			// Dispatcher should be informed about this event.
 			m_dispatcher->put_event_execution_request(
 				create_ref(), 1 );
 		}
@@ -372,8 +372,8 @@ agent_t::bind_to_disp(
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
-	// A pointer to stub should be in m_dispatcher.
-	// If it is not true then agent is already bound to dispatcher.
+	// A pointer to the stub should be in the m_dispatcher.
+	// If it is not true then agent is already bound to the dispatcher.
 	if( m_dispatcher != &g_void_dispatcher )
 	{
 		throw exception_t(
@@ -383,13 +383,13 @@ agent_t::bind_to_disp(
 
 	m_dispatcher = &disp;
 
-	// Dispatcher should be informed about events in local queue.
+	// Dispatcher should be informed about events in the local queue.
 	m_dispatcher->put_event_execution_request(
 		create_ref(),
 		m_local_event_queue->size() );
 }
 
-//! Make textual representation of subscription key.
+//! Make textual representation of the subscription key.
 inline std::string
 subscription_key_string( const subscription_key_t & sk )
 {
@@ -477,7 +477,7 @@ agent_t::push_event(
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
-	// Event can be added only if agent is not deregistered yet.
+	// Event can be added only if the agent is not deregistered yet.
 	if( !m_is_coop_deregistered )
 	{
 		m_local_event_queue->push(
@@ -499,7 +499,7 @@ agent_t::exec_next_event()
 		m_local_event_queue->pop( event_item );
 
 		// This value is necessary to inform cooperation about agent
-		// work finishing in case of cooperation deregistration.
+		// work finishing in the case of the cooperation deregistration.
 		agent_finished_his_work_totally =
 			m_is_coop_deregistered && 0 == m_local_event_queue->size();
 	}
@@ -507,7 +507,7 @@ agent_t::exec_next_event()
 	event_item.m_event_caller_block->call(
 		event_item.m_message_ref );
 
-	// Special case for cooperation deregistration.
+	// Special case for the cooperation deregistration.
 	if( agent_finished_his_work_totally )
 	{
 		agent_coop_t::call_agent_finished( *m_agent_coop );

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Wrapper around a bunch of event callers definition.
+	\brief Wrapper around a bunch of the event callers definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_CALLER_BLOCK_HPP_ )
@@ -30,7 +30,7 @@ namespace rt
 // event_caller_block_t
 //
 
-//! Typedef for event_handler_caller_ref container.
+//! Typedef for the event_handler_caller_ref container.
 typedef std::vector< event_handler_caller_ref_t > evt_caller_array_t;
 
 //! Wrapper around a bunch of event callers.
@@ -68,7 +68,7 @@ class SO_5_TYPE event_caller_block_t
 		const event_handler_caller_t *
 		find( const event_handler_caller_ref_t & ehc_ref ) const;
 
-		//! Is this bunch empty.
+		//! Is this bunch empty?
 		bool
 		is_empty() const;
 

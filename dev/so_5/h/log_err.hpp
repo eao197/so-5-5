@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Auxiliary macros
+	\brief Auxiliary macros.
 */
 
 #ifndef _SO_5__LOG_ERR_HPP_
