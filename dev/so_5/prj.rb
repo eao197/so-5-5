@@ -1,3 +1,5 @@
+require 'mxx_ru/cpp'
+
 require 'so_5/version'
 
 MxxRu::Cpp::dll_target {

@@ -74,6 +74,25 @@ class SO_5_TYPE signal_t
 };
 
 //
+// ensure_not_signal
+//
+/*!
+ * \since v.5.2.0
+ * \brief A special compile-time checker to guarantee that message
+ * class is not a signal class.
+ */
+template< class MSG >
+void
+ensure_not_signal()
+{
+	static_assert( !std::is_base_of< signal_t, MSG >::value,
+			"instance of signal_t cannot be used in place of instance of "
+			"message_t" );
+	static_assert( std::is_base_of< message_t, MSG >::value,
+			"message class should be derived from message_t" );
+}
+
+//
 // ensure_message_with_actual_data
 //
 /*!
@@ -89,11 +108,7 @@ template< class MSG >
 void
 ensure_message_with_actual_data( const MSG * m )
 {
-	static_assert( !std::is_base_of< signal_t, MSG >::value,
-			"instance of signal_t cannot be used in place of instance of "
-			"message_t" );
-	static_assert( std::is_base_of< message_t, MSG >::value,
-			"message class should be derived from message_t" );
+	ensure_not_signal< MSG >();
 
 	if( !m )
 		throw so_5::exception_t(
