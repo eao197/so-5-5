@@ -24,7 +24,7 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/subscription_bind.hpp>
 #include <so_5/rt/h/subscription_key.hpp>
-#include <so_5/rt/h/event_caller_block_ref.hpp>
+#include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 
 namespace so_5

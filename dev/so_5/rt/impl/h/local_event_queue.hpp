@@ -17,7 +17,7 @@
 
 #include <so_5/util/h/mutex_pool.hpp>
 
-#include <so_5/rt/h/event_caller_block_ref.hpp>
+#include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/message.hpp>
 
 namespace so_5

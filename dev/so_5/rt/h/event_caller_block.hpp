@@ -16,7 +16,7 @@
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/message.hpp>
-#include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/event_handler_caller_ref.hpp>
 
 namespace so_5
@@ -37,7 +37,7 @@ class SO_5_TYPE event_caller_block_t
 	:
 		private atomic_refcounted_t
 {
-		friend class event_caller_block_ref_t;
+		friend class smart_atomic_reference_t< event_caller_block_t >;
 
 	public:
 		event_caller_block_t();
@@ -87,6 +87,16 @@ event_caller_block_t::call(
 		if( (*it)->call( message_ref ) )
 			break;
 }
+
+//
+// event_caller_block_ref_t
+//
+/*!
+ * \brief A smart reference to event_caller_block.
+ * \note Defined as typedef since v.5.2.0.
+ */
+typedef smart_atomic_reference_t< event_caller_block_t >
+		event_caller_block_ref_t;
 
 } /* namespace rt */
 
