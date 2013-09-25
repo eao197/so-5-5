@@ -41,7 +41,6 @@ class so_environment_impl_t;
 } /* namespace impl */
 
 class type_wrapper_t;
-class message_ref_t;
 
 //
 // so_environment_params_t

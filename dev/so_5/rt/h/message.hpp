@@ -38,7 +38,7 @@ class SO_5_TYPE message_t
 	:
 		private atomic_refcounted_t
 {
-		friend class message_ref_t;
+		friend class smart_atomic_reference_t< message_t >;
 
 	public:
 		message_t();
@@ -48,6 +48,15 @@ class SO_5_TYPE message_t
 
 		virtual ~message_t();
 };
+
+//
+// message_ref_t
+//
+//! A smart reference to message.
+/*!
+ * \note Defined as typedef since v.5.2.0
+ */
+typedef smart_atomic_reference_t< message_t > message_ref_t;
 
 //
 // signal_t

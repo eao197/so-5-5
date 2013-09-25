@@ -15,6 +15,7 @@
 
 #include <so_5/h/types.hpp>
 #include <so_5/rt/h/agent_ref.hpp>
+#include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/event_handler_caller_ref.hpp>
 #include <so_5/rt/h/event_caller_block_ref.hpp>
@@ -24,8 +25,6 @@ namespace so_5
 
 namespace rt
 {
-
-class message_ref_t;
 
 namespace impl
 {

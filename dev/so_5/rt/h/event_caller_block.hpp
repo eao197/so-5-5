@@ -16,7 +16,6 @@
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/message.hpp>
-#include <so_5/rt/h/message_ref.hpp>
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/event_handler_caller_ref.hpp>
 

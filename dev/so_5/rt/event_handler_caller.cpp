@@ -4,7 +4,7 @@
 
 #include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent_ref.hpp>
-#include <so_5/rt/h/message_ref.hpp>
+#include <so_5/rt/h/message.hpp>
 
 namespace so_5
 {
