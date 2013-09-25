@@ -17,7 +17,7 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent_ref_fwd.hpp>
-#include <so_5/rt/h/event_handler_caller_ref.hpp>
+#include <so_5/rt/h/event_handler_caller.hpp>
 
 namespace so_5
 {

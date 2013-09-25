@@ -30,6 +30,13 @@ event_handler_caller_t::target_state() const
 	return 0;
 }
 
+bool
+event_handler_caller_t::operator==( const event_handler_caller_t & o ) const
+{
+	return ( target_state() == o.target_state() &&
+			type_wrapper() == o.type_wrapper() );
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */

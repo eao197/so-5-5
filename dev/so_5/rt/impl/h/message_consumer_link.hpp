@@ -17,7 +17,6 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_handler_caller.hpp>
-#include <so_5/rt/h/event_handler_caller_ref.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 
 namespace so_5

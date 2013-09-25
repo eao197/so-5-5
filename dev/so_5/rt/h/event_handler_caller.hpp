@@ -20,18 +20,13 @@
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/message.hpp>
+#include <so_5/rt/h/event_handler_caller_ref_fwd.hpp>
 
 namespace so_5
 {
 
 namespace rt
 {
-
-class agent_t;
-class message_t;
-
-
-class event_handler_caller_t;
 
 //
 // event_handler_caller_t
@@ -42,7 +37,7 @@ class SO_5_TYPE event_handler_caller_t
 	:
 		private atomic_refcounted_t
 {
-		friend class event_handler_caller_ref_t;
+		friend class smart_atomic_reference_t< event_handler_caller_t >;
 
 		event_handler_caller_t(
 			const event_handler_caller_t & );
@@ -75,6 +70,10 @@ class SO_5_TYPE event_handler_caller_t
 		//! Target state for the event.
 		virtual const state_t *
 		target_state() const;
+
+		//! Equality operator.
+		bool
+		operator==( const event_handler_caller_t & o ) const;
 };
 
 //

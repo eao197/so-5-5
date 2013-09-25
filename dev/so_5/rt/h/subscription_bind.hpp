@@ -21,7 +21,6 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/event_handler_caller.hpp>
-#include <so_5/rt/h/event_handler_caller_ref.hpp>
 
 namespace so_5
 {
