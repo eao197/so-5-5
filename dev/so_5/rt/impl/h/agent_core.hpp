@@ -22,7 +22,6 @@
 
 #include <so_5/util/h/mutex_pool.hpp>
 
-#include <so_5/rt/h/agent_ref.hpp>
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/coop_listener.hpp>

@@ -19,7 +19,7 @@
 #include <so_5/h/throwing_strategy.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
+#include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
 
 namespace so_5

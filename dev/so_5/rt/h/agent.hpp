@@ -20,8 +20,8 @@
 #include <so_5/h/throwing_strategy.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
 #include <so_5/rt/h/subscription_bind.hpp>
 #include <so_5/rt/h/subscription_key.hpp>
 #include <so_5/rt/h/event_caller_block_ref.hpp>
@@ -144,7 +144,7 @@ class SO_5_TYPE agent_t
 {
 		friend class subscription_bind_t;
 		friend class subscription_unbind_t;
-		friend class agent_ref_t;
+		friend class smart_atomic_reference_t< agent_t >;
 		friend class agent_coop_t;
 
 	public:

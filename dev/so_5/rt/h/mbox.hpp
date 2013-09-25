@@ -47,7 +47,6 @@ class named_local_mbox_t;
 } /* namespace impl */
 
 class agent_t;
-class agent_ref_t;
 
 //
 // mbox_t

@@ -17,7 +17,6 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/type_wrapper.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
 #include <so_5/rt/h/state.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_data.hpp>

@@ -17,8 +17,6 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
-#include <so_5/rt/h/agent_ref.hpp>
-
 namespace so_5
 {
 

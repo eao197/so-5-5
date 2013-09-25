@@ -13,7 +13,7 @@
 #include <memory>
 
 #include <so_5/h/declspec.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
+#include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/disp.hpp>
 
 namespace so_5

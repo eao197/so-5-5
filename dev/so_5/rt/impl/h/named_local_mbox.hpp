@@ -13,7 +13,6 @@
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/agent_ref.hpp>
 #include <so_5/rt/h/mbox.hpp>
 
 #include <so_5/rt/impl/h/mbox_core.hpp>

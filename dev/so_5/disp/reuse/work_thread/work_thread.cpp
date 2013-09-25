@@ -60,7 +60,7 @@ demand_queue_t::push(
 		{
 			// ...and the last demand in the queue is for the same agent...
 			demand_t & dmnd = m_demands.back();
-			if( agent_ref == dmnd.m_agent_ref )
+			if( agent_ref.get() == dmnd.m_agent_ref.get() )
 			{
 				// ... then only the demand counter should be incremented.
 				dmnd.m_event_cnt += event_cnt;

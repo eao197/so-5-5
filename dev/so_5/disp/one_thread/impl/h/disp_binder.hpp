@@ -12,7 +12,7 @@
 #define _SO_5__DISP__ONE_THREAD__IMPL__DISP_BINDER_HPP_
 
 #include <so_5/rt/h/disp_binder.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
+#include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 
 namespace so_5

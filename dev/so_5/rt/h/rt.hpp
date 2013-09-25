@@ -12,7 +12,6 @@
 
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/state.hpp>
 #include <so_5/rt/h/event_data.hpp>

@@ -17,7 +17,7 @@
 #include <ace/Atomic_Op.h>
 
 #include <so_5/h/declspec.hpp>
-#include <so_5/rt/h/agent_ref.hpp>
+#include <so_5/rt/h/agent.hpp>
 
 namespace so_5
 {

@@ -17,7 +17,7 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
-#include <so_5/rt/h/agent_ref.hpp>
+#include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/event_exception_handler.hpp>
 
 namespace so_5
