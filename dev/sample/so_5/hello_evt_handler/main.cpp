@@ -67,7 +67,7 @@ a_hello_t::so_evt_start()
 	msg->m_message = "Hello, world! This is SObjectizer v.5.";
 
 	// Sent hello message.
-	m_self_mbox->deliver_message( msg );
+	m_self_mbox->deliver_message( std::move(msg) );
 }
 
 void

@@ -118,7 +118,7 @@ test_agent_sender_t::evt_send_messages(
 		std::unique_ptr< test_message > tm( new test_message );
 		tm->m_is_last = true;
 
-		m_mbox_receiver->deliver_message( tm );
+		m_mbox_receiver->deliver_message( std::move(tm) );
 	}
 	else
 	{

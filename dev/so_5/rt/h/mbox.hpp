@@ -98,17 +98,6 @@ class SO_5_TYPE mbox_t
 		inline void
 		deliver_message(
 			//! Message data.
-			std::unique_ptr< MESSAGE > & msg_unique_ptr );
-
-
-		//! Deliver message.
-		/*!
-		 * Mbox take care about destroying a message object.
-		*/
-		template< class MESSAGE >
-		inline void
-		deliver_message(
-			//! Message data.
 			std::unique_ptr< MESSAGE > && msg_unique_ptr );
 
 
@@ -187,19 +176,6 @@ class SO_5_TYPE mbox_t
 		virtual const mbox_t *
 		cmp_ordinal() const;
 };
-
-
-template< class MESSAGE >
-void
-mbox_t::deliver_message(
-	std::unique_ptr< MESSAGE > & msg_unique_ptr )
-{
-	ensure_message_with_actual_data( msg_unique_ptr.get() );
-
-	deliver_message(
-		type_wrapper_t( typeid( MESSAGE ) ),
-		message_ref_t( msg_unique_ptr.release() ) );
-}
 
 template< class MESSAGE >
 void
