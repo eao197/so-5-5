@@ -26,8 +26,8 @@ namespace impl
 disp_core_t::disp_core_t(
 	so_environment_t & so_environment,
 	const named_dispatcher_map_t & named_dispatcher_map,
-	event_exception_logger_unique_ptr_t && logger,
-	event_exception_handler_unique_ptr_t && handler )
+	event_exception_logger_unique_ptr_t logger,
+	event_exception_handler_unique_ptr_t handler )
 	:
 		m_so_environment( so_environment ),
 		m_default_dispatcher( so_5::disp::one_thread::create_disp() ),
@@ -110,7 +110,7 @@ disp_core_t::wait()
 
 void
 disp_core_t::install_exception_logger(
-	event_exception_logger_unique_ptr_t && logger )
+	event_exception_logger_unique_ptr_t logger )
 {
 	if( nullptr != logger.get() )
 	{
@@ -126,7 +126,7 @@ disp_core_t::install_exception_logger(
 
 void
 disp_core_t::install_exception_handler(
-	event_exception_handler_unique_ptr_t && handler )
+	event_exception_handler_unique_ptr_t handler )
 {
 	if( nullptr != handler.get() )
 	{

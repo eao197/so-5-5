@@ -20,13 +20,13 @@ namespace rt
 
 agent_coop_t::agent_coop_t(
 	const nonempty_name_t & name,
-	disp_binder_unique_ptr_t & coop_disp_binder,
+	disp_binder_unique_ptr_t coop_disp_binder,
 	impl::so_environment_impl_t & env_impl )
 	:
 		m_coop_name( name.query_name() ),
 		m_lock( env_impl.create_agent_coop_mutex() ),
 		m_agents_are_undefined( false ),
-		m_coop_disp_binder( coop_disp_binder.release() ),
+		m_coop_disp_binder( std::move(coop_disp_binder) ),
 		m_so_environment_impl( env_impl ),
 		m_working_agents_count( 0 )
 {
@@ -35,11 +35,11 @@ agent_coop_t::agent_coop_t(
 agent_coop_unique_ptr_t
 agent_coop_t::create_coop(
 	const nonempty_name_t & name,
-	disp_binder_unique_ptr_t & coop_disp_binder,
+	disp_binder_unique_ptr_t coop_disp_binder,
 	impl::so_environment_impl_t & env_impl )
 {
 	return agent_coop_unique_ptr_t( new agent_coop_t(
-		name, coop_disp_binder, env_impl ) );
+		name, std::move(coop_disp_binder), env_impl ) );
 }
 
 agent_coop_t::~agent_coop_t()

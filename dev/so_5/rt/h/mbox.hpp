@@ -98,7 +98,7 @@ class SO_5_TYPE mbox_t
 		inline void
 		deliver_message(
 			//! Message data.
-			std::unique_ptr< MESSAGE > && msg_unique_ptr );
+			std::unique_ptr< MESSAGE > msg_unique_ptr );
 
 
 		//! Deliver signal.
@@ -132,7 +132,7 @@ class SO_5_TYPE mbox_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer for this message.
-			std::unique_ptr< impl::message_consumer_link_t > &
+			std::unique_ptr< impl::message_consumer_link_t >
 				message_consumer_link,
 			//! The very first message handler.
 			const event_handler_caller_ref_t &
@@ -180,7 +180,7 @@ class SO_5_TYPE mbox_t
 template< class MESSAGE >
 void
 mbox_t::deliver_message(
-	std::unique_ptr< MESSAGE > && msg_unique_ptr )
+	std::unique_ptr< MESSAGE > msg_unique_ptr )
 {
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
 

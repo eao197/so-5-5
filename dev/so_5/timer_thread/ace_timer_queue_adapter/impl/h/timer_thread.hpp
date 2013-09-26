@@ -99,7 +99,7 @@ class timer_thread_t
 		 */
 		virtual timer_id_t
 		schedule_act(
-			timer_act_unique_ptr_t & timer_act );
+			timer_act_unique_ptr_t timer_act );
 
 		virtual void
 		cancel_act(

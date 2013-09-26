@@ -61,7 +61,7 @@ class local_mbox_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer for that message type.
-			std::unique_ptr< impl::message_consumer_link_t > &
+			std::unique_ptr< impl::message_consumer_link_t >
 				message_consumer_link,
 			//! The first event caller for that message.
 			const event_handler_caller_ref_t &

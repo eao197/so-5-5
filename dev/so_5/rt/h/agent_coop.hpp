@@ -72,7 +72,7 @@ class SO_5_TYPE agent_coop_t
 			//! Cooperation name.
 			const nonempty_name_t & name,
 			//! Default dispatcher binding.
-			disp_binder_unique_ptr_t & coop_disp_binder,
+			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment.
 			impl::so_environment_impl_t & env_impl );
 
@@ -83,7 +83,7 @@ class SO_5_TYPE agent_coop_t
 			//! Cooperation name.
 			const nonempty_name_t & name,
 			//! Default dispatcher binding.
-			disp_binder_unique_ptr_t & coop_disp_binder,
+			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment for which cooperation will be created.
 			impl::so_environment_impl_t & env_impl );
 

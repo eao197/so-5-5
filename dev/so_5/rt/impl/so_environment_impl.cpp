@@ -81,7 +81,8 @@ so_environment_impl_t::schedule_timer(
 			delay_msec,
 			period_msec ) );
 
-	timer_thread::timer_id_t timer_id = m_timer_thread->schedule_act( timer_act );
+	timer_thread::timer_id_t timer_id = m_timer_thread->schedule_act(
+			std::move(timer_act) );
 
 	return timer_thread::timer_id_ref_t::create(
 		*m_timer_thread,
@@ -103,7 +104,7 @@ so_environment_impl_t::single_timer(
 			delay_msec,
 			0 ) );
 
-	m_timer_thread->schedule_act( timer_act );
+	m_timer_thread->schedule_act( std::move(timer_act) );
 }
 
 so_layer_t *

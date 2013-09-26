@@ -427,12 +427,10 @@ agent_t::create_event_subscription(
 		impl::message_consumer_link_t * message_consumer_link_ptr =
 			new impl::message_consumer_link_t( create_ref() );
 
-		std::unique_ptr< impl::message_consumer_link_t >
-			message_consumer_link( message_consumer_link_ptr );
-
 		mbox_ref->subscribe_first_event_handler(
 			type_wrapper,
-			message_consumer_link,
+			std::unique_ptr< impl::message_consumer_link_t >(
+				message_consumer_link_ptr ),
 			ehc );
 
 		m_event_consumers_map.insert(

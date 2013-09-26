@@ -30,10 +30,8 @@ message_distributor_t::~message_distributor_t()
 void
 message_distributor_t::push_first(
 	const type_wrapper_t & type_wrapper,
-	std::unique_ptr< impl::message_consumer_link_t > &
-		message_consumer_link,
-	const event_handler_caller_ref_t &
-		event_handler_caller_ref )
+	std::unique_ptr< impl::message_consumer_link_t > message_consumer_link,
+	const event_handler_caller_ref_t & event_handler_caller_ref )
 {
 	message_consumer_link_ref_t
 		ref_ptr( message_consumer_link.release() );

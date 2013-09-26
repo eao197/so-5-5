@@ -79,7 +79,7 @@ class SO_5_TYPE timer_thread_t
 		//! Push delayed/periodic message to the timer queue.
 		virtual timer_id_t
 		schedule_act(
-			timer_act_unique_ptr_t & timer_act ) = 0;
+			timer_act_unique_ptr_t timer_act ) = 0;
 
 		//! Cancel delayer/periodic message.
 		virtual void

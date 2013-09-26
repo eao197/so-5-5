@@ -15,6 +15,7 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
+#include <so_5/rt/impl/h/message_consumer_link.hpp>
 #include <so_5/rt/impl/h/mbox_core.hpp>
 
 namespace so_5
@@ -61,7 +62,7 @@ class named_local_mbox_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! A consumer to be added.
-			std::unique_ptr< impl::message_consumer_link_t > &
+			std::unique_ptr< impl::message_consumer_link_t >
 				message_consumer_link,
 			//! Event handler to be added to consumer.
 			const event_handler_caller_ref_t &

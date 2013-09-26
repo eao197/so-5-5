@@ -57,7 +57,7 @@ so_environment_params_t::agent_event_queue_mutex_pool_size(
 so_environment_params_t &
 so_environment_params_t::add_named_dispatcher(
 	const nonempty_name_t & name,
-	dispatcher_unique_ptr_t && dispatcher )
+	dispatcher_unique_ptr_t dispatcher )
 {
 	m_named_dispatcher_map[ name.query_name() ] =
 		dispatcher_ref_t( dispatcher.release() );
@@ -66,7 +66,7 @@ so_environment_params_t::add_named_dispatcher(
 
 so_environment_params_t &
 so_environment_params_t::timer_thread(
-	so_5::timer_thread::timer_thread_unique_ptr_t && timer_thread )
+	so_5::timer_thread::timer_thread_unique_ptr_t timer_thread )
 {
 	m_timer_thread = std::move( timer_thread );
 	return  *this;
@@ -74,7 +74,7 @@ so_environment_params_t::timer_thread(
 
 so_environment_params_t &
 so_environment_params_t::coop_listener(
-	coop_listener_unique_ptr_t && coop_listener )
+	coop_listener_unique_ptr_t coop_listener )
 {
 	m_coop_listener = std::move( coop_listener );
 	return *this;
@@ -82,7 +82,7 @@ so_environment_params_t::coop_listener(
 
 so_environment_params_t &
 so_environment_params_t::event_exception_logger(
-	event_exception_logger_unique_ptr_t && logger )
+	event_exception_logger_unique_ptr_t logger )
 {
 	if( nullptr != logger.get() )
 		m_event_exception_logger = std::move( logger );
@@ -92,7 +92,7 @@ so_environment_params_t::event_exception_logger(
 
 so_environment_params_t &
 so_environment_params_t::event_exception_handler(
-	event_exception_handler_unique_ptr_t && handler )
+	event_exception_handler_unique_ptr_t handler )
 {
 	if( nullptr != handler.get() )
 		m_event_exception_handler = std::move( handler );
@@ -180,8 +180,7 @@ so_environment_t::create_local_mbox(
 
 mbox_ref_t
 so_environment_t::create_local_mbox(
-	std::unique_ptr< ACE_RW_Thread_Mutex >
-		lock_ptr )
+	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 {
 	return m_so_environment_impl->create_local_mbox(
 		std::move( lock_ptr ) );
@@ -190,8 +189,7 @@ so_environment_t::create_local_mbox(
 mbox_ref_t
 so_environment_t::create_local_mbox(
 	const nonempty_name_t & nonempty_name,
-	std::unique_ptr< ACE_RW_Thread_Mutex >
-		lock_ptr )
+	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 {
 	return m_so_environment_impl->create_local_mbox(
 		nonempty_name,
@@ -214,14 +212,14 @@ so_environment_t::query_named_dispatcher(
 
 void
 so_environment_t::install_exception_logger(
-	event_exception_logger_unique_ptr_t && logger )
+	event_exception_logger_unique_ptr_t logger )
 {
 	m_so_environment_impl->install_exception_logger( std::move( logger ) );
 }
 
 void
 so_environment_t::install_exception_handler(
-	event_exception_handler_unique_ptr_t && handler )
+	event_exception_handler_unique_ptr_t handler )
 {
 	m_so_environment_impl->install_exception_handler( std::move( handler ) );
 }
@@ -242,7 +240,7 @@ so_environment_t::create_coop(
 {
 	return agent_coop_t::create_coop(
 		name,
-		disp_binder,
+		std::move(disp_binder),
 		so_environment_impl() );
 }
 

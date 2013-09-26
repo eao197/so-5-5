@@ -74,8 +74,7 @@ class mbox_core_t
 		mbox_ref_t
 		create_local_mbox(
 			//! A mutex for mbox.
-			std::unique_ptr< ACE_RW_Thread_Mutex >
-				lock_ptr );
+			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
 		//! Create local named mbox with specified mutex.
 		mbox_ref_t
@@ -83,8 +82,7 @@ class mbox_core_t
 			//! Mbox name.
 			const nonempty_name_t & nonempty_name,
 			//! A mutex for mbox.
-			std::unique_ptr< ACE_RW_Thread_Mutex >
-				lock_ptr );
+			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
 		//! Remove a reference to named mbox.
 		/*!

@@ -21,7 +21,7 @@ event_exception_logger_t::~event_exception_logger_t()
 
 void
 event_exception_logger_t::on_install(
-	event_exception_logger_unique_ptr_t && previous_logger )
+	event_exception_logger_unique_ptr_t previous_logger )
 {
 	// Default implementation deletes old logger.
 	previous_logger.reset();

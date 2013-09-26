@@ -234,8 +234,7 @@ work_thread_t::handle_exception(
 	const std::exception & ex,
 	const so_5::rt::agent_ref_t & a_exception_producer )
 {
-	rt::event_exception_response_action_unique_ptr_t
-		response_action =
+	auto response_action =
 			m_disp.query_disp_evt_except_handler().handle_exception(
 				ex,
 				a_exception_producer->so_coop_name() );

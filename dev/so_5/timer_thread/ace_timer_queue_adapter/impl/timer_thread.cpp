@@ -86,7 +86,7 @@ timer_thread_t::wait()
 
 timer_id_t
 timer_thread_t::schedule_act(
-	timer_act_unique_ptr_t & timer_act )
+	timer_act_unique_ptr_t timer_act )
 {
 	ACE_GUARD_RETURN( ACE_SYNCH_RECURSIVE_MUTEX, lock, mutex(), -1 );
 

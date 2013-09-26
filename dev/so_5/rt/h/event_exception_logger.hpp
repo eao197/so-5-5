@@ -67,7 +67,7 @@ class SO_5_TYPE event_exception_logger_t
 		virtual void
 		on_install(
 			//! Old logger.
-			event_exception_logger_unique_ptr_t && previous_logger );
+			event_exception_logger_unique_ptr_t previous_logger );
 };
 
 //

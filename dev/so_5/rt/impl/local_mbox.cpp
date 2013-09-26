@@ -47,15 +47,14 @@ local_mbox_t::~local_mbox_t()
 void
 local_mbox_t::subscribe_first_event_handler(
 	const type_wrapper_t & type_wrapper,
-	std::unique_ptr< impl::message_consumer_link_t > &
-		message_consumer_link,
+	std::unique_ptr< impl::message_consumer_link_t > message_consumer_link,
 	const event_handler_caller_ref_t &
 		event_handler_caller_ref )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 	m_message_distributor.push_first(
 		type_wrapper,
-		message_consumer_link,
+		std::move(message_consumer_link),
 		event_handler_caller_ref );
 }
 

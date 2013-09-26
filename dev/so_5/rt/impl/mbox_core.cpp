@@ -74,8 +74,7 @@ mbox_core_t::create_local_mbox(
 
 mbox_ref_t
 mbox_core_t::create_local_mbox(
-	std::unique_ptr< ACE_RW_Thread_Mutex >
-		lock_ptr )
+	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 {
 	mbox_ref_t mbox_ref(
 		new local_mbox_t(
@@ -88,8 +87,7 @@ mbox_core_t::create_local_mbox(
 mbox_ref_t
 mbox_core_t::create_local_mbox(
 	const nonempty_name_t & nonempty_name,
-	std::unique_ptr< ACE_RW_Thread_Mutex >
-		lock_ptr )
+	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 {
 	const std::string name = nonempty_name.query_name();
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_dictionary_lock );

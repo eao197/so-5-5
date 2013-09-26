@@ -41,8 +41,8 @@ class disp_core_t
 		disp_core_t(
 			so_environment_t & so_environment,
 			const named_dispatcher_map_t & named_dispatcher_map,
-			event_exception_logger_unique_ptr_t && logger,
-			event_exception_handler_unique_ptr_t && handler );
+			event_exception_logger_unique_ptr_t logger,
+			event_exception_handler_unique_ptr_t handler );
 
 		virtual ~disp_core_t();
 
@@ -74,12 +74,12 @@ class disp_core_t
 		//! Install exception logger.
 		void
 		install_exception_logger(
-			event_exception_logger_unique_ptr_t && logger );
+			event_exception_logger_unique_ptr_t logger );
 
 		//! Install exception handler.
 		void
 		install_exception_handler(
-			event_exception_handler_unique_ptr_t && handler );
+			event_exception_handler_unique_ptr_t handler );
 
 		//! Handle an exception.
 		/*!

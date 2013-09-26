@@ -127,7 +127,7 @@ class so_environment_impl_t
 		//! Set up exception logger.
 		inline void
 		install_exception_logger(
-			event_exception_logger_unique_ptr_t && logger )
+			event_exception_logger_unique_ptr_t logger )
 		{
 			m_disp_core.install_exception_logger( std::move( logger ) );
 		}
@@ -135,7 +135,7 @@ class so_environment_impl_t
 		//! Set up exception handler.
 		inline void
 		install_exception_handler(
-			event_exception_handler_unique_ptr_t && handler )
+			event_exception_handler_unique_ptr_t handler )
 		{
 			m_disp_core.install_exception_handler( std::move( handler ) );
 		}

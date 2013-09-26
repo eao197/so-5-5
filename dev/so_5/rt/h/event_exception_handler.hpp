@@ -102,7 +102,7 @@ class SO_5_TYPE event_exception_handler_t
 		virtual void
 		on_install(
 			//! Old exception handler.
-			event_exception_handler_unique_ptr_t && previous_handler );
+			event_exception_handler_unique_ptr_t previous_handler );
 };
 
 //

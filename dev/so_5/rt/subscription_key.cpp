@@ -41,9 +41,7 @@ bool
 subscription_key_t::operator == (
 	const subscription_key_t & subscription_key ) const
 {
-	return
-		subscription_key.m_type_wrapper ==
-			m_type_wrapper &&
+	return subscription_key.m_type_wrapper == m_type_wrapper &&
 		subscription_key.m_mbox == m_mbox;
 }
 

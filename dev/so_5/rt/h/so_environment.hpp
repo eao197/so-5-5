@@ -119,7 +119,7 @@ class SO_5_TYPE so_environment_params_t
 			//! Dispatcher name.
 			const nonempty_name_t & name,
 			//! Dispatcher.
-			dispatcher_unique_ptr_t && dispatcher );
+			dispatcher_unique_ptr_t dispatcher );
 
 		//! Set the timer thread.
 		/*!
@@ -129,7 +129,7 @@ class SO_5_TYPE so_environment_params_t
 		so_environment_params_t &
 		timer_thread(
 			//! Timer thread to be set.
-			so_5::timer_thread::timer_thread_unique_ptr_t && timer_thread );
+			so_5::timer_thread::timer_thread_unique_ptr_t timer_thread );
 
 		//! Add an additional layer to the SObjectizer Environment.
 		/*!
@@ -141,7 +141,7 @@ class SO_5_TYPE so_environment_params_t
 		so_environment_params_t &
 		add_layer(
 			//! A layer to be added.
-			std::unique_ptr< SO_LAYER > && layer_ptr )
+			std::unique_ptr< SO_LAYER > layer_ptr )
 		{
 			if( layer_ptr.get() )
 			{
@@ -157,15 +157,15 @@ class SO_5_TYPE so_environment_params_t
 
 		so_environment_params_t &
 		coop_listener(
-			coop_listener_unique_ptr_t && coop_listener );
+			coop_listener_unique_ptr_t coop_listener );
 
 		so_environment_params_t &
 		event_exception_logger(
-			event_exception_logger_unique_ptr_t && logger );
+			event_exception_logger_unique_ptr_t logger );
 
 		so_environment_params_t &
 		event_exception_handler(
-			event_exception_handler_unique_ptr_t && handler );
+			event_exception_handler_unique_ptr_t handler );
 
 		unsigned int
 		mbox_mutex_pool_size() const;
@@ -406,12 +406,12 @@ class SO_5_TYPE so_environment_t
 		//! Set up an exception logger.
 		void
 		install_exception_logger(
-			event_exception_logger_unique_ptr_t && logger );
+			event_exception_logger_unique_ptr_t logger );
 
 		//! Set up an exception handler.
 		void
 		install_exception_handler(
-			event_exception_handler_unique_ptr_t && handler );
+			event_exception_handler_unique_ptr_t handler );
 		/*!
 		 * \}
 		 */
@@ -519,40 +519,12 @@ class SO_5_TYPE so_environment_t
 		 * \{
 		 */
 
-//FIXME: why not to use a simple std::unique_ptr instead of
-//reference and rvalue reference?
 		//! Schedule timer event.
 		template< class MESSAGE >
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
 			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > & msg,
-			//! Mbox to which message will be delivered.
-			const mbox_ref_t & mbox,
-			//! Timeout before the first delivery.
-			unsigned int delay_msec,
-			//! Period of the delivery repetition for periodic messages.
-			/*! 
-				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
-			*/
-			unsigned int period_msec )
-		{
-			ensure_message_with_actual_data( msg.get() );
-
-			return schedule_timer(
-				type_wrapper_t( typeid( MESSAGE ) ),
-				message_ref_t( msg.release() ),
-				mbox,
-				delay_msec,
-				period_msec );
-		}
-
-		//! Schedule timer event.
-		template< class MESSAGE >
-		so_5::timer_thread::timer_id_ref_t
-		schedule_timer(
-			//! Message to be sent after timeout.
-			std::unique_ptr< MESSAGE > && msg,
+			std::unique_ptr< MESSAGE > msg,
 			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.

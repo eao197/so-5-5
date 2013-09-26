@@ -27,7 +27,7 @@ event_exception_handler_t::~event_exception_handler_t()
 
 void
 event_exception_handler_t::on_install(
-	event_exception_handler_unique_ptr_t && previous_handler )
+	event_exception_handler_unique_ptr_t previous_handler )
 {
 	// Standard implementation deletes the old handler.
 	previous_handler.reset();
