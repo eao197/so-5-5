@@ -1,5 +1,5 @@
 /*
- * A sample of exception logger.
+ * A sample of the exception logger.
  */
 
 #include <iostream>
@@ -9,7 +9,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// A class of exception logger.
+// A class of the exception logger.
 class sample_event_exception_logger_t
 	:
 		public so_5::rt::event_exception_logger_t
@@ -33,7 +33,7 @@ class sample_event_exception_logger_t
 		}
 };
 
-// A class of agent which will throw an exception.
+// A class of an agent which will throw an exception.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -67,20 +67,20 @@ class a_hello_t
 		}
 };
 
-// SObjectizer Environment initialization.
+// The SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Adding agent to cooperation.
+	// Adding agent to the cooperation.
 	coop->add_agent(
 		so_5::rt::agent_ref_t(
 			new a_hello_t( env ) ) );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 }
 

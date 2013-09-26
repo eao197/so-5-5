@@ -40,9 +40,9 @@ class msg_hello_to_all
 		virtual ~msg_hello_to_all()
 		{}
 
-		// Name of sender.
+		// Sender name.
 		std::string m_sender;
-		// Mbox of sender.
+		// Sender mbox.
 		so_5::rt::mbox_ref_t m_mbox;
 };
 
@@ -59,7 +59,7 @@ class msg_hello_to_you
 		virtual ~msg_hello_to_you()
 		{}
 
-		// Name of sender.
+		// Sender name.
 		std::string m_sender;
 };
 
@@ -74,7 +74,7 @@ class shutdowner_layer_t
 		}
 
 		//
-		// Implementation of methods for layer control.
+		// Implementation of methods for the layer control.
 		//
 
 		// Start layer.
@@ -101,7 +101,7 @@ class shutdowner_layer_t
 			std::cout << "shutdowner_layer shutdown()" << std::endl;
 		}
 
-		// Wait for layer shutdown.
+		// Wait for the layer shutdown.
 		virtual void
 		wait()
 		{
@@ -136,13 +136,13 @@ class shutdowner_layer_t
 		}
 
 	private:
-		// Mbox for sending shutdown signal.
+		// Mbox for sending a shutdown signal.
 		so_5::rt::mbox_ref_t m_shutdown_mbox;
 
 		std::set< so_5::rt::agent_t* > m_subscribers;
 };
 
-// Definition of agent for SObjectizer.
+// Definition of an agent for SObjectizer.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -163,7 +163,7 @@ class a_hello_t
 		virtual ~a_hello_t()
 		{}
 
-		// Definition of agent for SObjectizer.
+		// Definition of an agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
@@ -171,23 +171,23 @@ class a_hello_t
 		virtual void
 		so_evt_start();
 
-		// A reaction to common greeting.
+		// A reaction to the common greeting.
 		void
 		evt_hello_to_all(
 			const so_5::rt::event_data_t< msg_hello_to_all > & evt_data );
 
-		// A reaction to personal greeting.
+		// A reaction to the personal greeting.
 		void
 		evt_hello_to_you(
 			const so_5::rt::event_data_t< msg_hello_to_you > & evt_data );
 
-		// A reaction to shutdown.
+		// A reaction to the shutdown.
 		void
 		evt_shutdown(
 			const so_5::rt::event_data_t< msg_shutdown > & evt_data );
 
-		// A subscription to shutdown message.
-		// This method is a callback for shutdowner_layer.
+		// A shutdown message subscription.
+		// This method is a callback for the shutdowner_layer.
 		void
 		subscribe( so_5::rt::mbox_ref_t & shutdown_mbox );
 
@@ -206,7 +206,7 @@ class a_hello_t
 void
 a_hello_t::so_define_agent()
 {
-	// Subscription to messages.
+	// Message subscription.
 	so_subscribe( m_common_mbox )
 		.event( &a_hello_t::evt_hello_to_all );
 
@@ -273,11 +273,11 @@ a_hello_t::subscribe( so_5::rt::mbox_ref_t & shutdown_mbox )
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Adding agents to cooperation.
+	// Adding agents to the cooperation.
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env, "alpha" ) ) );
 	coop->add_agent( so_5::rt::agent_ref_t(
@@ -285,7 +285,7 @@ init( so_5::rt::so_environment_t & env )
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env, "gamma" ) ) );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 }
 

@@ -25,21 +25,21 @@ class a_hello_t
 		{}
 };
 
-// SObjectizer Environment initialization.
+// The SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::nonempty_name_t coop_name( "coop" );
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		coop_name );
 
-	// Adding agent to cooperation.
+	// Adding agent to the cooperation.
 	coop->add_agent(
 		so_5::rt::agent_ref_t(
 			new a_hello_t( env ) ) );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 
 	// Stopping SObjectizer.
@@ -55,7 +55,7 @@ class coop_listener_impl_t
 		virtual ~coop_listener_impl_t()
 		{}
 
-		// A reaction to cooperation registration.
+		// A reaction to the cooperation registration.
 		virtual void
 		on_registered(
 			so_5::rt::so_environment_t & so_env,
@@ -65,7 +65,7 @@ class coop_listener_impl_t
 				<< coop_name << "'\n";
 		}
 
-		// A reaction to cooperation deregistration.
+		// A reaction to the cooperation deregistration.
 		virtual void
 		on_deregistered(
 			so_5::rt::so_environment_t & so_env,
@@ -84,8 +84,8 @@ main( int, char ** )
 		so_5::api::run_so_environment(
 			&init,
 			so_5::rt::so_environment_params_t()
-				// Adding cooperation listener to show what happened
-				// with sample cooperation.
+				// Adding a cooperation listener to show what happened
+				// with the sample cooperation.
 				.coop_listener(
 					so_5::rt::coop_listener_unique_ptr_t(
 						new coop_listener_impl_t ) )  );

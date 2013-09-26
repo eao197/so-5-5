@@ -8,7 +8,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// Definition of agent for SObjectizer.
+// Definition of an agent for SObjectizer.
 class a_hello_t
 	:
 		public so_5::rt::agent_t
@@ -46,16 +46,16 @@ class a_hello_t
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Adding agent to cooperation.
+	// Adding agent to the cooperation.
 	coop->add_agent(
 		so_5::rt::agent_ref_t(
 			new a_hello_t( env ) ) );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 }
 

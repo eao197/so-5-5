@@ -19,7 +19,7 @@ enum sample_state_t
 	SECOND_STATE,
 };
 
-// Message for changing state.
+// Message for the changing state.
 struct change_state_message
 	:
 		public so_5::rt::message_t
@@ -81,7 +81,7 @@ struct my_another_message
 	std::string s;
 };
 
-// Sample message for demonstrtion of subscription.
+// Sample message for the subscription demonstrtion.
 class my_agent_t
 	:
 		public so_5::rt::agent_t
@@ -94,7 +94,7 @@ class my_agent_t
 
 		virtual ~my_agent_t() {}
 
-		// Definition of agent for SObjectizer.
+		// Definition of an agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
@@ -184,9 +184,9 @@ my_agent_t::so_evt_start()
 	std::cout << "so_evt_start()" << std::endl;
 
 	std::cout << "\tsend sample messages sequence for state changes" << std::endl;
-	// Send a siries of messages.
+	// Send siries of messages.
 
-	// Switch to first state and hande messages.
+	// Switch to first state and handle messages.
 	m_mbox->deliver_message( change_state_message::create( FIRST_STATE ) );
 }
 

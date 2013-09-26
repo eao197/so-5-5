@@ -1,5 +1,5 @@
 /*
- * A sample of message interchange.
+ * A sample of the message interchange.
  */
 
 #include <iostream>
@@ -24,9 +24,9 @@ class msg_hello_to_all
 				m_mbox( mbox )
 		{}
 
-		// Name of sender.
+		// Sender name.
 		const std::string m_sender;
-		// Mbox of sender.
+		// Sender Mbox.
 		const so_5::rt::mbox_ref_t m_mbox;
 };
 
@@ -41,7 +41,7 @@ class msg_hello_to_you
 				m_sender( sender )
 		{}
 
-		// Name of sender.
+		// Sender name.
 		const std::string m_sender;
 };
 
@@ -67,7 +67,7 @@ class a_hello_t
 		virtual ~a_hello_t()
 		{}
 
-		// Definition of agent for SObjectizer.
+		// Definition of the agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
@@ -97,7 +97,7 @@ class a_hello_t
 void
 a_hello_t::so_define_agent()
 {
-	// Subscription to messages.
+	// Message subscription.
 	so_subscribe( m_common_mbox )
 		.event( &a_hello_t::evt_hello_to_all );
 
@@ -141,15 +141,15 @@ a_hello_t::evt_hello_to_you(
 		<< evt_data->m_sender << std::endl;
 }
 
-// SObjectizer Environment initialization.
+// The SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Adding agents to cooperation.
+	// Adding agents to the cooperation.
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env, "alpha" ) ) );
 	coop->add_agent( so_5::rt::agent_ref_t(
@@ -157,7 +157,7 @@ init( so_5::rt::so_environment_t & env )
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env, "gamma" ) ) );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 
 	// Give some time to agents.

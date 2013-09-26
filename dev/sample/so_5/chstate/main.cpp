@@ -1,11 +1,11 @@
 /*
  * A sample of the simpliest agent which has several states.
  * The agent uses different handlers for the same message.
- * In the beginning of its work agent initiates a periodic message.
+ * At the beginning of its work agent initiates a periodic message.
  * Then agent handles this messages and switches from one state
  * to another.
  *
- * A work of the SObjectizer Environment is finished after agent
+ * A work of the SObjectizer Environment is finished after the agent
  * switched to the final state.
  *
  * State switching is fixed by a state listener.
@@ -78,7 +78,7 @@ class a_state_swither_t
 		virtual ~a_state_swither_t()
 		{}
 
-		// Definition of agent for SObjectizer.
+		// Definition of the agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
@@ -86,33 +86,33 @@ class a_state_swither_t
 		virtual void
 		so_evt_start();
 
-		// Message handler for default state.
+		// Message handler for the default state.
 		void
 		evt_handler_default(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Message handler for state_1.
+		// Message handler for the state_1.
 		void
 		evt_handler_1(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Message handler for state_2.
+		// Message handler for the state_2.
 		void
 		evt_handler_2(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Message handler for state_3.
+		// Message handler for the state_3.
 		void
 		evt_handler_3(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
-		// Message handler for shutdown_state.
+		// Message handler for the shutdown_state.
 		void
 		evt_handler_shutdown(
 			const so_5::rt::event_data_t< msg_periodic > & );
 
 	private:
-		// Mbox for that agent.
+		// Mbox for this agent.
 		so_5::rt::mbox_ref_t m_self_mbox;
 
 		// Timer event id.
@@ -124,7 +124,7 @@ class a_state_swither_t
 void
 a_state_swither_t::so_define_agent()
 {
-	// Subsription to message.
+	// Message subsription.
 	so_subscribe( m_self_mbox )
 		.event( &a_state_swither_t::evt_handler_default );
 
@@ -167,7 +167,7 @@ a_state_swither_t::evt_handler_default(
 	std::cout << asctime( localtime( &t ) )
 		<< "evt_handler_default" << std::endl;
 
-	// Switching to next state.
+	// Switching to the next state.
 	so_change_state( m_state_1 );
 }
 
@@ -180,7 +180,7 @@ a_state_swither_t::evt_handler_1(
 		<< "evt_handler_1, state: " << so_current_state().query_name()
 		<< std::endl;
 
-	// Switching to next state.
+	// Switching to the next state.
 	so_change_state( m_state_2 );
 }
 
@@ -193,7 +193,7 @@ a_state_swither_t::evt_handler_2(
 		<< "evt_handler_2, state: " << so_current_state().query_name()
 		<< std::endl;
 
-	// Switching to next state.
+	// Switching to the next state.
 	so_change_state( m_state_3 );
 }
 
@@ -206,7 +206,7 @@ a_state_swither_t::evt_handler_3(
 		<< "evt_handler_3, state: " << so_current_state().query_name()
 		<< std::endl;
 
-	// Switching to next state.
+	// Switching to the next state.
 	so_change_state( m_state_shutdown );
 }
 
@@ -223,37 +223,37 @@ a_state_swither_t::evt_handler_shutdown(
 	// Switching to the default state.
 	so_change_state( so_default_state() );
 
-	// Finishing SObjectizer work.
+	// Finishing SObjectizer's work.
 	std::cout << "Stop sobjectizer..." << std::endl;
 	so_environment().stop();
 }
 
-// State listener.
+// A state listener.
 state_monitor_t g_state_monitor( "nondestroyable_listener" );
 
-// SObjectizer Environment initialization.
+// The SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
 	so_5::rt::agent_ref_t ag( new a_state_swither_t( env ) );
 
-	// Adding state listener. Its life-time is not controlled by agent.
+	// Adding the state listener. Its lifetime is not controlled by the agent.
 	ag->so_add_nondestroyable_listener( g_state_monitor );
 
 	// Adding another state listener.
-	// Its life-time is controlled by agent.
+	// Its lifetime is controlled by the agent.
 	ag->so_add_destroyable_listener(
 		so_5::rt::agent_state_listener_unique_ptr_t(
 			new state_monitor_t( "destroyable_listener" ) ) );
 
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Adding agent to cooperation.
+	// Adding agent to the cooperation.
 	coop->add_agent( ag );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 }
 

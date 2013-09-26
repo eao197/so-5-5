@@ -1,5 +1,5 @@
 /*
- * A sample of simple agent which sends a periodic message to itself.
+ * A sample of a simple agent which sends a periodic message to itself.
  */
 
 #include <iostream>
@@ -42,7 +42,7 @@ class a_hello_t
 		virtual ~a_hello_t()
 		{}
 
-		// Definition of agent for SObjectizer.
+		// Definition of an agent for SObjectizer.
 		virtual void
 		so_define_agent();
 
@@ -75,7 +75,7 @@ class a_hello_t
 void
 a_hello_t::so_define_agent()
 {
-	// Subscription to messages.
+	// Message subscription.
 	so_subscribe( m_self_mbox )
 		.event( &a_hello_t::evt_hello_periodic );
 
@@ -130,8 +130,8 @@ a_hello_t::evt_hello_periodic(
 	}
 	else
 	{
-		// Reschedule stop signal.
-		// Previous stop signal should be canceled.
+		// Reschedule a stop signal.
+		// Previous a stop signal should be canceled.
 		m_stop_timer_id =
 			so_environment()
 				.schedule_timer< msg_stop_signal >(
@@ -153,19 +153,19 @@ a_hello_t::evt_stop_signal(
 	so_environment().stop();
 }
 
-// SObjectizer Environment initialization.
+// The SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating cooperation.
+	// Creating a cooperation.
 	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 		so_5::rt::nonempty_name_t( "coop" ) );
 
-	// Adding agent to cooperation.
+	// Adding agent to the cooperation.
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_hello_t( env ) ) );
 
-	// Registering cooperation.
+	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );
 }
 
