@@ -50,7 +50,7 @@ typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
  *
  * For the cooperation to be successfuly registered all of its agents must 
  * successfuly pass registration steps (so-define, bind to the dispatcher). 
- * If at least one agent from this cooperation fails to pass any of 
+ * If at least one agent out of this cooperation fails to pass any of 
  * mentioned steps, the cooperation will not be registered and 
  * all of agents will run procedures opposite to registration 
  * steps (unbind from the dispatcher, so-undefine) which had been successfuly 
@@ -59,7 +59,7 @@ typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
  * Agents are added to the cooperation by the add_agent() method.
  *
  * After addition to the cooperation the cooperation takes care about
- * agent lifetime.
+ * the agent lifetime.
  */
 class SO_5_TYPE agent_coop_t
 {
@@ -195,7 +195,7 @@ class SO_5_TYPE agent_coop_t
 		//! Process signal about finished work of an agent.
 		/*!
 		 * Cooperation deregistration is a long process. All agents
-		 * process events from their queues. When an agent detects that
+		 * process events out of their queues. When an agent detects that
 		 * no more events in its queue it informs cooperation about this.
 		 *
 		 * When cooperation detects that all agents have finished their

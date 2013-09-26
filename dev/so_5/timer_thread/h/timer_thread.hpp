@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for timer_thread.
+	\brief Interface for the timer_thread.
 */
 
 #if !defined( _SO_5__TIMER_THREAD__TIMER_THREAD_HPP_ )
@@ -39,23 +39,23 @@ namespace timer_thread
 //! Timer thread interface.
 /*!
 
-	All timers for SObjectizer should be derived from that class.
+	All timer threads for SObjectizer must be derived from this class.
 
-	A real timer may not be implemented as a thread. The name of that class is
+	A real timer may not be implemented as a thread. The name of this class is
 	just a consequence of some historic reasons.
 
 	A dispatcher starts timer by calling timer_thread_t::start() method.
-	Dispatcher informs timer about shutdown by calling
+	Dispatcher informs timer about a shutdown by calling
 	timer_thread_t::shutdown() method. Sometimes it could be impossible to
 	immediately finish timer work. Because of that dispatcher will call
-	timer_thread_t::wait() after shutdown().  The dispatcher should be blocked
-	on timer_thread_t::wait() call until timer fully finished its work. The
-	return from timer_thread_t::wait() means that timer is completelly stopped
-	and all resources are released.
+	timer_thread_t::wait() after shutdown(). The dispatcher should be blocked
+	on the timer_thread_t::wait() call until timer fully finished its work. The
+	return from the timer_thread_t::wait() means that the timer is 
+	completelly stopped and all resources are released.
 
 	When so_5::rt::dispatcher_t::push_delayed_msg() is called the dispatcher
-	passes timer message to the timer_thread. After that timer is responsible
-	for storing and processing that message.
+	passes timer message to the timer_thread. After this timer is responsible
+	for storing and processing this message.
 */
 class SO_5_TYPE timer_thread_t
 {
@@ -68,7 +68,7 @@ class SO_5_TYPE timer_thread_t
 		virtual ret_code_t
 		start() = 0;
 
-		//! Send shutdown signal to timer.
+		//! Send shutdown signal to the timer.
 		virtual void
 		shutdown() = 0;
 
@@ -76,7 +76,7 @@ class SO_5_TYPE timer_thread_t
 		virtual void
 		wait() = 0;
 
-		//! Push delayed/periodic message to timer queue.
+		//! Push delayed/periodic message to the timer queue.
 		virtual timer_id_t
 		schedule_act(
 			timer_act_unique_ptr_t & timer_act ) = 0;

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Tools for calling agent's event handler.
+	\brief Tools for calling the agent's event handler.
 */
 
 
@@ -32,7 +32,7 @@ namespace rt
 // event_handler_caller_t
 //
 
-//! Base class for agent's event handler caller.
+//! The base class for the agent's event handler caller.
 class SO_5_TYPE event_handler_caller_t
 	:
 		private atomic_refcounted_t
@@ -52,11 +52,11 @@ class SO_5_TYPE event_handler_caller_t
 
 		//! Call agent's event caller.
 		/*!
-		 * Event will not be called if agent is in state evere
-		 * event is disabled.
+		 * An event will be called if the current agent state 
+		 * matches the agent's state of this subscription.
 		 *
-		 * \retval true If event has been called.
-		 * \retval false If event has not been called.
+		 * \retval true If the event has been called.
+		 * \retval false If the event has not been called.
 		 */
 		virtual bool
 		call(
@@ -80,9 +80,9 @@ class SO_5_TYPE event_handler_caller_t
 // real_event_handler_caller_t
 //
 
-//! Template based implementation of event_handler_caller.
+//! Template based implementation of the event_handler_caller.
 /*!
- * Allows calling event handler for messages without actual data
+ * Allows calling an event handler for messages without actual data
  * (e.g. for signals).
  */
 template< class MESSAGE, class AGENT >
@@ -91,7 +91,7 @@ class real_event_handler_caller_t
 		public event_handler_caller_t
 {
 	public:
-		//! Typedef for agent method pointer.
+		//! Typedef for the agent method pointer.
 		typedef void (AGENT::*FN_PTR_T)(
 			const event_data_t< MESSAGE > & );
 
@@ -142,7 +142,7 @@ class real_event_handler_caller_t
 		//! State for which event is enabled.
 		const state_t * const m_target_state;
 
-		//! Agent's method for handling event.
+		//! Agent's method for the handling event.
 		FN_PTR_T m_pfn;
 
 		//! Agent for which event should be called.

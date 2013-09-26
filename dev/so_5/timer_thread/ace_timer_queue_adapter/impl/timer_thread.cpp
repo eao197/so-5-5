@@ -26,7 +26,7 @@ namespace
 {
 
 /*!
- * Auxiliary fuction to conversion from milliseconds to
+ * Auxiliary fuction for the conversion from milliseconds to
  * ACE_Time_Value (in relative format).
  */
 inline ACE_Time_Value
@@ -52,7 +52,7 @@ timer_thread_t::timer_thread_t()
 
 timer_thread_t::~timer_thread_t()
 {
-	// Detructor for timer_queue should be called before
+	// Detructor for the timer_queue must be called before
 	// destructor of event_handler!
 	m_timer_queue.reset();
 	m_event_handler.reset();

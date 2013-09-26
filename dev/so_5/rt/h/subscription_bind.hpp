@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition of the template for subcription to messages.
+	\brief A definition of the template for the subcription to messages.
 */
 
 #if !defined( _SO_5__RT__SUBSCRIPTION_BIND_HPP_ )
@@ -51,7 +51,7 @@ ret_code_t
 agent_convertable_to(
 	//! Object to be checked.
 	agent_t * agent,
-	//! Receiver of casted pointer (in case if conversion available).
+	//! Receiver of the casted pointer (in case if the conversion is available).
 	AGENT * & casted_agent,
 	//! Exception strategy.
 	throwing_strategy_t throwing_strategy )
@@ -62,7 +62,7 @@ agent_convertable_to(
 	// Was conversion successful?
 	if( nullptr == casted_agent )
 	{
-		// No actual type of agent is not convertible to AGENT.
+		// No actual type of the agent is not convertible to the AGENT.
 		res = rc_agent_incompatible_type_conversion;
 
 		// Handling exception strategy.
@@ -83,7 +83,7 @@ agent_convertable_to(
 //
 
 /*!
- * \brief A class for creating subscription to messages from mbox.
+ * \brief A class for creating a subscription to messages from the mbox.
 */
 class SO_5_TYPE subscription_bind_t
 {
@@ -96,7 +96,7 @@ class SO_5_TYPE subscription_bind_t
 
 		~subscription_bind_t();
 
-		//! Set up a state in which events are allowed to be processed.
+		//! Set up a state in which events are allowed be processed.
 		subscription_bind_t &
 		in(
 			//! State in which events are allowed.
@@ -111,7 +111,7 @@ class SO_5_TYPE subscription_bind_t
 			//! Exception strategy.
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
 		{
-			// Agent should be owner of the state.
+			// Agent must be owner of the state.
 			ret_code_t res = agent_owns_state(
 				m_agent,
 				m_state,
@@ -123,7 +123,7 @@ class SO_5_TYPE subscription_bind_t
 				return res;
 
 			AGENT * casted_agent = nullptr;
-			// Agent should have right type.
+			// Agent must have right type.
 			res = agent_convertable_to< AGENT >(
 				&m_agent,
 				casted_agent,
@@ -146,7 +146,7 @@ class SO_5_TYPE subscription_bind_t
 		}
 
 	private:
-		//! Create event subscription.
+		//! Create an event subscription.
 		ret_code_t
 		create_event_subscription(
 			//! Message type.

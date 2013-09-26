@@ -27,10 +27,10 @@ namespace util
 /*!
 	\brief Function for applying throwing strategy to return codes.
 
-	If \a throwing_strategy is THROW_ON_ERROR then exception is thrown.
-	Otherwise \a error_code is returned.
+	If \a throwing_strategy is THROW_ON_ERROR then exception will be thrown.
+	Otherwise \a error_code will be returned.
 
-	\return Value of \a error_code.
+	\return Value of the \a error_code.
 */
 SO_5_EXPORT_FUNC_SPEC( ret_code_t )
 apply_throwing_strategy(
@@ -42,9 +42,9 @@ apply_throwing_strategy(
 	\brief Function for applying throwing strategy to exception object.
 
 	Rethrow \a ex if \a throwing_strategy is THROW_ON_ERROR.
-	Otherwise \a ex.error_code() is returned.
+	Otherwise \a ex.error_code() will be returned.
 
-	\return Value of \a ex.error_code().
+	\return Value of the \a ex.error_code().
 */
 SO_5_EXPORT_FUNC_SPEC( ret_code_t )
 apply_throwing_strategy(

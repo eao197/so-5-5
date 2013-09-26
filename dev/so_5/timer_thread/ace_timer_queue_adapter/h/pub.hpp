@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Function for creating timer_thread implementation.
+	\brief Function for creating the timer_thread implementation.
 */
 
 #if !defined( _SO_5__TIMER_THREAD__ACE_TIMER_QUEUE_ADAPTER__PUB_HPP_ )
@@ -24,7 +24,7 @@ namespace ace_timer_queue_adapter
 {
 
 /*!
-	\brief Create timer_thread implementation.
+	\brief Create a timer_thread implementation.
  */
 SO_5_EXPORT_FUNC_SPEC( so_5::timer_thread::timer_thread_unique_ptr_t )
 create_timer_thread();

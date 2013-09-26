@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Wrapper for std::type_info.
+	\brief Wrapper for the std::type_info.
 */
 
 #if !defined( _SO_5__RT__TYPE_WRAPPER_HPP_ )
@@ -26,7 +26,7 @@ namespace rt
 //
 
 /*!
-	Wrapper class for std::type_info that adds 
+	Wrapper class for the std::type_info which adds 
 	compare operators to it.
 
 	Also used for implementing layers feature.
@@ -44,10 +44,10 @@ class SO_5_TYPE type_wrapper_t
 
 		~type_wrapper_t();
 
-		//! The less operator, that makes it possible to
-		//! use the class as std::map key.
+		//! The less operator which makes it possible to
+		//! use this class as a std::map key.
 		/*! 
-			Comparison uses m_type_info of objects.
+			The comparison uses m_type_info of objects.
 		*/
 		inline bool
 		operator < (
@@ -73,7 +73,7 @@ class SO_5_TYPE type_wrapper_t
 		}
 
 	private:
-		//! Runtime typy info.
+		//! Runtime type info.
 		const std::type_info * m_type_info;
 };
 

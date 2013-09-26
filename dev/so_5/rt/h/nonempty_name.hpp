@@ -26,16 +26,16 @@ namespace rt
 
 //! A class for the name which cannot be empty.
 /*!
- * Checks value in constructor. Throws an exception if name is empty.
+ * Checks value in the constructor. Throws an exception if the name is empty.
 */
 class SO_5_TYPE nonempty_name_t
 {
 	public:
-		//! Constructor with check for empty value.
+		//! Constructor with check for the empty value.
 		nonempty_name_t(
 			const char * name );
 
-		//! Constructor with check for empty value.
+		//! Constructor with check for the empty value.
 		nonempty_name_t(
 			const std::string & name );
 

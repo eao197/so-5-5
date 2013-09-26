@@ -54,20 +54,20 @@ class agent_t;
 
 //! Mail box class.
 /*!
- * Serves as an interface for sending and receiving messages.
+ * The class serves as an interface for sending and receiving messages.
  *
- * All mboxes should created via SObjectizer Environment. References to
+ * All mboxes can be created via the SObjectizer Environment. References to
  * mboxes are stored and manipulated by so_5::rt::mbox_ref_t objects.
  *
- * mbox_t has two versions of deliver_message() method. First requires
- * pointer to actual message data and intended for delivering messages
- * to agents.
- * Second doesn't not use pointer to actual message data and intended for
- * delivering signals to agents.
+ * mbox_t has two versions of the deliver_message() method. 
+ * The first one requires pointer to the actual message data and is intended 
+ * for delivering messages to agents.
+ * The second one doesn't use pointer to the actual message data and 
+ * is intended for delivering signals to agents.
  *
- * mbox_t also used for delivery of delayed and periodic messages.
- * SObjectizer Environment stores mbox for which messages should be
- * delivered and timer thread pushes message instances to that mbox
+ * mbox_t also is used for the delivery of delayed and periodic messages.
+ * The SObjectizer Environment stores mbox for which messages must be
+ * delivered and the timer thread pushes message instances to the mbox
  * at the appropriate time.
  *
  * \see so_environment_t::schedule_timer(), so_environment_t::single_timer().
@@ -92,7 +92,7 @@ class SO_5_TYPE mbox_t
 
 		//! Deliver message.
 		/*!
-		 * Mbox take care about destroying a message object.
+		 * Mbox takes care about destroying a message object.
 		*/
 		template< class MESSAGE >
 		inline void
@@ -106,7 +106,7 @@ class SO_5_TYPE mbox_t
 		inline void
 		deliver_signal();
 
-		//! Get mbox name.
+		//! Get the mbox name.
 		virtual const std::string &
 		query_name() const = 0;
 
@@ -122,34 +122,34 @@ class SO_5_TYPE mbox_t
 		 */
 
 	protected:
-		//! Add very first message handler.
+		//! Add the first message handler.
 		/*!
-		 * This method is called when agent is subscribing to message
-		 * at first time.
+		 * This method is called when the agent is subscribing to the message
+		 * at the first time.
 		 */
 		virtual void
 		subscribe_first_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Message consumer for that message.
+			//! Message consumer for this message.
 			std::unique_ptr< impl::message_consumer_link_t > &
 				message_consumer_link,
-			//! A very first message handler.
+			//! The very first message handler.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref ) = 0;
 
 		//! Add yet another message handler.
 		/*!
-		 * This method is called when agent is subscribing to message
-		 * to which it is already subscribed.
+		 * This method is called when the agent is subscribing to the message
+		 * which is already subscribed.
 		 */
 		virtual ret_code_t
 		subscribe_more_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Message consumer for that message.
+			//! Message consumer for this message.
 			impl::message_consumer_link_t * message_consumer_link,
-			//! Message handler for that message.
+			//! Message handler for this message.
 			const event_handler_caller_ref_t & event_handler_caller_ref,
 			//! Exception strategy.
 			throwing_strategy_t throwing_strategy ) = 0;
@@ -159,7 +159,7 @@ class SO_5_TYPE mbox_t
 		unsubscribe_event_handlers(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Message consumer for that message.
+			//! Message consumer for this message.
 			impl::message_consumer_link_t *
 				message_consumer_link ) = 0;
 
@@ -169,7 +169,7 @@ class SO_5_TYPE mbox_t
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) = 0;
 
-		//! Get data for object comparision.
+		//! Get data for the object comparision.
 		/*!
 		 * Default implementation returns this pointer.
 		*/
@@ -203,7 +203,7 @@ mbox_t::deliver_signal()
 //
 // mbox_ref_t
 //
-//! Smart reference for mbox_t.
+//! Smart reference for the mbox_t.
 /*!
  * \note Defined as typedef since v.5.2.0
  */

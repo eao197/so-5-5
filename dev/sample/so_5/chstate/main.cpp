@@ -1,14 +1,14 @@
 /*
  * A sample of the simpliest agent which has several states.
  * The agent uses different handlers for the same message.
- * In the beginning of its work agent initiates periodic message.
+ * In the beginning of its work agent initiates a periodic message.
  * Then agent handles this messages and switches from one state
  * to another.
  *
- * A work of SObjectizer Environment is finished after agent
+ * A work of the SObjectizer Environment is finished after agent
  * switched to the final state.
  *
- * State switching is fixed by state listener.
+ * State switching is fixed by a state listener.
  */
 
 #include <iostream>

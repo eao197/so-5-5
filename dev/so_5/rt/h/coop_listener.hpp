@@ -34,7 +34,7 @@ class so_environment_t;
  *
  * \attention SObjectizer doesn't synchronize calls to the 
  * on_registered() and on_deregistered(). If this is a problem
- * then programmer should take care about object's thread safety.
+ * then programmer should take care about the object's thread safety.
  */
 class SO_5_TYPE coop_listener_t
 {

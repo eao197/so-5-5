@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Class for implementation of mutex pool.
+	\brief Class for the implementation of a mutex pool.
 */
 
 #if !defined( _SO_5__UTIL__MUTEX_POOL_HPP_ )
@@ -25,7 +25,7 @@ namespace util
 // mutex_pool_t
 //
 
-//! A pool for specified type of mutex.
+//! A pool for specified type of the mutex.
 template < class MUTEX >
 class mutex_pool_t
 {
@@ -58,11 +58,11 @@ class mutex_pool_t
 
 		//! Return mutex to a pool.
 		/*!
-		 * \retval true if mutex belongs to pool. Reference count for
-		 * that mutex is decremented.
+		 * \retval true if mutex belongs to the pool. The reference count for
+		 * this mutex is decremented.
 		 *
-		 * \retval false if mutex doesn't belong to pool. No actions are
-		 * performed in this case.
+		 * \retval false if mutex doesn't belong to the pool. 
+		 * No actions are performed in this case.
 		 */
 		bool
 		deallocate_mutex( MUTEX & m )

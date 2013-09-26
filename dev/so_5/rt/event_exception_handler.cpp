@@ -29,7 +29,7 @@ void
 event_exception_handler_t::on_install(
 	event_exception_handler_unique_ptr_t && previous_handler )
 {
-	// Standard implementation deletes old handler.
+	// Standard implementation deletes the old handler.
 	previous_handler.reset();
 }
 
@@ -40,9 +40,9 @@ namespace /* ananymous */
 // std_event_exception_response_action_t
 //
 
-//! Standard implementation of event_exception_response_action.
+//! Standard implementation of the event_exception_response_action.
 /*!
- * Deregisters cooperation with failed agent.
+ * Deregisters the cooperation with failed agent.
  */
 class std_event_exception_response_action_t
 	:
@@ -78,7 +78,7 @@ class std_event_exception_response_action_t
 
 //! Standard exception handler.
 /*!
- * Deregisters cooperation with failed agent.
+ * Deregisters the cooperation with failed agent.
  */
 class std_event_exception_handler_t
 	:

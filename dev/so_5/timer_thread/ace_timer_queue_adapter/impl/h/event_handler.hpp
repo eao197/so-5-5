@@ -30,7 +30,7 @@ namespace impl
 // timer_act_utilizator_t
 //
 
-//! An interface for timer event destroyer.
+//! An interface for the timer event destroyer.
 class timer_act_utilizator_t
 {
 	public:
@@ -50,8 +50,8 @@ class timer_act_utilizator_t
 /*!
 	\brief Timer event handler.
 
-	An instance of that class is registered as timer handler in
-	ACE_Thread_Timer_Queue_Adapter.
+	An instance of this class is registered as a timer handler in
+	the ACE_Thread_Timer_Queue_Adapter.
 */
 
 class timer_event_handler_t
@@ -74,7 +74,7 @@ class timer_event_handler_t
 				const void * raw_act );
 
 	private:
-		//! An object to destroy timer event.
+		//! An object to destroy the timer event.
 		timer_act_utilizator_t & m_utilizator;
 };
 

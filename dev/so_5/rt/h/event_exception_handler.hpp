@@ -44,7 +44,7 @@ class SO_5_TYPE event_exception_response_action_t
 		respond_to_exception() = 0;
 };
 
-//! Typedef for event_exception_response_action autopointer.
+//! Typedef for the event_exception_response_action autopointer.
 typedef std::unique_ptr< event_exception_response_action_t >
 	event_exception_response_action_unique_ptr_t;
 
@@ -54,7 +54,7 @@ typedef std::unique_ptr< event_exception_response_action_t >
 
 class event_exception_handler_t;
 
-//! Typedef for event_exception_handler autopointer.
+//! Typedef for the event_exception_handler autopointer.
 typedef std::unique_ptr< event_exception_handler_t >
 	event_exception_handler_unique_ptr_t;
 
@@ -68,9 +68,9 @@ class so_environment_t;
 /*!
  * An exception handler should handle two actions:
  *
- * 1. Installation of handler into SObjectizer Environment.
- *    The on_install() method could be reimplemented for this.
- * 2. Caught of exception and producing corresponding actions.
+ * 1. Installation of handler into the SObjectizer Environment.
+ *    The on_install() method can be reimplemented for this.
+ * 2. Caught of an exception and producing corresponding actions.
  *    The handle_exception() method should be reimplemented for this.
  */
 class SO_5_TYPE event_exception_handler_t
@@ -79,8 +79,8 @@ class SO_5_TYPE event_exception_handler_t
 		virtual ~event_exception_handler_t();
 
 		/*!
-		 * \brief A reaction on exception.
-		 * Should produce an object with reaction on this exception.
+		 * \brief A reaction on an exception.
+		 * \post Should produce an object with reaction on this exception.
 		*/
 		virtual event_exception_response_action_unique_ptr_t
 		handle_exception(
@@ -88,16 +88,16 @@ class SO_5_TYPE event_exception_handler_t
 			so_environment_t & so_environment,
 			//! Exception caught.
 			const std::exception & event_exception,
-			//! Name of cooperation to which agent is belong.
+			//! Cooperation name to which agent is belong.
 			const std::string & coop_name ) = 0;
 
 		/*!
 		 * \brief An installation hook.
 		 *
 		 * A new exception handler should decide what happened with
-		 * old handler.
+		 * the old handler.
 		 *
-		 * Default implementation simply erases old handler.
+		 * Default implementation simply erases the old handler.
 		 */
 		virtual void
 		on_install(
@@ -109,7 +109,7 @@ class SO_5_TYPE event_exception_handler_t
 // create_std_event_exception_handler
 //
 
-//! Create default implementation of exception handler.
+//! Create a default implementation of the exception handler.
 CPP_UTIL_2_EXPORT_FUNC_SPEC( event_exception_handler_unique_ptr_t )
 create_std_event_exception_handler();
 

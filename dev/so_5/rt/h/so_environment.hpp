@@ -46,7 +46,7 @@ class type_wrapper_t;
 // so_environment_params_t
 //
 
-//! Parameters for SObjectizer Environment initialization.
+//! Parameters for the SObjectizer Environment initialization.
 /*!
  * This class is used for setting SObjectizer Parameters.
  *
@@ -65,14 +65,14 @@ class SO_5_TYPE so_environment_params_t
 		so_environment_params_t();
 		~so_environment_params_t();
 
-		//! Set mutex pool size for syncronizing work with mboxes.
+		//! Set mutex pool size for the syncronizing work with mboxes.
 		/*!
 		 * A ACE_RW_Thread_Mutex is necessary to work with mboxes.
-		 * But because there are could be so many mboxes and lifetime
-		 * of them could be so small that it is not efficient to
+		 * However there are can be so many mboxes and lifetime
+		 * of them can be so small that it is not efficient to
 		 * create a dedicated mutex for every mbox.
 		 *
-		 * A mutex pool is used by SObjectizer Environment for that
+		 * A mutex pool is used by the SObjectizer Environment for this
 		 * purpose.
 		 *
 		 * This method allows change the default mutex pool size.
@@ -83,10 +83,10 @@ class SO_5_TYPE so_environment_params_t
 		mbox_mutex_pool_size(
 			unsigned int mutex_pool_size );
 
-		//! Set mutex pool size for syncronizing work with agent cooperations.
+		//! Set mutex pool size for the syncronizing work with agent cooperations.
 		/*!
 		 * A work with cooperations requires syncronization.
-		 * SObjectizer Environment uses pool of mutexes to do that.
+		 * The SObjectizer Environment uses a pool of mutexes to do this.
 		 *
 		 * This method allows change the default mutex pool size.
 		 */
@@ -94,9 +94,9 @@ class SO_5_TYPE so_environment_params_t
 		agent_coop_mutex_pool_size(
 			unsigned int mutex_pool_size );
 
-		//! Set mutex pool size for syncronizing work with event queues.
+		//! Set mutex pool size for the syncronizing work with event queues.
 		/*!
-		 * A work with local agent event queues requires syncronization.
+		 * A work with the local agent event queues requires syncronization.
 		 * SObjectizer Environment uses pool of mutexes to do that.
 		 *
 		 * This method allows change the default mutex pool size.
@@ -107,12 +107,12 @@ class SO_5_TYPE so_environment_params_t
 
 		//! Add a named dispatcher.
 		/*!
-		 * By default SObjectizer Environment has only one dispatcher
+		 * By default the SObjectizer Environment has only one dispatcher
 		 * with one working thread. A user can add his own dispatcher:
 		 * named ones.
 		 *
 		 * \note If a dispatcher with \a name is already registered it
-		 * will be replaced by new dispatcher \a dispatcher.
+		 * will be replaced by a new dispatcher \a dispatcher.
 		 */
 		so_environment_params_t &
 		add_named_dispatcher(
@@ -121,9 +121,9 @@ class SO_5_TYPE so_environment_params_t
 			//! Dispatcher.
 			dispatcher_unique_ptr_t && dispatcher );
 
-		//! Set timer thread.
+		//! Set the timer thread.
 		/*!
-		 * If \a timer_thread is nullptr then default timer thread
+		 * If \a timer_thread is a nullptr then default timer thread
 		 * will be used.
 		 */
 		so_environment_params_t &
@@ -131,9 +131,11 @@ class SO_5_TYPE so_environment_params_t
 			//! Timer thread to be set.
 			so_5::timer_thread::timer_thread_unique_ptr_t && timer_thread );
 
-		//! Add an additional layer to SObjectize Environment.
+		//! Add an additional layer to the SObjectizer Environment.
 		/*!
-		 * If that layer is already added it will be replaced by \a layer_ptr.
+		 * If this layer is already added it will be replaced by \a layer_ptr.
+		 * 
+		 * The method distinguishes layers from each other by the type SO_LAYER.
 		*/
 		template< class SO_LAYER >
 		so_environment_params_t &
@@ -183,7 +185,9 @@ class SO_5_TYPE so_environment_params_t
 	private:
 		//! Add an additional layer.
 		/*!
-		 * If that layer is already added it will be replaced by \a layer_ptr.
+		 * If this layer is already added it will be replaced by \a layer_ptr.
+		 * 
+		 * The method distinguishes layers from each other by the type SO_LAYER.
 		 */
 		void
 		add_layer(
@@ -192,13 +196,13 @@ class SO_5_TYPE so_environment_params_t
 			//! A layer to be added.
 			so_layer_unique_ptr_t layer_ptr );
 
-		//! Size of pool of mutexes to be used with mboxes.
+		//! Pool size of mutexes to be used with mboxes.
 		unsigned int m_mbox_mutex_pool_size;
 
-		//! Size of pool of mutexes to be used with agent cooperations.
+		//! Pool size of mutexes to be used with agent cooperations.
 		unsigned int m_agent_coop_mutex_pool_size;
 
-		//! Size of pool of mutexes to be used with agent local queues.
+		//! Pool size of mutexes to be used with agent local queues.
 		unsigned int m_agent_event_queue_mutex_pool_size;
 
 		//! Named dispatchers.
@@ -228,90 +232,94 @@ class SO_5_TYPE so_environment_params_t
 /*!
  * \section so_env__intro Basic information
  *
- * SObjectizer Environment provides basic infrastructure for
- * SObjectizer Run-Time execution.
+ * The SObjectizer Environment provides a basic infrastructure for
+ * the SObjectizer Run-Time execution.
  *
- * Main method of starting SObjectizer Environment is creating a
- * class derived from so_environment_t and reimplementing
+ * The main method of starting SObjectizer Environment creates a
+ * class derived from the so_environment_t and reimplementing the
  * so_environment_t::init() method.
  * This method should be used to define starting actions of
- * application. For example first application cooperations could
- * be registered here and starting messages could be sent to them.
+ * application. For example first application cooperations can
+ * be registered here and starting messages can be sent to them.
  *
- * SObjectizer Environment calls so_environment_t::init() when
- * SObjectize Run-Time is successfully started. If something happened
- * during Run-Time startup then method init() will not be called.
+ * The SObjectizer Environment calls the so_environment_t::init() when
+ * the SObjectizer Run-Time is successfully started. 
+ * If something happened during Run-Time startup then 
+ * the method init() will not be called.
  *
- * SObjectizer Run-Time is started by so_environment_t::run().
- * This method blocks caller thread until SObjectizer completely
+ * The SObjectizer Run-Time is started by the so_environment_t::run().
+ * This method blocks the caller thread until SObjectizer completely
  * finished its work.
  *
- * SObjectizer Run-Time is finished by so_environment_t::stop().
- * This method doesn't block caller thread. Instead it sends a special
- * shutdown signal to Run-Time. SObjectizer Run-Time then inform agents
- * about this and waits agents to finishing their work.
- * SObjectizer Run-Time finished when all agents will be stopped and
- * all cooperation will be deregistered.
+ * The SObjectizer Run-Time is finished by the so_environment_t::stop().
+ * This method doesn't block the caller thread. Instead it sends a special
+ * shutdown signal to the Run-Time. The SObjectizer Run-Time then 
+ * informs agents about this and waits finish of agents work.
+ * The SObjectizer Run-Time finishes if all agents are stopped and
+ * all cooperations are deregistered.
  *
- * Methods of SObjectizer Environment could be splitted into the
+ * Methods of the SObjectizer Environment can be splitted into the
  * following groups:
  * - working with mboxes;
  * - working with dispatchers, exception loggers and handlers;
  * - working with cooperations;
  * - working with delayed and periodic messages;
  * - working with additional layers;
- * - initializing/running/stopping/waiting of Run-Time.
+ * - initializing/running/stopping/waiting of the Run-Time.
  *
  * \section so_env__mbox_methods Methods for working with mboxes.
  *
  * SObjectizer Environment allows creation of named and anonymous mboxes.
- * A syncronization objects for that mboxes could be obtained from
- * common pools or assigned by user during mbox creation.
+ * Syncronization objects for these mboxes can be obtained from
+ * common pools or assigned by a user during mbox creation.
  *
  * Mboxes are created by so_environment_t::create_local_mbox() methods.
- * All those methods return mbox_ref_t which is a smart reference to mbox.
+ * All these methods return the mbox_ref_t which is a smart reference 
+ * to the mbox.
  *
- * An anonymous mbox is automatically destroyed when last reference to is is
- * destroyed. So, to save anonymous mbox, the mbox_ref from create_local_mbox()
- * should be stored anywhere.
+ * An anonymous mbox is automatically destroyed when the last reference to it is
+ * destroyed. So, to save the anonymous mbox, the mbox_ref from 
+ * the create_local_mbox() should be stored somewhere.
  *
- * Named mbox should be destroyed manualy by calling
- * so_environment_t::destroy_mbox() method. But physically deletion of
- * named mbox postponed to deletion of last reference to it. So if there is
- * some reference to named mbox it instance will live with that reference.
- * But mbox itself will be removed from SObjectizer Environment lists.
+ * Named mbox must be destroyed manually by calling the 
+ * so_environment_t::destroy_mbox() method. But physically the deletion of the 
+ * named mbox postponed to the deletion of last reference to it. 
+ * So if there is some reference to the named mbox it instance will live 
+ * with this reference. But mbox itself will be removed from 
+ * SObjectizer Environment lists.
  *
  *
  * \section so_env__coop_methods Methods for working with cooperations.
  *
- * Cooperations could be created by so_environment_t::create_coop() methods.
+ * Cooperations can be created by so_environment_t::create_coop() methods.
  *
- * Method so_environment_t::register_coop() should be used for cooperation
- * registration.
+ * The method so_environment_t::register_coop() should be used for the 
+ * cooperation registration.
  *
- * Method so_environment_t::deregister_coop() should be used for cooperation
- * deregistration.
+ * Method so_environment_t::deregister_coop() should be used for the 
+ * cooperation deregistration.
  *
- * \section so_env__delayed_message_methods Methods for sending delayed and periodic messages.
+ * \section so_env__delayed_message_methods Methods for 
+ * sending delayed and periodic messages.
  *
- * Delayed and/or periodic message is named timer event.
+ * Receiving of delayed and/or periodic messages are named as timer events.
+ * 
+ * The timer event can be created and destroyed. If the timer event for
+ * a delayed message is destroyed before message timeout is expired then
+ * message delivery will be canceled. For periodic messages destroying of
+ * the timer event means that message delivery will be stopped.
  *
- * Timer event could be created and destroyed. If timer event for
- * delayed message is destroyed before message timeout expired then
- * message delivery canceled. For periodic messages destroying of
- * timer event means that delivery of message will be stopped.
+ * Timer events can be created by so_environment_t::schedule_timer()
+ * methods. The one version of the schedule_timer() is intended for
+ * messages with an actual data. The second one -- for the signals without
+ * the message data.
  *
- * Timer events could be created by so_environment_t::schedule_timer()
- * methods. The one version of schedule_timer() is intended for
- * messages with actual data. The second -- for the signals without
- * message data.
- *
- * Methods schedule_timer() return a special reference for timer event.
+ * Methods schedule_timer() return a special reference for the timer event.
  * Timer event destroyed when this reference destroyed. So it is necessary
- * to store that reference anywhere. Also timer event could be destroyed
- * by so_5::timer_thread::timer_id_ref_t::release() method.
+ * to store this reference somewhere. Also the timer event can be destroyed
+ * by the so_5::timer_thread::timer_id_ref_t::release() method.
  *
- * A special method so_environment_t::single_timer() could be used in
+ * A special method so_environment_t::single_timer() can be used in
  * case when a single shot timer event is necessary. With using this
  * method there is no need to store reference for the scheduled
  * single shot timer event.
@@ -337,13 +345,13 @@ class SO_5_TYPE so_environment_t
 		 * \{
 		 */
 
-		//! Create anonymous mbox with default mutex.
+		//! Create an anonymous mbox with the default mutex.
 		mbox_ref_t
 		create_local_mbox();
 
-		//! Create named mbox with default mutex.
+		//! Create named mbox with the default mutex.
 		/*!
-		 * If \a mbox_name is unique then new mutex is created.
+		 * If \a mbox_name is unique then a new mutex will be created.
 		 * If not the reference to existing mutex is returned.
 		 */
 		mbox_ref_t
@@ -351,26 +359,26 @@ class SO_5_TYPE so_environment_t
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
 
-		//! Create anonymous mbox with user supplied mutex.
+		//! Create an anonymous mbox with the user supplied mutex.
 		/*!
-		 * Intended for the cases where a dedicated mutex for mbox
+		 * Intended for cases when a dedicated mutex for the mbox
 		 * is necessary.
 		 */
 		mbox_ref_t
 		create_local_mbox(
-			//! A dedicated mutex for mbox.
+			//! A dedicated mutex for the mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
-		//! Create named mbox with user supplied mutex.
+		//! Create a named mbox with the user supplied mutex.
 		/*!
-		 * Intended for the cases where a dedicated mutex for mbox
+		 * Intended for cases when a dedicated mutex for the mbox
 		 * is necessary.
 		 */
 		mbox_ref_t
 		create_local_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name,
-			//! A dedicated mutex for mbox.
+			//! A dedicated mutex for the mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 		/*!
 		 * \}
@@ -387,20 +395,20 @@ class SO_5_TYPE so_environment_t
 
 		//! Get named dispatcher.
 		/*!
-		 * \return A reference to dispatcher with name \a disp_name.
-		 * Zero reference if dispatcher with such name not found.
+		 * \return A reference to the dispatcher with the name \a disp_name.
+		 * Zero reference if dispatcher with such name is not found.
 		 */
 		dispatcher_ref_t
 		query_named_dispatcher(
 			//! Name of dispatcher.
 			const std::string & disp_name );
 
-		//! Set up exception logger.
+		//! Set up an exception logger.
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t && logger );
 
-		//! Set up exception handler.
+		//! Set up an exception handler.
 		void
 		install_exception_handler(
 			event_exception_handler_unique_ptr_t && handler );
@@ -413,21 +421,21 @@ class SO_5_TYPE so_environment_t
 		 * \{
 		 */
 
-		//! Create cooperation.
+		//! Create a cooperation.
 		/*!
 		 * \return A new cooperation with \a name. This cooperation
-		 * with use default dispatcher binders.
+		 * will use default dispatcher binders.
 		 */
 		agent_coop_unique_ptr_t
 		create_coop(
-			//! A name for new cooperation.
+			//! A new cooperation name.
 			const nonempty_name_t & name );
 
-		//! Create cooperation.
+		//! Create a cooperation.
 		/*!
 		 * A binder \a disp_binder will be used for binding cooperation
-		 * agents to dispatcher. This binder will be default binder for
-		 * that cooperation.
+		 * agents to the dispatcher. This binder will be default binder for
+		 * this cooperation.
 		 *
 			\code
 			so_5::rt::agent_coop_unique_ptr_t coop = so_env.create_coop(
@@ -435,8 +443,8 @@ class SO_5_TYPE so_environment_t
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
 					"some_active_group" ) );
-      
-			// That agent will be bound to dispatcher "active_group"
+
+			// That agent will be bound to the dispatcher "active_group"
 			// and will be member of active group with name
 			// "some_active_group".
 			coop->add_agent(
@@ -445,26 +453,26 @@ class SO_5_TYPE so_environment_t
 		 */
 		agent_coop_unique_ptr_t
 		create_coop(
-			//! A name for new cooperation.
+			//! A new cooperation name.
 			const nonempty_name_t & name,
-			//! A default binder for that cooperation.
+			//! A default binder for this cooperation.
 			disp_binder_unique_ptr_t disp_binder );
 
-		//! Register cooperation.
+		//! Register a cooperation.
 		/*!
-		 * Cooperation registration includes the following steps:
+		 * The cooperation registration includes following steps:
 		 *
-		 * - binding agents to cooperation object;
-		 * - checking uniquess of cooperation name. Cooperation is
-		 *   not registered if its name isn't unique;
-		 * - agent_t::so_define_agent() is called for each agent
-		 *   in cooperation;
-		 * - binding of each agent to dispatcher.
+		 * - binding agents to the cooperation object;
+		 * - checking uniques of the cooperation name. The cooperation will 
+		 *   not be registered if its name isn't unique;
+		 * - agent_t::so_define_agent() will be called for each agent
+		 *   in the cooperation;
+		 * - binding of each agent to the dispatcher.
 		 *
-		 * If all those actions are successful then cooperation is
+		 * If all these actions are successful then the cooperation is
 		 * marked as registered.
 		 *
-		 * \retval 0 If cooperation registered successfully.
+		 * \retval 0 If cooperation is registered successfully.
 		 */
 		ret_code_t
 		register_coop(
@@ -474,28 +482,29 @@ class SO_5_TYPE so_environment_t
 			throwing_strategy_t throwing_strategy =
 				THROW_ON_ERROR );
 
-		//! Deregister cooperation.
+		//! Deregister the cooperation.
 		/*!
-		 * Searches cooperation between registered cooperations and if
-		 * it is found deregistes it.
+		 * Method searches the cooperation within registered cooperations and if
+		 * it is found deregisters it.
 		 *
-		 * Deregistration could take some time.
+		 * Deregistration can take some time.
 		 *
 		 * At first a special signal is sent to cooperation agents.
-		 * By receiving that signal agents stops receiving new messages.
-		 * When local event queue for agent becomes empty agent informs
-		 * cooperation about this. When cooperation receives all
-		 * those signals from agents it informs SObjectizer Run-Time.
-		 * Only after that cooperation is deregistered on special thread
+		 * By receiving these signal agents stop receiving new messages.
+		 * When the local event queue for an agent becomes empty the 
+		 * agent informs the cooperation about this. When the cooperation 
+		 * receives all these signals from agents it informs 
+		 * the SObjectizer Run-Time.
+		 * Only after this the cooperation is deregistered on the special thread
 		 * context.
 		 *
-		 * After cooperation deregistration agents are unbound from
-		 * dispatchers. And name of cooperation is removed from
-		 * list of registered cooperations.
+		 * After the cooperation deregistration agents are unbound from
+		 * dispatchers. And name of the cooperation is removed from
+		 * the list of registered cooperations.
 		 */
 		ret_code_t
 		deregister_coop(
-			//! Name of cooperation to be registered.
+			//! Name of the cooperation to be registered.
 			const nonempty_name_t & name,
 			//! Exception strategy.
 			throwing_strategy_t throwing_strategy =
@@ -518,12 +527,14 @@ class SO_5_TYPE so_environment_t
 		schedule_timer(
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > & msg,
-			//! Mbox to which message should be delivered.
+			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Period of delivery repetition for periodic messages.
-			//! Value 0 indicates delayed only message.
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+			*/
 			unsigned int period_msec )
 		{
 			ensure_message_with_actual_data( msg.get() );
@@ -542,12 +553,14 @@ class SO_5_TYPE so_environment_t
 		schedule_timer(
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > && msg,
-			//! Mbox to which message should be delivered.
+			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Period of delivery repetition for periodic messages.
-			//! Value 0 indicates delayed only message.
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+			*/
 			unsigned int period_msec )
 		{
 			ensure_message_with_actual_data( msg.get() );
@@ -560,16 +573,18 @@ class SO_5_TYPE so_environment_t
 				period_msec );
 		}
 
-		//! Schedule timer event for a signal.
+		//! Schedule a timer event for a signal.
 		template< class MESSAGE >
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
-			//! Mbox to which signal should be delivered.
+			//! Mbox to which signal will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Period of delivery repetition for periodic signals.
-			//! Value 0 indicates delayed only signal.
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+			*/
 			unsigned int period_msec )
 		{
 			ensure_signal< MESSAGE >();
@@ -588,7 +603,7 @@ class SO_5_TYPE so_environment_t
 		single_timer(
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
-			//! Mbox to which message should be delivered.
+			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before delivery.
 			unsigned int delay_msec )
@@ -606,7 +621,7 @@ class SO_5_TYPE so_environment_t
 		template< class MESSAGE >
 		void
 		single_timer(
-			//! Mbox to which signal should be delivered.
+			//! Mbox to which signal will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before delivery.
 			unsigned int delay_msec )
@@ -628,14 +643,14 @@ class SO_5_TYPE so_environment_t
 		 * \{
 		 */
 
-		//! Get access to layer.
+		//! Get access to the layer.
 		template< class SO_LAYER >
 		SO_LAYER *
 		query_layer(
 			throwing_strategy_t throwing_strategy = THROW_ON_ERROR ) const
 		{
 			// A kind of static assert.
-			// Checks that SO_LAYER is derived from so_layer_t.
+			// Checks that SO_LAYER is derived from the so_layer_t.
 			so_layer_t * layer = static_cast< so_layer_t* >( (SO_LAYER *)0 );
 
 			layer = query_layer(
@@ -669,11 +684,11 @@ class SO_5_TYPE so_environment_t
 		 */
 
 		/*!
-		 * \name Methods for starting, initializing and stopping of Run-Time.
+		 * \name Methods for starting, initializing and stopping of the Run-Time.
 		 * \{
 		 */
 
-		//! Run SObjectizer Run-Time.
+		//! Run the SObjectizer Run-Time.
 		ret_code_t
 		run(
 			//! Exception strategy.
@@ -682,22 +697,22 @@ class SO_5_TYPE so_environment_t
 
 		//! Initialization hook.
 		/*!
-		 * \attention A hang inside this method will prevent Run-Time
-		 * from stopping. For example if a dialog with application user
-		 * is performed inside init() then SObjectizer cannot finish
+		 * \attention A hang inside of this method will prevent the Run-Time
+		 * from stopping. For example if a dialog with an application user
+		 * is performed inside of init() then SObjectizer cannot finish
 		 * its work until this dialog is finished.
 		 */
 		virtual void
 		init() = 0;
 
-		//! Send a shutdown signal to Run-Time.
+		//! Send a shutdown signal to the Run-Time.
 		void
 		stop();
 		/*!
 		 * \}
 		 */
 
-		//! Access to environment implementation.
+		//! Access to the environment implementation.
 		impl::so_environment_impl_t &
 		so_environment_impl();
 
@@ -709,12 +724,14 @@ class SO_5_TYPE so_environment_t
 			const type_wrapper_t & type_wrapper,
 			//! Message to be sent after timeout.
 			const message_ref_t & msg,
-			//! Mbox to which message should be delivered.
+			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec,
-			//! Period of delivery repetition for periodic messages.
-			//! Value 0 indicates delayed only message.
+			//! Period of the delivery repetition for periodic messages.
+			/*! 
+				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+			*/
 			unsigned int period_msec = 0 );
 
 		//! Schedule a single shot timer event.
@@ -724,7 +741,7 @@ class SO_5_TYPE so_environment_t
 			const type_wrapper_t & type_wrapper,
 			//! Message to be sent after timeout.
 			const message_ref_t & msg,
-			//! Mbox to which message should be delivered.
+			//! Mbox to which message will be delivered.
 			const mbox_ref_t & mbox,
 			//! Timeout before the first delivery.
 			unsigned int delay_msec );

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition for subsciption key for mbox.
+	\brief A definition for the subsciption key for the mbox.
 */
 
 #if !defined( _SO_5__RT__SUBSCRIPTION_KEY_HPP_ )
@@ -45,7 +45,7 @@ struct SO_5_TYPE subscription_key_t
 	//! Message type identifier.
 	const type_wrapper_t m_type_wrapper;
 
-	//! Reference to mbox.
+	//! Reference to the mbox.
 	const mbox_ref_t m_mbox;
 };
 

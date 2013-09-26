@@ -39,14 +39,14 @@ class SO_5_TYPE timer_act_t
 		timer_act_t(
 			//! Message type.
 			const rt::type_wrapper_t & type_wrapper,
-			//! mbox to receive message.
+			//! mbox to receive a message.
 			const rt::mbox_ref_t & mbox,
 			//! Message to be sent on timer.
 			const rt::message_ref_t & msg,
 			/*! Delay for the first message delivery. */
 			unsigned int delay,
 			/*!
-			 * Timeout for periodic messages. Should be 0 for
+			 * Timeout for periodic messages. Shall be 0 for
 			 * non-periodic messages.
 			 */
 			unsigned int period );
@@ -55,12 +55,12 @@ class SO_5_TYPE timer_act_t
 
 		//! Perform corresponding action on timer.
 		/*!
-		 * Delivers message to mbox.
+		 * Delivers message to the mbox.
 		 */
 		void
 		exec();
 
-		//! Is periodic message?
+		//! It's a periodic message?
 		bool
 		is_periodic() const;
 
@@ -69,9 +69,9 @@ class SO_5_TYPE timer_act_t
 		query_delay() const;
 
 		/*!
-		 * \brief Timeout beetwen deliveries for periodic messages.
+		 * \brief Timeout between deliveries for periodic messages.
 		 *
-		 * \retval 0  If message is not priodic.
+		 * \retval 0 If the message is not periodic.
 		 */
 		unsigned int
 		query_period() const;
@@ -80,7 +80,7 @@ class SO_5_TYPE timer_act_t
 		//! Message type.
 		const rt::type_wrapper_t m_type_wrapper;
 
-		//! mbox to receive message. 
+		//! mbox to receive a message. 
 		rt::mbox_ref_t m_mbox;
 
 		//! Message object to be delivered.
@@ -90,13 +90,13 @@ class SO_5_TYPE timer_act_t
 		const unsigned int m_delay;
 
 		/*!
-		 * Timeout for periodic messages. Should be 0 for
+		 * Timeout for periodic messages. Must be 0 for
 		 * non-periodic messages.
 		 */
 		const unsigned int m_period;
 };
 
-//! Auxiliary typedef for timer_act autopointer.
+//! Auxiliary typedef for the timer_act autopointer.
 typedef std::unique_ptr< timer_act_t > timer_act_unique_ptr_t;
 
 } /* namespace timer_thread */

@@ -35,7 +35,7 @@ class timer_id_ref_t;
 /*!
  * \brief A special wrapper on timer_id.
  *
- * Destroys timer in destructor.
+ * Instance destroys timer in the destructor.
  */
 class timer_id_internals_t
 	:
@@ -94,11 +94,11 @@ class SO_5_TYPE timer_id_ref_t
 		operator = ( const timer_id_ref_t & timer_id );
 //FIXME: may be there should be move-operator?
 
-		//! Is this timer event active?
+		//! Is this timer event is active?
 		bool
 		is_active() const;
 
-		//! Release timer event.
+		//! Release the timer event.
 		void
 		release();
 
@@ -109,7 +109,7 @@ class SO_5_TYPE timer_id_ref_t
 
 		//! Decrement timer event usage counter.
 		/*!
-		 * Destroys timer event if counter received 0.
+		 * Destroys timer event if the counter received 0.
 		 */
 		void
 		dec_timer_id_ref_count();

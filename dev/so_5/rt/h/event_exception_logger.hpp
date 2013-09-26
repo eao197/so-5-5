@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief An interface for exception logging definition.
+	\brief An interface for the exception logging definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_EXCEPTION_LOGGER_HPP_ )
@@ -28,15 +28,15 @@ namespace rt
 
 class event_exception_logger_t;
 
-//! Typedef for event_exception_logger autopointer.
+//! Typedef for the event_exception_logger autopointer.
 typedef std::unique_ptr< event_exception_logger_t >
 	event_exception_logger_unique_ptr_t;
 
-//! An interface for exception logging.
+//! An interface for the exception logging.
 /*!
  * Exception logger should handle two actions:
  *
- * 1. Installation of logger into SObjectizer Environment.
+ * 1. Installation of a logger into the SObjectizer Environment.
  *    The on_install() method could be reimplemented for this.
  * 2. Caught of an exception. The log_exception() method
  *    should be reimplemented for this.
@@ -60,9 +60,9 @@ class SO_5_TYPE event_exception_logger_t
 		 * \brief Installation hook.
 		 *
 		 * A new exception logger should decide what happened with
-		 * old logger.
+		 * the old logger.
 		 *
-		 * Default implementation simply erases old logger.
+		 * Default implementation simply erases the old logger.
 		 */
 		virtual void
 		on_install(
@@ -74,7 +74,7 @@ class SO_5_TYPE event_exception_logger_t
 // create_std_event_exception_logger
 //
 
-//! Create default exception logger.
+//! Create the default exception logger.
 CPP_UTIL_2_EXPORT_FUNC_SPEC( event_exception_logger_unique_ptr_t )
 create_std_event_exception_logger();
 

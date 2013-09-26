@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A class for agent state definition.
+	\brief A class for the agent state definition.
 */
 
 #if !defined( _SO_5__RT__STATE_HPP_ )
@@ -29,7 +29,7 @@ class agent_t;
 // state_base_t
 //
 
-//! A special base class for state.
+//! A special base class for the state.
 class SO_5_TYPE state_base_t
 {
 	private:
@@ -43,7 +43,7 @@ class SO_5_TYPE state_base_t
 // state_t
 //
 
-//! Class for representing agent state.
+//! Class for the representing agent state.
 class SO_5_TYPE state_t
 	:
 		private state_base_t
@@ -66,7 +66,7 @@ class SO_5_TYPE state_t
 		const std::string &
 		query_name() const;
 
-		//! Does agent own this state?
+		//! Does agent owner of this state?
 		bool
 		is_target( const agent_t * agent ) const;
 
