@@ -56,7 +56,7 @@ class hook_event_caller_t
 		virtual type_wrapper_t
 		type_wrapper() const
 		{
-			// Should never be called for that class.
+			// Should never be called for this class.
 			std::abort();
 			type_wrapper_t fake( typeid( message_t ) );
 			return fake;
@@ -118,7 +118,7 @@ class start_hook_event_caller_t
 /*!
  * \brief Hook for the starting event.
  *
- * This event is used to call so_5::rt::so_evt_start().
+ * This event is used to call the so_5::rt::so_evt_start().
  */
 class finish_hook_event_caller_t
 	:
@@ -351,7 +351,7 @@ agent_t::bind_to_environment(
 		m_so_environment_impl = &env_impl;
 		m_local_event_queue = m_so_environment_impl->create_local_queue();
 
-		// A staring event should be placed at begining of queue.
+		// A staring event should be placed at begining of the queue.
 		event_handler_caller_ref_t evt_caller(
 			new start_hook_event_caller_t( *this ) );
 
@@ -496,8 +496,8 @@ agent_t::exec_next_event()
 
 		m_local_event_queue->pop( event_item );
 
-		// This value is necessary to inform cooperation about agent
-		// work finishing in the case of the cooperation deregistration.
+		// This value is necessary to inform the cooperation about agent
+		// work finishing in case of the cooperation deregistration.
 		agent_finished_his_work_totally =
 			m_is_coop_deregistered && 0 == m_local_event_queue->size();
 	}

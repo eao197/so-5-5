@@ -184,7 +184,7 @@ void
 agent_coop_t::agent_finished()
 {
 	// If it is the last working agent then Environment should be
-	// informed that cooperation is ready to be deregistered.
+	// informed that the cooperation is ready to be deregistered.
 	if( 0 == --m_working_agents_count )
 	{
 		m_so_environment_impl.ready_to_deregister_notify( this );

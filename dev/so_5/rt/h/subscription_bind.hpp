@@ -102,7 +102,7 @@ class SO_5_TYPE subscription_bind_t
 			//! State in which events are allowed.
 			const state_t & state );
 
-		//! Make subscription to message.
+		//! Make subscription to the message.
 		template< class MESSAGE, class AGENT >
 		ret_code_t
 		event(

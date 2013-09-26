@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition for dedicated thread for cooperation deregistration.
+	\brief A definition for dedicated thread for the cooperation deregistration.
 */
 
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__COOP_DEREG_EXECUTOR_THREAD_HPP_ )
@@ -30,11 +30,11 @@ namespace coop_dereg
 // coop_dereg_executor_thread_t
 //
 
-//! A dedicated for cooperation deregistration thread.
+//! A dedicated for the cooperation deregistration thread.
 /*!
- * This thread is used for doing actions of cooperation deregistration.
- * To execute those actions a cooperation is put itsefl to special
- * deregistration queue. This thread handles that queue.
+ * This thread is used for doing actions of the cooperation deregistration.
+ * To execute these actions a cooperation is put itself to the special
+ * deregistration queue. This thread handles this queue.
  */
 class coop_dereg_executor_thread_t
 {
@@ -46,15 +46,15 @@ class coop_dereg_executor_thread_t
 		void
 		start();
 
-		//! Send a shutdown signal to thread.
+		//! Send a shutdown signal to a thread.
 		void
 		shutdown();
 
-		//! Wait for thread shutdown.
+		//! Wait for a thread shutdown.
 		void
 		wait();
 
-		//! Push cooperation to waiting queue.
+		//! Push cooperation to the waiting queue.
 		void
 		push_dereg_demand(
 			agent_coop_t * coop );
@@ -64,7 +64,7 @@ class coop_dereg_executor_thread_t
 		void
 		body();
 
-		//! Thread entry point for ACE_Thread_Manager.
+		//! Thread entry point for the ACE_Thread_Manager.
 		static ACE_THR_FUNC_RETURN
 		entry_point( void * self_object );
 
@@ -74,7 +74,7 @@ class coop_dereg_executor_thread_t
 
 		//! This thread id.
 		/*!
-			\note Has actual value only after start().
+			\note m_tid has the actual value only after start().
 		*/
 		ACE_thread_t m_tid;
 };

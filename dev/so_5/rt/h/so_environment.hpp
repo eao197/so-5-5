@@ -123,7 +123,7 @@ class SO_5_TYPE so_environment_params_t
 
 		//! Set the timer thread.
 		/*!
-		 * If \a timer_thread is a nullptr then default timer thread
+		 * If \a timer_thread is a nullptr then the default timer thread
 		 * will be used.
 		 */
 		so_environment_params_t &
@@ -244,7 +244,7 @@ class SO_5_TYPE so_environment_params_t
  *
  * The SObjectizer Environment calls the so_environment_t::init() when
  * the SObjectizer Run-Time is successfully started. 
- * If something happened during Run-Time startup then 
+ * If something happened during the Run-Time startup then 
  * the method init() will not be called.
  *
  * The SObjectizer Run-Time is started by the so_environment_t::run().
@@ -396,11 +396,11 @@ class SO_5_TYPE so_environment_t
 		//! Get named dispatcher.
 		/*!
 		 * \return A reference to the dispatcher with the name \a disp_name.
-		 * Zero reference if dispatcher with such name is not found.
+		 * Zero reference if a dispatcher with such name is not found.
 		 */
 		dispatcher_ref_t
 		query_named_dispatcher(
-			//! Name of dispatcher.
+			//! Dispatcher name.
 			const std::string & disp_name );
 
 		//! Set up an exception logger.
@@ -445,7 +445,7 @@ class SO_5_TYPE so_environment_t
 					"some_active_group" ) );
 
 			// That agent will be bound to the dispatcher "active_group"
-			// and will be member of active group with name
+			// and will be member of an active group with name
 			// "some_active_group".
 			coop->add_agent(
 				so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
@@ -531,7 +531,8 @@ class SO_5_TYPE so_environment_t
 			unsigned int delay_msec,
 			//! Period of the delivery repetition for periodic messages.
 			/*! 
-				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+				\note Value 0 indicates that it's not periodic message 
+					(will be delivered one time).
 			*/
 			unsigned int period_msec )
 		{
@@ -555,7 +556,8 @@ class SO_5_TYPE so_environment_t
 			unsigned int delay_msec,
 			//! Period of the delivery repetition for periodic messages.
 			/*! 
-				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+				\note Value 0 indicates that it's not periodic message 
+					(will be delivered one time).
 			*/
 			unsigned int period_msec )
 		{
@@ -671,7 +673,7 @@ class SO_5_TYPE so_environment_t
 		/*!
 		 * \attention A hang inside of this method will prevent the Run-Time
 		 * from stopping. For example if a dialog with an application user
-		 * is performed inside of init() then SObjectizer cannot finish
+		 * is performed inside init() then SObjectizer cannot finish
 		 * its work until this dialog is finished.
 		 */
 		virtual void
@@ -702,7 +704,8 @@ class SO_5_TYPE so_environment_t
 			unsigned int delay_msec,
 			//! Period of the delivery repetition for periodic messages.
 			/*! 
-				\note Value 0 indicates that it's not periodic message (will be delivered one time).. 
+				\note Value 0 indicates that it's not periodic message 
+					(will be delivered one time).
 			*/
 			unsigned int period_msec = 0 );
 

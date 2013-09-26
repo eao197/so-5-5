@@ -90,9 +90,9 @@ class dispatcher_t
 		/*!
 		 * \brief Release the dispatcher for the specified active group.
 		 *
-		 * Decrements working agent count for the thread of
+		 * Method decrements the working agent count for the thread of
 		 * \a group_name. If there no more working agents left then
-		 * dispatcher and working thread for that group will be
+		 * the dispatcher and working thread for that group will be
 		 * destroyed.
 		 */
 		void

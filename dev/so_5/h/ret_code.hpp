@@ -33,7 +33,7 @@ const int rc_environment_error = 1;
 //! Trying to switch to the unknown state.
 const int rc_agent_unknown_state = 10;
 
-//! Agent is already bound to the SObjectizer environment.
+//! Agent is already bound to the SObjectizer Environment.
 const int rc_agent_is_already_bind_to_env = 11;
 
 //! Agent is already bound to the dispatcher.

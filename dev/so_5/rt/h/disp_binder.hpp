@@ -66,14 +66,14 @@ class SO_5_TYPE disp_binder_t
 			agent_ref_t & agent_ref ) = 0;
 };
 
-//! Typedef for disp_binder autopointer.
+//! Typedef for the disp_binder autopointer.
 typedef std::unique_ptr< disp_binder_t > disp_binder_unique_ptr_t;
 
-//! Typedef for disp_binder smart pointer.
+//! Typedef for the disp_binder smart pointer.
 typedef std::shared_ptr< disp_binder_t >
 	disp_binder_ref_t;
 
-//! Create an instance of default dispatcher binding.
+//! Create an instance of the default dispatcher binding.
 SO_5_EXPORT_FUNC_SPEC( disp_binder_unique_ptr_t )
 create_default_disp_binder();
 

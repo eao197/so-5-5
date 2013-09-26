@@ -106,7 +106,7 @@ class SO_5_TYPE dispatcher_t
 		put_event_execution_request(
 			//! Events of this agent should be executed.
 			const agent_ref_t & agent_ref,
-			//! Count of events for that agent.
+			//! Count of events for this agent.
 			unsigned int event_count ) = 0;
 
 		//! Set an exception handler.

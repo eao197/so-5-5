@@ -196,7 +196,7 @@ class SO_5_TYPE agent_coop_t
 		/*!
 		 * Cooperation deregistration is a long process. All agents
 		 * process events out of their queues. When an agent detects that
-		 * no more events in its queue it informs cooperation about this.
+		 * no more events in its queue it informs the cooperation about this.
 		 *
 		 * When cooperation detects that all agents have finished their
 		 * work it initiates the agent's destruction.

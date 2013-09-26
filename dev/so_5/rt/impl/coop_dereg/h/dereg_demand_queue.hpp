@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A cooperation deregistration waiting queue definition.
+	\brief A cooperation deregistration waiting a queue definition.
 */
 
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__DEREG_DEMAND_QUEUE_HPP_ )
@@ -31,7 +31,7 @@ namespace coop_dereg
 // dereg_demand_queue_t
 //
 
-//! A cooperation deregistration waiting queue.
+//! A cooperation deregistration waiting a queue.
 /*!
  * Thread safe.
  *
@@ -45,15 +45,15 @@ class dereg_demand_queue_t
 		dereg_demand_queue_t();
 		~dereg_demand_queue_t();
 
-		//! Put cooperation into queue.
+		//! Put cooperation into the queue.
 		void
 		push( agent_coop_t * coop );
 
-		//! Get cooperations from queue.
+		//! Get cooperations from the queue.
 		/*!
-		 * Will block if queue is empty.
+		 * Will block if the queue is empty.
 		 *
-		 * Return no cooperations if shutdown flag is set.
+		 * Returns no cooperations if the shutdown flag is set.
 		 */
 		void
 		pop(
@@ -78,13 +78,13 @@ class dereg_demand_queue_t
 		//! Object lock.
 		ACE_Thread_Mutex m_lock;
 
-		//! Condition variable for waking up sleeping thread.
+		//! Condition variable for waking up a sleeping thread.
 		ACE_Condition_Thread_Mutex m_not_empty;
 
 		//! Working status.
 		/*!
-		 * Value true means that queue is in working state.
-		 * Value false serves as shutdown flag.
+		 * Value true means that the queue is in working state.
+		 * Value false serves as the shutdown flag.
 		 */
 		bool m_in_service;
 };

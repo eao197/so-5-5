@@ -62,7 +62,7 @@ class agent_t;
  * mbox_t has two versions of the deliver_message() method. 
  * The first one requires pointer to the actual message data and is intended 
  * for delivering messages to agents.
- * The second one doesn't use pointer to the actual message data and 
+ * The second one doesn't use a pointer to the actual message data and 
  * is intended for delivering signals to agents.
  *
  * mbox_t also is used for the delivery of delayed and periodic messages.

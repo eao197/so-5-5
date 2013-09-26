@@ -56,7 +56,7 @@ class agent_coop_t;
 /*!
 	An agent in SObjctizer must be derived from the agent_t.
 
-	The base class provides various methods whose could be splitted into
+	The base class provides various methods whose can be splitted into
 	the following groups:
 	\li methods for the interaction with SObjectizer;
 	\li predefined hook-methods which are called during: cooperation
@@ -78,7 +78,7 @@ class agent_coop_t;
 	The base class defines several hook-methods. Its default implementation
 	do nothing.
 
-	Method agent_t::so_define_agent() is called just before agent will
+	The method agent_t::so_define_agent() is called just before agent will
 	started by SObjectizer as a part of the agent registration process.
 	It should be reimplemented for the initial subscription of the agent
 	to messages.
@@ -109,12 +109,12 @@ class agent_coop_t;
 
 	The class so_5::rt::event_data_t is a wrapper on pointer to an instance 
 	of the \c MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. 
-	The pointer to \c MESSAGE can be nullptr. It happens in case when 
+	The pointer to \c MESSAGE can be a nullptr. It happens in case when 
 	the message has no actual data and servers just a signal about something.
 
 	A subscription to the message is performed by the method so_subscribe().
 	This method returns an instance of the so_5::rt::subscription_bind_t which
-	does all actual actions of the subscription process. That instance already
+	does all actual actions of the subscription process. This instance already
 	knows agents and message mbox and uses the default agent state for
 	the event subscription (binding to different state is also possible). 
 
@@ -122,16 +122,16 @@ class agent_coop_t;
 
 	The agent can change its state by his so_change_state() method.
 
-	An attempt to switch agent to the state which belongs to the another
+	An attempt to switch an agent to the state which belongs to the another
 	agent is an error. If state is belong to the same agent there are
 	no possibility to any run-time errors. In this case changing agent
 	state is a very safe operation.
 
 	In some cases it is necessary to detect agent state switching.
-	For example for application monitoring purposes. That could be done
+	For example for application monitoring purposes. This can be done
 	by "state listeners".
 
-	Any count of state listeners could be set for an agent. There are
+	Any count of state listeners can be set for an agent. There are
 	two methods for that:
 	- so_add_nondestroyable_listener() is for listeners whose lifetime
 	  are controlled by a programmer, not by SObjectizer;
@@ -150,7 +150,7 @@ class SO_5_TYPE agent_t
 	public:
 		//! Constructor.
 		/*!
-			Agent must be bound to SObjectizer Environment during
+			Agent must be bound to the SObjectizer Environment during
 			its creation. And that binding cannot be changed anymore.
 		*/
 		explicit agent_t(
@@ -264,21 +264,21 @@ class SO_5_TYPE agent_t
 
 		//! Name of the agent's cooperation.
 		/*!
-		 * \note It is safe to use this method when agent is working inside of
+		 * \note It is safe to use this method when agent is working inside 
 		 * SObjectizer because agent can be registered only in some
 		 * cooperation. When agent is not registered in SObjectizer this
-		 * method should be used with care.
+		 * method should be used carefully.
 		 *
-		 * \throw so_5::exception_t If agent doesn't belong to any cooperation.
+		 * \throw so_5::exception_t If the agent doesn't belong to any cooperation.
 		 *
-		 * \return Cooperation name if agent is bound to the cooperation.
+		 * \return Cooperation name if the agent is bound to the cooperation.
 		 */
 		const std::string &
 		so_coop_name() const;
 
 		//! Add a state listener to the agent.
 		/*!
-		 * A programmer should guaranteed that lifetime of
+		 * A programmer should guarantee that the lifetime of
 		 * \a state_listener is exceeds lifetime of the agent.
 		 */
 		void
@@ -295,7 +295,8 @@ class SO_5_TYPE agent_t
 
 		//! Push an event to the agent's event queue.
 		/*!
-			This method is used by SObjectizer for the agent's event scheduling.
+			This method is used by SObjectizer for the 
+			agent's event scheduling.
 		*/
 		static inline void
 		call_push_event(
@@ -520,7 +521,7 @@ class SO_5_TYPE agent_t
 		create_ref();
 
 		/*!
-		 * \name Embedding agent into the SObjectizer run-time.
+		 * \name Embedding agent into the SObjectizer Run-time.
 		 * \{
 		 */
 
@@ -658,7 +659,7 @@ class SO_5_TYPE agent_t
 		//! Dispatcher of this agent.
 		/*!
 		 * By default this pointer points to a special stub.
-		 * This stub do nothing but allows safely call method for
+		 * This stub do nothing but allows safely call the method for
 		 * events scheduling.
 		 *
 		 * This pointer received the actual value after binding

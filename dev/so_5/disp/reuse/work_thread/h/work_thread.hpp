@@ -60,7 +60,7 @@ struct demand_t
 	{}
 };
 
-//! Typedef for demands of queue container.
+//! Typedef for demands of the queue container.
 typedef std::deque< demand_t > demand_container_t;
 
 //

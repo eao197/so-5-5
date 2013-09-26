@@ -52,7 +52,7 @@ demand_queue_t::push(
 	{
 		const bool demands_empty_before_service = m_demands.empty();
 
-		// Assume that the new demand should be added to queue.
+		// Assume that the new demand should be added to the queue.
 		bool create_new_demand_needed = true;
 
 		// Is queue was not empty...
@@ -221,7 +221,8 @@ work_thread_t::body()
 		catch( const std::exception & ex )
 		{
 			// Exception should be processed.
-//FIXME: is it possible that exception would be caught when demands is empty?
+//FIXME: is it possible that the exception would be 
+// caught when demands is empty?
 			handle_exception(
 				ex,
 				demands.front().m_agent_ref );

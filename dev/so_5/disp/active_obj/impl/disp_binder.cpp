@@ -39,7 +39,7 @@ disp_binder_t::bind_agent(
 	so_5::rt::dispatcher_ref_t disp_ref =
 		env.query_named_dispatcher( m_disp_name );
 
-	// If the dispatcher is found then agent should be bound to it.
+	// If the dispatcher is found then the agent should be bound to it.
 	if( disp_ref.get() )
 	{
 		// It should be an active objects dispatcher.

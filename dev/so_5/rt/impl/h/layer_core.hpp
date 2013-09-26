@@ -67,24 +67,24 @@ typedef std::vector< typed_layer_ref_t >
 //! An utility class for work with layers.
 /*!
  * There are two type of layers:
- * - default layers. They are known before SObjectizer Run-Time started.
- *   Those layers should be passed to layer_core_t constructor;
- * - extra layers. They have added when SObjectizer Run-Time are working.
+ * - default layers. They are known before the SObjectizer Run-Time started.
+ *   Those layers should be passed to the layer_core_t constructor;
+ * - extra layers. They have added when the SObjectizer Run-Time are working.
  *
- * The main difference between then that default layers started when
- * SObjectize Run-Time is not working. They are stared during Run-Time
+ * The main difference between them is that default layers started when
+ * SObjectizer Run-Time is not working. They are started during the Run-Time
  * initialization routine.
  *
- * Extra layers get started when Run-Time is working.
+ * Extra layers get started when the Run-Time is working.
  *
- * During SObjectizer Run-Time should extra layers should be shutdowned
+ * During the SObjectizer Run-Time should extra layers should be shutdowned
  * before default layers.
  */
 class layer_core_t
 {
 	public:
 		layer_core_t(
-			//! Layers which are known before SObjectize start.
+			//! Layers which are known before SObjectizer start.
 			const so_layer_map_t & so_layers,
 			//! SObjectizer Environment to work with.
 			so_environment_t * env );
@@ -134,11 +134,11 @@ class layer_core_t
 
 		//! Default layers.
 		/*!
-		 * Value is set in constructor and never changed.
+		 * Value is set in the constructor and will never change.
 		 */
 		so_layer_list_t m_default_layers;
 
-		//! Object lock for extra layers data.
+		//! Object lock for the extra layers data.
 		mutable ACE_RW_Thread_Mutex m_extra_layers_lock;
 
 		//! Extra layers.

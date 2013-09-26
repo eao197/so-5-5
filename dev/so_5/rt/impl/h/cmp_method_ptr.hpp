@@ -27,7 +27,8 @@ namespace impl
 
 //! A function to compare pointers to methods.
 /*!
-	\return true if pointers are equal, false otherwise.
+	\retval true pointers are equal.
+	\retval true pointers are not equal.
 */
 
 inline bool

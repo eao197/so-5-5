@@ -52,7 +52,7 @@ class disp_core_t
 
 		//! Get a named dispatcher.
 		/*!
-			\return null reference if dispatcher with \a disp_name
+			\retval null-reference if dispatcher with \a disp_name
 			has not been found.
 		*/
 		dispatcher_ref_t
@@ -63,11 +63,11 @@ class disp_core_t
 		ret_code_t
 		start();
 
-		//! Send shutdown signal for all dispatchers.
+		//! Send a shutdown signal for all dispatchers.
 		void
 		shutdown();
 
-		//! Blocking wait for complete shutdown of all dispatchers.
+		//! Blocking wait for the complete shutdown of all dispatchers.
 		void
 		wait();
 

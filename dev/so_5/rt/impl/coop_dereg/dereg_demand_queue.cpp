@@ -84,7 +84,7 @@ dereg_demand_queue_t::stop_service()
 
 		m_in_service = false;
 		// If demands queue is empty then someone could wait on
-		// object lock. That thread should be waked up.
+		// object lock. This thread should be waked up.
 		need_wakeup_signal = m_demands.empty();
 	}
 

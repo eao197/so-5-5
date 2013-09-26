@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief Interface for event exception handler definition.
+	\brief Interface for the event exception handler definition.
 */
 
 #if !defined( _SO_5__RT__EVENT_EXCEPTION_HANDLER_HPP_ )
@@ -31,7 +31,7 @@ namespace rt
  * \brief A base class for actions which should be done
  * after processing of exceptions raised from agent events.
  *
- * Instances of thid class will be returned from
+ * Instances of this class will be returned from the 
  * event_exception_handler_t::handle_exception().
  */
 class SO_5_TYPE event_exception_response_action_t

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A forward declaration of event_handler_caller_ref.
+	\brief A forward declaration of the event_handler_caller_ref.
 */
 
 
@@ -25,7 +25,7 @@ class event_handler_caller_t;
 // event_handler_caller_ref_t
 //
 /*!
- * \brief A smart reference to event_handler_caller.
+ * \brief A smart reference to the event_handler_caller.
  * \note Defined as typedef since v.5.2.0
  */
 typedef smart_atomic_reference_t< event_handler_caller_t >

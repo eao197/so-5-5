@@ -77,9 +77,9 @@ class SO_5_TYPE atomic_refcounted_t
 //
 /*!
  * \since v.5.2.0
- * \brief Template class for smart reference wrapper on atomic_refcounted_t.
+ * \brief Template class for smart reference wrapper on the atomic_refcounted_t.
  *
- * \tparam T class which must be derived from atomic_refcounted_t.
+ * \tparam T class which must be derived from the atomic_refcounted_t.
  */
 template< class T >
 class smart_atomic_reference_t
@@ -94,7 +94,7 @@ class smart_atomic_reference_t
 	public :
 		//! Default constructor.
 		/*!
-		 * Constructs null reference.
+		 * Constructs a null reference.
 		 */
 		smart_atomic_reference_t()
 			:	m_obj( nullptr )
@@ -160,7 +160,7 @@ class smart_atomic_reference_t
 			o.m_obj = t;
 		}
 
-		//! Is null reference?
+		//! Is this a null reference?
 		bool
 		empty() const
 		{
@@ -236,10 +236,10 @@ class smart_atomic_reference_t
 		 */
 
 	private :
-		//! Object controlled by smart reference.
+		//! Object controlled by a smart reference.
 		T * m_obj;
 
-		//! Increment reference count to object if not null.
+		//! Increment reference count to object if it's not null.
 		void
 		take_object()
 		{

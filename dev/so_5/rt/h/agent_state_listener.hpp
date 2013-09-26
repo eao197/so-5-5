@@ -31,7 +31,7 @@ class state_t;
 
 //! Interface of the agent state listener.
 /*!
- * This interface is intended for cases where the agent state switches
+ * This interface is intended for cases when the agent state switches
  * should be observed or monitored. A "state listener" is an object
  * which can be attached to an agent and the agent will inform
  * the listener about state changes. Such state listeners should implement

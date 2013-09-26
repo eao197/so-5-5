@@ -16,7 +16,7 @@
 #include <ace/Log_Msg.h>
 
 /*!
-	\brief Macros to create a format string for using with ACE logging.
+	\brief Macros to create a format string for using with the ACE logging.
 
 	Usage sample:
 	\code
@@ -30,7 +30,7 @@
  * if necessary.
  *
  * Should be used in cases when an error is not expected. And if
- * it is impossible to continue in the case of an error. For example if
+ * it is impossible to continue in case of an error. For example if
  * attempt to add a value into the hash map is failed.
  *
  * Usage sample:
