@@ -32,11 +32,9 @@ class test_layer_t
 		virtual ~test_layer_t()
 		{}
 
-		virtual so_5::ret_code_t
+		virtual void
 		start()
-		{
-			return 0;
-		}
+		{}
 
 		virtual void
 		shutdown()
@@ -58,10 +56,10 @@ class test_layer_bad_start_t
 		virtual ~test_layer_bad_start_t()
 		{}
 
-		virtual so_5::ret_code_t
+		virtual void
 		start()
 		{
-			return 2013;
+			throw std::runtime_error( "failure" );
 		}
 
 		virtual void
@@ -103,40 +101,63 @@ UT_UNIT_TEST( check_errors )
 	so_environment_error_checker_t so_env;
 
 	separate_so_thread::run_on( so_env, [&]() {
+			const char * const null_str = nullptr;
 			// Try to set up layer which is already set.
-			UT_CHECK_EQ(
-				so_5::rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
+			try {
 				so_env.add_extra_layer(
-					std::unique_ptr< test_layer_t< 0 > >( new test_layer_t< 0 > ),
-					so_5::DO_NOT_THROW_ON_ERROR ) );
+					std::unique_ptr< test_layer_t< 0 > >( new test_layer_t< 0 > ) );
+				UT_CHECK_EQ( null_str, "exception must be thrown" );
+			}
+			catch( const so_5::exception_t & x )
+			{
+				UT_CHECK_EQ(
+					so_5::rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
+					x.error_code() );
+			}
 
 			// Try to set up layer by zero pointer.
-			UT_CHECK_EQ(
-				so_5::rc_trying_to_add_nullptr_extra_layer,
+			try {
 				so_env.add_extra_layer(
-					std::unique_ptr< test_layer_t< 1 > >( nullptr ),
-					so_5::DO_NOT_THROW_ON_ERROR ) );
+					std::unique_ptr< test_layer_t< 1 > >( nullptr ) );
+				UT_CHECK_EQ( null_str, "exception must be thrown" );
+			}
+			catch( const so_5::exception_t & x )
+			{
+				UT_CHECK_EQ(
+					so_5::rc_trying_to_add_nullptr_extra_layer,
+					x.error_code() );
+			}
 
 			// Try to add new layer. No errors expected.
-			UT_CHECK_EQ(
-				0,
-				so_env.add_extra_layer(
-					std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ),
-					so_5::DO_NOT_THROW_ON_ERROR ) );
+			so_env.add_extra_layer(
+				std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ) );
 
 			// Try to add layer which is already set.
-			UT_CHECK_EQ(
-				so_5::rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
+			try {
 				so_env.add_extra_layer(
-					std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ),
-					so_5::DO_NOT_THROW_ON_ERROR ) );
+					std::unique_ptr< test_layer_t< 1 > >( new test_layer_t< 1 > ) );
+				UT_CHECK_EQ( null_str, "exception must be thrown" );
+			}
+			catch( const so_5::exception_t & x )
+			{
+				UT_CHECK_EQ(
+					so_5::rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
+					x.error_code() );
+			}
 
 			// Try to add layer which is failed to start.
-			UT_CHECK_EQ(
-				so_5::rc_unable_to_start_extra_layer,
+			try {
 				so_env.add_extra_layer(
-					std::unique_ptr< test_layer_bad_start_t >( new test_layer_bad_start_t ),
-					so_5::DO_NOT_THROW_ON_ERROR ) );
+					std::unique_ptr< test_layer_bad_start_t >(
+						new test_layer_bad_start_t ) );
+				UT_CHECK_EQ( null_str, "exception must be thrown" );
+			}
+			catch( const so_5::exception_t & x )
+			{
+				UT_CHECK_EQ(
+					so_5::rc_unable_to_start_extra_layer,
+					x.error_code() );
+			}
 		} );
 }
 

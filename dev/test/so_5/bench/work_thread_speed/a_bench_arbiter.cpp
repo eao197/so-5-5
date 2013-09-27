@@ -79,15 +79,7 @@ a_bench_arbiter_t::so_evt_start()
 						"active_group",
 						curr.m_receiver.m_active_group.query_value() ) );
 
-				so_5::ret_code_t rc = so_environment().register_coop(
-					std::move( coop ) );
-
-				if( rc )
-				{
-					throw std::runtime_error(
-						"unable to register " +
-						curr.m_receiver.query_value() );
-				}
+				so_environment().register_coop( std::move( coop ) );
 			}
 			++m_recivers_total;
 
@@ -109,15 +101,7 @@ a_bench_arbiter_t::so_evt_start()
 						"active_group",
 						curr.m_sender.m_active_group.query_value() ) );
 
-				so_5::ret_code_t rc = so_environment().register_coop(
-					std::move( coop ) );
-
-				if( rc )
-				{
-					throw std::runtime_error(
-						"unable to register " +
-						curr.m_sender.query_value() );
-				}
+				so_environment().register_coop( std::move( coop ) );
 			}
 		}
 	}

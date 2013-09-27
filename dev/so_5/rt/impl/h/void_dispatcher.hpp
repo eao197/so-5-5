@@ -38,7 +38,7 @@ class void_dispatcher_t
 		void_dispatcher_t();
 		virtual ~void_dispatcher_t();
 
-		virtual ret_code_t
+		virtual void
 		start();
 
 		virtual void

@@ -160,12 +160,9 @@ init( so_5::rt::so_environment_t & env )
 		env.create_coop( "test_coop" );
 
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new test_agent_t( env ) ) );
+		so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
 
-	env.register_coop(
-		std::move( coop ),
-		so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop ) );
 }
 
 int

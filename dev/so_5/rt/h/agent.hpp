@@ -16,8 +16,7 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/throwing_strategy.hpp>
+#include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/agent_ref_fwd.hpp>
@@ -354,12 +353,10 @@ class SO_5_TYPE agent_t
 			}
 			\endcode
 		*/
-		ret_code_t
+		void
 		so_change_state(
 			//! New agent state.
-			const state_t & new_state,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy = THROW_ON_ERROR );
+			const state_t & new_state );
 		/*!
 		 * \}
 		 */
@@ -581,16 +578,14 @@ class SO_5_TYPE agent_t
 		 */
 
 		//! Create binding between agent and mbox.
-		ret_code_t
+		void
 		create_event_subscription(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
 			mbox_ref_t & mbox_ref,
 			//! Event handler caller.
-			const event_handler_caller_ref_t & ehc,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			const event_handler_caller_ref_t & ehc );
 
 		//! Destroy all agent subscriptions.
 		void

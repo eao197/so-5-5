@@ -2,8 +2,6 @@
 	SObjectizer 5.
 */
 
-#include <so_5/util/h/apply_throwing_strategy.hpp>
-
 #include <so_5/rt/impl/h/message_distributor.hpp>
 
 #include <so_5/rt/h/event_caller_block.hpp>
@@ -42,20 +40,18 @@ message_distributor_t::push_first(
 		.push( ref_ptr );
 }
 
-ret_code_t
+void
 message_distributor_t::push_more(
 	const type_wrapper_t & type_wrapper,
 	impl::message_consumer_link_t * message_consumer_link,
 	const event_handler_caller_ref_t &
-		event_handler_caller_ref,
-	throwing_strategy_t throwing_strategy )
+		event_handler_caller_ref )
 {
 	if( message_consumer_link->event_caller_block()->has(
 			event_handler_caller_ref ) )
 	{
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_evt_handler_already_provided,
-			throwing_strategy,
 			std::string( "duplicating event handler for message " )  +
 				type_wrapper.query_type_info().name() );
 	}
@@ -68,8 +64,6 @@ message_distributor_t::push_more(
 
 	message_consumer_link->event_caller_block() =
 		new_event_caller_block;
-
-	return 0;
 }
 
 void

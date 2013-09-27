@@ -60,7 +60,7 @@ class disp_core_t
 			const std::string & disp_name );
 
 		//! Start all dispatchers.
-		ret_code_t
+		void
 		start();
 
 		//! Send a shutdown signal for all dispatchers.

@@ -13,7 +13,6 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/types.hpp>
-#include <so_5/h/throwing_strategy.hpp>
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/type_wrapper.hpp>
@@ -32,50 +31,37 @@ namespace rt
 // agent_owns_state()
 //
 
-//! Does agent own this state?
-SO_5_EXPORT_FUNC_SPEC( ret_code_t )
-agent_owns_state(
+//! Checks the agent owns the state specified.
+SO_5_EXPORT_FUNC_SPEC( void )
+ensure_agent_owns_state(
 	//! Agent to be checked.
 	agent_t & agent,
 	//! State to check.
-	const state_t * state,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy );
+	const state_t * state );
 
 //! Is agent convertible to specified type.
 /*!
  * \tparam AGENT Target type of type conversion to be checked.
  */
 template< class AGENT >
-ret_code_t
-agent_convertable_to(
+AGENT &
+try_cast_agent_to(
 	//! Object to be checked.
-	agent_t * agent,
-	//! Receiver of the casted pointer (in case if the conversion is available).
-	AGENT * & casted_agent,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy )
+	agent_t & agent )
 {
-	ret_code_t res = 0;
-	casted_agent = dynamic_cast< AGENT * >( agent );
+	AGENT * casted_agent = dynamic_cast< AGENT * >( &agent );
 
 	// Was conversion successful?
 	if( nullptr == casted_agent )
 	{
-		// No actual type of the agent is not convertible to the AGENT.
-		res = rc_agent_incompatible_type_conversion;
-
-		// Handling exception strategy.
-		if( THROW_ON_ERROR == throwing_strategy )
-		{
-			std::string error_msg = "Unable convert agent to type ";
-			const std::type_info & ti = typeid( AGENT );
-			error_msg += ti.name();
-			throw exception_t( error_msg, res );
-		}
+		// No. Actual type of the agent is not convertible to the AGENT.
+		SO_5_THROW_EXCEPTION(
+			rc_agent_incompatible_type_conversion,
+			std::string( "Unable convert agent to type: " ) +
+				typeid(AGENT).name() );
 	}
 
-	return res;
+	return *casted_agent;
 }
 
 //
@@ -104,59 +90,39 @@ class SO_5_TYPE subscription_bind_t
 
 		//! Make subscription to the message.
 		template< class MESSAGE, class AGENT >
-		ret_code_t
+		void
 		event(
 			//! Event handling method.
-			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
 			// Agent must be owner of the state.
-			ret_code_t res = agent_owns_state(
-				m_agent,
-				m_state,
-				throwing_strategy );
+			ensure_agent_owns_state( m_agent, m_state );
 
-			if( res )
-				// This is possible only if throwing_strategy != THROW_ON_ERROR.
-				// So simply return error code.
-				return res;
-
-			AGENT * casted_agent = nullptr;
 			// Agent must have right type.
-			res = agent_convertable_to< AGENT >(
-				&m_agent,
-				casted_agent,
-				throwing_strategy );
-
-			if( res )
-				return res;
+			AGENT & casted_agent = try_cast_agent_to< AGENT >( m_agent );
 
 			event_handler_caller_ref_t event_handler_caller_ref(
 				new real_event_handler_caller_t< MESSAGE, AGENT >(
 					pfn,
-					*casted_agent,
+					casted_agent,
 					m_state ) );
 
-			return create_event_subscription(
+			create_event_subscription(
 				type_wrapper_t( typeid( MESSAGE ) ),
 				m_mbox_ref,
-				event_handler_caller_ref,
-				throwing_strategy );
+				event_handler_caller_ref );
 		}
 
 	private:
 		//! Create an event subscription.
-		ret_code_t
+		void
 		create_event_subscription(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Mbox for messages.
 			mbox_ref_t & mbox_ref,
 			//! Event caller.
-			const event_handler_caller_ref_t & ehc,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			const event_handler_caller_ref_t & ehc );
 
 		//! Agent to which we are subscribing.
 		agent_t & m_agent;

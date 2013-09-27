@@ -4,8 +4,6 @@
 
 #include <ace/Guard_T.h>
 
-#include <so_5/util/h/apply_throwing_strategy.hpp>
-
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_handler_caller.hpp>
@@ -234,10 +232,9 @@ agent_t::so_default_state() const
 	return m_default_state;
 }
 
-ret_code_t
+void
 agent_t::so_change_state(
-	const state_t & new_state,
-	throwing_strategy_t throwing_strategy )
+	const state_t & new_state )
 {
 	if( new_state.is_target( this ) )
 	{
@@ -247,15 +244,12 @@ agent_t::so_change_state(
 		m_state_listener_controller->changed(
 			*this,
 			*m_current_state_ptr );
-
-		return 0;
 	}
-
-	return so_5::util::apply_throwing_strategy(
-		rc_agent_unknown_state,
-		throwing_strategy,
-		"unable to switch agent to alien state "
-		"(the state that doesn't belong to this agent)" );
+	else
+		SO_5_THROW_EXCEPTION(
+			rc_agent_unknown_state,
+			"unable to switch agent to alien state "
+			"(the state that doesn't belong to this agent)" );
 }
 
 subscription_bind_t
@@ -402,12 +396,11 @@ subscription_key_string( const subscription_key_t & sk )
 	return str;
 }
 
-ret_code_t
+void
 agent_t::create_event_subscription(
 	const type_wrapper_t & type_wrapper,
 	mbox_ref_t & mbox_ref,
-	const event_handler_caller_ref_t & ehc,
-	throwing_strategy_t throwing_strategy )
+	const event_handler_caller_ref_t & ehc )
 {
 	subscription_key_t subscr_key(
 		type_wrapper,
@@ -416,7 +409,7 @@ agent_t::create_event_subscription(
 	ACE_Guard< ACE_Thread_Mutex > lock( m_agent_coop->m_lock );
 
 	if( m_agent_coop->m_agents_are_undefined )
-		return 0;
+		return;
 
 	consumers_map_t::iterator it =
 		m_event_consumers_map.find( subscr_key );
@@ -440,14 +433,11 @@ agent_t::create_event_subscription(
 	}
 	else
 	{
-		return mbox_ref->subscribe_more_event_handler(
+		mbox_ref->subscribe_more_event_handler(
 			type_wrapper,
 			it->second,
-			ehc,
-			throwing_strategy );
+			ehc );
 	}
-
-	return 0;
 }
 
 void

@@ -43,12 +43,10 @@ class test_layer_t
 		virtual ~test_layer_t()
 		{}
 
-		virtual so_5::ret_code_t
+		virtual void
 		start()
 		{
 			op_calls[ OP_START ] = m_op_seq_counter++;
-
-			return 0;
 		}
 
 		virtual void

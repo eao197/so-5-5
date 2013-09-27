@@ -33,12 +33,11 @@ dispatcher_t::~dispatcher_t()
 {
 }
 
-ret_code_t
+void
 dispatcher_t::start()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 	m_shutdown_started = false;
-	return 0;
 }
 
 template< class AGENT_DISP >

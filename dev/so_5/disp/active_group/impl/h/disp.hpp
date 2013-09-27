@@ -51,7 +51,7 @@ class dispatcher_t
 		//! \{
 
 		//! Launch the dispatcher.
-		virtual ret_code_t
+		virtual void
 		start();
 
 		//! Send a signal about shutdown to the dispatcher.

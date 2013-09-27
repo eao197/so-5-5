@@ -42,17 +42,24 @@ init( so_5::rt::so_environment_t & env )
 
 	coop->add_agent(
 		so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-	env.register_coop( std::move( coop) , so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop) );
 
 	// Create a duplicate.
 	coop = env.create_coop( so_5::rt::nonempty_name_t( coop_name ) );
 	coop->add_agent(
 		so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
 
-	const so_5::ret_code_t rc =
-		env.register_coop( std::move( coop ), so_5::DO_NOT_THROW_ON_ERROR );
+	bool exception_thrown = false;
+	try
+	{
+		env.register_coop( std::move( coop ) );
+	}
+	catch( const so_5::exception_t & )
+	{
+		exception_thrown = true;
+	}
 
-	if( so_5::rc_coop_with_specified_name_is_already_registered != rc )
+	if( !exception_thrown )
 		throw std::runtime_error( "duplicating coop should not be registered" );
 
 	env.stop();

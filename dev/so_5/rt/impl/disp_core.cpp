@@ -62,7 +62,7 @@ disp_core_t::query_named_dispatcher(
 	return dispatcher_ref_t();
 }
 
-ret_code_t
+void
 disp_core_t::start()
 {
 	m_default_dispatcher->set_disp_event_exception_handler( *this );
@@ -76,8 +76,6 @@ disp_core_t::start()
 		it->second->set_disp_event_exception_handler( *this );
 		it->second->start();
 	}
-
-	return 0;
 }
 
 void

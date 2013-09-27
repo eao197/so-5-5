@@ -17,8 +17,6 @@
 #define _SO_5__API__API_HPP_
 
 #include <so_5/h/declspec.hpp>
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/throwing_strategy.hpp>
 
 #include <so_5/rt/h/so_environment.hpp>
 
@@ -93,30 +91,29 @@ init( so_5::rt::so_environment_t & env )
 int
 main( int argc, char * argv[] )
 {
-	return so_5::api::run_so_environment(
+	so_5::api::run_so_environment(
 		&init,
 		so_5::rt::so_environment_params_t()
 			.mbox_mutex_pool_size( 16 )
 			.agent_coop_mutex_pool_size( 16 )
-			.agent_event_queue_mutex_pool_size( 16 ),
-		so_5::DO_NOT_THROW_ON_ERROR );
+			.agent_event_queue_mutex_pool_size( 16 ) );
+
+	return 0;
 }
 \endcode
 */
-inline so_5::ret_code_t
+inline void
 run_so_environment(
 	//! Pointer to the initialization routine.
 	pfn_so_environment_init_t init_func,
 	//! Environment's parameters.
-	const so_5::rt::so_environment_params_t & env_params,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+	const so_5::rt::so_environment_params_t & env_params )
 {
 	impl::so_quick_environment_t< decltype(init_func) > env(
 			init_func,
 			env_params );
 
-	return env.run( throwing_strategy );
+	return env.run();
 }
 
 //! Launch a SObjectizer Environment with default arguments.
@@ -153,17 +150,14 @@ main( int argc, char * argv[] )
 }
 \endcode
 */
-inline so_5::ret_code_t
+inline void
 run_so_environment(
 	//! Pointer to the initialization routine.
-	pfn_so_environment_init_t init_func,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+	pfn_so_environment_init_t init_func )
 {
-	return run_so_environment(
+	run_so_environment(
 			init_func,
-			so_5::rt::so_environment_params_t(),
-			throwing_strategy );
+			so_5::rt::so_environment_params_t() );
 }
 
 //! Launch a SObjectizer Environment with the parametrized 
@@ -199,9 +193,7 @@ init(
 	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
 
 	// Register the cooperation.
-	so_5::ret_code_t rc = env.register_coop( coop );
-
-	// Error handling and program termination should be handled here.
+	env.register_coop( coop );
 }
 
 // ...
@@ -213,7 +205,7 @@ main( int argc, char ** argv )
 	{
 		std::string server_addr( argv[ 1 ] );
 
-		return so_5::api::run_so_environment_with_parameter(
+		so_5::api::run_so_environment_with_parameter(
 			&init,
 			server_addr,
 			so_5::rt::so_environment_params_t()
@@ -232,7 +224,7 @@ main( int argc, char ** argv )
 \endcode
 */
 template< class INIT, class PARAM_TYPE >
-so_5::ret_code_t
+void
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
@@ -242,9 +234,7 @@ run_so_environment_with_parameter(
 	//! Initialization routine argument.
 	const PARAM_TYPE & param,
 	//! SObjectizer Environment parameters.
-	const so_5::rt::so_environment_params_t & env_params,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+	const so_5::rt::so_environment_params_t & env_params )
 {
 	auto init = [init_func, param]( so_5::rt::so_environment_t & env ) {
 			init_func( env, param );
@@ -254,10 +244,11 @@ run_so_environment_with_parameter(
 			init,
 			env_params );
 
-	return env.run( throwing_strategy );
+	env.run();
 }
 
-//! Launch a SObjectizer Environment with the parametrized initialization routine.
+//! Launch a SObjectizer Environment with the parametrized initialization
+//! routine.
 /*!
 
 Allows to pass an additional argument to the initialization process.
@@ -289,9 +280,7 @@ init(
 	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
 
 	// Register the cooperation.
-	so_5::ret_code_t rc = env.register_coop( coop );
-
-	// Error handling and program termination should be handled here.
+	env.register_coop( coop );
 }
 
 // ...
@@ -303,7 +292,7 @@ main( int argc, char ** argv )
 	{
 		std::string server_addr( argv[ 1 ] );
 
-		return so_5::api::run_so_environment_with_parameter(
+		so_5::api::run_so_environment_with_parameter(
 			&init,
 			server_addr,
 			so_5::rt::so_environment_params_t()
@@ -323,7 +312,7 @@ main( int argc, char ** argv )
 */
 
 template< class INIT, class PARAM_TYPE >
-so_5::ret_code_t
+void
 run_so_environment_with_parameter(
 	//! Initialization routine.
 	/*!
@@ -331,13 +320,12 @@ run_so_environment_with_parameter(
 	*/
 	INIT init_func,
 	//! Initialization routine argument.
-	const PARAM_TYPE & param,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+	const PARAM_TYPE & param )
 {
-	return run_so_environment_with_parameter( init_func, param,
-			so_5::rt::so_environment_params_t(),
-			throwing_strategy );
+	run_so_environment_with_parameter(
+			init_func,
+			param,
+			so_5::rt::so_environment_params_t() );
 }
 
 //! Launch a SObjectizer Environment by a class method and with
@@ -379,9 +367,7 @@ struct client_data_t
 		coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
 
 		// Register the cooperation.
-		so_5::ret_code_t rc = env.register_coop( coop );
-
-		// Error handling and program termination should be handled here.
+		env.register_coop( coop );
 	}
 };
 
@@ -396,7 +382,7 @@ main( int argc, char ** argv )
 		client_data.m_server_addr = argv[ 1 ];
 		client_data.m_protocol_parser = create_protocol( argv[ 2 ] );
 
-		return so_5::api::run_so_environment_on_object(
+		so_5::api::run_so_environment_on_object(
 			client_data,
 			&client_data_t::init,
 			so_5::rt::so_environment_params_t()
@@ -415,7 +401,7 @@ main( int argc, char ** argv )
 \endcode
 */
 template< class OBJECT, class METHOD >
-so_5::ret_code_t
+void
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
 	//! the initialization routine.
@@ -423,9 +409,7 @@ run_so_environment_on_object(
 	//! Initialization routine.
 	METHOD init_func,
 	//! SObjectizer Environment parameters.
-	const so_5::rt::so_environment_params_t & env_params,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+	const so_5::rt::so_environment_params_t & env_params )
 {
 	auto init = [&obj, init_func]( so_5::rt::so_environment_t & env ) {
 			(obj.*init_func)( env );
@@ -433,26 +417,23 @@ run_so_environment_on_object(
 
 	impl::so_quick_environment_t< decltype(init) > env( init, env_params );
 
-	return env.run( throwing_strategy );
+	env.run();
 }
 
 //! Launch a SObjectizer Environment by a class method.
 template< class OBJECT, class METHOD >
-so_5::ret_code_t
+void
 run_so_environment_on_object(
 	//! Initialization object. Its method should be used as
 	//! the initialization routine.
 	OBJECT & obj,
 	//! Initialization routine.
-	METHOD init_func,
-	//! Exception strategy.
-	throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+	METHOD init_func )
 {
-	return run_so_environment_on_object(
+	run_so_environment_on_object(
 			obj,
 			init_func,
-			so_5::rt::so_environment_params_t(),
-			throwing_strategy );
+			so_5::rt::so_environment_params_t() );
 }
 
 } /* namespace api */

@@ -73,9 +73,7 @@ test_agent_t::so_define_agent()
 {
 	so_subscribe( m_test_mbox )
 		.in( so_default_state() )
-			.event(
-				&test_agent_t::evt_test,
-				so_5::THROW_ON_ERROR );
+			.event( &test_agent_t::evt_test );
 }
 
 void
@@ -98,7 +96,7 @@ reg_coop(
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new test_agent_t( env, test_mbox ) ) );
 
-	env.register_coop( std::move( coop ), so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop ) );
 }
 
 void
@@ -131,14 +129,11 @@ init( so_5::rt::so_environment_t & env )
 			"test_agent_t::m_message_rec_cnt" );
 
 	// Deregister some cooperations.
-	env.deregister_coop( so_5::rt::nonempty_name_t(
-		"test_coop_1" ), so_5::THROW_ON_ERROR );
+	env.deregister_coop( so_5::rt::nonempty_name_t( "test_coop_1" ) );
 
-	env.deregister_coop( so_5::rt::nonempty_name_t(
-		"test_coop_6" ), so_5::THROW_ON_ERROR );
+	env.deregister_coop( so_5::rt::nonempty_name_t( "test_coop_6" ) );
 
-	env.deregister_coop( so_5::rt::nonempty_name_t(
-		"test_coop_3" ), so_5::THROW_ON_ERROR );
+	env.deregister_coop( so_5::rt::nonempty_name_t( "test_coop_3" ) );
 
 	test_agent_t::m_message_rec_cnt = 0;
 

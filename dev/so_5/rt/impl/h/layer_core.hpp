@@ -14,8 +14,7 @@
 
 #include <ace/RW_Thread_Mutex.h>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/throwing_strategy.hpp>
+#include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/so_layer.hpp>
@@ -99,7 +98,7 @@ class layer_core_t
 			const type_wrapper_t & type ) const;
 
 		//! Start all layers.
-		ret_code_t
+		void
 		start();
 
 		//! Shutdown extra layers.
@@ -122,11 +121,10 @@ class layer_core_t
 		wait_default_layers();
 
 		//! Add an extra layer.
-		ret_code_t
+		void
 		add_extra_layer(
 			const type_wrapper_t & type,
-			const so_layer_ref_t & layer,
-			throwing_strategy_t throwing_strategy );
+			const so_layer_ref_t & layer );
 
 	private:
 		//! SObjectizer Environment to work with.

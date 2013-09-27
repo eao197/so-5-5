@@ -14,9 +14,8 @@
 #include <memory>
 
 #include <so_5/h/declspec.hpp>
-#include <so_5/h/ret_code.hpp>
+#include <so_5/h/exception.hpp>
 #include <so_5/h/types.hpp>
-#include <so_5/h/throwing_strategy.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -99,7 +98,7 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * Default dispatcher binding is used for the agent.
 		 */
-		ret_code_t
+		void
 		add_agent(
 			const agent_ref_t & agent_ref );
 
@@ -108,7 +107,7 @@ class SO_5_TYPE agent_coop_t
 		 * Instead of the default dispatcher binding the \a disp_binder
 		 * is used for this agent during the cooperation registration.
 		 */
-		ret_code_t
+		void
 		add_agent(
 			//! Agent.
 			const agent_ref_t & agent_ref,

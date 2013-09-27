@@ -20,10 +20,9 @@ so_layer_t::~so_layer_t()
 {
 }
 
-ret_code_t
+void
 so_layer_t::start()
 {
-	return 0;
 }
 
 void

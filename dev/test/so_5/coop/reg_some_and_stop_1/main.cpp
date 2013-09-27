@@ -43,7 +43,7 @@ reg_coop(
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new test_agent_t( env ) ) );
 
-	env.register_coop( std::move( coop ), so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop ) );
 }
 
 void
@@ -58,11 +58,11 @@ init( so_5::rt::so_environment_t & env )
 
 	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000) );
 
-	env.deregister_coop( "test_coop_1", so_5::THROW_ON_ERROR );
+	env.deregister_coop( "test_coop_1" );
 
-	env.deregister_coop( "test_coop_6", so_5::THROW_ON_ERROR );
+	env.deregister_coop( "test_coop_6" );
 
-	env.deregister_coop( "test_coop_3", so_5::THROW_ON_ERROR );
+	env.deregister_coop( "test_coop_3" );
 
 	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000) );
 

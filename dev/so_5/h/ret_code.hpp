@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-//! Type for return codes of API functions and methods.
-typedef int ret_code_t;
-
 //
 // Standard error codes.
 //

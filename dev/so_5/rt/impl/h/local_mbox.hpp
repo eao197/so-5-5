@@ -72,16 +72,14 @@ class local_mbox_t
 		 * This method is called when agent is subscribing for message
 		 * to which it was subscribed earlier.
 		*/
-		virtual ret_code_t
+		virtual void
 		subscribe_more_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Already existed message consumer for that message.
 			impl::message_consumer_link_t * message_consumer_link,
 			//! Event caller for that message.
-			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			const event_handler_caller_ref_t & event_handler_caller_ref );
 
 		//! Remove all subscription for message specified.
 		/*!

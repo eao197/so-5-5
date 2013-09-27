@@ -56,7 +56,7 @@ class SO_5_TYPE so_layer_t
 		/*!
 		 * The default implementation do nothing.
 		 */
-		virtual ret_code_t
+		virtual void
 		start();
 
 		//! Shutdown signal hook.

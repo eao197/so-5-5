@@ -244,23 +244,18 @@ so_environment_t::create_coop(
 		so_environment_impl() );
 }
 
-ret_code_t
+void
 so_environment_t::register_coop(
-	agent_coop_unique_ptr_t agent_coop,
-	throwing_strategy_t throwing_strategy )
+	agent_coop_unique_ptr_t agent_coop )
 {
-	return m_so_environment_impl->register_coop(
-		std::move( agent_coop ),
-		throwing_strategy );
+	m_so_environment_impl->register_coop( std::move( agent_coop ) );
 }
 
-ret_code_t
+void
 so_environment_t::deregister_coop(
-	const nonempty_name_t & name,
-	throwing_strategy_t throwing_strategy )
+	const nonempty_name_t & name )
 {
-	return m_so_environment_impl->deregister_coop(
-		name, throwing_strategy );
+	m_so_environment_impl->deregister_coop( name );
 }
 
 so_5::timer_thread::timer_id_ref_t
@@ -293,23 +288,18 @@ so_environment_t::query_layer(
 	return m_so_environment_impl->query_layer( type );
 }
 
-ret_code_t
+void
 so_environment_t::add_extra_layer(
 	const type_wrapper_t & type,
-	const so_layer_ref_t & layer,
-	throwing_strategy_t throwing_strategy )
+	const so_layer_ref_t & layer )
 {
-	return m_so_environment_impl->add_extra_layer(
-		type,
-		layer,
-		throwing_strategy );
+	m_so_environment_impl->add_extra_layer( type, layer );
 }
 
-ret_code_t
-so_environment_t::run(
-	throwing_strategy_t throwing_strategy )
+void
+so_environment_t::run()
 {
-	return m_so_environment_impl->run( *this, throwing_strategy );
+	m_so_environment_impl->run( *this );
 }
 
 void

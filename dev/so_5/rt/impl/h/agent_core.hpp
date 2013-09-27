@@ -17,8 +17,7 @@
 #include <ace/Thread_Mutex.h>
 #include <ace/Condition_Thread_Mutex.h>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/throwing_strategy.hpp>
+#include <so_5/h/exception.hpp>
 
 #include <so_5/util/h/mutex_pool.hpp>
 
@@ -96,20 +95,16 @@ class agent_core_t
 		create_local_queue();
 
 		//! Register cooperation.
-		ret_code_t
+		void
 		register_coop(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t agent_coop,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			agent_coop_unique_ptr_t agent_coop );
 
 		//! Deregister cooperation.
-		ret_code_t
+		void
 		deregister_coop(
 			//! Cooperation name which being deregistered.
-			const nonempty_name_t & name,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			const nonempty_name_t & name );
 
 		//! Notification about readiness of the cooperation deregistration.
 		void

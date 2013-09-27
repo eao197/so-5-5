@@ -66,9 +66,7 @@ void
 test_agent_t::so_define_agent()
 {
 	so_subscribe( m_test_mbox )
-		.event(
-			&test_agent_t::evt_test,
-			so_5::THROW_ON_ERROR );
+		.event( &test_agent_t::evt_test );
 }
 
 void
@@ -88,9 +86,7 @@ init( so_5::rt::so_environment_t & env )
 
 	coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
 
-	env.register_coop(
-		std::move( coop ),
-		so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop ) );
 }
 
 int

@@ -75,7 +75,7 @@ class timer_thread_t
 		/*!
 		 * Calls ACE_Thread_Timer_Queue_Adapter::activate().
 		 */
-		virtual ret_code_t
+		virtual void
 		start();
 
 		/*!

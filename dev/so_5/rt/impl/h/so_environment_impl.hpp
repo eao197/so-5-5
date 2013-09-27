@@ -149,28 +149,21 @@ class so_environment_impl_t
 		 */
 
 		//! Register an agent cooperation.
-		ret_code_t
+		void
 		register_coop(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t agent_coop,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy )
+			agent_coop_unique_ptr_t agent_coop )
 		{
-			return m_agent_core.register_coop(
-				std::move( agent_coop ),
-				throwing_strategy );
+			m_agent_core.register_coop( std::move( agent_coop ) );
 		}
 
 		//! Deregister an agent cooperation.
-		ret_code_t
+		void
 		deregister_coop(
 			//! Cooperation to be deregistered.
-			const nonempty_name_t & name,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy )
+			const nonempty_name_t & name )
 		{
-			return m_agent_core.deregister_coop(
-				name, throwing_strategy );
+			m_agent_core.deregister_coop( name );
 		}
 
 		//! Notification about readiness to deregistration.
@@ -241,11 +234,10 @@ class so_environment_impl_t
 		/*!
 			\see layer_core_t::add_extra_layer().
 		*/
-		ret_code_t
+		void
 		add_extra_layer(
 			const type_wrapper_t & type,
-			const so_layer_ref_t & layer,
-			throwing_strategy_t throwing_strategy );
+			const so_layer_ref_t & layer );
 		/*!
 		 * \}
 		 */
@@ -254,10 +246,9 @@ class so_environment_impl_t
 		 * \name Start, initialization, shutting down.
 		 * \{
 		 */
-		ret_code_t
+		void
 		run(
-			so_environment_t & env,
-			throwing_strategy_t throwing_strategy );
+			so_environment_t & env );
 
 		void
 		stop();

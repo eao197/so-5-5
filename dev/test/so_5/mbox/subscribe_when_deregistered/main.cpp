@@ -138,7 +138,8 @@ init(
 
 		env.register_coop( std::move( coop ) );
 		env.deregister_coop( so_5::rt::nonempty_name_t( "test_coop" ) );
-		ACE_OS::sleep( ACE_Time_Value( 0, 50*1000 ) );
+//FIXME: must not rely on timer!
+		ACE_OS::sleep( ACE_Time_Value( 0, 500*1000 ) );
 		g_continue_subscr_circle = 0;
 	}
 	env.stop();

@@ -23,12 +23,11 @@ void_dispatcher_t::~void_dispatcher_t()
 {
 }
 
-ret_code_t
+void
 void_dispatcher_t::start()
 {
 	// This method cannot be called on objects of this class.
 	std::abort();
-	return 0;
 }
 
 void

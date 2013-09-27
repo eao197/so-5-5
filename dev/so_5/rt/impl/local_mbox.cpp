@@ -58,20 +58,18 @@ local_mbox_t::subscribe_first_event_handler(
 		event_handler_caller_ref );
 }
 
-ret_code_t
+void
 local_mbox_t::subscribe_more_event_handler(
 	const type_wrapper_t & type_wrapper,
 	impl::message_consumer_link_t * message_consumer_link,
-	const event_handler_caller_ref_t & event_handler_caller_ref,
-	throwing_strategy_t throwing_strategy )
+	const event_handler_caller_ref_t & event_handler_caller_ref )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-	return m_message_distributor.push_more(
+	m_message_distributor.push_more(
 		type_wrapper,
 		message_consumer_link,
-		event_handler_caller_ref,
-		throwing_strategy );
+		event_handler_caller_ref );
 }
 
 void
@@ -81,7 +79,7 @@ local_mbox_t::unsubscribe_event_handlers(
 		message_consumer_link )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
-	return m_message_distributor.pop(
+	m_message_distributor.pop(
 		type_wrapper,
 		message_consumer_link );
 }

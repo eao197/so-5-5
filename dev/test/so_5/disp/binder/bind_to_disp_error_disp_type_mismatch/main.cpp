@@ -46,12 +46,18 @@ init( so_5::rt::so_environment_t & env )
 				"active_obj",
 				"sample_group" ) );
 
-	if( 0 == env.register_coop(
-			std::move( coop ),
-			so_5::DO_NOT_THROW_ON_ERROR ) )
+	bool exception_thrown = false;
+	try
 	{
-		throw std::runtime_error( "invalid coop registered" );
+		env.register_coop( std::move( coop ) );
 	}
+	catch( const so_5::exception_t & )
+	{
+		exception_thrown = true;
+	}
+
+	if( !exception_thrown )
+		throw std::runtime_error( "invalid coop registered" );
 
 	env.stop();
 }
@@ -59,10 +65,9 @@ init( so_5::rt::so_environment_t & env )
 int
 main( int argc, char * argv[] )
 {
-	int result;
 	try
 	{
-		result = so_5::api::run_so_environment(
+		so_5::api::run_so_environment(
 			&init,
 			so_5::rt::so_environment_params_t()
 				.mbox_mutex_pool_size( 2 )
@@ -80,5 +85,5 @@ main( int argc, char * argv[] )
 		return 1;
 	}
 
-	return result;
+	return 0;
 }

@@ -54,9 +54,7 @@ class so_environment_t
 				so_5::rt::agent_ref_t(
 					new a_bench_arbiter_t( *this, m_cfg ) ) );
 
-			register_coop(
-				std::move( coop ),
-				so_5::THROW_ON_ERROR );
+			register_coop( std::move( coop ) );
 		}
 
 	private:
@@ -81,11 +79,10 @@ int main( int argc, char **argv )
 	else
 		cfg_file = argv[ 1 ];
 
-	so_5::ret_code_t rc = -1;
 	try
 	{
 		so_environment_t env( cfg_file );
-		rc = env.run();
+		env.run();
 
 		// Wait for finish of all threads.
 		ACE_Thread_Manager::instance()->wait();
@@ -97,5 +94,5 @@ int main( int argc, char **argv )
 	}
 
 
-	return rc;
+	return 0;
 }

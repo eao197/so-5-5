@@ -86,9 +86,7 @@ class a_master_t
 			coop->add_agent( so_5::rt::agent_ref_t(
 				new a_slave_t( so_environment(),  mbox ) ) );
 
-			so_environment().register_coop(
-				std::move( coop ),
-				so_5::THROW_ON_ERROR );
+			so_environment().register_coop( std::move( coop ) );
 		}
 
 		void
@@ -109,7 +107,7 @@ init( so_5::rt::so_environment_t & env )
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_master_t( env ) ) );
 
-	env.register_coop( std::move( coop ), so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop ) );
 }
 
 int

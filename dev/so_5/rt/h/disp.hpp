@@ -77,11 +77,7 @@ class SO_5_TYPE dispatcher_t
 		}
 
 		//! Launch the dispatcher.
-		/*!
-		 * \retval 0 if dispatcher has started successfully. 
-		 * \retval not-null indicates that the dispatcher cannot be started.
-		 */
-		virtual ret_code_t
+		virtual void
 		start() = 0;
 
 		//! Signal about shutdown.

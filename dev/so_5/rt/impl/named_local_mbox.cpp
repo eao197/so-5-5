@@ -49,18 +49,16 @@ named_local_mbox_t::subscribe_first_event_handler(
 		event_handler_caller_ref );
 }
 
-ret_code_t
+void
 named_local_mbox_t::subscribe_more_event_handler(
 	const type_wrapper_t & type_wrapper,
 	impl::message_consumer_link_t * message_consumer_link,
-	const event_handler_caller_ref_t & event_handler_caller_ref,
-	throwing_strategy_t throwing_strategy )
+	const event_handler_caller_ref_t & event_handler_caller_ref )
 {
-	return m_mbox->subscribe_more_event_handler(
+	m_mbox->subscribe_more_event_handler(
 		type_wrapper,
 		message_consumer_link,
-		event_handler_caller_ref,
-		throwing_strategy );
+		event_handler_caller_ref );
 }
 
 void

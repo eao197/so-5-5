@@ -43,7 +43,7 @@ class dispatcher_t
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 
-		virtual ret_code_t
+		virtual void
 		start();
 
 		virtual void

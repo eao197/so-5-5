@@ -88,9 +88,7 @@ void
 test_agent_sender_t::so_define_agent()
 {
 	so_subscribe( m_notification_mbox )
-		.event(
-			&test_agent_sender_t::evt_send_messages,
-			so_5::THROW_ON_ERROR );
+		.event( &test_agent_sender_t::evt_send_messages );
 }
 
 void
@@ -165,15 +163,12 @@ void
 test_agent_receiver_t::so_define_agent()
 {
 	so_subscribe( m_source_mbox )
-		.event(
-			&test_agent_receiver_t::evt_test,
-			so_5::THROW_ON_ERROR );
+		.event( &test_agent_receiver_t::evt_test );
 }
 
 void
 test_agent_receiver_t::evt_test(
-	const so_5::rt::event_data_t< test_message > &
-		msg )
+	const so_5::rt::event_data_t< test_message > & msg )
 {
 	// Stop if this is the last message.
 	if( msg->m_is_last )
@@ -200,9 +195,7 @@ init( so_5::rt::so_environment_t & env )
 			so_5::disp::one_thread::create_disp_binder(
 				"receiver_disp" ) );
 
-	env.register_coop(
-		std::move( coop ),
-		so_5::THROW_ON_ERROR );
+	env.register_coop( std::move( coop ) );
 }
 
 int

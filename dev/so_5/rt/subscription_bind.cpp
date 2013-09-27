@@ -2,8 +2,6 @@
 	SObjectizer 5.
 */
 
-#include <so_5/util/h/apply_throwing_strategy.hpp>
-
 #include <so_5/rt/h/subscription_bind.hpp>
 #include <so_5/rt/h/agent.hpp>
 
@@ -17,21 +15,17 @@ namespace rt
 // agent_owns_state()
 //
 
-SO_5_EXPORT_FUNC_SPEC( ret_code_t )
-agent_owns_state(
+SO_5_EXPORT_FUNC_SPEC(void)
+ensure_agent_owns_state(
 	agent_t & agent,
-	const state_t * state,
-	throwing_strategy_t throwing_strategy )
+	const state_t * state )
 {
 	if( !state->is_target( &agent ) )
 	{
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_agent_is_not_the_state_owner,
-			throwing_strategy,
 			"agent doesn't own the state" );
 	}
-
-	return 0;
 }
 
 //
@@ -60,18 +54,16 @@ subscription_bind_t::in(
 	return *this;
 }
 
-ret_code_t
+void
 subscription_bind_t::create_event_subscription(
 	const type_wrapper_t & type_wrapper,
 	mbox_ref_t & mbox_ref,
-	const event_handler_caller_ref_t & ehc,
-	throwing_strategy_t throwing_strategy )
+	const event_handler_caller_ref_t & ehc )
 {
 	return m_agent.create_event_subscription(
 		type_wrapper,
 		mbox_ref,
-		ehc,
-		throwing_strategy );
+		ehc );
 }
 
 } /* namespace rt */

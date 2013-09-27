@@ -54,17 +54,15 @@ agent_coop_t::query_coop_name() const
 }
 
 
-ret_code_t
+void
 agent_coop_t::add_agent(
 	const agent_ref_t & agent_ref )
 {
 	m_agent_array.push_back(
 		agent_with_disp_binder_t( agent_ref, m_coop_disp_binder ) );
-
-	return 0;
 }
 
-ret_code_t
+void
 agent_coop_t::add_agent(
 	const agent_ref_t & agent_ref,
 	disp_binder_unique_ptr_t disp_binder )
@@ -78,8 +76,6 @@ agent_coop_t::add_agent(
 
 	m_agent_array.push_back(
 		agent_with_disp_binder_t( agent_ref, dbinder ) );
-
-	return 0;
 }
 
 void

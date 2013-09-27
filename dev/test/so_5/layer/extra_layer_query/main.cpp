@@ -35,11 +35,9 @@ class test_layer_t
 		virtual ~test_layer_t()
 		{}
 
-		virtual so_5::ret_code_t
+		virtual void
 		start()
-		{
-			return 0;
-		}
+		{}
 
 		virtual void
 		shutdown()
@@ -98,17 +96,11 @@ check_layers_match(
 	test_layer_t< 3 > * tl3,
 	const so_environment_t & so_env )
 {
-	UT_CHECK_EQ(
-		so_env.query_layer< test_layer_t< 1 > >( so_5::DO_NOT_THROW_ON_ERROR ),
-		tl1 );
+	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 1 > >(), tl1 );
 
-	UT_CHECK_EQ(
-		so_env.query_layer< test_layer_t< 2 > >( so_5::DO_NOT_THROW_ON_ERROR ),
-		tl2 );
+	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 2 > >(), tl2 );
 
-	UT_CHECK_EQ(
-		so_env.query_layer< test_layer_t< 3 > >( so_5::DO_NOT_THROW_ON_ERROR ),
-		tl3 );
+	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 3 > >(), tl3 );
 }
 
 UT_UNIT_TEST( check_all_exist )
@@ -165,7 +157,7 @@ UT_UNIT_TEST( check_2_3_exist )
 
 #define CHECK_LAYER_DONT_EXISTS( so_env, N ) \
 		UT_CHECK_EQ( \
-			so_env.query_layer< test_layer_t< N > >( so_5::DO_NOT_THROW_ON_ERROR ), \
+			so_env.query_layer_noexcept< test_layer_t< N > >(), \
 			static_cast< so_5::rt::so_layer_t* >( nullptr) )
 
 #define ADD_LAYER( so_env, N ) \
@@ -175,7 +167,7 @@ UT_UNIT_TEST( check_2_3_exist )
 
 #define CHECK_LAYER_EXISTS( so_env, N ) \
 		UT_CHECK_EQ( \
-			so_env.query_layer< test_layer_t< N > >( so_5::DO_NOT_THROW_ON_ERROR ), \
+			so_env.query_layer_noexcept< test_layer_t< N > >(), \
 			last_created_objects[ N ] )
 
 
@@ -322,11 +314,9 @@ init( so_5::rt::so_environment_t & env )
 
 UT_UNIT_TEST( check_many_layers )
 {
-	UT_CHECK_EQ(
-		0,
-		so_5::api::run_so_environment(
-			&init,
-			so_5::rt::so_environment_params_t() ) );
+	so_5::api::run_so_environment(
+		&init,
+		so_5::rt::so_environment_params_t() );
 }
 
 

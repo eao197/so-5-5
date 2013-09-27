@@ -33,17 +33,30 @@ class SO_5_TYPE exception_t
 	public:
 		exception_t(
 			const std::string & error_descr,
-			ret_code_t error_code );
+			int error_code );
 		virtual ~exception_t() throw();
 
 		//! Error code getter.
-		ret_code_t
+		int
 		error_code() const;
+
+		static void
+		raise(
+			const char * file_name,
+			unsigned int line_number,
+			const std::string & error_descr,
+			int error_code );
 
 	private:
 		//! Error code.
-		ret_code_t m_error_code;
+		int m_error_code;
 };
+
+#define SO_5_THROW_EXCEPTION__(file, line, error_code, desc)\
+	so_5::exception_t::raise(file, line, (desc), (error_code))
+
+#define SO_5_THROW_EXCEPTION(error_code, desc)\
+	SO_5_THROW_EXCEPTION__(__FILE__, __LINE__, error_code, desc)
 
 } /* namespace so_5 */
 

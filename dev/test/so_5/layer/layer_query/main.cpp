@@ -32,11 +32,9 @@ class test_layer_t
 		virtual ~test_layer_t()
 		{}
 
-		virtual so_5::ret_code_t
+		virtual void
 		start()
-		{
-			return 0;
-		}
+		{}
 
 		virtual void
 		shutdown()
@@ -87,17 +85,9 @@ check_layers_match(
 	test_layer_t< 3 > * tl3,
 	const so_environment_t & so_env )
 {
-	UT_CHECK_EQ(
-		so_env.query_layer< test_layer_t< 1 > >( so_5::DO_NOT_THROW_ON_ERROR ),
-		tl1 );
-
-	UT_CHECK_EQ(
-		so_env.query_layer< test_layer_t< 2 > >( so_5::DO_NOT_THROW_ON_ERROR ),
-		tl2 );
-
-	UT_CHECK_EQ(
-		so_env.query_layer< test_layer_t< 3 > >( so_5::DO_NOT_THROW_ON_ERROR ),
-		tl3 );
+	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 1 > >(), tl1 ); 
+	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 2 > >(), tl2 );
+	UT_CHECK_EQ( so_env.query_layer_noexcept< test_layer_t< 3 > >(), tl3 );
 }
 
 UT_UNIT_TEST( check_all_exist )
@@ -201,44 +191,42 @@ init( so_5::rt::so_environment_t & env )
 
 UT_UNIT_TEST( check_many_layers )
 {
-	UT_CHECK_EQ(
-		0,
-		so_5::api::run_so_environment(
-			&init,
-			so_5::rt::so_environment_params_t()
-				ADD_LAYER( 1 )
-				ADD_LAYER( 2 )
-				ADD_LAYER( 3 )
-				ADD_LAYER( 4 )
-				ADD_LAYER( 5 )
-				ADD_LAYER( 6 )
-				ADD_LAYER( 7 )
-				ADD_LAYER( 8 )
-				ADD_LAYER( 9 )
-				ADD_LAYER( 10 )
-				ADD_LAYER( 11 )
-				ADD_LAYER( 12 )
-				ADD_LAYER( 13 )
-				ADD_LAYER( 14 )
-				ADD_LAYER( 15 )
-				ADD_LAYER( 16 )
-				ADD_LAYER( 17 )
-				ADD_LAYER( 18 )
-				ADD_LAYER( 19 )
-				ADD_LAYER( 20 )
-				ADD_LAYER( 21 )
-				ADD_LAYER( 22 )
-				ADD_LAYER( 23 )
-				ADD_LAYER( 24 )
-				ADD_LAYER( 25 )
-				ADD_LAYER( 26 )
-				ADD_LAYER( 27 )
-				ADD_LAYER( 28 )
-				ADD_LAYER( 29 )
-				ADD_LAYER( 30 )
-				ADD_LAYER( 31 )
-				ADD_LAYER( 32 )
-			) );
+	so_5::api::run_so_environment(
+		&init,
+		so_5::rt::so_environment_params_t()
+			ADD_LAYER( 1 )
+			ADD_LAYER( 2 )
+			ADD_LAYER( 3 )
+			ADD_LAYER( 4 )
+			ADD_LAYER( 5 )
+			ADD_LAYER( 6 )
+			ADD_LAYER( 7 )
+			ADD_LAYER( 8 )
+			ADD_LAYER( 9 )
+			ADD_LAYER( 10 )
+			ADD_LAYER( 11 )
+			ADD_LAYER( 12 )
+			ADD_LAYER( 13 )
+			ADD_LAYER( 14 )
+			ADD_LAYER( 15 )
+			ADD_LAYER( 16 )
+			ADD_LAYER( 17 )
+			ADD_LAYER( 18 )
+			ADD_LAYER( 19 )
+			ADD_LAYER( 20 )
+			ADD_LAYER( 21 )
+			ADD_LAYER( 22 )
+			ADD_LAYER( 23 )
+			ADD_LAYER( 24 )
+			ADD_LAYER( 25 )
+			ADD_LAYER( 26 )
+			ADD_LAYER( 27 )
+			ADD_LAYER( 28 )
+			ADD_LAYER( 29 )
+			ADD_LAYER( 30 )
+			ADD_LAYER( 31 )
+			ADD_LAYER( 32 )
+		);
 }
 
 

@@ -69,16 +69,14 @@ class named_local_mbox_t
 				event_handler_caller_ref );
 
 		//! Add another event handler for a consumer.
-		virtual ret_code_t
+		virtual void
 		subscribe_more_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer to be modified.
 			impl::message_consumer_link_t * message_consumer_link,
 			//! Event handler to be added to consumer.
-			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			const event_handler_caller_ref_t & event_handler_caller_ref );
 
 		//! Remove all consumer subscriptions.
 		virtual void

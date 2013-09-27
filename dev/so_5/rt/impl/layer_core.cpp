@@ -9,7 +9,6 @@
 
 #include <cpp_util_2/h/lexcast.hpp>
 
-#include <so_5/util/h/apply_throwing_strategy.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 
 namespace so_5
@@ -150,7 +149,7 @@ layer_core_t::query_layer(
 	return nullptr;
 }
 
-ret_code_t
+void
 layer_core_t::start()
 {
 	so_layer_list_t::iterator
@@ -159,22 +158,23 @@ layer_core_t::start()
 
 	for(; it != it_end; ++it )
 	{
-		const ret_code_t rc = it->m_layer->start();
-
-		if( rc )
+		try
+		{
+			it->m_layer->start();
+		}
+		catch( const std::exception & )
 		{
 			so_layer_list_t::iterator it_stoper = m_default_layers.begin();
 			for(; it_stoper != it; ++it_stoper )
 				it_stoper->m_layer->shutdown();
 
-			for(it_stoper = m_default_layers.begin(); it_stoper != it; ++it_stoper )
+			for(it_stoper = m_default_layers.begin();
+					it_stoper != it; ++it_stoper )
 				it_stoper->m_layer->wait();
 
-			return rc;
+			throw;
 		}
 	}
-
-	return 0;
 }
 
 void
@@ -227,40 +227,41 @@ layer_core_t::wait_default_layers()
 
 }
 
-ret_code_t
+void
 layer_core_t::add_extra_layer(
 	const type_wrapper_t & type,
-	const so_layer_ref_t & layer,
-	throwing_strategy_t throwing_strategy )
+	const so_layer_ref_t & layer )
 {
+//FIXME: check for exception safety!
 	if( nullptr == layer.get() )
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_trying_to_add_nullptr_extra_layer,
-			throwing_strategy,
 			"trying to add nullptr extra layer" );
 
 	if( m_default_layers.end() != search_for_layer( m_default_layers, type ) )
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
-			throwing_strategy,
 			"trying to add extra layer that already exists in default list" );
 
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
 
 	if( m_extra_layers.end() != search_for_layer( m_extra_layers, type ) )
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
-			throwing_strategy,
 			"trying to add extra layer that already exists in extra list" );
 
 	layer->bind_to_environment( m_env );
 
-	const ret_code_t rc = layer->start();
-	if( rc )
-		return so_5::util::apply_throwing_strategy(
+	try
+	{
+		layer->start();
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
 			rc_unable_to_start_extra_layer,
-			throwing_strategy,
-			"unable to start extra layer rc: " + cpp_util_2::slexcast( rc ) );
+			std::string( "layer raised an exception: " ) + x.what() );
+	}
 
 	typed_layer_ref_t typed_layer( type, layer );
 
@@ -270,8 +271,6 @@ layer_core_t::add_extra_layer(
 			m_extra_layers.end(),
 			typed_layer ),
 		typed_layer );
-
-	return 0;
 }
 
 } /* namespace impl */

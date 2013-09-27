@@ -58,13 +58,12 @@ timer_thread_t::~timer_thread_t()
 	m_event_handler.reset();
 }
 
-ret_code_t
+void
 timer_thread_t::start()
 {
+//FIXME: may be there better to throw an exception?
 	SO_5_ABORT_ON_ACE_ERROR(
 		m_timer_queue->activate() );
-
-	return 0;
 }
 
 void

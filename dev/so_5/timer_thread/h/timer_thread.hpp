@@ -65,7 +65,7 @@ class SO_5_TYPE timer_thread_t
 		virtual ~timer_thread_t();
 
 		//! Launch timer.
-		virtual ret_code_t
+		virtual void
 		start() = 0;
 
 		//! Send shutdown signal to the timer.

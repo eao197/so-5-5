@@ -471,16 +471,11 @@ class SO_5_TYPE so_environment_t
 		 *
 		 * If all these actions are successful then the cooperation is
 		 * marked as registered.
-		 *
-		 * \retval 0 If cooperation is registered successfully.
 		 */
-		ret_code_t
+		void
 		register_coop(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t agent_coop,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy =
-				THROW_ON_ERROR );
+			agent_coop_unique_ptr_t agent_coop );
 
 		//! Deregister the cooperation.
 		/*!
@@ -502,14 +497,10 @@ class SO_5_TYPE so_environment_t
 		 * dispatchers. And name of the cooperation is removed from
 		 * the list of registered cooperations.
 		 */
-		ret_code_t
+		void
 		deregister_coop(
 			//! Name of the cooperation to be registered.
-			const nonempty_name_t & name,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy =
-				DO_NOT_THROW_ON_ERROR );
-
+			const nonempty_name_t & name );
 		/*!
 		 * \}
 		 */
@@ -617,41 +608,44 @@ class SO_5_TYPE so_environment_t
 		 * \{
 		 */
 
-		//! Get access to the layer.
+		//! Get access to the layer without raising exception if layer
+		//! is not found.
 		template< class SO_LAYER >
 		SO_LAYER *
-		query_layer(
-			throwing_strategy_t throwing_strategy = THROW_ON_ERROR ) const
+		query_layer_noexcept() const
 		{
 			// A kind of static assert.
 			// Checks that SO_LAYER is derived from the so_layer_t.
 			so_layer_t * layer = static_cast< so_layer_t* >( (SO_LAYER *)0 );
 
-			layer = query_layer(
-				type_wrapper_t( typeid( SO_LAYER ) ) );
+			return dynamic_cast< SO_LAYER * >(
+					query_layer( type_wrapper_t( typeid( SO_LAYER ) ) ) );
+		}
 
-			if( layer )
-				return dynamic_cast< SO_LAYER * >( layer );
+		//! Get access to the layer with exception if layer is not found.
+		template< class SO_LAYER >
+		SO_LAYER *
+		query_layer() const
+		{
+			auto layer = query_layer_noexcept< SO_LAYER >();
 
-			if( THROW_ON_ERROR == throwing_strategy )
-				throw exception_t(
-					"layer does not exist",
-					rc_layer_does_not_exist );
+			if( !layer )
+				SO_5_THROW_EXCEPTION(
+					rc_layer_does_not_exist,
+					"layer does not exist" );
 
-			return nullptr;
+			return dynamic_cast< SO_LAYER * >( layer );
 		}
 
 		//! Add an additional layer.
 		template< class SO_LAYER >
-		ret_code_t
+		void
 		add_extra_layer(
-			std::unique_ptr< SO_LAYER > layer_ptr,
-			throwing_strategy_t throwing_strategy = THROW_ON_ERROR )
+			std::unique_ptr< SO_LAYER > layer_ptr )
 		{
 			return add_extra_layer(
 				type_wrapper_t( typeid( SO_LAYER ) ),
-				so_layer_ref_t( layer_ptr.release() ),
-				throwing_strategy );
+				so_layer_ref_t( layer_ptr.release() ) );
 		}
 		/*!
 		 * \}
@@ -663,11 +657,8 @@ class SO_5_TYPE so_environment_t
 		 */
 
 		//! Run the SObjectizer Run-Time.
-		ret_code_t
-		run(
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy =
-				THROW_ON_ERROR );
+		void
+		run();
 
 		//! Initialization hook.
 		/*!
@@ -727,17 +718,15 @@ class SO_5_TYPE so_environment_t
 			const type_wrapper_t & type ) const;
 
 		//! Add an additional layer.
-		ret_code_t
+		void
 		add_extra_layer(
 			const type_wrapper_t & type,
-			const so_layer_ref_t & layer,
-			throwing_strategy_t throwing_strategy );
+			const so_layer_ref_t & layer );
 
 		//! Remove an additional layer.
-		ret_code_t
+		void
 		remove_extra_layer(
-			const type_wrapper_t & type,
-			throwing_strategy_t throwing_strategy );
+			const type_wrapper_t & type );
 
 		//! Real SObjectizer Environment implementation.
 		impl::so_environment_impl_t * m_so_environment_impl;

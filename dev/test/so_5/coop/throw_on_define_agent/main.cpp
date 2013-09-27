@@ -198,9 +198,10 @@ reg_coop(
 	coop->add_agent( so_5::rt::agent_ref_t(
 		new a_ordinary_t( env ) ) );
 
-	env.register_coop(
-		std::move( coop ),
-		so_5::DO_NOT_THROW_ON_ERROR );
+	try {
+		env.register_coop( std::move( coop ) );
+	}
+	catch(...) {}
 }
 
 void

@@ -46,16 +46,14 @@ class message_distributor_t
 				event_handler_caller_ref );
 
 		//! Add another event handler for a consumer.
-		ret_code_t
+		void
 		push_more(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer to me modified.
 			impl::message_consumer_link_t * message_consumer_link,
 			//! Event handler.
-			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy );
+			const event_handler_caller_ref_t & event_handler_caller_ref );
 
 		//! Remove all event handlers for a consumer.
 		void

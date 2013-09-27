@@ -78,7 +78,7 @@ class shutdowner_layer_t
 		//
 
 		// Start layer.
-		virtual so_5::ret_code_t
+		virtual void
 		start()
 		{
 			m_shutdown_mbox = so_environment().create_local_mbox(
@@ -90,8 +90,6 @@ class shutdowner_layer_t
 				std::move(msg),
 				m_shutdown_mbox,
 				3*1000 );
-
-			return 0;
 		}
 
 		// Shutdown layer.

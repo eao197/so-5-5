@@ -4,8 +4,6 @@
 
 #include <ace/Guard_T.h>
 
-#include <so_5/util/h/apply_throwing_strategy.hpp>
-
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/agent_core.hpp>
 
@@ -87,24 +85,19 @@ agent_core_t::create_local_queue()
 	return local_event_queue;
 }
 
-ret_code_t
+void
 agent_core_t::register_coop(
-	agent_coop_unique_ptr_t agent_coop,
-	throwing_strategy_t throwing_strategy )
+	agent_coop_unique_ptr_t agent_coop )
 {
 	if( 0 == agent_coop.get() )
-	{
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_zero_ptr_to_coop,
-			throwing_strategy,
 			"zero ptr to coop passed" );
-	}
 
 	const std::string & coop_name = agent_coop->query_coop_name();
 
 	try
 	{
-
 		agent_coop->bind_agents_to_coop();
 
 		// All the following actions should be taken under the lock.
@@ -116,11 +109,9 @@ agent_core_t::register_coop(
 			m_deregistered_coop.end() !=
 			m_deregistered_coop.find( coop_name ) )
 		{
-			return so_5::util::apply_throwing_strategy(
+			SO_5_THROW_EXCEPTION(
 				rc_coop_with_specified_name_is_already_registered,
-				throwing_strategy,
-				"coop with name \"" + coop_name +
-				"\" is already registered" );
+				"coop with name \"" + coop_name + "\" is already registered" );
 		}
 
 		agent_coop->define_all_agents();
@@ -131,30 +122,22 @@ agent_core_t::register_coop(
 	}
 	catch( const exception_t & ex )
 	{
-		return so_5::util::apply_throwing_strategy(
-			ex,
-			throwing_strategy );
+		throw;
 	}
 	catch( const std::exception & ex )
 	{
-		return so_5::util::apply_throwing_strategy(
+		SO_5_THROW_EXCEPTION(
 			rc_coop_define_agent_failed,
-			throwing_strategy,
 			ex.what() );
 	}
 
 	if( m_coop_listener.get() )
-		m_coop_listener->on_registered(
-			m_so_environment,
-			coop_name );
-
-	return 0;
+		m_coop_listener->on_registered( m_so_environment, coop_name );
 }
 
-ret_code_t
+void
 agent_core_t::deregister_coop(
-	const nonempty_name_t & name,
-	throwing_strategy_t throwing_strategy )
+	const nonempty_name_t & name )
 {
 	const std::string & coop_name = name.query_name();
 
@@ -168,16 +151,15 @@ agent_core_t::deregister_coop(
 		if( m_deregistered_coop.end() !=
 			m_deregistered_coop.find( coop_name ) )
 		{
-			return 0;
+			return;
 		}
 
 		// It is an error if cooperation is not registered.
 		coop_map_t::iterator it = m_registered_coop.find( coop_name );
 		if( m_registered_coop.end() == it )
 		{
-			return so_5::util::apply_throwing_strategy(
+			SO_5_THROW_EXCEPTION(
 				rc_coop_has_not_found_among_registered_coop,
-				throwing_strategy,
 				"coop with name \"" + coop_name +
 				"\" not found among registered cooperations" );
 		}
@@ -191,8 +173,6 @@ agent_core_t::deregister_coop(
 
 	// All agents of cooperation should be marked as deregistered.
 	coop->undefine_all_agents();
-
-	return 0;
 }
 
 void

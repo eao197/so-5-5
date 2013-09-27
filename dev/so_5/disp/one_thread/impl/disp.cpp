@@ -26,11 +26,10 @@ dispatcher_t::~dispatcher_t()
 {
 }
 
-ret_code_t
+void
 dispatcher_t::start()
 {
 	m_work_thread.start();
-	return 0;
 }
 
 void

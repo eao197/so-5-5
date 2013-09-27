@@ -18,8 +18,7 @@
 
 #include <so_5/h/declspec.hpp>
 
-#include <so_5/h/ret_code.hpp>
-#include <so_5/h/throwing_strategy.hpp>
+#include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/type_wrapper.hpp>
@@ -143,16 +142,14 @@ class SO_5_TYPE mbox_t
 		 * This method is called when the agent is subscribing to the message
 		 * which is already subscribed.
 		 */
-		virtual ret_code_t
+		virtual void
 		subscribe_more_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message consumer for this message.
 			impl::message_consumer_link_t * message_consumer_link,
 			//! Message handler for this message.
-			const event_handler_caller_ref_t & event_handler_caller_ref,
-			//! Exception strategy.
-			throwing_strategy_t throwing_strategy ) = 0;
+			const event_handler_caller_ref_t & event_handler_caller_ref ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
