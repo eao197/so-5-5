@@ -378,14 +378,15 @@ agent_t::bind_to_disp(
 }
 
 //! Make textual representation of the subscription key.
+template< class PAIR >
 inline std::string
-subscription_key_string( const subscription_key_t & sk )
+subscription_key_string( const PAIR & sk )
 {
 	const std::string msg_type =
-		sk.m_type_wrapper.query_type_info().name();
+		sk.first.query_type_info().name();
 
 	std::string str = "message type: " +
-		msg_type + "; mbox: " + sk.m_mbox->query_name();
+		msg_type + "; mbox: " + sk.second->query_name();
 
 	return str;
 }
@@ -396,17 +397,14 @@ agent_t::create_event_subscription(
 	mbox_ref_t & mbox_ref,
 	const event_handler_caller_ref_t & ehc )
 {
-	subscription_key_t subscr_key(
-		type_wrapper,
-		mbox_ref );
+	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
 	ACE_Guard< ACE_Thread_Mutex > lock( m_agent_coop->m_lock );
 
 	if( m_agent_coop->m_agents_are_undefined )
 		return;
 
-	consumers_map_t::iterator it =
-		m_event_consumers_map.find( subscr_key );
+	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
 	// If subscription is not found then it should be created.
 	if( m_event_consumers_map.end() == it )
@@ -444,9 +442,9 @@ agent_t::destroy_all_subscriptions()
 
 	for(; it != it_end; ++it )
 	{
-		mbox_ref_t mbox( it->first.m_mbox );
+		mbox_ref_t mbox( it->first.second );
 		mbox->unsubscribe_event_handlers(
-			it->first.m_type_wrapper,
+			it->first.first,
 			it->second );
 	}
 	m_event_consumers_map.clear();

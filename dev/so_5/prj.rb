@@ -35,7 +35,6 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "message.cpp" )
 
 		cpp_source( "mbox.cpp" )
-		cpp_source( "subscription_key.cpp" )
 
 		cpp_source( "event_handler_caller.cpp" )
 		cpp_source( "event_caller_block.cpp" )

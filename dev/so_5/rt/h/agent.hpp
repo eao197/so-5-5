@@ -21,7 +21,8 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/subscription_key.hpp>
+#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 
@@ -676,6 +677,9 @@ class SO_5_TYPE agent_t
 		//! State listeners controller.
 		std::unique_ptr< impl::state_listener_controller_t >
 			m_state_listener_controller;
+
+		//! Typedef for subscription key.
+		typedef std::pair< type_wrapper_t, mbox_ref_t > subscription_key_t;
 
 		//! Typedef for the map from subscriptions to event handlers.
 		typedef std::map<
