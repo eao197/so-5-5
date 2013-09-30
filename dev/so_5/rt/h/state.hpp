@@ -26,27 +26,11 @@ class state_t;
 class agent_t;
 
 //
-// state_base_t
-//
-
-//! A special base class for the state.
-class SO_5_TYPE state_base_t
-{
-	private:
-		state_base_t();
-		friend class state_t;
-	public:
-		virtual ~state_base_t();
-};
-
-//
 // state_t
 //
 
 //! Class for the representing agent state.
 class SO_5_TYPE state_t
-	:
-		private state_base_t
 {
 		state_t( const state_t & );
 		void

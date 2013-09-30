@@ -11,18 +11,6 @@ namespace rt
 {
 
 //
-// state_base_t
-//
-
-state_base_t::state_base_t()
-{
-}
-
-state_base_t::~state_base_t()
-{
-}
-
-//
 // state_t
 //
 
