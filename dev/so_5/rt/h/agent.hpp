@@ -21,7 +21,6 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/subscription_bind.hpp>
 #include <so_5/rt/h/subscription_key.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
@@ -46,6 +45,46 @@ class state_listener_controller_t;
 class state_t;
 class so_environment_t;
 class agent_coop_t;
+class agent_t;
+
+//
+// subscription_bind_t
+//
+
+/*!
+ * \brief A class for creating a subscription to messages from the mbox.
+*/
+class subscription_bind_t
+{
+	public:
+		inline
+		subscription_bind_t(
+			//! Agent to subscribe.
+			agent_t & agent,
+			//! Mbox for messages to be subscribed.
+			const mbox_ref_t & mbox_ref );
+
+		//! Set up a state in which events are allowed be processed.
+		inline subscription_bind_t &
+		in(
+			//! State in which events are allowed.
+			const state_t & state );
+
+		//! Make subscription to the message.
+		template< class MESSAGE, class AGENT >
+		void
+		event(
+			//! Event handling method.
+			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) );
+
+	private:
+		//! Agent to which we are subscribing.
+		agent_t & m_agent;
+		//! Mbox for messages to subscribe.
+		mbox_ref_t m_mbox_ref;
+		//! State for events.
+		const state_t * m_state;
+};
 
 //
 // agent_t
@@ -379,10 +418,13 @@ class SO_5_TYPE agent_t
 			}
 			\endcode
 		*/
-		subscription_bind_t
+		inline subscription_bind_t
 		so_subscribe(
 			//! Mbox for messages to subscribe.
-			const mbox_ref_t & mbox_ref );
+			const mbox_ref_t & mbox_ref )
+		{
+			return subscription_bind_t( *this, mbox_ref );
+		}
 		/*!
 		 * \}
 		 */
@@ -668,6 +710,63 @@ class SO_5_TYPE agent_t
 		//! Is the cooperation deregistration in progress?
 		bool m_is_coop_deregistered;
 };
+
+//
+// subscription_bind_t implementation
+//
+inline
+subscription_bind_t::subscription_bind_t(
+	agent_t & agent,
+	const mbox_ref_t & mbox_ref )
+	:	m_agent( agent )
+	,	m_mbox_ref( mbox_ref )
+	,	m_state( &m_agent.so_default_state() )
+{
+}
+
+inline subscription_bind_t &
+subscription_bind_t::in(
+	const state_t & state )
+{
+	if( !state.is_target( &m_agent ) )
+	{
+		SO_5_THROW_EXCEPTION(
+			rc_agent_is_not_the_state_owner,
+			"agent doesn't own the state" );
+	}
+
+	m_state = &state;
+
+	return *this;
+}
+
+template< class MESSAGE, class AGENT >
+inline void
+subscription_bind_t::event(
+	void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+{
+	// Agent must have right type.
+	AGENT * cast_result = dynamic_cast< AGENT * >( &m_agent );
+
+	// Was conversion successful?
+	if( nullptr == cast_result )
+	{
+		// No. Actual type of the agent is not convertible to the AGENT.
+		SO_5_THROW_EXCEPTION(
+			rc_agent_incompatible_type_conversion,
+			std::string( "Unable convert agent to type: " ) +
+				typeid(AGENT).name() );
+	}
+
+	m_agent.create_event_subscription(
+		typeid( MESSAGE ),
+		m_mbox_ref,
+		event_handler_caller_ref_t(
+			new real_event_handler_caller_t< MESSAGE, AGENT >(
+				pfn,
+				*cast_result,
+				m_state ) ) );
+}
 
 } /* namespace rt */
 

@@ -252,12 +252,6 @@ agent_t::so_change_state(
 			"(the state that doesn't belong to this agent)" );
 }
 
-subscription_bind_t
-agent_t::so_subscribe( const mbox_ref_t & mbox_ref )
-{
-	return subscription_bind_t( *this, mbox_ref );
-}
-
 void
 agent_t::so_define_agent()
 {
