@@ -14,6 +14,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <functional>
 
 #include <ace/Thread_Mutex.h>
 #include <ace/RW_Thread_Mutex.h>
@@ -140,6 +141,18 @@ class mbox_core_t
 
 		//! Named mboxes.
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Low-level implementation of named mbox creation.
+		 */
+		mbox_ref_t
+		create_named_mbox(
+			//! Mbox name.
+			const nonempty_name_t & nonempty_name,
+			//! Functional object to create new instance of mbox.
+			//! Must have a prototype: mbox_ref_t factory().
+			const std::function< mbox_ref_t() > & factory );
 };
 
 //! Smart reference to the mbox_core_t.

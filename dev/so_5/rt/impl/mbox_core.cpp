@@ -49,27 +49,11 @@ mbox_ref_t
 mbox_core_t::create_local_mbox(
 	const nonempty_name_t & nonempty_name )
 {
-	const std::string name = nonempty_name.query_name();
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_dictionary_lock );
-
-	named_mboxes_dictionary_t::iterator it =
-		m_named_mboxes_dictionary.find( name );
-
-	if( m_named_mboxes_dictionary.end() != it )
-	{
-		++(it->second.m_external_ref_count);
-		return mbox_ref_t(
-			new named_local_mbox_t(
-				name,
-				it->second.m_mbox,
-				*this ) );
-	}
-
-	// There is no mbox with such name. New mbox should be created.
-	mbox_ref_t mbox_ref( new local_mbox_t( *this ) );
-	m_named_mboxes_dictionary[ name ] = named_mbox_info_t( mbox_ref );
-
-	return mbox_ref_t( new named_local_mbox_t( name, mbox_ref, *this ) );
+	return create_named_mbox(
+			nonempty_name,
+			[this]() -> mbox_ref_t {
+				return mbox_ref_t( new local_mbox_t( *this ) );
+			} );
 }
 
 mbox_ref_t
@@ -89,30 +73,12 @@ mbox_core_t::create_local_mbox(
 	const nonempty_name_t & nonempty_name,
 	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 {
-	const std::string name = nonempty_name.query_name();
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_dictionary_lock );
-
-	named_mboxes_dictionary_t::iterator it =
-		m_named_mboxes_dictionary.find( name );
-
-	if( m_named_mboxes_dictionary.end() != it )
-	{
-		++(it->second.m_external_ref_count);
-		return mbox_ref_t(
-			new named_local_mbox_t(
-				name,
-				it->second.m_mbox,
-				*this ) );
-	}
-
-	// There is no mbox with such name. New mbox should be created.
-	mbox_ref_t mbox_ref( new local_mbox_t(
-		*this,
-		*lock_ptr.release() ) );
-
-	m_named_mboxes_dictionary[ name ] = named_mbox_info_t( mbox_ref );
-
-	return mbox_ref_t( new named_local_mbox_t( name, mbox_ref, *this ) );
+	return create_named_mbox(
+			nonempty_name,
+			[this, &lock_ptr]() -> mbox_ref_t {
+				return mbox_ref_t(
+					new local_mbox_t( *this, *(lock_ptr.release()) ) );
+			} );
 }
 
 void
@@ -147,6 +113,35 @@ mbox_core_t::deallocate_mutex( ACE_RW_Thread_Mutex & m )
 		// and should be deleted.
 		delete &m;
 	}
+}
+
+mbox_ref_t
+mbox_core_t::create_named_mbox(
+	const nonempty_name_t & nonempty_name,
+	const std::function< mbox_ref_t() > & factory )
+{
+	const std::string & name = nonempty_name.query_name();
+	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_dictionary_lock );
+
+	named_mboxes_dictionary_t::iterator it =
+		m_named_mboxes_dictionary.find( name );
+
+	if( m_named_mboxes_dictionary.end() != it )
+	{
+		++(it->second.m_external_ref_count);
+		return mbox_ref_t(
+			new named_local_mbox_t(
+				name,
+				it->second.m_mbox,
+				*this ) );
+	}
+
+	// There is no mbox with such name. New mbox should be created.
+	mbox_ref_t mbox_ref = factory();
+
+	m_named_mboxes_dictionary[ name ] = named_mbox_info_t( mbox_ref );
+
+	return mbox_ref_t( new named_local_mbox_t( name, mbox_ref, *this ) );
 }
 
 //
