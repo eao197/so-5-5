@@ -31,7 +31,6 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "state.cpp" )
 		cpp_source( "nonempty_name.cpp" )
 
-		cpp_source( "type_wrapper.cpp" )
 		cpp_source( "message.cpp" )
 
 		cpp_source( "mbox.cpp" )

@@ -13,8 +13,6 @@
 #include <typeinfo>
 #include <cstring>
 
-#include <so_5/h/declspec.hpp>
-
 namespace so_5
 {
 
@@ -31,18 +29,15 @@ namespace rt
 
 	Also used for implementing layers feature.
 */
-class SO_5_TYPE type_wrapper_t
+class type_wrapper_t
 {
 	public:
+		inline
 		type_wrapper_t(
 			//! Message type.
-			const std::type_info & type_info );
-
-		type_wrapper_t &
-		operator = (
-			const type_wrapper_t & type_wrapper );
-
-		~type_wrapper_t();
+			const std::type_info & type_info )
+			:	m_type_info( &type_info )
+		{}
 
 		//! The less operator which makes it possible to
 		//! use this class as a std::map key.
