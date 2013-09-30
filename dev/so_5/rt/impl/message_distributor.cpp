@@ -84,7 +84,7 @@ message_distributor_t::pop(
 	}
 	else
 	{
-		// Special cases for head/tail of chain.
+		// Special cases for head/tail of the chain.
 		message_consumer_chain_t &
 			message_consumer_chain = provide_message_consumer_chain(
 				type_wrapper );

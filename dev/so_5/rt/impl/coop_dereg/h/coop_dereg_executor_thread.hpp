@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition for dedicated thread for the cooperation deregistration.
+	\brief A definition for the dedicated thread for the cooperation deregistration.
 */
 
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__COOP_DEREG_EXECUTOR_THREAD_HPP_ )

@@ -147,14 +147,15 @@ agent_core_t::deregister_coop(
 		// All the following actions should be taken under the lock.
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-		// No action if cooperation is already in deregistration process.
+		// Noone action if cooperation is already 
+		// in the deregistration process.
 		if( m_deregistered_coop.end() !=
 			m_deregistered_coop.find( coop_name ) )
 		{
 			return;
 		}
 
-		// It is an error if cooperation is not registered.
+		// It is an error if the cooperation is not registered.
 		coop_map_t::iterator it = m_registered_coop.find( coop_name );
 		if( m_registered_coop.end() == it )
 		{
@@ -171,7 +172,7 @@ agent_core_t::deregister_coop(
 		m_deregistered_coop[ coop_name ] = coop;
 	}
 
-	// All agents of cooperation should be marked as deregistered.
+	// All agents of the cooperation should be marked as deregistered.
 	coop->undefine_all_agents();
 }
 
@@ -193,7 +194,7 @@ agent_core_t::final_deregister_coop(
 		m_deregistered_coop.erase( coop_name );
 
 		// If we are inside shutdown process and this is the last
-		// cooperation then special flag should be set.
+		// cooperation then a special flag should be set.
 		need_signal_dereg_finished =
 			m_deregistration_started && m_deregistered_coop.empty();
 	}
@@ -265,10 +266,10 @@ agent_core_t::wait_all_coop_to_deregister()
 	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
 	// Must wait for a signal is there are cooperations in
-	// deregistration process.
+	// the deregistration process.
 	if( !m_deregistered_coop.empty() )
 	{
-		// Wait for deregistration finish.
+		// Wait for the deregistration finish.
 		m_deregistration_finished_cond.wait();
 	}
 }

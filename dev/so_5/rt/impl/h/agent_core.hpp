@@ -131,7 +131,7 @@ class agent_core_t
 
 		//! Deregisted all cooperations.
 		/*!
-		 * All cooperations should be deregistered at the SObjectizer shutdown.
+		 * All cooperations will be deregistered at the SObjectizer shutdown.
 		*/
 		void
 		deregister_all_coop();

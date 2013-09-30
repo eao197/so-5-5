@@ -4,7 +4,8 @@
 
 /*!
 	\file
-	\brief A definition of special empty implementation of dispatcher interface.
+	\brief A definition of the special empty implementation 
+		of the dispatcher interface.
 */
 
 #if !defined( _SO_5__RT__IMPL__VOID_DISPATCHER_HPP_ )
@@ -25,9 +26,9 @@ namespace impl
 // void_dispatcher_t
 //
 
-//! A special empty implementation of dispatcher interface.
+//! A special empty implementation of the dispatcher interface.
 /*!
- * A reference to instance of that class is passed to all agents
+ * A reference to the instance of this class is passed to all agents
  * before they will be bound to actual dispatchers.
  */
 class void_dispatcher_t

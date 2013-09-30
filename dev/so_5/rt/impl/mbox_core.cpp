@@ -143,7 +143,7 @@ mbox_core_t::deallocate_mutex( ACE_RW_Thread_Mutex & m )
 {
 	if( !m_mbox_mutex_pool.deallocate_mutex( m ) )
 	{
-		// Mutex is not from pool. Assume that is was created by user
+		// Mutex is not from a pool. Assume that it was created by user
 		// and should be deleted.
 		delete &m;
 	}

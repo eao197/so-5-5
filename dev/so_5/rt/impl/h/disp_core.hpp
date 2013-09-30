@@ -71,12 +71,12 @@ class disp_core_t
 		void
 		wait();
 
-		//! Install exception logger.
+		//! Install an exception logger.
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
 
-		//! Install exception handler.
+		//! Install an exception handler.
 		void
 		install_exception_handler(
 			event_exception_handler_unique_ptr_t handler );

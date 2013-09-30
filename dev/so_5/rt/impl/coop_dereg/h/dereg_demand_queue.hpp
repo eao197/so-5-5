@@ -83,7 +83,7 @@ class dereg_demand_queue_t
 
 		//! Working status.
 		/*!
-		 * Value true means that the queue is in working state.
+		 * Value true means that the queue is in a working state.
 		 * Value false serves as the shutdown flag.
 		 */
 		bool m_in_service;

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief An implementation of SObjectizer Environment.
+	\brief An implementation of the SObjectizer Environment.
 */
 
 #if !defined( _SO_5__RT__IMPL__SO_ENVIRONMENT_IMPL_HPP_ )
@@ -31,7 +31,7 @@ namespace impl
 // so_environment_impl_t
 //
 
-//! An implementation of SObjectizer Environment.
+//! An implementation of the SObjectizer Environment.
 class so_environment_impl_t
 {
 	public:
@@ -83,21 +83,21 @@ class so_environment_impl_t
 		 * \}
 		 */
 
-		//! Create a lock for agent cooperation.
+		//! Create a lock for the agent cooperation.
 		inline ACE_Thread_Mutex &
 		create_agent_coop_mutex()
 		{
 			return m_agent_core.allocate_agent_coop_mutex();
 		}
 
-		//! Release a lock for agent cooperation.
+		//! Release a lock for the agent cooperation.
 		inline void
 		destroy_agent_coop_mutex( ACE_Thread_Mutex & m )
 		{
 			return m_agent_core.deallocate_agent_coop_mutex( m );
 		}
 
-		//! Create local agent event queue.
+		//! Create a local agent event queue.
 		inline local_event_queue_unique_ptr_t
 		create_local_queue()
 		{
@@ -124,7 +124,7 @@ class so_environment_impl_t
 			return m_disp_core.query_named_dispatcher( disp_name );
 		}
 
-		//! Set up exception logger.
+		//! Set up an exception logger.
 		inline void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t logger )
@@ -132,7 +132,7 @@ class so_environment_impl_t
 			m_disp_core.install_exception_logger( std::move( logger ) );
 		}
 
-		//! Set up exception handler.
+		//! Set up an exception handler.
 		inline void
 		install_exception_handler(
 			event_exception_handler_unique_ptr_t handler )
@@ -166,7 +166,7 @@ class so_environment_impl_t
 			m_agent_core.deregister_coop( name );
 		}
 
-		//! Notification about readiness to deregistration.
+		//! Notification about readiness to the deregistration.
 		inline void
 		ready_to_deregister_notify(
 			agent_coop_t * coop )
@@ -174,10 +174,10 @@ class so_environment_impl_t
 			m_agent_core.ready_to_deregister_notify( coop );
 		}
 
-		//! Do the final actions of cooperation deregistration.
+		//! Do the final actions of a cooperation deregistration.
 		inline void
 		final_deregister_coop(
-			//! Name of cooperation to be deregistered.
+			//! Cooperation name to be deregistered.
 			const std::string & coop_name )
 		{
 			m_agent_core.final_deregister_coop( coop_name );
@@ -202,8 +202,8 @@ class so_environment_impl_t
 			const mbox_ref_t & mbox,
 			//! A delay for the first sent.
 			unsigned int delay_msec,
-			//! Timeout for periodic delivery.
-			//! Should be 0 for delayed messages.
+			//! Timeout for the periodic delivery.
+			//! Must be 0 for delayed messages.
 			unsigned int period_msec );
 
 		//! Schedule a single-shot timer event.
@@ -256,7 +256,7 @@ class so_environment_impl_t
 		 * \}
 		 */
 
-		//! Get reference to SObjectizer Environment.
+		//! Get reference to the SObjectizer Environment.
 		so_environment_t &
 		query_public_so_environment();
 
@@ -273,7 +273,7 @@ class so_environment_impl_t
 		//! An utility for layers.
 		layer_core_t m_layer_core;
 
-		//! Reference to SObjectizer Environment.
+		//! Reference to the SObjectizer Environment.
 		so_environment_t & m_public_so_environment;
 
 		//! Timer.

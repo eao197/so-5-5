@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A class which does distribution for message to consumers.
+	\brief A class which does a distribution for the message to the consumers.
 */
 
 #if !defined( _SO_5__RT__IMPL__MESSAGE_DISTRIBUTOR_HPP_ )
@@ -21,10 +21,10 @@ namespace rt
 namespace impl
 {
 
-//! A class which does distribution for message to consumers.
+//! A class which does a distribution for the message to the consumers.
 /*!
- * This class servers two things:
- * - make, store and maintenance of message consumers data;
+ * This class serves for two things:
+ * - make, store and maintenance of the message consumers data;
  * - distribution a message to its consumers.
 */
 class message_distributor_t
@@ -70,9 +70,9 @@ class message_distributor_t
 			const message_ref_t & message_ref );
 
 	private:
-		//! Get a message chain for message type given.
+		//! Get a message chain for given message type.
 		/*!
-		 * Creates new chain if there no chain for that message type.
+		 * Creates a new chain if there no chain for this message type.
 		 */
 		message_consumer_chain_t &
 		provide_message_consumer_chain(

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition of named local mbox.
+	\brief A definition of the named local mbox.
 */
 
 #if !defined( _SO_5__RT__IMPL__NAMED_LOCAL_MBOX_HPP_ )
@@ -31,9 +31,9 @@ namespace impl
 // named_local_mbox_t
 //
 
-//! A class for named local mbox.
+//! A class for the named local mbox.
 /*!
- * This class in necessary because there is a difference between
+ * \note This class is necessary because there is a difference between
  * reference counting for anonymous and named local mboxes. Named
  * local mboxes should have only one instance inside
  * SObjectizer Environment.
@@ -94,7 +94,7 @@ class named_local_mbox_t
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref );
 
-		//! Get data for comparision.
+		//! Get data for a comparision.
 		virtual const mbox_t *
 		cmp_ordinal() const;
 
@@ -102,7 +102,7 @@ class named_local_mbox_t
 		//! Mbox name.
 		const std::string m_name;
 
-		//! An utility for that mbox.
+		//! An utility for this mbox.
 		impl::mbox_core_ref_t m_mbox_core;
 
 		//! Actual mbox.

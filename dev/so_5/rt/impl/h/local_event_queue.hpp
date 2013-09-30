@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition of agent's local event queue.
+	\brief A definition of the agent's local event queue.
 */
 
 #if !defined( _SO_5__RT__IMPL__LOCAL_EVENT_QUEUE_HPP_ )
@@ -63,8 +63,8 @@ struct event_item_t
 //! Agent's local event queue.
 /*!
  * \attention Not thread safe. Operation on queue should be
- * protected by agent. Synchronization object for that queue
- * could be obtained by local_event_queue_t::lock() method.
+ * protected by the agent. A synchronization object for this queue
+ * can be obtained by the local_event_queue_t::lock() method.
  */
 class local_event_queue_t
 {
@@ -74,11 +74,11 @@ class local_event_queue_t
 			util::mutex_pool_t< ACE_Thread_Mutex > & mutex_pool );
 		~local_event_queue_t();
 
-		//! Get the first event from queue.
+		//! Get the first event from the queue.
 		inline void
 		pop( event_item_t & event_item );
 
-		//! Push new event to the end of queue.
+		//! Push a new event to the end of the queue.
 		inline void
 		push(
 			const event_item_t & evt );
@@ -94,18 +94,18 @@ class local_event_queue_t
 		inline size_t
 		size() const;
 
-		//! Clear queue.
+		//! Clear the queue.
 		inline void
 		clear();
 
 	private:
 		//! Mutex pool from which mutex has been obtained.
 		/*!
-		 * This reference is necessary to return mutex back.
+		 * This reference is necessary to return the mutex back.
 		 */
 		util::mutex_pool_t< ACE_Thread_Mutex > & m_mutex_pool;
 
-		//! Reference to object lock.
+		//! Reference to the object lock.
 		/*!
 		 * This lock is obtained from \a m_mutex_pool.
 		 */
@@ -151,7 +151,7 @@ local_event_queue_t::clear()
 	m_events_queue.clear();
 }
 
-//! Typedef for local_event_queue autopointer.
+//! Typedef for the local_event_queue autopointer.
 typedef std::unique_ptr< local_event_queue_t >
 	local_event_queue_unique_ptr_t;
 

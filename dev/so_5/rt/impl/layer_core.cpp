@@ -128,7 +128,7 @@ so_layer_t *
 layer_core_t::query_layer(
 	const type_wrapper_t & type ) const
 {
-	// Try search between default layers first.
+	// Try search within default layers first.
 	so_layer_list_t::const_iterator layer_it = search_for_layer(
 		m_default_layers,
 		type );

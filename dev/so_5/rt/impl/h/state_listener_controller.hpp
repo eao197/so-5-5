@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition of agent state listener controller.
+	\brief A definition of the agent state listener controller.
 */
 
 #if !defined( _SO_5__RT__IMPL__STATE_LISTENER_CONTROLLER_HPP_ )
@@ -61,7 +61,7 @@ class state_listener_controller_t
 		add_listener(
 			const agent_state_listener_ref_t & agent_state_listener_ref );
 
-		//! Typedef for listener container type.
+		//! Typedef for the listener container type.
 		typedef std::vector<
 				agent_state_listener_ref_t >
 			agent_state_listener_array_t;

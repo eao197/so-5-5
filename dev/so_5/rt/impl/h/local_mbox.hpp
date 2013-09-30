@@ -31,7 +31,7 @@ namespace impl
 // local_mbox_t
 //
 
-//! A class for representing local anonymous mbox.
+//! A class for representing a local anonymous mbox.
 class local_mbox_t
 	:
 		public mbox_t
@@ -55,33 +55,33 @@ class local_mbox_t
 		query_name() const;
 
 	protected:
-		//! Subscribe first event handler to a mbox's message.
+		//! Subscribe the first event handler to a mbox's message.
 		virtual void
 		subscribe_first_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Message consumer for that message type.
+			//! Message consumer for this message type.
 			std::unique_ptr< impl::message_consumer_link_t >
 				message_consumer_link,
-			//! The first event caller for that message.
+			//! The first event caller for this message.
 			const event_handler_caller_ref_t &
 				event_handler_caller_ref );
 
 		//! Add yet another event handler for a mbox's message.
 		/*!
-		 * This method is called when agent is subscribing for message
+		 * This method is called when an agent is subscribing for a message
 		 * to which it was subscribed earlier.
 		*/
 		virtual void
 		subscribe_more_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Already existed message consumer for that message.
+			//! Already existed message consumer for this message.
 			impl::message_consumer_link_t * message_consumer_link,
-			//! Event caller for that message.
+			//! Event caller for this message.
 			const event_handler_caller_ref_t & event_handler_caller_ref );
 
-		//! Remove all subscription for message specified.
+		//! Remove all subscription for the specified message.
 		/*!
 		 * This method is called during agent deregistration when
 		 * all agent subscriptions should be removed.

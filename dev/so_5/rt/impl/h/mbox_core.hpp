@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition of utility class for work with mboxes.
+	\brief A definition of an utility class for work with mboxes.
 */
 
 #if !defined( _SO_5__RT__IMPL__MBOX_CORE_HPP_ )
@@ -43,7 +43,7 @@ class mbox_core_ref_t;
 //
 
 /*!
- * \brief A utility class for work with mboxes.
+ * \brief A utility class for the work with mboxes.
  */
 class mbox_core_t
 	:
@@ -70,13 +70,13 @@ class mbox_core_t
 			//! Mbox name.
 			const nonempty_name_t & nonempty_name );
 
-		//! Create local anonymous mbox with specified mutex.
+		//! Create local anonymous mbox with a specified mutex.
 		mbox_ref_t
 		create_local_mbox(
 			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
-		//! Create local named mbox with specified mutex.
+		//! Create local named mbox with a specified mutex.
 		mbox_ref_t
 		create_local_mbox(
 			//! Mbox name.
@@ -84,7 +84,7 @@ class mbox_core_t
 			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
-		//! Remove a reference to named mbox.
+		//! Remove a reference to the named mbox.
 		/*!
 		 * If it was a last reference to named mbox the mbox destroyed.
 		*/
@@ -97,9 +97,9 @@ class mbox_core_t
 		ACE_RW_Thread_Mutex &
 		allocate_mutex();
 
-		//! Release mutex.
+		//! Release the mutex.
 		/*!
-		 * If \a m is a mutex from pool it is returned to pool.
+		 * If \a m is a mutex from a pool it is returned to pool.
 		 * Otherwise it is assumed that \a m is a user supplied mutex and
 		 * it is destroyed via delete operator.
 		 */
@@ -134,7 +134,7 @@ class mbox_core_t
 			mbox_ref_t m_mbox;
 		};
 
-		//! Typedef for map from mbox name to mbox information.
+		//! Typedef for the map from the mbox name to the mbox information.
 		typedef std::map< std::string, named_mbox_info_t >
 			named_mboxes_dictionary_t;
 
@@ -142,7 +142,7 @@ class mbox_core_t
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
 };
 
-//! Smart reference to mbox_core_t.
+//! Smart reference to the mbox_core_t.
 class mbox_core_ref_t
 {
 	public:
@@ -211,13 +211,13 @@ class mbox_core_ref_t
 		}
 
 	private:
-		//! Increment reference count to mbox_core.
+		//! Increment reference count to the mbox_core.
 		void
 		inc_mbox_core_ref_count();
 
-		//! Decrement reference count to mbox_core.
+		//! Decrement reference count to the mbox_core.
 		/*!
-		 * If reference count become 0 then mbox_core is destroyed.
+		 * If a reference count become 0 then mbox_core is destroyed.
 		 */
 		void
 		dec_mbox_core_ref_count();

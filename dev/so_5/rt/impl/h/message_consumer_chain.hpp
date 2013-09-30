@@ -3,7 +3,7 @@
 */
 /*!
 	\file
-	\brief A definition of class for message consumer chain.
+	\brief A class definition for the message consumer chain.
 */
 #if !defined( _SO_5__RT__IMPL__MESSAGE_CONSUMER_CHAIN_HPP_ )
 #define _SO_5__RT__IMPL__MESSAGE_CONSUMER_CHAIN_HPP_
@@ -27,7 +27,7 @@ namespace impl
 // message_consumer_chain_t
 //
 
-//! A class for storing message consumer chain.
+//! A class for storing a message consumer chain.
 class message_consumer_chain_t
 {
 	public:
@@ -40,11 +40,11 @@ class message_consumer_chain_t
 			//! Message consumer to be added.
 			message_consumer_link_ref_t message_consumer_link );
 
-		//! Remove element from chain head.
+		//! Remove element from the chain head.
 		void
 		pop_front();
 
-		//! Remove element from chain tail.
+		//! Remove element from the chain tail.
 		void
 		pop_back();
 
@@ -69,11 +69,11 @@ class message_consumer_chain_t
 		message_consumer_link_ref_t m_back_link;
 };
 
-//! Typedef for message_consumer_chain smart pointer.
+//! Typedef for the message_consumer_chain smart pointer.
 typedef std::shared_ptr< message_consumer_chain_t >
 	message_consumer_chain_ref_t;
 
-//! Typedef for map from message type to message_consumer_chain.
+//! Typedef for the map from message type to the message_consumer_chain.
 typedef std::map<
 		type_wrapper_t,
 		message_consumer_chain_ref_t >

@@ -4,7 +4,7 @@
 
 /*!
 	\file
-	\brief A definition of utility class for work with layers.
+	\brief A definition of an utility class for work with layers.
 */
 
 #if !defined( _SO_5__RT__IMPL__LAYER_CORE_HPP_ )
@@ -35,7 +35,7 @@ namespace impl
 //
 
 /*!
- * \brief A special wrapper to store layer with its type.
+ * \brief A special wrapper to store a layer with its type.
  */
 struct typed_layer_ref_t
 {
@@ -48,7 +48,7 @@ struct typed_layer_ref_t
 	bool
 	operator < ( const typed_layer_ref_t & tl ) const;
 
-	//! Type of layer.
+	//! Layer type.
 	type_wrapper_t m_true_type;
 
 	//! Layer itself.
@@ -63,21 +63,30 @@ typedef std::vector< typed_layer_ref_t >
 // layer_core_t
 //
 
-//! An utility class for work with layers.
+//! An utility class for working with layers.
 /*!
- * There are two type of layers:
- * - default layers. They are known before the SObjectizer Run-Time started.
- *   Those layers should be passed to the layer_core_t constructor;
- * - extra layers. They have added when the SObjectizer Run-Time are working.
+ * There are two groups of layers:
+ * \li \c default layers. They are known before the SObjectizer Run-Time started
+ * and are retreived from SObjectizer Environment params.
+ * These layers must be passed to the layer_core_t constructor;
+ * \li \c extra layers. They are added when the SObjectizer Envoronment works.
  *
- * The main difference between them is that default layers started when
- * SObjectizer Run-Time is not working. They are started during the Run-Time
- * initialization routine.
+ * The main difference between them is that default layers start when
+ * SObjectizer Envoronment is not working. They are started during 
+ * the SObjectizer initialization routine.
  *
- * Extra layers get started when the Run-Time is working.
+ * The extra layer is started when it is added to the SObjectizer Envoronment.
  *
- * During the SObjectizer Run-Time should extra layers should be shutdowned
+ * During the SObjectizer Environment shutdown extra layers must be shutdowned
  * before default layers.
+ * 
+ * If the SObjectizer Environment is started several times then 
+ * the set of default layers can't be changed.
+ * 
+ * However, extra layers have a different life cycle. 
+ * They must be formed from scratch at every start of the SObjectizer Environment.
+ * When the SObjectizer Envoronment stops, it stops and deletes all of extra layers.
+ * The extra layer can't be removed before stop of the SObjectizer Environment.
  */
 class layer_core_t
 {
@@ -105,7 +114,7 @@ class layer_core_t
 		void
 		shutdown_extra_layers();
 
-		//! Blocking wait for complete shutdown of all extra layers.
+		//! Blocking wait for the complete shutdown of all extra layers.
 		/*!
 		 * All extra layers are destroyed.
 		 */
@@ -116,7 +125,7 @@ class layer_core_t
 		void
 		shutdown_default_layers();
 
-		//! Blocking wait for complete shutdown of all default layers.
+		//! Blocking wait for the complete shutdown of all default layers.
 		void
 		wait_default_layers();
 
