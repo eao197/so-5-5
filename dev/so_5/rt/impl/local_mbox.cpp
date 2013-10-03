@@ -75,7 +75,7 @@ local_mbox_t::unsubscribe_event_handlers(
 void
 local_mbox_t::deliver_message(
 	const type_wrapper_t & type_wrapper,
-	const message_ref_t & message_ref )
+	const message_ref_t & message_ref ) const
 {
 	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 

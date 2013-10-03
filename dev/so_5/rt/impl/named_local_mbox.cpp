@@ -62,7 +62,7 @@ named_local_mbox_t::unsubscribe_event_handlers(
 void
 named_local_mbox_t::deliver_message(
 	const type_wrapper_t & type_wrapper,
-	const message_ref_t & message_ref )
+	const message_ref_t & message_ref ) const
 {
 	m_mbox->deliver_message(
 		type_wrapper,

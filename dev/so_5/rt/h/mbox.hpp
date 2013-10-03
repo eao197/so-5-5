@@ -97,13 +97,13 @@ class SO_5_TYPE mbox_t
 		inline void
 		deliver_message(
 			//! Message data.
-			std::unique_ptr< MESSAGE > msg_unique_ptr );
+			std::unique_ptr< MESSAGE > msg_unique_ptr ) const;
 
 
 		//! Deliver signal.
 		template< class MESSAGE >
 		inline void
-		deliver_signal();
+		deliver_signal() const;
 
 		//! Get the mbox name.
 		virtual const std::string &
@@ -147,7 +147,7 @@ class SO_5_TYPE mbox_t
 		virtual void
 		deliver_message(
 			const type_wrapper_t & type_wrapper,
-			const message_ref_t & message_ref ) = 0;
+			const message_ref_t & message_ref ) const = 0;
 
 		//! Get data for the object comparision.
 		/*!
@@ -160,7 +160,7 @@ class SO_5_TYPE mbox_t
 template< class MESSAGE >
 void
 mbox_t::deliver_message(
-	std::unique_ptr< MESSAGE > msg_unique_ptr )
+	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
 {
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
 
@@ -171,7 +171,7 @@ mbox_t::deliver_message(
 
 template< class MESSAGE >
 void
-mbox_t::deliver_signal()
+mbox_t::deliver_signal() const
 {
 	ensure_signal< MESSAGE >();
 

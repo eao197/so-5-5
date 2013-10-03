@@ -71,7 +71,7 @@ class named_local_mbox_t
 		void
 		deliver_message(
 			const type_wrapper_t & type_wrapper,
-			const message_ref_t & message_ref );
+			const message_ref_t & message_ref ) const;
 
 		//! Get data for a comparision.
 		virtual const mbox_t *

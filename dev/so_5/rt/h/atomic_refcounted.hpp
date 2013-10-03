@@ -178,24 +178,12 @@ class smart_atomic_reference_t
 		}
 
 		T *
-		operator->()
-		{
-			return m_obj;
-		}
-
-		const T *
 		operator->() const
 		{
 			return m_obj;
 		}
 
 		T &
-		operator*()
-		{
-			return *m_obj;
-		}
-
-		const T &
 		operator*() const
 		{
 			return *m_obj;
