@@ -26,128 +26,6 @@ namespace rt
 namespace /* ananymous */
 {
 
-//
-// hook_event_caller_t
-//
-
-//! The base class for starting and finishing event calling.
-class hook_event_caller_t
-	:
-		public event_handler_caller_t
-{
-	public:
-
-		hook_event_caller_t(
-			agent_t & agent )
-			:
-				m_agent( agent )
-		{}
-
-		virtual ~hook_event_caller_t()
-		{}
-
-		/*!
-		 * \name Inherited methods implementation.
-		 * \{
-		 */
-
-		virtual type_wrapper_t
-		type_wrapper() const
-		{
-			// Should never be called for this class.
-			std::abort();
-			type_wrapper_t fake( typeid( message_t ) );
-			return fake;
-		};
-		/*!
-		 * \}
-		 */
-
-	protected:
-		agent_t & m_agent;
-};
-
-//
-// start_hook_event_caller_t
-//
-
-/*!
- * \brief Hook for the starting event.
- *
- * That event is added into the event queue as first event to
- * call so_5::rt::so_evt_start().
- */
-class start_hook_event_caller_t
-	:
-		public hook_event_caller_t
-{
-	public:
-
-		start_hook_event_caller_t(
-			agent_t & agent )
-			:
-				hook_event_caller_t( agent )
-		{}
-		virtual ~start_hook_event_caller_t()
-		{}
-
-		/*!
-		 * \name Inherited methods implementation.
-		 * \{
-		 */
-
-		virtual bool
-		call(
-			message_ref_t & ) const
-		{
-			m_agent.so_evt_start();
-			return true;
-		}
-		/*!
-		 * \}
-		 */
-};
-
-//
-// finish_hook_event_caller_t
-//
-
-
-/*!
- * \brief Hook for the starting event.
- *
- * This event is used to call the so_5::rt::so_evt_start().
- */
-class finish_hook_event_caller_t
-	:
-		public hook_event_caller_t
-{
-	public:
-
-		finish_hook_event_caller_t(
-			agent_t & agent )
-			:
-				hook_event_caller_t( agent )
-		{}
-		virtual ~finish_hook_event_caller_t()
-		{}
-
-		/*!
-		 * \name Inherited methods implementation.
-		 * \{
-		 */
-		virtual bool
-		call(
-			message_ref_t & ) const
-		{
-			m_agent.so_evt_finish();
-			return true;
-		}
-		/*!
-		 * \}
-		 */
-};
-
 /*!
  * A stub for the initial value of the so_5::rt::agent_t::m_dispatcher.
  */
@@ -282,22 +160,14 @@ agent_t::undefine_agent()
 		if( m_dispatcher != &g_void_dispatcher )
 		{
 			// A final event handler should be added.
-			event_handler_caller_ref_t evt_caller(
-				new finish_hook_event_caller_t( *this ) );
-
-			event_caller_block_ref_t event_caller_block(
-				new event_caller_block_t );
-
-			event_caller_block->insert( evt_caller );
-
 			m_local_event_queue->push(
 				impl::event_item_t(
-					event_caller_block,
-					message_ref_t() ) );
+					event_caller_block_ref_t(),
+					message_ref_t(),
+					&agent_t::demand_handler_on_finish ) );
 
 			// Dispatcher should be informed about this event.
-			m_dispatcher->put_event_execution_request(
-				create_ref(), 1 );
+			m_dispatcher->put_event_execution_request( create_ref(), 1 );
 		}
 		else
 		{
@@ -340,18 +210,11 @@ agent_t::bind_to_environment(
 	m_local_event_queue = m_so_environment_impl->create_local_queue();
 
 	// A staring event should be placed at begining of the queue.
-	event_handler_caller_ref_t evt_caller(
-		new start_hook_event_caller_t( *this ) );
-
-	event_caller_block_ref_t event_caller_block(
-		new event_caller_block_t );
-
-	event_caller_block->insert( evt_caller );
-
 	m_local_event_queue->push(
 		impl::event_item_t(
-			event_caller_block,
-			message_ref_t() ) );
+			event_caller_block_ref_t(),
+			message_ref_t(),
+			&agent_t::demand_handler_on_start ) );
 }
 
 void
@@ -461,10 +324,12 @@ agent_t::push_event(
 	if( !m_is_coop_deregistered )
 	{
 		m_local_event_queue->push(
-			impl::event_item_t( event_caller_block, message ) );
+			impl::event_item_t(
+				event_caller_block,
+				message,
+				&agent_t::demand_handler_on_message ) );
 
-		m_dispatcher->put_event_execution_request(
-			create_ref(), 1 );
+		m_dispatcher->put_event_execution_request( create_ref(), 1 );
 	}
 }
 
@@ -484,14 +349,43 @@ agent_t::exec_next_event()
 			m_is_coop_deregistered && 0 == m_local_event_queue->size();
 	}
 
-	event_item.m_event_caller_block->call(
-		event_item.m_message_ref );
+	(*event_item.m_demand_handler)(
+			event_item.m_message_ref,
+			event_item.m_event_caller_block,
+			this );
 
 	// Special case for the cooperation deregistration.
 	if( agent_finished_his_work_totally )
 	{
 		agent_coop_t::call_agent_finished( *m_agent_coop );
 	}
+}
+
+void
+agent_t::demand_handler_on_start(
+	message_ref_t &,
+	const event_caller_block_ref_t &,
+	agent_t * agent )
+{
+	agent->so_evt_start();
+}
+
+void
+agent_t::demand_handler_on_finish(
+	message_ref_t &,
+	const event_caller_block_ref_t &,
+	agent_t * agent )
+{
+	agent->so_evt_finish();
+}
+
+void
+agent_t::demand_handler_on_message(
+	message_ref_t & msg,
+	const event_caller_block_ref_t & event_handler,
+	agent_t * )
+{
+	event_handler->call( msg );
 }
 
 } /* namespace rt */

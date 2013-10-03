@@ -98,6 +98,18 @@ event_caller_block_t::call(
 typedef smart_atomic_reference_t< event_caller_block_t >
 		event_caller_block_ref_t;
 
+//
+// demand_handler_pfn_t
+//
+/*!
+ * \since v.5.2.0
+ * \brief Demand handler prototype.
+ */
+typedef void (*demand_handler_pfn_t)(
+		message_ref_t &,
+		const event_caller_block_ref_t &,
+		agent_t * );
+
 } /* namespace rt */
 
 } /* namespace so_5 */

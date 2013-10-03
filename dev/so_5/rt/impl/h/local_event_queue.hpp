@@ -43,10 +43,12 @@ struct event_item_t
 		//! Event handler caller.
 		const event_caller_block_ref_t & event_caller_block,
 		//! Message.
-		const message_ref_t & message_ref )
-		:
-			m_event_caller_block( event_caller_block ),
-			m_message_ref( message_ref )
+		const message_ref_t & message_ref,
+		//! Demand handler.
+		demand_handler_pfn_t demand_handler )
+		:	m_event_caller_block( event_caller_block )
+		,	m_message_ref( message_ref )
+		,	m_demand_handler( demand_handler )
 	{}
 
 	//! Event handler caller.
@@ -54,6 +56,12 @@ struct event_item_t
 
 	//! Message.
 	message_ref_t m_message_ref;
+
+	/*!
+	 * \since v.5.2.0
+	 * \brief Demand handler.
+	 */
+	demand_handler_pfn_t m_demand_handler;
 };
 
 //

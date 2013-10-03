@@ -182,7 +182,6 @@ class SO_5_TYPE agent_t
 		private atomic_refcounted_t
 {
 		friend class subscription_bind_t;
-		friend class subscription_unbind_t;
 		friend class smart_atomic_reference_t< agent_t >;
 		friend class agent_coop_t;
 
@@ -658,6 +657,40 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		exec_next_event();
+		/*!
+		 * \}
+		 */
+		/*!
+		 * \name Demand handlers.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.2.0
+		 * \brief Calls so_evt_start method for agent.
+		 */
+		static void
+		demand_handler_on_start(
+			message_ref_t &,
+			const event_caller_block_ref_t &,
+			agent_t * agent );
+		/*!
+		 * \since v.5.2.0
+		 * \brief Calls so_evt_finish method for agent.
+		 */
+		static void
+		demand_handler_on_finish(
+			message_ref_t &,
+			const event_caller_block_ref_t &,
+			agent_t * agent );
+		/*!
+		 * \since v.5.2.0
+		 * \brief Calls event handler for message.
+		 */
+		static void
+		demand_handler_on_message(
+			message_ref_t & msg,
+			const event_caller_block_ref_t & event_handler,
+			agent_t * );
 		/*!
 		 * \}
 		 */
