@@ -336,22 +336,22 @@ inline void
 agent_t::bind_to_environment(
 	impl::so_environment_impl_t & env_impl )
 {
-		m_so_environment_impl = &env_impl;
-		m_local_event_queue = m_so_environment_impl->create_local_queue();
+	m_so_environment_impl = &env_impl;
+	m_local_event_queue = m_so_environment_impl->create_local_queue();
 
-		// A staring event should be placed at begining of the queue.
-		event_handler_caller_ref_t evt_caller(
-			new start_hook_event_caller_t( *this ) );
+	// A staring event should be placed at begining of the queue.
+	event_handler_caller_ref_t evt_caller(
+		new start_hook_event_caller_t( *this ) );
 
-		event_caller_block_ref_t event_caller_block(
-			new event_caller_block_t );
+	event_caller_block_ref_t event_caller_block(
+		new event_caller_block_t );
 
-		event_caller_block->insert( evt_caller );
+	event_caller_block->insert( evt_caller );
 
-		m_local_event_queue->push(
-			impl::event_item_t(
-				event_caller_block,
-				message_ref_t() ) );
+	m_local_event_queue->push(
+		impl::event_item_t(
+			event_caller_block,
+			message_ref_t() ) );
 }
 
 void
@@ -399,9 +399,9 @@ agent_t::create_event_subscription(
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
-	ACE_Guard< ACE_Thread_Mutex > lock( m_agent_coop->m_lock );
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
-	if( m_agent_coop->m_agents_are_undefined )
+	if( m_is_coop_deregistered )
 		return;
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
@@ -435,7 +435,7 @@ agent_t::create_event_subscription(
 void
 agent_t::destroy_all_subscriptions()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_agent_coop->m_lock );
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.begin();
 	consumers_map_t::iterator it_end = m_event_consumers_map.end();
