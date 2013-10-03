@@ -24,7 +24,7 @@
 #include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
-#include <so_5/rt/h/event_handler_caller_ref_fwd.hpp>
+#include <so_5/rt/h/event_caller_block.hpp>
 
 namespace so_5
 {
@@ -121,44 +121,27 @@ class SO_5_TYPE mbox_t
 		 */
 
 	protected:
-		//! Add the first message handler.
+		//! Add the message handler.
 		/*!
 		 * This method is called when the agent is subscribing to the message
 		 * at the first time.
 		 */
 		virtual void
-		subscribe_first_event_handler(
+		subscribe_event_handler(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Message consumer for this message.
-			std::unique_ptr< impl::message_consumer_link_t >
-				message_consumer_link,
+			//! Agent-subcriber.
+			agent_t * subscriber,
 			//! The very first message handler.
-			const event_handler_caller_ref_t &
-				event_handler_caller_ref ) = 0;
-
-		//! Add yet another message handler.
-		/*!
-		 * This method is called when the agent is subscribing to the message
-		 * which is already subscribed.
-		 */
-		virtual void
-		subscribe_more_event_handler(
-			//! Message type.
-			const type_wrapper_t & type_wrapper,
-			//! Message consumer for this message.
-			impl::message_consumer_link_t * message_consumer_link,
-			//! Message handler for this message.
-			const event_handler_caller_ref_t & event_handler_caller_ref ) = 0;
+			const event_caller_block_ref_t & event_caller ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Message consumer for this message.
-			impl::message_consumer_link_t *
-				message_consumer_link ) = 0;
+			//! Agent-subcriber.
+			agent_t * subscriber ) = 0;
 
 		//! Deliver message for all subscribers.
 		virtual void

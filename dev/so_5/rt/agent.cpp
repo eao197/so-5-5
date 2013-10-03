@@ -11,7 +11,6 @@
 #include <so_5/rt/h/event_caller_block.hpp>
 
 #include <so_5/rt/impl/h/cmp_method_ptr.hpp>
-#include <so_5/rt/impl/h/message_consumer_link.hpp>
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/local_event_queue.hpp>
 #include <so_5/rt/impl/h/void_dispatcher.hpp>
@@ -258,6 +257,7 @@ void
 agent_t::create_event_subscription(
 	const type_wrapper_t & type_wrapper,
 	mbox_ref_t & mbox_ref,
+	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc )
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
@@ -272,26 +272,24 @@ agent_t::create_event_subscription(
 	// If subscription is not found then it should be created.
 	if( m_event_consumers_map.end() == it )
 	{
-		impl::message_consumer_link_t * message_consumer_link_ptr =
-			new impl::message_consumer_link_t( create_ref() );
+		event_caller_block_ref_t caller_block(
+				new event_caller_block_t() );
+		caller_block->insert( target_state, ehc );
 
-		mbox_ref->subscribe_first_event_handler(
+		mbox_ref->subscribe_event_handler(
 			type_wrapper,
-			std::unique_ptr< impl::message_consumer_link_t >(
-				message_consumer_link_ptr ),
-			ehc );
+			this,
+			caller_block );
 
+//FIXME: mbox should be unsubscribed in case of exception!
 		m_event_consumers_map.insert(
 			consumers_map_t::value_type(
 				subscr_key,
-				message_consumer_link_ptr ) );
+				caller_block ) );
 	}
 	else
 	{
-		mbox_ref->subscribe_more_event_handler(
-			type_wrapper,
-			it->second,
-			ehc );
+		it->second->insert( target_state, ehc );
 	}
 }
 
@@ -308,7 +306,7 @@ agent_t::destroy_all_subscriptions()
 		mbox_ref_t mbox( it->first.second );
 		mbox->unsubscribe_event_handlers(
 			it->first.first,
-			it->second );
+			this );
 	}
 	m_event_consumers_map.clear();
 }
@@ -383,9 +381,9 @@ void
 agent_t::demand_handler_on_message(
 	message_ref_t & msg,
 	const event_caller_block_ref_t & event_handler,
-	agent_t * )
+	agent_t * agent )
 {
-	event_handler->call( msg );
+	event_handler->call( agent->so_current_state(), msg );
 }
 
 } /* namespace rt */

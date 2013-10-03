@@ -38,38 +38,25 @@ named_local_mbox_t::~named_local_mbox_t()
 }
 
 void
-named_local_mbox_t::subscribe_first_event_handler(
+named_local_mbox_t::subscribe_event_handler(
 	const type_wrapper_t & type_wrapper,
-	std::unique_ptr< impl::message_consumer_link_t > message_consumer_link,
-	const event_handler_caller_ref_t & event_handler_caller_ref )
+	agent_t * subscriber,
+	const event_caller_block_ref_t & event_caller )
 {
-	m_mbox->subscribe_first_event_handler(
+	m_mbox->subscribe_event_handler(
 		type_wrapper,
-		std::move(message_consumer_link),
-		event_handler_caller_ref );
-}
-
-void
-named_local_mbox_t::subscribe_more_event_handler(
-	const type_wrapper_t & type_wrapper,
-	impl::message_consumer_link_t * message_consumer_link,
-	const event_handler_caller_ref_t & event_handler_caller_ref )
-{
-	m_mbox->subscribe_more_event_handler(
-		type_wrapper,
-		message_consumer_link,
-		event_handler_caller_ref );
+		subscriber,
+		event_caller );
 }
 
 void
 named_local_mbox_t::unsubscribe_event_handlers(
 	const type_wrapper_t & type_wrapper,
-	impl::message_consumer_link_t *
-		message_consumer_link )
+	agent_t * subscriber )
 {
 	return m_mbox->unsubscribe_event_handlers(
 		type_wrapper,
-		message_consumer_link );
+		subscriber );
 }
 
 void

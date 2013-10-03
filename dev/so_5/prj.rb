@@ -62,9 +62,6 @@ MxxRu::Cpp::dll_target {
 			cpp_source( "layer_core.cpp" )
 			cpp_source( "local_event_queue.cpp" )
 			cpp_source( "void_dispatcher.cpp" )
-			cpp_source( "message_consumer_link.cpp" )
-			cpp_source( "message_consumer_chain.cpp" )
-			cpp_source( "message_distributor.cpp" )
 			cpp_source( "state_listener_controller.cpp" )
 
 			cpp_source( "so_environment_impl.cpp" )

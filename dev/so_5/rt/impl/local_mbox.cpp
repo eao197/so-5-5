@@ -7,6 +7,7 @@
 #include <ace/Guard_T.h>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/impl/h/local_mbox.hpp>
 
 namespace so_5
@@ -45,43 +46,30 @@ local_mbox_t::~local_mbox_t()
 }
 
 void
-local_mbox_t::subscribe_first_event_handler(
+local_mbox_t::subscribe_event_handler(
 	const type_wrapper_t & type_wrapper,
-	std::unique_ptr< impl::message_consumer_link_t > message_consumer_link,
-	const event_handler_caller_ref_t &
-		event_handler_caller_ref )
-{
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
-	m_message_distributor.push_first(
-		type_wrapper,
-		std::move(message_consumer_link),
-		event_handler_caller_ref );
-}
-
-void
-local_mbox_t::subscribe_more_event_handler(
-	const type_wrapper_t & type_wrapper,
-	impl::message_consumer_link_t * message_consumer_link,
-	const event_handler_caller_ref_t & event_handler_caller_ref )
+	agent_t * subscriber,
+	const event_caller_block_ref_t & event_caller )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-	m_message_distributor.push_more(
-		type_wrapper,
-		message_consumer_link,
-		event_handler_caller_ref );
+	m_subscribers[ type_wrapper ][ subscriber ] = event_caller;
 }
 
 void
 local_mbox_t::unsubscribe_event_handlers(
 	const type_wrapper_t & type_wrapper,
-	impl::message_consumer_link_t *
-		message_consumer_link )
+	agent_t * subscriber )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
-	m_message_distributor.pop(
-		type_wrapper,
-		message_consumer_link );
+
+	auto it = m_subscribers.find( type_wrapper );
+	if( it != m_subscribers.end() )
+	{
+		it->second.erase( subscriber );
+		if( it->second.empty() )
+			m_subscribers.erase( it );
+	}
 }
 
 void
@@ -90,9 +78,13 @@ local_mbox_t::deliver_message(
 	const message_ref_t & message_ref )
 {
 	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
-	m_message_distributor.distribute_message(
-		type_wrapper,
-		message_ref );
+
+	auto it = m_subscribers.find( type_wrapper );
+	if( it != m_subscribers.end() )
+	{
+		for( auto s = it->second.begin(), e = it->second.end(); s != e; ++s )
+			agent_t::call_push_event( *(s->first), s->second, message_ref );
+	}
 }
 
 const std::string g_mbox_empty_name;
@@ -108,3 +100,4 @@ local_mbox_t::query_name() const
 } /* namespace rt */
 
 } /* namespace so_5 */
+

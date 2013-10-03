@@ -24,6 +24,7 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
+#include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 
 namespace so_5
@@ -626,6 +627,8 @@ class SO_5_TYPE agent_t
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
 			mbox_ref_t & mbox_ref,
+			//! State for event.
+			const state_t & target_state,
 			//! Event handler caller.
 			const event_handler_caller_ref_t & ehc );
 
@@ -717,7 +720,7 @@ class SO_5_TYPE agent_t
 		//! Typedef for the map from subscriptions to event handlers.
 		typedef std::map<
 				subscription_key_t,
-				impl::message_consumer_link_t * >
+				event_caller_block_ref_t >
 			consumers_map_t;
 
 		//! Map from subscriptions to event handlers.
@@ -798,11 +801,11 @@ subscription_bind_t::event(
 	m_agent.create_event_subscription(
 		typeid( MESSAGE ),
 		m_mbox_ref,
+		*m_state,
 		event_handler_caller_ref_t(
 			new real_event_handler_caller_t< MESSAGE, AGENT >(
 				pfn,
-				*cast_result,
-				m_state ) ) );
+				*cast_result ) ) );
 }
 
 } /* namespace rt */
