@@ -346,13 +346,16 @@ class SO_5_TYPE so_environment_t
 		 */
 
 		//! Create an anonymous mbox with the default mutex.
+		/*!
+		 *	\note always creates a new mbox.
+		 */
 		mbox_ref_t
 		create_local_mbox();
 
 		//! Create named mbox with the default mutex.
 		/*!
 		 * If \a mbox_name is unique then a new mutex will be created.
-		 * If not the reference to existing mutex is returned.
+		 * If not the reference to existing mutex will be returned.
 		 */
 		mbox_ref_t
 		create_local_mbox(
@@ -363,6 +366,8 @@ class SO_5_TYPE so_environment_t
 		/*!
 		 * Intended for cases when a dedicated mutex for the mbox
 		 * is necessary.
+		 *
+		 * \note always creates a new mbox.
 		 */
 		mbox_ref_t
 		create_local_mbox(
@@ -373,6 +378,9 @@ class SO_5_TYPE so_environment_t
 		/*!
 		 * Intended for cases when a dedicated mutex for the mbox
 		 * is necessary.
+		 * 
+		 * If \a mbox_name is unique then a new mutex will be created.
+		 * If not the reference to existing mutex will be returned.
 		 */
 		mbox_ref_t
 		create_local_mbox(

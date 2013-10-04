@@ -47,10 +47,10 @@ mbox_core_t::create_local_mbox()
 
 mbox_ref_t
 mbox_core_t::create_local_mbox(
-	const nonempty_name_t & nonempty_name )
+	const nonempty_name_t & mbox_name )
 {
 	return create_named_mbox(
-			nonempty_name,
+			mbox_name,
 			[this]() -> mbox_ref_t {
 				return mbox_ref_t( new local_mbox_t( *this ) );
 			} );
@@ -70,11 +70,11 @@ mbox_core_t::create_local_mbox(
 
 mbox_ref_t
 mbox_core_t::create_local_mbox(
-	const nonempty_name_t & nonempty_name,
+	const nonempty_name_t & mbox_name,
 	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 {
 	return create_named_mbox(
-			nonempty_name,
+			mbox_name,
 			[this, &lock_ptr]() -> mbox_ref_t {
 				return mbox_ref_t(
 					new local_mbox_t( *this, *(lock_ptr.release()) ) );

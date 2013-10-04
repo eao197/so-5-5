@@ -55,20 +55,20 @@ class so_environment_impl_t
 		inline mbox_ref_t
 		create_local_mbox(
 			//! Mbox name.
-			const nonempty_name_t & nonempty_name )
+			const nonempty_name_t & mbox_name )
 		{
-			return m_mbox_core->create_local_mbox( nonempty_name );
+			return m_mbox_core->create_local_mbox( mbox_name );
 		}
 
 		inline mbox_ref_t
 		create_local_mbox(
 			//! Mbox name.
-			const nonempty_name_t & nonempty_name,
+			const nonempty_name_t & mbox_name,
 			//! A user supplied mbox lock.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
 		{
 			return m_mbox_core->create_local_mbox(
-				nonempty_name,
+				mbox_name,
 				std::move( lock_ptr ) );
 		}
 

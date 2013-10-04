@@ -62,26 +62,44 @@ class mbox_core_t
 		virtual ~mbox_core_t();
 
 		//! Create local anonymous mbox.
+		/*!
+			\note always creates a new mbox.
+		*/
 		mbox_ref_t
 		create_local_mbox();
 
 		//! Create local named mbox.
+		/*!
+			\note if mbox with specified name \a mbox_name is present, 
+			method won't create a new mbox. In this case method 
+			will return a new mbox_ref_t, which links to 
+			the present mbox (with this name).
+		*/
 		mbox_ref_t
 		create_local_mbox(
 			//! Mbox name.
-			const nonempty_name_t & nonempty_name );
+			const nonempty_name_t & mbox_name );
 
 		//! Create local anonymous mbox with a specified mutex.
+		/*!
+			\note always creates a new mbox.
+		*/
 		mbox_ref_t
 		create_local_mbox(
 			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
 		//! Create local named mbox with a specified mutex.
+		/*!
+			\note if mbox with specified name \a mbox_name is present, 
+			method won't create a new mbox. In this case method 
+			will return a new mbox_ref_t, which links to 
+			the present mbox (with this name).
+		*/
 		mbox_ref_t
 		create_local_mbox(
 			//! Mbox name.
-			const nonempty_name_t & nonempty_name,
+			const nonempty_name_t & mbox_name,
 			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 

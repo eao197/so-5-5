@@ -161,11 +161,11 @@ class smart_atomic_reference_t
 		}
 
 		//! Is this a null reference?
-		bool
-		empty() const
-		{
-			return nullptr != m_obj;
-		}
+//		bool
+//		empty() const
+//		{
+//			return nullptr != m_obj;
+//		}
 
 		/*!
 		 * \name Access to object.
