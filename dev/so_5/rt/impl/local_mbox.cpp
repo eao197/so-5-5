@@ -49,7 +49,7 @@ void
 local_mbox_t::subscribe_event_handler(
 	const type_wrapper_t & type_wrapper,
 	agent_t * subscriber,
-	const event_caller_block_ref_t & event_caller )
+	const event_caller_block_t * event_caller )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 

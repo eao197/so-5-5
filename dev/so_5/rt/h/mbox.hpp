@@ -133,7 +133,7 @@ class SO_5_TYPE mbox_t
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The very first message handler.
-			const event_caller_block_ref_t & event_caller ) = 0;
+			const event_caller_block_t * event_caller ) = 0;
 
 		//! Remove all message handlers.
 		virtual void

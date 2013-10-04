@@ -88,7 +88,7 @@ typedef smart_atomic_reference_t< event_caller_block_t >
  */
 typedef void (*demand_handler_pfn_t)(
 		message_ref_t &,
-		const event_caller_block_ref_t &,
+		const event_caller_block_t *,
 		agent_t * );
 
 } /* namespace rt */
