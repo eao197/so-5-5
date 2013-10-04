@@ -7,6 +7,8 @@
 #include <exception>
 
 #include <ace/OS.h>
+#include <ace/Thread_Mutex.h>
+#include <ace/Condition_Thread_Mutex.h>
 
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
@@ -41,9 +43,6 @@ class test_agent_t
 		so_define_agent();
 
 		virtual void
-		so_evt_start();
-
-		virtual void
 		so_evt_finish();
 
 #define ABORT_HANDLER( handler, msg ) \
@@ -70,33 +69,6 @@ test_agent_t::so_define_agent()
 {
 }
 
-// A flag which enables subscription.
-so_5::atomic_counter_t g_continue_subscr_circle = 1;
-
-void
-test_agent_t::so_evt_start()
-{
-	try
-	{
-		while( 1 == g_continue_subscr_circle.value() )
-		{
-			so_subscribe( m_mbox )
-				.event( &test_agent_t::handler1 );
-			so_subscribe( m_mbox )
-				.event( &test_agent_t::handler2 );
-			so_subscribe( m_mbox )
-				.event( &test_agent_t::handler3 );
-			so_subscribe( m_mbox )
-				.event( &test_agent_t::handler4 );
-			so_subscribe( m_mbox )
-				.event( &test_agent_t::handler5 );
-		}
-	}
-	catch( const std::exception & )
-	{}
-
-}
-
 void
 test_agent_t::so_evt_finish()
 {
@@ -112,17 +84,71 @@ test_agent_t::so_evt_finish()
 		.event( &test_agent_t::handler5 );
 }
 
+class stage_monitors_t
+{
+	private :
+		ACE_Thread_Mutex m_reg_mutex;
+		ACE_Condition< ACE_Thread_Mutex > m_reg_signal;
+
+		ACE_Thread_Mutex m_dereg_mutex;
+		ACE_Condition< ACE_Thread_Mutex > m_dereg_signal;
+
+		enum stage_t {
+			NOT_STARTED,
+			COOP_REGISTERED,
+			COOP_DEREGISTERED
+		};
+
+		stage_t m_stage;
+
+	public :
+		stage_monitors_t()
+			:	m_reg_signal( m_reg_mutex )
+			,	m_dereg_signal( m_dereg_mutex )
+			,	m_stage( NOT_STARTED )
+		{}
+
+		void
+		wait_for_registration()
+		{
+			ACE_Guard< ACE_Thread_Mutex > lock( m_reg_mutex );
+			if( COOP_REGISTERED != m_stage )
+				m_reg_signal.wait();
+		}
+
+		void
+		notify_about_registration()
+		{
+			ACE_Guard< ACE_Thread_Mutex > lock( m_reg_mutex );
+			m_stage = COOP_REGISTERED;
+			m_reg_signal.signal();
+		}
+
+		void
+		wait_for_deregistration()
+		{
+			ACE_Guard< ACE_Thread_Mutex > lock( m_dereg_mutex );
+			if( COOP_DEREGISTERED != m_stage )
+				m_dereg_signal.wait();
+		}
+
+		void
+		notify_about_deregistration()
+		{
+			ACE_Guard< ACE_Thread_Mutex > lock( m_dereg_mutex );
+			m_stage = COOP_DEREGISTERED;
+			m_dereg_signal.signal();
+		}
+};
+
+stage_monitors_t g_stage_monitors;
+
 void
 init(
 	so_5::rt::so_environment_t & env )
 {
 	for( int i = 0; i < 8; ++i )
 	{
-		if( i > 0 )
-			ACE_OS::sleep( ACE_Time_Value( 0, 20*1000 ) );
-
-		g_continue_subscr_circle = 1;
-
 		so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
 			so_5::rt::nonempty_name_t( "test_coop" ),
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
@@ -137,13 +163,33 @@ init(
 		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
 
 		env.register_coop( std::move( coop ) );
+		g_stage_monitors.wait_for_registration();
+
 		env.deregister_coop( so_5::rt::nonempty_name_t( "test_coop" ) );
-//FIXME: must not rely on timer!
-		ACE_OS::sleep( ACE_Time_Value( 0, 500*1000 ) );
-		g_continue_subscr_circle = 0;
+		g_stage_monitors.wait_for_deregistration();
 	}
 	env.stop();
 }
+
+class listener_t : public so_5::rt::coop_listener_t
+{
+	public :
+		virtual void
+		on_registered(
+			so_5::rt::so_environment_t & so_env,
+			const std::string & coop_name )
+		{
+			g_stage_monitors.notify_about_registration();
+		}
+
+		virtual void
+		on_deregistered(
+			so_5::rt::so_environment_t & so_env,
+			const std::string & coop_name )
+		{
+			g_stage_monitors.notify_about_deregistration();
+		}
+};
 
 int
 main( int, char ** )
@@ -155,7 +201,9 @@ main( int, char ** )
 			so_5::rt::so_environment_params_t()
 				.add_named_dispatcher(
 					so_5::rt::nonempty_name_t( "active_obj" ),
-					so_5::disp::active_obj::create_disp() ) );
+					so_5::disp::active_obj::create_disp() )
+				.coop_listener(
+					so_5::rt::coop_listener_unique_ptr_t( new listener_t() ) ) );
 	}
 	catch( const std::exception & ex )
 	{
