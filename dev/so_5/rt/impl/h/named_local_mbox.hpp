@@ -15,7 +15,6 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
-#include <so_5/rt/impl/h/message_consumer_link.hpp>
 #include <so_5/rt/impl/h/mbox_core.hpp>
 
 namespace so_5
@@ -56,43 +55,23 @@ class named_local_mbox_t
 		query_name() const;
 
 	protected:
-		//! Add a first event handler for a consumer.
 		virtual void
-		subscribe_first_event_handler(
-			//! Message type.
+		subscribe_event_handler(
 			const type_wrapper_t & type_wrapper,
-			//! A consumer to be added.
-			std::unique_ptr< impl::message_consumer_link_t >
-				message_consumer_link,
-			//! Event handler to be added to consumer.
-			const event_handler_caller_ref_t &
-				event_handler_caller_ref );
+			agent_t * subscriber,
+			const event_caller_block_t * event_caller );
 
-		//! Add another event handler for a consumer.
-		virtual void
-		subscribe_more_event_handler(
-			//! Message type.
-			const type_wrapper_t & type_wrapper,
-			//! Message consumer to be modified.
-			impl::message_consumer_link_t * message_consumer_link,
-			//! Event handler to be added to consumer.
-			const event_handler_caller_ref_t & event_handler_caller_ref );
-
-		//! Remove all consumer subscriptions.
 		virtual void
 		unsubscribe_event_handlers(
-			//! Message type.
 			const type_wrapper_t & type_wrapper,
-			//! Consumer to be removed.
-			impl::message_consumer_link_t *
-				message_consumer_link );
+			agent_t * subscriber );
 		//! \}
 
 		//! Deliver message to all consumers.
 		void
 		deliver_message(
 			const type_wrapper_t & type_wrapper,
-			const message_ref_t & message_ref );
+			const message_ref_t & message_ref ) const;
 
 		//! Get data for a comparision.
 		virtual const mbox_t *

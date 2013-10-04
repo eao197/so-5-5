@@ -3,8 +3,6 @@
 */
 
 #include <so_5/rt/h/event_handler_caller.hpp>
-#include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/h/message.hpp>
 
 namespace so_5
 {
@@ -22,19 +20,6 @@ event_handler_caller_t::event_handler_caller_t()
 
 event_handler_caller_t::~event_handler_caller_t()
 {
-}
-
-const state_t *
-event_handler_caller_t::target_state() const
-{
-	return 0;
-}
-
-bool
-event_handler_caller_t::operator==( const event_handler_caller_t & o ) const
-{
-	return ( target_state() == o.target_state() &&
-			type_wrapper() == o.type_wrapper() );
 }
 
 } /* namespace rt */

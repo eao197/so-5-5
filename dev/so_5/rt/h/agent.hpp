@@ -24,6 +24,7 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
+#include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 
 namespace so_5
@@ -182,7 +183,6 @@ class SO_5_TYPE agent_t
 		private atomic_refcounted_t
 {
 		friend class subscription_bind_t;
-		friend class subscription_unbind_t;
 		friend class smart_atomic_reference_t< agent_t >;
 		friend class agent_coop_t;
 
@@ -340,7 +340,7 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
-			const event_caller_block_ref_t & event_handler_caller,
+			const event_caller_block_t * event_handler_caller,
 			const message_ref_t & message )
 		{
 			agent.push_event( event_handler_caller, message );
@@ -551,6 +551,58 @@ class SO_5_TYPE agent_t
 		so_environment();
 
 	private:
+		//! Default agent state.
+		const state_t m_default_state;
+
+		//! Current agent state.
+		const state_t * m_current_state_ptr;
+
+		//! Agent definition flag.
+		/*!
+		 * Set to true after a successful return from the so_define_agent().
+		 */
+		bool m_was_defined;
+
+		//! State listeners controller.
+		std::unique_ptr< impl::state_listener_controller_t >
+			m_state_listener_controller;
+
+		//! Typedef for subscription key.
+		typedef std::pair< type_wrapper_t, mbox_ref_t > subscription_key_t;
+
+		//! Typedef for the map from subscriptions to event handlers.
+		typedef std::map<
+				subscription_key_t,
+				event_caller_block_ref_t >
+			consumers_map_t;
+
+		//! Map from subscriptions to event handlers.
+		consumers_map_t m_event_consumers_map;
+
+		//! Local events queue.
+		std::unique_ptr< impl::local_event_queue_t >
+			m_local_event_queue;
+
+		//! SObjectizer Environment for which the agent is belong.
+		impl::so_environment_impl_t * m_so_environment_impl;
+
+		//! Dispatcher of this agent.
+		/*!
+		 * By default this pointer points to a special stub.
+		 * This stub do nothing but allows safely call the method for
+		 * events scheduling.
+		 *
+		 * This pointer received the actual value after binding
+		 * agent to the real dispatcher.
+		 */
+		dispatcher_t * m_dispatcher;
+
+		//! Agent is belong to this cooperation.
+		agent_coop_t * m_agent_coop;
+
+		//! Is the cooperation deregistration in progress?
+		bool m_is_coop_deregistered;
+
 		//! Make an agent reference.
 		/*!
 		 * This is an internal SObjectizer method. It is called when
@@ -627,12 +679,38 @@ class SO_5_TYPE agent_t
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
 			mbox_ref_t & mbox_ref,
+			//! State for event.
+			const state_t & target_state,
 			//! Event handler caller.
 			const event_handler_caller_ref_t & ehc );
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Create and register event caller block for new subcription.
+		 */
+		void
+		create_and_register_event_caller_block(
+			//! Message type.
+			const type_wrapper_t & type_wrapper,
+			//! Message's mbox.
+			mbox_ref_t & mbox_ref,
+			//! State for event.
+			const state_t & target_state,
+			//! Event handler caller.
+			const event_handler_caller_ref_t & ehc,
+			//! Subscription key for that event.
+			const subscription_key_t & subscr_key );
 
 		//! Destroy all agent subscriptions.
 		void
 		destroy_all_subscriptions();
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Clean event consumers map.
+		 */
+		void
+		clean_consumers_map();
 		/*!
 		 * \}
 		 */
@@ -646,7 +724,7 @@ class SO_5_TYPE agent_t
 		void
 		push_event(
 			//! Event handler caller for an event.
-			const event_caller_block_ref_t & event_handler_caller,
+			const event_caller_block_t * event_handler_caller,
 			//! Event message.
 			const message_ref_t & message );
 
@@ -661,58 +739,40 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
-
-		//! Default agent state.
-		const state_t m_default_state;
-
-		//! Current agent state.
-		const state_t * m_current_state_ptr;
-
-		//! Agent definition flag.
 		/*!
-		 * Set to true after a successful return from the so_define_agent().
+		 * \name Demand handlers.
+		 * \{
 		 */
-		bool m_was_defined;
-
-		//! State listeners controller.
-		std::unique_ptr< impl::state_listener_controller_t >
-			m_state_listener_controller;
-
-		//! Typedef for subscription key.
-		typedef std::pair< type_wrapper_t, mbox_ref_t > subscription_key_t;
-
-		//! Typedef for the map from subscriptions to event handlers.
-		typedef std::map<
-				subscription_key_t,
-				impl::message_consumer_link_t * >
-			consumers_map_t;
-
-		//! Map from subscriptions to event handlers.
-		consumers_map_t m_event_consumers_map;
-
-		//! Local events queue.
-		std::unique_ptr< impl::local_event_queue_t >
-			m_local_event_queue;
-
-		//! SObjectizer Environment for which the agent is belong.
-		impl::so_environment_impl_t * m_so_environment_impl;
-
-		//! Dispatcher of this agent.
 		/*!
-		 * By default this pointer points to a special stub.
-		 * This stub do nothing but allows safely call the method for
-		 * events scheduling.
-		 *
-		 * This pointer received the actual value after binding
-		 * agent to the real dispatcher.
+		 * \since v.5.2.0
+		 * \brief Calls so_evt_start method for agent.
 		 */
-		dispatcher_t * m_dispatcher;
-
-		//! Agent is belong to this cooperation.
-		agent_coop_t * m_agent_coop;
-
-		//! Is the cooperation deregistration in progress?
-		bool m_is_coop_deregistered;
+		static void
+		demand_handler_on_start(
+			message_ref_t &,
+			const event_caller_block_t *,
+			agent_t * agent );
+		/*!
+		 * \since v.5.2.0
+		 * \brief Calls so_evt_finish method for agent.
+		 */
+		static void
+		demand_handler_on_finish(
+			message_ref_t &,
+			const event_caller_block_t *,
+			agent_t * agent );
+		/*!
+		 * \since v.5.2.0
+		 * \brief Calls event handler for message.
+		 */
+		static void
+		demand_handler_on_message(
+			message_ref_t & msg,
+			const event_caller_block_t * event_handler,
+			agent_t * );
+		/*!
+		 * \}
+		 */
 };
 
 //
@@ -765,11 +825,11 @@ subscription_bind_t::event(
 	m_agent.create_event_subscription(
 		typeid( MESSAGE ),
 		m_mbox_ref,
+		*m_state,
 		event_handler_caller_ref_t(
 			new real_event_handler_caller_t< MESSAGE, AGENT >(
 				pfn,
-				*cast_result,
-				m_state ) ) );
+				*cast_result ) ) );
 }
 
 } /* namespace rt */

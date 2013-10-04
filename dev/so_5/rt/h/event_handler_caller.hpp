@@ -16,7 +16,6 @@
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
-#include <so_5/rt/h/state.hpp>
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/message.hpp>
@@ -51,29 +50,10 @@ class SO_5_TYPE event_handler_caller_t
 		virtual ~event_handler_caller_t();
 
 		//! Call agent's event caller.
-		/*!
-		 * An event will be called if the current agent state 
-		 * matches the agent's state of this subscription.
-		 *
-		 * \retval true If the event has been called.
-		 * \retval false If the event has not been called.
-		 */
-		virtual bool
+		virtual void
 		call(
 			//! Message for the event.
 			message_ref_t & message_ref ) const = 0;
-
-		//! Message type identifier.
-		virtual type_wrapper_t
-		type_wrapper() const = 0;
-
-		//! Target state for the event.
-		virtual const state_t *
-		target_state() const;
-
-		//! Equality operator.
-		bool
-		operator==( const event_handler_caller_t & o ) const;
 };
 
 //
@@ -97,51 +77,27 @@ class real_event_handler_caller_t
 
 		real_event_handler_caller_t(
 			FN_PTR_T pfn,
-			AGENT & agent,
-			const state_t * target_state )
+			AGENT & agent )
 			:
 				m_pfn( pfn ),
-				m_agent( agent ),
-				m_target_state( target_state )
+				m_agent( agent )
 		{
 		}
 
 		virtual ~real_event_handler_caller_t()
 		{}
 
-		virtual type_wrapper_t
-		type_wrapper() const
-		{
-			return type_wrapper_t( typeid( MESSAGE ) );
-		}
-
-		virtual const state_t *
-		target_state() const
-		{
-			return m_target_state;
-		}
-
-		virtual bool
+		virtual void
 		call(
 			message_ref_t & message_ref ) const
 		{
-			const bool execute = &m_agent.so_current_state() == m_target_state;
+			const event_data_t< MESSAGE > event_data(
+				reinterpret_cast< const MESSAGE * >( message_ref.get() ) );
 
-			if( execute )
-			{
-				const event_data_t< MESSAGE > event_data(
-					reinterpret_cast< const MESSAGE * >( message_ref.get() ) );
-
-				(m_agent.*m_pfn)( event_data );
-			}
-
-			return execute;
+			(m_agent.*m_pfn)( event_data );
 		};
 
 	private:
-		//! State for which event is enabled.
-		const state_t * const m_target_state;
-
 		//! Agent's method for the handling event.
 		FN_PTR_T m_pfn;
 
