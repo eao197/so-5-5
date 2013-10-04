@@ -161,8 +161,13 @@ class smart_atomic_reference_t
 		}
 
 		//! Is this a null reference?
-		bool
-		empty() const
+		/*!
+			i.e. whether get() != 0.
+
+			\retval true if *this manages an object. 
+			\retval false otherwise.
+		*/
+		operator bool() const 
 		{
 			return nullptr != m_obj;
 		}
