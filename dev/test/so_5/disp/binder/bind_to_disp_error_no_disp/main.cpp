@@ -39,8 +39,7 @@ init( so_5::rt::so_environment_t & env )
 		env.create_coop( "test_coop" );
 
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new test_agent_t( env ) ),
+		new test_agent_t( env ),
 		so_5::disp::one_thread::create_disp_binder( "NODISP" ) );
 
 	bool exception_thrown = false;

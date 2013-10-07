@@ -40,11 +40,10 @@ init( so_5::rt::so_environment_t & env )
 		env.create_coop( "test_coop" );
 
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new test_agent_t( env ) ),
-			so_5::disp::active_group::create_disp_binder(
-				"active_obj",
-				"sample_group" ) );
+		new test_agent_t( env ),
+		so_5::disp::active_group::create_disp_binder(
+			"active_obj",
+			"sample_group" ) );
 
 	bool exception_thrown = false;
 	try

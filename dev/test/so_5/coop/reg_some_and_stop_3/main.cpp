@@ -83,8 +83,7 @@ class a_master_t
 					so_5::rt::nonempty_name_t(
 						so_coop_name() + "_slave" ) );
 
-			coop->add_agent( so_5::rt::agent_ref_t(
-				new a_slave_t( so_environment(),  mbox ) ) );
+			coop->add_agent( new a_slave_t( so_environment(),  mbox ) );
 
 			so_environment().register_coop( std::move( coop ) );
 		}
@@ -104,8 +103,7 @@ init( so_5::rt::so_environment_t & env )
 	so_5::rt::agent_coop_unique_ptr_t coop =
 		env.create_coop( "test_coop_1" );
 
-	coop->add_agent( so_5::rt::agent_ref_t(
-		new a_master_t( env ) ) );
+	coop->add_agent( new a_master_t( env ) );
 
 	env.register_coop( std::move( coop ) );
 }

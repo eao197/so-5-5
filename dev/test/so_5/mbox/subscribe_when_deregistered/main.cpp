@@ -153,14 +153,14 @@ init(
 			so_5::rt::nonempty_name_t( "test_coop" ),
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
-		coop->add_agent( so_5::rt::agent_ref_t( new test_agent_t( env ) ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
+		coop->add_agent( new test_agent_t( env ) );
 
 		env.register_coop( std::move( coop ) );
 		g_stage_monitors.wait_for_registration();

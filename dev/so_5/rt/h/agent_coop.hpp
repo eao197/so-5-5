@@ -98,21 +98,64 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * Default dispatcher binding is used for the agent.
 		 */
-		void
+		template< class AGENT >
+		inline void
 		add_agent(
-			const agent_ref_t & agent_ref );
+			//! Agent.
+			std::unique_ptr< AGENT > agent )
+		{
+			this->do_add_agent( agent_ref_t( agent.release() ) );
+		}
+
+		//! Add agent to cooperation via raw pointer.
+		/*!
+		 * Cooperation takes care about agent lifetime.
+		 *
+		 * Default dispatcher binding is used for the agent.
+		 */
+		inline void
+		add_agent(
+			//! Agent.
+			agent_t * agent )
+		{
+			this->do_add_agent( agent_ref_t( agent ) );
+		}
 
 		//! Add agent to the cooperation with the dispatcher binding.
 		/*!
 		 * Instead of the default dispatcher binding the \a disp_binder
 		 * is used for this agent during the cooperation registration.
 		 */
-		void
+		template< class AGENT >
+		inline void
 		add_agent(
 			//! Agent.
-			const agent_ref_t & agent_ref,
+			std::unique_ptr< AGENT > agent,
 			//! Agent to dispatcher binder.
-			disp_binder_unique_ptr_t disp_binder );
+			disp_binder_unique_ptr_t disp_binder )
+		{
+			this->do_add_agent(
+				agent_ref_t( agent.release() ),
+				std::move(disp_binder) );
+		}
+
+		//! Add agent to the cooperation via raw pointer and with the dispatcher
+		//! binding.
+		/*!
+		 * Instead of the default dispatcher binding the \a disp_binder
+		 * is used for this agent during the cooperation registration.
+		 */
+		inline void
+		add_agent(
+			//! Agent.
+			agent_t * agent,
+			//! Agent to dispatcher binder.
+			disp_binder_unique_ptr_t disp_binder )
+		{
+			this->do_add_agent(
+				agent_ref_t( agent ),
+				std::move(disp_binder) );
+		}
 
 		//! Internal SObjectizer method.
 		/*!
@@ -155,6 +198,49 @@ class SO_5_TYPE agent_coop_t
 
 		//! Typedef for the agent information container.
 		typedef std::vector< agent_with_disp_binder_t > agent_array_t;
+
+		//! Cooperation name.
+		const std::string m_coop_name;
+
+		//! Object lock.
+		ACE_Thread_Mutex & m_lock;
+
+		//! Agent undefinition flag.
+		bool m_agents_are_undefined;
+
+		//! Default agent to the dispatcher binder.
+		disp_binder_ref_t m_coop_disp_binder;
+
+		//! Cooperation agents.
+		agent_array_t m_agent_array;
+
+		//! SObjectizer Environment for which cooperation is created.
+		impl::so_environment_impl_t & m_so_environment_impl;
+
+		//! Count for working agents.
+		atomic_counter_t m_working_agents_count;
+
+		//! Add agent to cooperation.
+		/*!
+		 * Cooperation takes care about agent lifetime.
+		 *
+		 * Default dispatcher binding is used for the agent.
+		 */
+		void
+		do_add_agent(
+			const agent_ref_t & agent_ref );
+
+		//! Add agent to the cooperation with the dispatcher binding.
+		/*!
+		 * Instead of the default dispatcher binding the \a disp_binder
+		 * is used for this agent during the cooperation registration.
+		 */
+		void
+		do_add_agent(
+			//! Agent.
+			const agent_ref_t & agent_ref,
+			//! Agent to dispatcher binder.
+			disp_binder_unique_ptr_t disp_binder );
 
 		//! Bind agents to the cooperation.
 		void
@@ -206,27 +292,6 @@ class SO_5_TYPE agent_coop_t
 		//! Do the final deregistration stage.
 		void
 		final_deregister_coop();
-
-		//! Cooperation name.
-		const std::string m_coop_name;
-
-		//! Object lock.
-		ACE_Thread_Mutex & m_lock;
-
-		//! Agent undefinition flag.
-		bool m_agents_are_undefined;
-
-		//! Default agent to the dispatcher binder.
-		disp_binder_ref_t m_coop_disp_binder;
-
-		//! Cooperation agents.
-		agent_array_t m_agent_array;
-
-		//! SObjectizer Environment for which cooperation is created.
-		impl::so_environment_impl_t & m_so_environment_impl;
-
-		//! Count for working agents.
-		atomic_counter_t m_working_agents_count;
 };
 
 //! Typedef for the agent_coop smart pointer.

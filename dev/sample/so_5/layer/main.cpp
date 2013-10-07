@@ -276,12 +276,9 @@ init( so_5::rt::so_environment_t & env )
 		so_5::rt::nonempty_name_t( "coop" ) );
 
 	// Adding agents to the cooperation.
-	coop->add_agent( so_5::rt::agent_ref_t(
-		new a_hello_t( env, "alpha" ) ) );
-	coop->add_agent( so_5::rt::agent_ref_t(
-		new a_hello_t( env, "beta" ) ) );
-	coop->add_agent( so_5::rt::agent_ref_t(
-		new a_hello_t( env, "gamma" ) ) );
+	coop->add_agent( new a_hello_t( env, "alpha" ) );
+	coop->add_agent( new a_hello_t( env, "beta" ) );
+	coop->add_agent( new a_hello_t( env, "gamma" ) );
 
 	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );

@@ -122,7 +122,7 @@ push_group(
 	for( int i = 0; i < test_agent_t::agents_cout(); ++i )
 	{
 		coop.add_agent(
-			so_5::rt::agent_ref_t( new test_agent_t( env ) ),
+			new test_agent_t( env ),
 			so_5::disp::active_group::create_disp_binder(
 				"active_group",
 				group_name ) );
@@ -139,9 +139,7 @@ init( so_5::rt::so_environment_t & env )
 	push_group( *coop, "grp_3", env );
 	push_group( *coop, "grp_4", env );
 
-	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new test_agent_finisher_t( env ) ) );
+	coop->add_agent( new test_agent_finisher_t( env ) );
 
 	env.register_coop( std::move( coop ) );
 }

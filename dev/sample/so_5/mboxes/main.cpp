@@ -269,8 +269,7 @@ init( so_5::rt::so_environment_t & env )
 	so_5::rt::agent_coop_unique_ptr_t coop =
 		env.create_coop( "sample_coop" );
 
-	coop->add_agent(
-		so_5::rt::agent_ref_t( new my_agent_t( env ) ) );
+	coop->add_agent( new my_agent_t( env ) );
 
 	env.register_coop( std::move(coop) );
 }

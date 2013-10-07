@@ -235,7 +235,7 @@ state_monitor_t g_state_monitor( "nondestroyable_listener" );
 void
 init( so_5::rt::so_environment_t & env )
 {
-	so_5::rt::agent_ref_t ag( new a_state_swither_t( env ) );
+	std::unique_ptr< a_state_swither_t > ag( new a_state_swither_t( env ) );
 
 	// Adding the state listener. Its lifetime is not controlled by the agent.
 	ag->so_add_nondestroyable_listener( g_state_monitor );
@@ -251,7 +251,7 @@ init( so_5::rt::so_environment_t & env )
 		so_5::rt::nonempty_name_t( "coop" ) );
 
 	// Adding agent to the cooperation.
-	coop->add_agent( ag );
+	coop->add_agent( std::move(ag) );
 
 	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );

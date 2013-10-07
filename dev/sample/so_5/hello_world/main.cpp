@@ -51,9 +51,7 @@ init( so_5::rt::so_environment_t & env )
 		so_5::rt::nonempty_name_t( "coop" ) );
 
 	// Adding agent to the cooperation.
-	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new a_hello_t( env ) ) );
+	coop->add_agent( new a_hello_t( env ) );
 
 	// Registering the cooperation.
 	env.register_coop( std::move( coop ) );

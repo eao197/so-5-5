@@ -100,9 +100,7 @@ init( so_5::rt::so_environment_t & env )
 	{
 		const std::string name = create_agent_name( "default_disp", i+1 );
 
-		coop->add_agent(
-			so_5::rt::agent_ref_t(
-				new a_disp_user_t( env, name ) ) );
+		coop->add_agent( new a_disp_user_t( env, name ) );
 	}
 
 	// Adding agents which will work on the dispatcher 
@@ -112,7 +110,7 @@ init( so_5::rt::so_environment_t & env )
 		const std::string name = create_agent_name( "single_thread", i+1 );
 
 		coop->add_agent(
-			so_5::rt::agent_ref_t( new a_disp_user_t( env, name ) ),
+			new a_disp_user_t( env, name ),
 			so_5::disp::one_thread::create_disp_binder(
 				"single_thread" ) );
 	}
@@ -124,7 +122,7 @@ init( so_5::rt::so_environment_t & env )
 		const std::string name = create_agent_name( "active_group_A", i+1 );
 
 		coop->add_agent(
-			so_5::rt::agent_ref_t( new a_disp_user_t( env, name ) ),
+			new a_disp_user_t( env, name ),
 			so_5::disp::active_group::create_disp_binder(
 				"active_group",
 				"A" ) );
@@ -137,7 +135,7 @@ init( so_5::rt::so_environment_t & env )
 		const std::string name = create_agent_name( "active_group_B", i+1 );
 
 		coop->add_agent(
-			so_5::rt::agent_ref_t( new a_disp_user_t( env, name ) ),
+			new a_disp_user_t( env, name ),
 			so_5::disp::active_group::create_disp_binder(
 				"active_group",
 				"B" ) );
@@ -150,7 +148,7 @@ init( so_5::rt::so_environment_t & env )
 		const std::string name = create_agent_name( "active_obj", i+1 );
 
 		coop->add_agent(
-			so_5::rt::agent_ref_t( new a_disp_user_t( env, name ) ),
+			new a_disp_user_t( env, name ),
 			so_5::disp::active_obj::create_disp_binder(
 				"active_obj" ) );
 	}

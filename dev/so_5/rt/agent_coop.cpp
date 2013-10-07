@@ -55,7 +55,7 @@ agent_coop_t::query_coop_name() const
 
 
 void
-agent_coop_t::add_agent(
+agent_coop_t::do_add_agent(
 	const agent_ref_t & agent_ref )
 {
 	m_agent_array.push_back(
@@ -63,7 +63,7 @@ agent_coop_t::add_agent(
 }
 
 void
-agent_coop_t::add_agent(
+agent_coop_t::do_add_agent(
 	const agent_ref_t & agent_ref,
 	disp_binder_unique_ptr_t disp_binder )
 {

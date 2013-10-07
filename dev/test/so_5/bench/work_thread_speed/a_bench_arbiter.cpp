@@ -71,10 +71,10 @@ a_bench_arbiter_t::so_evt_start()
 							curr.m_receiver.query_value() ) );
 
 				coop->add_agent(
-					so_5::rt::agent_ref_t( new a_bench_receiver_t(
+					new a_bench_receiver_t(
 						so_environment(),
 						reciver_mbox,
-						m_self_mbox ) ),
+						m_self_mbox ),
 					so_5::disp::active_group::create_disp_binder(
 						"active_group",
 						curr.m_receiver.m_active_group.query_value() ) );
@@ -91,12 +91,12 @@ a_bench_arbiter_t::so_evt_start()
 							curr.m_sender.query_value() ) );
 
 				coop->add_agent(
-					so_5::rt::agent_ref_t( new a_bench_sender_t(
+					new a_bench_sender_t(
 						so_environment(),
 						reciver_mbox,
 						m_self_mbox,
 						curr.m_message_count.query_value(),
-						m_msg_bloks_size ) ),
+						m_msg_bloks_size ),
 					so_5::disp::active_group::create_disp_binder(
 						"active_group",
 						curr.m_sender.m_active_group.query_value() ) );

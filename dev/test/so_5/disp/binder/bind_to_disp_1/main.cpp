@@ -184,16 +184,14 @@ init( so_5::rt::so_environment_t & env )
 		env.create_coop( "test_coop" );
 
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new test_agent_sender_t( env, mbox ) ),
-			so_5::disp::one_thread::create_disp_binder(
-				"sender_disp" ) );
+		new test_agent_sender_t( env, mbox ),
+		so_5::disp::one_thread::create_disp_binder(
+			"sender_disp" ) );
 
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
-			new test_agent_receiver_t( env, mbox ) ),
-			so_5::disp::one_thread::create_disp_binder(
-				"receiver_disp" ) );
+		new test_agent_receiver_t( env, mbox ),
+		so_5::disp::one_thread::create_disp_binder(
+			"receiver_disp" ) );
 
 	env.register_coop( std::move( coop ) );
 }
