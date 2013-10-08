@@ -4,6 +4,14 @@
 
 \section so_5__2_0 5.2.0 "Tetnuld"
 
+	Format of so_5::rt::agent_coop_t::add_agent() methods has been changed.
+	Now add_agent() accepts std::unique_ptr and raw so_5::rt::agent_t
+	pointers, not agent_ref_t as in previous versions.
+
+	An instance of so_5::rt::so_environment_params_t now is passed to
+	so_5::rt::so_environment_t constructor by rvalue reference, not by
+	const reference as in previous versions. 
+
 	A template not_null_event_data_t and all related stuff have been removed.
 
 	A new base class for all signals (e.g. messages without any data)
@@ -17,6 +25,10 @@
 	Special checks for not-null message pointers inserted into deliver_message
 	and schedult_timer methods. So it is impossible to use those methods to send
 	null messages. Signals should be used for this purpose.
+
+	Some changes to message dispatching scheme.
+
+	Some refactoring of code inside SObjectizer internals.
 
 \section so_5__1_2 5.1.2
 
