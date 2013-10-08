@@ -4,6 +4,11 @@
 
 \section so_5__2_0 5.2.0 "Tetnuld"
 
+	Return codes no more used for error reporting in public methods of
+	SObjectizer classes. In case of error an exception is thrown.
+	All stuff related to return codes (e.g. throwing_strategy_t and so on)
+	have been removed. Only exceptions are used now.
+
 	Format of so_5::rt::agent_coop_t::add_agent() methods has been changed.
 	Now add_agent() accepts std::unique_ptr and raw so_5::rt::agent_t
 	pointers, not agent_ref_t as in previous versions.
