@@ -291,9 +291,10 @@ main( int, char ** )
 	{
 		so_5::api::run_so_environment(
 				&init,
-				so_5::rt::so_environment_params_t().add_layer(
-						std::unique_ptr< shutdowner_layer_t >(
-								new shutdowner_layer_t() ) ) );
+				std::move(
+					so_5::rt::so_environment_params_t().add_layer(
+							std::unique_ptr< shutdowner_layer_t >(
+									new shutdowner_layer_t() ) ) ) );
 	}
 	catch( const std::exception & ex )
 	{

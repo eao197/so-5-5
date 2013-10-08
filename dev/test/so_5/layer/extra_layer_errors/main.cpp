@@ -80,11 +80,12 @@ class so_environment_error_checker_t
 		so_environment_error_checker_t()
 			:
 				base_type_t(
-					so_5::rt::so_environment_params_t()
-						.mbox_mutex_pool_size( 4 )
-						.agent_event_queue_mutex_pool_size( 4 )
-						.add_layer( std::unique_ptr< test_layer_t< 0 > >(
-							new test_layer_t< 0 > ) ) )
+					std::move(
+						so_5::rt::so_environment_params_t()
+							.mbox_mutex_pool_size( 4 )
+							.agent_event_queue_mutex_pool_size( 4 )
+							.add_layer( std::unique_ptr< test_layer_t< 0 > >(
+								new test_layer_t< 0 > ) ) ) )
 		{}
 
 		virtual ~so_environment_error_checker_t(){}

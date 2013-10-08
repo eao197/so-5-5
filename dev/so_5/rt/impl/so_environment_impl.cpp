@@ -20,7 +20,7 @@ namespace impl
 {
 
 so_environment_impl_t::so_environment_impl_t(
-	const so_environment_params_t & so_environment_params,
+	so_environment_params_t && so_environment_params,
 	so_environment_t & public_so_environment )
 	:
 		m_mbox_core( new mbox_core_t(
@@ -31,26 +31,18 @@ so_environment_impl_t::so_environment_impl_t(
 				.agent_coop_mutex_pool_size(),
 			so_environment_params
 				.agent_event_queue_mutex_pool_size(),
-			std::move(
-				const_cast< so_environment_params_t & >(
-					so_environment_params ).m_coop_listener ) ),
+			std::move( so_environment_params.m_coop_listener ) ),
 		m_disp_core(
 			public_so_environment,
 			so_environment_params.named_dispatcher_map(),
-			std::move(
-				const_cast< so_environment_params_t & >(
-					so_environment_params ).m_event_exception_logger ),
-			std::move(
-				const_cast< so_environment_params_t & >(
-					so_environment_params ).m_event_exception_handler ) ),
+			std::move( so_environment_params.m_event_exception_logger ),
+			std::move( so_environment_params.m_event_exception_handler ) ),
 		m_layer_core(
 			so_environment_params.so_layers_map(),
 			&public_so_environment ),
 		m_public_so_environment( public_so_environment ),
 		m_timer_thread(
-			std::move(
-				const_cast< so_environment_params_t & >(
-					so_environment_params ).m_timer_thread ) )
+			std::move( so_environment_params.m_timer_thread ) )
 {
 	if( 0 == m_timer_thread.get() )
 	{

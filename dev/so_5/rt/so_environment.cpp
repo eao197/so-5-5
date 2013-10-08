@@ -150,11 +150,11 @@ so_environment_t::self_ref()
 
 
 so_environment_t::so_environment_t(
-	const so_environment_params_t & so_environment_params )
+	so_environment_params_t && so_environment_params )
 	:
 		m_so_environment_impl(
 			new impl::so_environment_impl_t(
-				so_environment_params,
+				std::move(so_environment_params),
 				self_ref() ) )
 {
 }

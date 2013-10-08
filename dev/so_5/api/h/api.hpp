@@ -45,9 +45,9 @@ class so_quick_environment_t
 			//! Initialization routine.
 			INIT init,
 			//! SObjectizer Environment parameters.
-			const so_5::rt::so_environment_params_t & env_params )
+			so_5::rt::so_environment_params_t && env_params )
 			:
-				base_type_t( env_params ),
+				base_type_t( std::move( env_params ) ),
 				m_init( init )
 		{}
 		virtual ~so_quick_environment_t()
@@ -93,10 +93,11 @@ main( int argc, char * argv[] )
 {
 	so_5::api::run_so_environment(
 		&init,
-		so_5::rt::so_environment_params_t()
-			.mbox_mutex_pool_size( 16 )
-			.agent_coop_mutex_pool_size( 16 )
-			.agent_event_queue_mutex_pool_size( 16 ) );
+		std::move(
+			so_5::rt::so_environment_params_t()
+				.mbox_mutex_pool_size( 16 )
+				.agent_coop_mutex_pool_size( 16 )
+				.agent_event_queue_mutex_pool_size( 16 ) ) );
 
 	return 0;
 }
@@ -107,11 +108,11 @@ run_so_environment(
 	//! Pointer to the initialization routine.
 	pfn_so_environment_init_t init_func,
 	//! Environment's parameters.
-	const so_5::rt::so_environment_params_t & env_params )
+	so_5::rt::so_environment_params_t && env_params )
 {
 	impl::so_quick_environment_t< decltype(init_func) > env(
 			init_func,
-			env_params );
+			std::move(env_params) );
 
 	return env.run();
 }
@@ -208,13 +209,14 @@ main( int argc, char ** argv )
 		so_5::api::run_so_environment_with_parameter(
 			&init,
 			server_addr,
-			so_5::rt::so_environment_params_t()
-				.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_obj" ),
-					so_5::disp::active_obj::create_disp() )
-				.add_layer(
-					std::unique_ptr< so_5_transport::reactor_layer_t >(
-						new so_5_transport::reactor_layer_t ) ) );
+			std::move(
+				so_5::rt::so_environment_params_t()
+					.add_named_dispatcher(
+						so_5::rt::nonempty_name_t( "active_obj" ),
+						so_5::disp::active_obj::create_disp() )
+					.add_layer(
+						std::unique_ptr< so_5_transport::reactor_layer_t >(
+							new so_5_transport::reactor_layer_t ) ) ) );
 	}
 	else
 		std::cerr << "sample.server <port>" << std::endl;
@@ -234,7 +236,7 @@ run_so_environment_with_parameter(
 	//! Initialization routine argument.
 	const PARAM_TYPE & param,
 	//! SObjectizer Environment parameters.
-	const so_5::rt::so_environment_params_t & env_params )
+	so_5::rt::so_environment_params_t && env_params )
 {
 	auto init = [init_func, param]( so_5::rt::so_environment_t & env ) {
 			init_func( env, param );
@@ -242,7 +244,7 @@ run_so_environment_with_parameter(
 
 	impl::so_quick_environment_t< decltype(init) > env(
 			init,
-			env_params );
+			std::move(env_params) );
 
 	env.run();
 }
@@ -295,13 +297,14 @@ main( int argc, char ** argv )
 		so_5::api::run_so_environment_with_parameter(
 			&init,
 			server_addr,
-			so_5::rt::so_environment_params_t()
-				.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_obj" ),
-					so_5::disp::active_obj::create_disp() )
-				.add_layer(
-					std::unique_ptr< so_5_transport::reactor_layer_t >(
-						new so_5_transport::reactor_layer_t ) ) );
+			std::move(
+				so_5::rt::so_environment_params_t()
+					.add_named_dispatcher(
+						so_5::rt::nonempty_name_t( "active_obj" ),
+						so_5::disp::active_obj::create_disp() )
+					.add_layer(
+						std::unique_ptr< so_5_transport::reactor_layer_t >(
+							new so_5_transport::reactor_layer_t ) ) ) );
 	}
 	else
 		std::cerr << "sample.server <port>" << std::endl;
@@ -385,13 +388,14 @@ main( int argc, char ** argv )
 		so_5::api::run_so_environment_on_object(
 			client_data,
 			&client_data_t::init,
-			so_5::rt::so_environment_params_t()
-				.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_obj" ),
-					so_5::disp::active_obj::create_disp() )
-				.add_layer(
-					std::unique_ptr< so_5_transport::reactor_layer_t >(
-						new so_5_transport::reactor_layer_t ) ) );
+			std::move(
+				so_5::rt::so_environment_params_t()
+					.add_named_dispatcher(
+						so_5::rt::nonempty_name_t( "active_obj" ),
+						so_5::disp::active_obj::create_disp() )
+					.add_layer(
+						std::unique_ptr< so_5_transport::reactor_layer_t >(
+							new so_5_transport::reactor_layer_t ) ) ) );
 	}
 	else
 		std::cerr << "sample.client <port> <protocol_version>" << std::endl;
@@ -409,13 +413,14 @@ run_so_environment_on_object(
 	//! Initialization routine.
 	METHOD init_func,
 	//! SObjectizer Environment parameters.
-	const so_5::rt::so_environment_params_t & env_params )
+	so_5::rt::so_environment_params_t && env_params )
 {
 	auto init = [&obj, init_func]( so_5::rt::so_environment_t & env ) {
 			(obj.*init_func)( env );
 		};
 
-	impl::so_quick_environment_t< decltype(init) > env( init, env_params );
+	impl::so_quick_environment_t< decltype(init) > env(
+			init, std::move(env_params) );
 
 	env.run();
 }

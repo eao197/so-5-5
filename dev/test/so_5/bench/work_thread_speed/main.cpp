@@ -35,10 +35,10 @@ class so_environment_t
 			const std::string & cfg )
 			:
 				base_type_t(
-					so_5::rt::so_environment_params_t()
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_group" ),
-						so_5::disp::active_group::create_disp() ) ),
+					std::move( so_5::rt::so_environment_params_t()
+						.add_named_dispatcher(
+							so_5::rt::nonempty_name_t( "active_group" ),
+							so_5::disp::active_group::create_disp() ) ) ),
 				m_cfg( cfg )
 		{}
 

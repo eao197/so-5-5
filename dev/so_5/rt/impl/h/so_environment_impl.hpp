@@ -36,11 +36,10 @@ class so_environment_impl_t
 {
 	public:
 		explicit so_environment_impl_t(
-			const so_environment_params_t & so_environment_params,
+			so_environment_params_t && so_environment_params,
 			so_environment_t & public_so_environment );
 
 		~so_environment_impl_t();
-
 
 		/*!
 		 * \name Method for work with mboxes.

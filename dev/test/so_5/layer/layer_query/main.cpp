@@ -57,15 +57,16 @@ class so_environment_t
 			test_layer_t< 3 > * tl3 )
 			:
 				base_type_t(
-					so_5::rt::so_environment_params_t()
-						.mbox_mutex_pool_size( 4 )
-						.agent_event_queue_mutex_pool_size( 4 )
-						.add_layer(
-							std::unique_ptr< test_layer_t< 1 > >( tl1 ) )
-						.add_layer(
-							std::unique_ptr< test_layer_t< 2 > >( tl2 ) )
-						.add_layer(
-							std::unique_ptr< test_layer_t< 3 > >( tl3 ) ) )
+					std::move(
+						so_5::rt::so_environment_params_t()
+							.mbox_mutex_pool_size( 4 )
+							.agent_event_queue_mutex_pool_size( 4 )
+							.add_layer(
+								std::unique_ptr< test_layer_t< 1 > >( tl1 ) )
+							.add_layer(
+								std::unique_ptr< test_layer_t< 2 > >( tl2 ) )
+							.add_layer(
+								std::unique_ptr< test_layer_t< 3 > >( tl3 ) ) ) )
 		{}
 
 		virtual ~so_environment_t(){}
@@ -193,7 +194,7 @@ UT_UNIT_TEST( check_many_layers )
 {
 	so_5::api::run_so_environment(
 		&init,
-		so_5::rt::so_environment_params_t()
+		std::move( so_5::rt::so_environment_params_t()
 			ADD_LAYER( 1 )
 			ADD_LAYER( 2 )
 			ADD_LAYER( 3 )
@@ -225,7 +226,7 @@ UT_UNIT_TEST( check_many_layers )
 			ADD_LAYER( 29 )
 			ADD_LAYER( 30 )
 			ADD_LAYER( 31 )
-			ADD_LAYER( 32 )
+			ADD_LAYER( 32 ) )
 		);
 }
 

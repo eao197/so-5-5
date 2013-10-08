@@ -336,7 +336,7 @@ class SO_5_TYPE so_environment_t
 	public:
 		explicit so_environment_t(
 			//! Initialization params.
-			const so_environment_params_t & so_environment_params );
+			so_environment_params_t && so_environment_params );
 
 		virtual ~so_environment_t();
 

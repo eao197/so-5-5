@@ -60,9 +60,10 @@ class so_environment_t
 			test_layer_t< 3 > * tl3 )
 			:
 				base_type_t(
-					so_5::rt::so_environment_params_t()
-						.mbox_mutex_pool_size( 4 )
-						.agent_event_queue_mutex_pool_size( 4 ) ),
+					std::move(
+						so_5::rt::so_environment_params_t()
+							.mbox_mutex_pool_size( 4 )
+							.agent_event_queue_mutex_pool_size( 4 ) ) ),
 				m_tl1( tl1 ),
 				m_tl2( tl2 ),
 				m_tl3( tl3 )

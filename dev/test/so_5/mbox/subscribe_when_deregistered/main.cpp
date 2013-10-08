@@ -198,12 +198,13 @@ main( int, char ** )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			so_5::rt::so_environment_params_t()
-				.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_obj" ),
-					so_5::disp::active_obj::create_disp() )
-				.coop_listener(
-					so_5::rt::coop_listener_unique_ptr_t( new listener_t() ) ) );
+			std::move(
+				so_5::rt::so_environment_params_t()
+					.add_named_dispatcher(
+						so_5::rt::nonempty_name_t( "active_obj" ),
+						so_5::disp::active_obj::create_disp() )
+					.coop_listener(
+						so_5::rt::coop_listener_unique_ptr_t( new listener_t() ) ) ) );
 	}
 	catch( const std::exception & ex )
 	{
