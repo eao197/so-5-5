@@ -66,13 +66,14 @@ class agent_core_t
 		void
 		start();
 
-		//! Send a shutdown signal.
+		//! Finish work.
+		/*!
+		 * Initiates deregistration of all agents. Waits for complete
+		 * deregistration for all of them. Waits for termination of
+		 * cooperation deregistration thread.
+		 */
 		void
-		shutdown();
-
-		//! Blocking wait for the complete shutdown.
-		void
-		wait();
+		finish();
 
 		/*!
 		 * \name Methods for working with cooperation mutexes.

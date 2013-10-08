@@ -63,13 +63,10 @@ class disp_core_t
 		void
 		start();
 
-		//! Send a shutdown signal for all dispatchers.
+		//! Send a shutdown signal for all dispatchers and wait them
+		//! to full stop.
 		void
-		shutdown();
-
-		//! Blocking wait for the complete shutdown of all dispatchers.
-		void
-		wait();
+		finish();
 
 		//! Install an exception logger.
 		void
@@ -110,6 +107,20 @@ class disp_core_t
 
 		//! Exception handler.
 		event_exception_handler_unique_ptr_t m_event_exception_handler;
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Sends shutdown signal to all dispatchers.
+		 */
+		void
+		send_shutdown_signal();
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Wait for full stop of all dispatchers.
+		 */
+		void
+		wait_for_full_shutdown();
 };
 
 } /* namespace impl */

@@ -110,24 +110,12 @@ class layer_core_t
 		void
 		start();
 
-		//! Shutdown extra layers.
-		void
-		shutdown_extra_layers();
-
-		//! Blocking wait for the complete shutdown of all extra layers.
 		/*!
-		 * All extra layers are destroyed.
+		 * \since v.5.2.0
+		 * \brief Shutdown all layers and wait for full stop of them.
 		 */
 		void
-		wait_extra_layers();
-
-		//! Shutdown default layers.
-		void
-		shutdown_default_layers();
-
-		//! Blocking wait for the complete shutdown of all default layers.
-		void
-		wait_default_layers();
+		finish();
 
 		//! Add an extra layer.
 		void
@@ -150,6 +138,25 @@ class layer_core_t
 
 		//! Extra layers.
 		so_layer_list_t m_extra_layers;
+
+		//! Shutdown extra layers.
+		void
+		shutdown_extra_layers();
+
+		//! Blocking wait for the complete shutdown of all extra layers.
+		/*!
+		 * All extra layers are destroyed.
+		 */
+		void
+		wait_extra_layers();
+
+		//! Shutdown default layers.
+		void
+		shutdown_default_layers();
+
+		//! Blocking wait for the complete shutdown of all default layers.
+		void
+		wait_default_layers();
 };
 
 } /* namespace impl */

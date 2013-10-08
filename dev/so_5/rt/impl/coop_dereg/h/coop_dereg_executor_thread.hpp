@@ -46,13 +46,9 @@ class coop_dereg_executor_thread_t
 		void
 		start();
 
-		//! Send a shutdown signal to a thread.
+		//! Send a shutdown signal to a thread and wait for full stop.
 		void
-		shutdown();
-
-		//! Wait for a thread shutdown.
-		void
-		wait();
+		finish();
 
 		//! Push cooperation to the waiting queue.
 		void

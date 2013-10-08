@@ -278,6 +278,47 @@ class so_environment_impl_t
 
 		//! Timer.
 		so_5::timer_thread::timer_thread_unique_ptr_t m_timer_thread;
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Run layers and call next run stage.
+		 */
+		void
+		run_layers_and_go_further(
+			so_environment_t & env );
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Run dispatchers and call next run stage.
+		 */
+		void
+		run_dispatcher_and_go_further(
+			so_environment_t & env );
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Run timer and call next run stage.
+		 */
+		void
+		run_timer_and_go_further(
+			so_environment_t & env );
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Run agent core and call next run stage.
+		 */
+		void
+		run_agent_core_and_go_further(
+			so_environment_t & env );
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Run customer's initialization routine and wait for
+		 * start of deregistration procedure.
+		 */
+		void
+		run_user_supplied_init_and_wait_for_stop(
+			so_environment_t & env );
 };
 
 } /* namespace impl */

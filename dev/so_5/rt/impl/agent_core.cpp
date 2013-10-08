@@ -44,7 +44,7 @@ agent_core_t::start()
 }
 
 void
-agent_core_t::shutdown()
+agent_core_t::finish()
 {
 	// Deregistration of all cooperations should be initiated.
 	deregister_all_coop();
@@ -52,15 +52,8 @@ agent_core_t::shutdown()
 	// Deregistration of all cooperations should be finished.
 	wait_all_coop_to_deregister();
 
-	// Notify a dedicated thread.
-	m_coop_dereg_executor.shutdown();
-}
-
-void
-agent_core_t::wait()
-{
-	// The dedicated thread should be stopped.
-	m_coop_dereg_executor.wait();
+	// Notify a dedicated thread and wait while it will be stopped.
+	m_coop_dereg_executor.finish();
 }
 
 ACE_Thread_Mutex &

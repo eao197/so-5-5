@@ -178,6 +178,64 @@ layer_core_t::start()
 }
 
 void
+layer_core_t::finish()
+{
+	// Shutdown and wait extra layers.
+	shutdown_extra_layers();
+	wait_extra_layers();
+
+	// Shutdown and wait default layers.
+	shutdown_default_layers();
+	wait_default_layers();
+}
+
+void
+layer_core_t::add_extra_layer(
+	const type_wrapper_t & type,
+	const so_layer_ref_t & layer )
+{
+//FIXME: check for exception safety!
+	if( nullptr == layer.get() )
+		SO_5_THROW_EXCEPTION(
+			rc_trying_to_add_nullptr_extra_layer,
+			"trying to add nullptr extra layer" );
+
+	if( m_default_layers.end() != search_for_layer( m_default_layers, type ) )
+		SO_5_THROW_EXCEPTION(
+			rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
+			"trying to add extra layer that already exists in default list" );
+
+	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
+
+	if( m_extra_layers.end() != search_for_layer( m_extra_layers, type ) )
+		SO_5_THROW_EXCEPTION(
+			rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
+			"trying to add extra layer that already exists in extra list" );
+
+	layer->bind_to_environment( m_env );
+
+	try
+	{
+		layer->start();
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
+			rc_unable_to_start_extra_layer,
+			std::string( "layer raised an exception: " ) + x.what() );
+	}
+
+	typed_layer_ref_t typed_layer( type, layer );
+
+	m_extra_layers.insert(
+		std::lower_bound(
+			m_extra_layers.begin(),
+			m_extra_layers.end(),
+			typed_layer ),
+		typed_layer );
+}
+
+void
 call_shutdown( typed_layer_ref_t &  tl )
 {
 	tl.m_layer->shutdown();
@@ -225,52 +283,6 @@ layer_core_t::wait_default_layers()
 		m_default_layers.end(),
 		call_wait );
 
-}
-
-void
-layer_core_t::add_extra_layer(
-	const type_wrapper_t & type,
-	const so_layer_ref_t & layer )
-{
-//FIXME: check for exception safety!
-	if( nullptr == layer.get() )
-		SO_5_THROW_EXCEPTION(
-			rc_trying_to_add_nullptr_extra_layer,
-			"trying to add nullptr extra layer" );
-
-	if( m_default_layers.end() != search_for_layer( m_default_layers, type ) )
-		SO_5_THROW_EXCEPTION(
-			rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
-			"trying to add extra layer that already exists in default list" );
-
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
-
-	if( m_extra_layers.end() != search_for_layer( m_extra_layers, type ) )
-		SO_5_THROW_EXCEPTION(
-			rc_trying_to_add_extra_layer_that_already_exists_in_extra_list,
-			"trying to add extra layer that already exists in extra list" );
-
-	layer->bind_to_environment( m_env );
-
-	try
-	{
-		layer->start();
-	}
-	catch( const std::exception & x )
-	{
-		SO_5_THROW_EXCEPTION(
-			rc_unable_to_start_extra_layer,
-			std::string( "layer raised an exception: " ) + x.what() );
-	}
-
-	typed_layer_ref_t typed_layer( type, layer );
-
-	m_extra_layers.insert(
-		std::lower_bound(
-			m_extra_layers.begin(),
-			m_extra_layers.end(),
-			typed_layer ),
-		typed_layer );
 }
 
 } /* namespace impl */

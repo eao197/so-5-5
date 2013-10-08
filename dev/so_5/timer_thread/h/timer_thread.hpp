@@ -44,14 +44,10 @@ namespace timer_thread
 	A real timer may not be implemented as a thread. The name of this class is
 	just a consequence of some historic reasons.
 
-	A dispatcher starts timer by calling timer_thread_t::start() method.
-	Dispatcher informs timer about a shutdown by calling
-	timer_thread_t::shutdown() method. Sometimes it could be impossible to
-	immediately finish timer work. Because of that dispatcher will call
-	timer_thread_t::wait() after shutdown(). The dispatcher should be blocked
-	on the timer_thread_t::wait() call until timer fully finished its work. The
-	return from the timer_thread_t::wait() means that the timer is 
-	completelly stopped and all resources are released.
+	A timer is started by timer_thread_t::start() method. To stop timer the
+	timer_thread_t::finish() method is used. The finish() method should block
+	caller until all timer resources will be released and all dedicated
+	timer threads (if any) are completelly stopped.
 
 	When so_5::rt::dispatcher_t::push_delayed_msg() is called the dispatcher
 	passes timer message to the timer_thread. After this timer is responsible
@@ -68,13 +64,9 @@ class SO_5_TYPE timer_thread_t
 		virtual void
 		start() = 0;
 
-		//! Send shutdown signal to the timer.
+		//! Finish timer and wait for full stop.
 		virtual void
-		shutdown() = 0;
-
-		//! Wait timer to stop.
-		virtual void
-		wait() = 0;
+		finish() = 0;
 
 		//! Push delayed/periodic message to the timer queue.
 		virtual timer_id_t

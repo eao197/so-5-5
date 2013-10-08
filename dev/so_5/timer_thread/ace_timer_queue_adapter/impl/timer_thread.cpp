@@ -67,15 +67,12 @@ timer_thread_t::start()
 }
 
 void
-timer_thread_t::shutdown()
+timer_thread_t::finish()
 {
 	m_timer_queue->deactivate();
-}
 
-void
-timer_thread_t::wait()
-{
 	if( -1 == m_timer_queue->wait() )
+//FIXME: exception should be raised there!
 		ACE_ERROR( ( LM_ERROR,
 					SO_5_LOG_FMT( "%p" ),
 					"timer_queue->wait() failed!" ) );

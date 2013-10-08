@@ -79,31 +79,10 @@ disp_core_t::start()
 }
 
 void
-disp_core_t::shutdown()
+disp_core_t::finish()
 {
-	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();
-	named_dispatcher_map_t::iterator it_end = m_named_dispatcher_map.end();
-
-	for( ; it != it_end; ++it )
-	{
-		it->second->shutdown();
-	}
-
-	m_default_dispatcher->shutdown();
-}
-
-void
-disp_core_t::wait()
-{
-	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();
-	named_dispatcher_map_t::iterator it_end = m_named_dispatcher_map.end();
-
-	for( ; it != it_end; ++it )
-	{
-		it->second->wait();
-	}
-
-	m_default_dispatcher->wait();
+	send_shutdown_signal();
+	wait_for_full_shutdown();
 }
 
 void
@@ -151,6 +130,34 @@ disp_core_t::handle_exception(
 		m_so_environment,
 		event_exception,
 		coop_name );
+}
+
+void
+disp_core_t::send_shutdown_signal()
+{
+	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();
+	named_dispatcher_map_t::iterator it_end = m_named_dispatcher_map.end();
+
+	for( ; it != it_end; ++it )
+	{
+		it->second->shutdown();
+	}
+
+	m_default_dispatcher->shutdown();
+}
+
+void
+disp_core_t::wait_for_full_shutdown()
+{
+	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();
+	named_dispatcher_map_t::iterator it_end = m_named_dispatcher_map.end();
+
+	for( ; it != it_end; ++it )
+	{
+		it->second->wait();
+	}
+
+	m_default_dispatcher->wait();
 }
 
 } /* namespace impl */

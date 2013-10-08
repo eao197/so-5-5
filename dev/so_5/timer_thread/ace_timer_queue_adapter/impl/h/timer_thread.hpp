@@ -79,16 +79,11 @@ class timer_thread_t
 		start();
 
 		/*!
-		 * Calls ACE_Thread_Timer_Queue_Adapter::deactivate().
+		 * Calls ACE_Thread_Timer_Queue_Adapter::deactivate() and then
+		 * ACE_Thread_Timer_Queue_Adapter::wait().
 		 */
 		virtual void
-		shutdown();
-
-		/*!
-		 * Calss ACE_Thread_Timer_Queue_Adapter::wait().
-		 */
-		virtual void
-		wait();
+		finish();
 
 		/*!
 		 * Assigns own ID to the event and creates Timer ACT.

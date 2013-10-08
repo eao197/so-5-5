@@ -124,63 +124,21 @@ void
 so_environment_impl_t::run(
 	so_environment_t & env )
 {
-	m_layer_core.start();
-
-	// Starting dispatchers...
-	m_disp_core.start();
-
-	// Starting timer...
-	m_timer_thread->start();
-
-	// Starting an agent utility...
-	m_agent_core.start();
-
-//FIXME: those actions could be moved to dedicated method.
-	bool init_threw = false;
-	std::string init_exception_reason;
 	try
 	{
-		// Initilizing environment.
-		env.init();
+		run_layers_and_go_further( env );
 	}
-	catch( const std::exception & ex )
+	catch( const so_5::exception_t & )
 	{
-		init_threw = true;
-		init_exception_reason = ex.what();
-		env.stop();
+		// Rethrow our exception because it already has all information.
+		throw;
 	}
-
-	// Wait for the deregistration signal...
-	m_agent_core.wait_for_start_deregistration();
-
-	// All agents should start their shutdown...
-	m_agent_core.shutdown();
-
-	// Informs about shutdown...
-	m_timer_thread->shutdown();
-	m_disp_core.shutdown();
-
-	// Wait for agents...
-	m_agent_core.wait();
-
-	// Wait timer...
-	m_timer_thread->wait();
-
-	// Wait dispatcher...
-	m_disp_core.wait();
-
-	// Shutdown and wait extra layers.
-	m_layer_core.shutdown_extra_layers();
-	m_layer_core.wait_extra_layers();
-	// Shutdown and wait default layers.
-	m_layer_core.shutdown_default_layers();
-	m_layer_core.wait_default_layers();
-
-	if( init_threw )
+	catch( const std::exception & x )
 	{
 		SO_5_THROW_EXCEPTION(
-			rc_environment_error,
-			"init() failed: " + init_exception_reason );
+				rc_environment_error,
+				std::string( "some unexpected error during "
+						"environment launching: " ) + x.what() );
 	}
 }
 
@@ -195,6 +153,102 @@ so_environment_t &
 so_environment_impl_t::query_public_so_environment()
 {
 	return m_public_so_environment;
+}
+
+void
+so_environment_impl_t::run_layers_and_go_further(
+	so_environment_t & env )
+{
+	m_layer_core.start();
+
+	try
+	{
+		run_dispatcher_and_go_further( env );
+	}
+	catch( const std::exception & x )
+	{
+		m_layer_core.finish();
+		throw;
+	}
+
+	m_layer_core.finish();
+}
+
+void
+so_environment_impl_t::run_dispatcher_and_go_further(
+	so_environment_t & env )
+{
+	m_disp_core.start();
+
+	try
+	{
+		run_timer_and_go_further( env );
+	}
+	catch( const std::exception & x )
+	{
+		m_disp_core.finish();
+		throw;
+	}
+
+	m_disp_core.finish();
+
+}
+
+void
+so_environment_impl_t::run_timer_and_go_further(
+	so_environment_t & env )
+{
+	m_timer_thread->start();
+
+	try
+	{
+		run_agent_core_and_go_further( env );
+	}
+	catch( const std::exception & x )
+	{
+		m_timer_thread->finish();
+		throw;
+	}
+
+	m_timer_thread->finish();
+}
+
+void
+so_environment_impl_t::run_agent_core_and_go_further(
+	so_environment_t & env )
+{
+	m_agent_core.start();
+
+	try
+	{
+		run_user_supplied_init_and_wait_for_stop( env );
+	}
+	catch( const std::exception & x )
+	{
+		m_agent_core.finish();
+		throw;
+	}
+
+	m_agent_core.finish();
+}
+
+void
+so_environment_impl_t::run_user_supplied_init_and_wait_for_stop(
+	so_environment_t & env )
+{
+	try
+	{
+		// Initilizing environment.
+		env.init();
+		m_agent_core.wait_for_start_deregistration();
+	}
+	catch( const std::exception & ex )
+	{
+		env.stop();
+		m_agent_core.wait_for_start_deregistration();
+
+		throw;
+	}
 }
 
 } /* namespace impl */

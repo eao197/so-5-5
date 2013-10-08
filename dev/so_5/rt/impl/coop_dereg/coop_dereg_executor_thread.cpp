@@ -49,15 +49,10 @@ coop_dereg_executor_thread_t::start()
 }
 
 void
-coop_dereg_executor_thread_t::shutdown()
+coop_dereg_executor_thread_t::finish()
 {
 	m_dereg_demand_queue.stop_service();
-}
 
-
-void
-coop_dereg_executor_thread_t::wait()
-{
 	ACE_Thread_Manager::instance()->join( m_tid );
 }
 
