@@ -159,77 +159,44 @@ void
 so_environment_impl_t::run_layers_and_go_further(
 	so_environment_t & env )
 {
-	m_layer_core.start();
-
-	try
-	{
-		run_dispatcher_and_go_further( env );
-	}
-	catch( const std::exception & x )
-	{
-		m_layer_core.finish();
-		throw;
-	}
-
-	m_layer_core.finish();
+	do_run_stage(
+			"run_layers",
+			[this] { m_layer_core.start(); },
+			[this] { m_layer_core.finish(); },
+			[this, &env] { run_dispatcher_and_go_further( env ); } );
 }
 
 void
 so_environment_impl_t::run_dispatcher_and_go_further(
 	so_environment_t & env )
 {
-	m_disp_core.start();
-
-	try
-	{
-		run_timer_and_go_further( env );
-	}
-	catch( const std::exception & x )
-	{
-		m_disp_core.finish();
-		throw;
-	}
-
-	m_disp_core.finish();
-
+	do_run_stage(
+			"run_dispatcher",
+			[this] { m_disp_core.start(); },
+			[this] { m_disp_core.finish(); },
+			[this, &env] { run_timer_and_go_further( env ); } );
 }
 
 void
 so_environment_impl_t::run_timer_and_go_further(
 	so_environment_t & env )
 {
-	m_timer_thread->start();
-
-	try
-	{
-		run_agent_core_and_go_further( env );
-	}
-	catch( const std::exception & x )
-	{
-		m_timer_thread->finish();
-		throw;
-	}
-
-	m_timer_thread->finish();
+	do_run_stage(
+			"run_timer",
+			[this] { m_timer_thread->start(); },
+			[this] { m_timer_thread->finish(); },
+			[this, &env] { run_agent_core_and_go_further( env ); } );
 }
 
 void
 so_environment_impl_t::run_agent_core_and_go_further(
 	so_environment_t & env )
 {
-	m_agent_core.start();
-
-	try
-	{
-		run_user_supplied_init_and_wait_for_stop( env );
-	}
-	catch( const std::exception & x )
-	{
-		m_agent_core.finish();
-		throw;
-	}
-
-	m_agent_core.finish();
+	do_run_stage(
+			"run_agent_core",
+			[this] { m_agent_core.start(); },
+			[this] { m_agent_core.finish(); },
+			[this, &env] { run_user_supplied_init_and_wait_for_stop( env ); } );
 }
 
 void
@@ -248,6 +215,60 @@ so_environment_impl_t::run_user_supplied_init_and_wait_for_stop(
 		m_agent_core.wait_for_start_deregistration();
 
 		throw;
+	}
+}
+
+void
+so_environment_impl_t::do_run_stage(
+	const std::string & stage_name,
+	std::function< void() > init_fn,
+	std::function< void() > deinit_fn,
+	std::function< void() > next_stage )
+{
+	try
+	{
+		init_fn();
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				stage_name + ": initialization failed, exception is: '" +
+				x.what() + "'" );
+	}
+
+	try
+	{
+		next_stage();
+	}
+	catch( const std::exception & x )
+	{
+		try
+		{
+			deinit_fn();
+		}
+		catch( const std::exception & nested )
+		{
+			SO_5_THROW_EXCEPTION(
+					rc_unexpected_error,
+					stage_name + ": deinitialization failed during "
+					"exception handling. Original exception is: '" + x.what() +
+					"', deinitialization exception is: '" + nested.what() + "'" );
+		}
+
+		throw;
+	}
+
+	try
+	{
+		deinit_fn();
+	}
+	catch( const std::exception & x )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				stage_name + ": deinitialization failed, exception is: '" +
+				x.what() + "'" );
 	}
 }
 

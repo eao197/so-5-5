@@ -319,6 +319,21 @@ class so_environment_impl_t
 		void
 		run_user_supplied_init_and_wait_for_stop(
 			so_environment_t & env );
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief Templated implementation of one run stage.
+		 */
+		void
+		do_run_stage(
+			//! Short description of stage.
+			const std::string & stage_name,
+			//! Stage initialization code.
+			std::function< void() > init_fn,
+			//! Stage deinitialization code.
+			std::function< void() > deinit_fn,
+			//! Next stage method.
+			std::function< void() > next_stage );
 };
 
 } /* namespace impl */
