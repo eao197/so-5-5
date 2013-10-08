@@ -86,13 +86,15 @@ class SO_5_TYPE timer_id_ref_t
 		timer_id_ref_t();
 
 		timer_id_ref_t( const timer_id_ref_t & timer_id );
-//FIXME: may be there should be move-constructor?
+		timer_id_ref_t( timer_id_ref_t && timer_id );
 
 		~timer_id_ref_t();
 
 		timer_id_ref_t &
-		operator = ( const timer_id_ref_t & timer_id );
-//FIXME: may be there should be move-operator?
+		operator=( const timer_id_ref_t & timer_id );
+
+		timer_id_ref_t &
+		operator=( timer_id_ref_t && timer_id );
 
 		//! Is this timer event is active?
 		bool
@@ -113,6 +115,13 @@ class SO_5_TYPE timer_id_ref_t
 		 */
 		void
 		dec_timer_id_ref_count();
+
+		/*!
+		 * \since v.5.2.0
+		 * \brief A part of move ownership of timer_id to another object.
+		 */
+		timer_id_internals_t *
+		release_ownership();
 
 		//! Timer event identification data.
 		timer_id_internals_t * m_timer_id_internals;

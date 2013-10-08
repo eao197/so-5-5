@@ -55,6 +55,7 @@ timer_id_ref_t::timer_id_ref_t()
 		m_timer_id_internals( nullptr )
 {
 }
+
 timer_id_ref_t::timer_id_ref_t(
 	const timer_id_ref_t & timer_id )
 	:
@@ -63,6 +64,12 @@ timer_id_ref_t::timer_id_ref_t(
 	inc_timer_id_ref_count();
 }
 
+timer_id_ref_t::timer_id_ref_t(
+	timer_id_ref_t && timer_id )
+	:
+		m_timer_id_internals( timer_id.release_ownership() )
+{
+}
 
 timer_id_ref_t::~timer_id_ref_t()
 {
@@ -70,7 +77,7 @@ timer_id_ref_t::~timer_id_ref_t()
 }
 
 timer_id_ref_t &
-timer_id_ref_t::operator = ( const timer_id_ref_t & timer_id )
+timer_id_ref_t::operator=( const timer_id_ref_t & timer_id )
 {
 	if( &timer_id != this )
 	{
@@ -78,6 +85,19 @@ timer_id_ref_t::operator = ( const timer_id_ref_t & timer_id )
 		m_timer_id_internals = timer_id.m_timer_id_internals;
 		inc_timer_id_ref_count();
 	}
+
+	return *this;
+}
+
+timer_id_ref_t &
+timer_id_ref_t::operator=( timer_id_ref_t && timer_id )
+{
+	if( &timer_id != this )
+	{
+		release();
+		m_timer_id_internals = timer_id.release_ownership();
+	}
+
 	return *this;
 }
 
@@ -110,6 +130,15 @@ timer_id_ref_t::dec_timer_id_ref_count()
 		delete m_timer_id_internals;
 		m_timer_id_internals = nullptr;
 	}
+}
+
+timer_id_internals_t *
+timer_id_ref_t::release_ownership()
+{
+	auto r = m_timer_id_internals;
+	m_timer_id_internals = nullptr;
+
+	return r;
 }
 
 } /* namespace timer_thread */
