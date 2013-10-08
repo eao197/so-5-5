@@ -9,8 +9,6 @@
 #include <ace/Guard_T.h>
 #include <ace/Thread_Manager.h>
 
-#include <so_5/h/log_err.hpp>
-
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/event_exception_handler.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
@@ -171,12 +169,18 @@ work_thread_t::start()
 	m_queue.start_service();
 	m_continue_work = WORK_THREAD_CONTINUE;
 
-	SO_5_ABORT_ON_ACE_ERROR(
-		ACE_Thread_Manager::instance()->spawn(
+	if( -1 == ACE_Thread_Manager::instance()->spawn(
 			entry_point,
 			this,
 			THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED,
-			&m_tid ) );
+			&m_tid ) )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				"work_thread_t::start(): call of "
+				"ACE_Thread_Manager::instance()->spawn() failed, last_error: " +
+				cpp_util_2::slexcast( ACE_OS::last_error() ) );
+	}
 }
 
 void

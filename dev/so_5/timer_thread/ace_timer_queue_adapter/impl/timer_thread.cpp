@@ -4,7 +4,8 @@
 
 #include <algorithm>
 
-#include <so_5/h/log_err.hpp>
+#include <cpp_util_2/h/lexcast.hpp>
+
 #include <so_5/h/exception.hpp>
 #include <so_5/h/ret_code.hpp>
 
@@ -61,9 +62,14 @@ timer_thread_t::~timer_thread_t()
 void
 timer_thread_t::start()
 {
-//FIXME: may be there better to throw an exception?
-	SO_5_ABORT_ON_ACE_ERROR(
-		m_timer_queue->activate() );
+	if( -1 == m_timer_queue->activate() )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				"timer_thread_t::start(): call of "
+				"m_timer_queue->activate() failed, last_error: " +
+				cpp_util_2::slexcast( ACE_OS::last_error() ) );
+	}
 }
 
 void
@@ -72,10 +78,13 @@ timer_thread_t::finish()
 	m_timer_queue->deactivate();
 
 	if( -1 == m_timer_queue->wait() )
-//FIXME: exception should be raised there!
-		ACE_ERROR( ( LM_ERROR,
-					SO_5_LOG_FMT( "%p" ),
-					"timer_queue->wait() failed!" ) );
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				"timer_thread_t::finish(): call of "
+				"m_timer_queue->wait() failed, last_error: " +
+				cpp_util_2::slexcast( ACE_OS::last_error() ) );
+	}
 
 	cancel_all();
 }

@@ -4,9 +4,9 @@
 
 #include <algorithm>
 
-#include <ace/Thread_Manager.h>
+#include <cpp_util_2/h/lexcast.hpp>
 
-#include <so_5/h/log_err.hpp>
+#include <ace/Thread_Manager.h>
 
 #include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
 
@@ -40,12 +40,18 @@ coop_dereg_executor_thread_t::start()
 	// Queue must be informed.
 	m_dereg_demand_queue.start_service();
 
-	SO_5_ABORT_ON_ACE_ERROR(
-		ACE_Thread_Manager::instance()->spawn(
+	if( -1 == ACE_Thread_Manager::instance()->spawn(
 			entry_point,
 			this,
 			THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED,
-			&m_tid ) );
+			&m_tid ) )
+	{
+		SO_5_THROW_EXCEPTION(
+				rc_unexpected_error,
+				"coop_dereg_executor_thread_t::start(): call of "
+				"ACE_Thread_Manager::instance()->spawn() failed, last_error: " +
+				cpp_util_2::slexcast( ACE_OS::last_error() ) );
+	}
 }
 
 void
