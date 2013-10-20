@@ -27,6 +27,5 @@ a_bench_receiver_t::evt_finish(
 	const so_5::rt::event_data_t< msg_finish_work > & msg )
 {
 	m_arbiter_mbox->deliver_message(
-		std::unique_ptr< msg_bench_finish >(
-			new msg_bench_finish( m_processed_msg_count ) ) );
+		new msg_bench_finish( m_processed_msg_count ) );
 }

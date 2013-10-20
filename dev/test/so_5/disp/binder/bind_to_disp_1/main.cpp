@@ -103,9 +103,7 @@ test_agent_sender_t::evt_send_messages(
 {
 	for( int i = 0; i < g_send_at_once; ++i )
 	{
-		m_mbox_receiver->deliver_message(
-			std::unique_ptr< test_message >(
-				new test_message ) );
+		m_mbox_receiver->deliver_message( new test_message() );
 	}
 
 	++m_send_session_complited;

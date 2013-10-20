@@ -99,6 +99,15 @@ class SO_5_TYPE mbox_t
 			//! Message data.
 			std::unique_ptr< MESSAGE > msg_unique_ptr ) const;
 
+		//! Deliver message.
+		/*!
+		 * Mbox takes care about destroying a message object.
+		*/
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Message data.
+			MESSAGE * msg_raw_ptr ) const;
 
 		//! Deliver signal.
 		template< class MESSAGE >
@@ -167,6 +176,14 @@ mbox_t::deliver_message(
 	deliver_message(
 		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t( msg_unique_ptr.release() ) );
+}
+
+template< class MESSAGE >
+void
+mbox_t::deliver_message(
+	MESSAGE * msg_raw_ptr ) const
+{
+	this->deliver_message( std::unique_ptr< MESSAGE >( msg_raw_ptr ) );
 }
 
 template< class MESSAGE >

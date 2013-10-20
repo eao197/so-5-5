@@ -31,6 +31,9 @@
 	and schedult_timer methods. So it is impossible to use those methods to send
 	null messages. Signals should be used for this purpose.
 
+	A version of deliver_message for raw message pointer is added (since
+	v.5.2.0.2).
+
 	Some changes to message dispatching scheme.
 
 	Some refactoring of code inside SObjectizer internals.

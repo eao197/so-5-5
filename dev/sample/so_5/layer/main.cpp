@@ -221,10 +221,8 @@ a_hello_t::so_evt_start()
 	std::cout << m_agent_name << ".so_evt_start" << std::endl;
 
 	// Sending common greeting.
-	m_common_mbox->deliver_message( std::unique_ptr< msg_hello_to_all >(
-		new msg_hello_to_all(
-			m_agent_name,
-			m_self_mbox ) ) );
+	m_common_mbox->deliver_message(
+		new msg_hello_to_all( m_agent_name, m_self_mbox ) );
 }
 
 void
@@ -238,8 +236,7 @@ a_hello_t::evt_hello_to_all(
 	if( m_agent_name != evt_data->m_sender )
 	{
 		so_5::rt::mbox_ref_t mbox = evt_data->m_mbox;
-		mbox->deliver_message( std::unique_ptr< msg_hello_to_you >(
-			new msg_hello_to_you( m_agent_name ) ) );
+		mbox->deliver_message( new msg_hello_to_you( m_agent_name ) );
 	}
 }
 

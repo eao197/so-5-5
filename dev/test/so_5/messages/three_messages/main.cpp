@@ -101,17 +101,11 @@ test_agent_t::so_define_agent()
 void
 test_agent_t::so_evt_start()
 {
-	m_test_mbox->deliver_message(
-		std::unique_ptr< test_message_1 >(
-			new test_message_1 ) );
+	m_test_mbox->deliver_message( new test_message_1() );
 
-	m_test_mbox->deliver_message(
-		std::unique_ptr< test_message_2 >(
-			new test_message_2 ) );
+	m_test_mbox->deliver_message( new test_message_2() ); 
 
-	m_test_mbox->deliver_message(
-		std::unique_ptr< test_message_3 >(
-			new test_message_3 ) );
+	m_test_mbox->deliver_message( new test_message_3() );
 }
 
 void

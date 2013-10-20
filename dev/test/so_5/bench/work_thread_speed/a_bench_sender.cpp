@@ -29,8 +29,7 @@ a_bench_sender_t::evt_generate_pack(
 		++i, ++m_sent_message_count )
 	{
 		m_target_mbox->deliver_message(
-			std::unique_ptr< msg_some_message >( 
-				new msg_some_message( m_sent_message_count ) ) );
+				new msg_some_message( m_sent_message_count ) );
 	}
 
 	if( m_sent_message_count < m_message_count )
