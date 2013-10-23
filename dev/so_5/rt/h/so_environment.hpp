@@ -155,6 +155,23 @@ class SO_5_TYPE so_environment_params_t
 			return *this;
 		}
 
+		//! Add an additional layer to the SObjectizer Environment.
+		/*!
+		 * SObjectizer Environment takes control about \a layer_raw_ptr life time.
+		 *
+		 * If this layer is already added it will be replaced by \a layer_raw_ptr.
+		 * 
+		 * The method distinguishes layers from each other by the type SO_LAYER.
+		*/
+		template< class SO_LAYER >
+		so_environment_params_t &
+		add_layer(
+			//! A layer to be added.
+			SO_LAYER * layer_raw_ptr )
+		{
+			return add_layer( std::unique_ptr< SO_LAYER >( layer_raw_ptr ) );
+		}
+
 		so_environment_params_t &
 		coop_listener(
 			coop_listener_unique_ptr_t coop_listener );
