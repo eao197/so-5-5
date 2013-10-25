@@ -668,9 +668,21 @@ class SO_5_TYPE so_environment_t
 		add_extra_layer(
 			std::unique_ptr< SO_LAYER > layer_ptr )
 		{
-			return add_extra_layer(
+			add_extra_layer(
 				type_wrapper_t( typeid( SO_LAYER ) ),
 				so_layer_ref_t( layer_ptr.release() ) );
+		}
+
+		/*!
+		 * \since v.5.2.0.4
+		 * \brief Add an additional layer via raw pointer.
+		 */
+		template< class SO_LAYER >
+		void
+		add_extra_layer(
+			SO_LAYER * layer_raw_ptr )
+		{
+			add_extra_layer( std::unique_ptr< SO_LAYER >( layer_raw_ptr ) );
 		}
 		/*!
 		 * \}
