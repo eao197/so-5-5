@@ -80,12 +80,7 @@ test_agent_t::evt_test(
 void
 init( so_5::rt::so_environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
-		env.create_coop( "test_coop" );
-
-	coop->add_agent( new test_agent_t( env ) );
-
-	env.register_coop( std::move( coop ) );
+	env.register_agent_as_coop( "test_coop", new test_agent_t( env ) );
 }
 
 int

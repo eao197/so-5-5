@@ -90,15 +90,8 @@ class a_hello_t
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "coop" ) );
-
-	// Adding agent to the cooperation.
-	coop->add_agent( new a_hello_t( env ) );
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
+	// Creating and registering a cooperation.
+	env.register_agent_as_coop( "coop", new a_hello_t( env ) );
 }
 
 int

@@ -65,43 +65,32 @@ a_bench_arbiter_t::so_evt_start()
 
 			// Registering receiver.
 			{
-				so_5::rt::agent_coop_unique_ptr_t coop =
-					so_environment().create_coop(
-						so_5::rt::nonempty_name_t(
-							curr.m_receiver.query_value() ) );
-
-				coop->add_agent(
-					new a_bench_receiver_t(
-						so_environment(),
-						reciver_mbox,
-						m_self_mbox ),
-					so_5::disp::active_group::create_disp_binder(
-						"active_group",
-						curr.m_receiver.m_active_group.query_value() ) );
-
-				so_environment().register_coop( std::move( coop ) );
+				so_environment().register_agent_as_coop(
+						curr.m_receiver.query_value(),
+						new a_bench_receiver_t(
+							so_environment(),
+							reciver_mbox,
+							m_self_mbox ),
+						so_5::disp::active_group::create_disp_binder(
+							"active_group",
+							curr.m_receiver.m_active_group.query_value() ) );
 			}
+
 			++m_recivers_total;
 
 			// Registering sender.
 			{
-				so_5::rt::agent_coop_unique_ptr_t coop =
-					so_environment().create_coop(
-						so_5::rt::nonempty_name_t(
-							curr.m_sender.query_value() ) );
-
-				coop->add_agent(
-					new a_bench_sender_t(
-						so_environment(),
-						reciver_mbox,
-						m_self_mbox,
-						curr.m_message_count.query_value(),
-						m_msg_bloks_size ),
-					so_5::disp::active_group::create_disp_binder(
-						"active_group",
-						curr.m_sender.m_active_group.query_value() ) );
-
-				so_environment().register_coop( std::move( coop ) );
+				so_environment().register_agent_as_coop(
+						curr.m_sender.query_value(),
+						new a_bench_sender_t(
+							so_environment(),
+							reciver_mbox,
+							m_self_mbox,
+							curr.m_message_count.query_value(),
+							m_msg_bloks_size ),
+						so_5::disp::active_group::create_disp_binder(
+							"active_group",
+							curr.m_sender.m_active_group.query_value() ) );
 			}
 		}
 	}

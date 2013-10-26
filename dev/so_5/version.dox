@@ -2,6 +2,10 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__2_1 5.2.1 "Tetnuld"
+
+	Methods so_5::rt::so_environment_t::register_agent_as_coop() added.
+
 \section so_5__2_0 5.2.0 "Tetnuld"
 
 	Return codes no more used for error reporting in public methods of

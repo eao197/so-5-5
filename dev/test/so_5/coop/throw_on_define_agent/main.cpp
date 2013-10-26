@@ -112,58 +112,6 @@ a_throwing_t::so_evt_start()
 	std::abort();
 }
 
-// An agent which sends messages.
-class a_message_sender_t
-	:
-		public so_5::rt::agent_t
-{
-		typedef so_5::rt::agent_t base_type_t;
-
-	public:
-
-		a_message_sender_t( so_5::rt::so_environment_t & env )
-			:
-				base_type_t( env )
-		{}
-
-		virtual ~a_message_sender_t()
-		{}
-
-		virtual void
-		so_define_agent()
-		{}
-
-		virtual void
-		so_evt_start()
-		{
-			so_5::rt::mbox_ref_t mbox =
-				so_environment().create_local_mbox( g_test_mbox_name );
-
-			ACE_Time_Value time_limit = ACE_OS::gettimeofday();
-			time_limit += ACE_Time_Value( 0, 150*1000 );
-
-			int msg_cnt = 0;
-			while( time_limit > ACE_OS::gettimeofday() )
-			{
-				mbox->deliver_signal< some_message >();
-				++msg_cnt;
-			}
-		}
-};
-
-void
-reg_message_sender(
-	so_5::rt::so_environment_t & env )
-{
-	so_5::rt::agent_coop_unique_ptr_t coop =
-		env.create_coop(
-			"message_sender_coop",
-			so_5::disp::active_obj::create_disp_binder(
-				"active_obj" ) );
-
-	coop->add_agent( new a_message_sender_t( env ) );
-}
-
 void
 reg_coop(
 	so_5::rt::so_environment_t & env )
@@ -195,7 +143,6 @@ reg_coop(
 void
 init( so_5::rt::so_environment_t & env )
 {
-	reg_message_sender( env );
 	reg_coop( env );
 	env.stop();
 }

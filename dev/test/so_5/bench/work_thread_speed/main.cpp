@@ -47,13 +47,9 @@ class so_environment_t
 		virtual void
 		init()
 		{
-			so_5::rt::agent_coop_unique_ptr_t coop = create_coop(
-				so_5::rt::nonempty_name_t( "arbiter_coop" ) );
-
-			coop->add_agent(
-				new a_bench_arbiter_t( *this, m_cfg ) );
-
-			register_coop( std::move( coop ) );
+			register_agent_as_coop(
+					"arbiter_coop",
+					new a_bench_arbiter_t( *this, m_cfg ) );
 		}
 
 	private:

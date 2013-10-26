@@ -35,17 +35,13 @@ class test_agent_t
 void
 init( so_5::rt::so_environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
-		env.create_coop( "test_coop" );
-
-	coop->add_agent(
-		new test_agent_t( env ),
-		so_5::disp::one_thread::create_disp_binder( "NODISP" ) );
-
 	bool exception_thrown = false;
 	try
 	{
-		env.register_coop( std::move( coop ) );
+		env.register_agent_as_coop(
+				"test_coop",
+				new test_agent_t( env ),
+				so_5::disp::one_thread::create_disp_binder( "NODISP" ) );
 	}
 	catch( const so_5::exception_t & )
 	{

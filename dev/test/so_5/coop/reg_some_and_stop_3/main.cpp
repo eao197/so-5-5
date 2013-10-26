@@ -78,14 +78,9 @@ class a_master_t
 				.in( so_default_state() )
 					.event( &a_master_t::evt_slave_finished );
 
-			so_5::rt::agent_coop_unique_ptr_t coop =
-				so_environment().create_coop(
-					so_5::rt::nonempty_name_t(
-						so_coop_name() + "_slave" ) );
-
-			coop->add_agent( new a_slave_t( so_environment(),  mbox ) );
-
-			so_environment().register_coop( std::move( coop ) );
+			so_environment().register_agent_as_coop(
+					so_coop_name() + "_slave",
+					new a_slave_t( so_environment(),  mbox ) );
 		}
 
 		void
@@ -100,12 +95,7 @@ class a_master_t
 void
 init( so_5::rt::so_environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
-		env.create_coop( "test_coop_1" );
-
-	coop->add_agent( new a_master_t( env ) );
-
-	env.register_coop( std::move( coop ) );
+	env.register_agent_as_coop( "test_coop_1", new a_master_t( env ) );
 }
 
 int

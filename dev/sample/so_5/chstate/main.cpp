@@ -246,15 +246,8 @@ init( so_5::rt::so_environment_t & env )
 		so_5::rt::agent_state_listener_unique_ptr_t(
 			new state_monitor_t( "destroyable_listener" ) ) );
 
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "coop" ) );
-
-	// Adding agent to the cooperation.
-	coop->add_agent( std::move(ag) );
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
+	// Creating and registering a cooperation.
+	env.register_agent_as_coop( "coop", std::move(ag) );
 }
 
 int
