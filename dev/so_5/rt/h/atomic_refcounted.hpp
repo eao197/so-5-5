@@ -123,6 +123,19 @@ class smart_atomic_reference_t
 			o.m_obj = nullptr;
 		}
 
+		/*!
+		 * \since v.5.2.2
+		 * \brief Constructor from another smart reference.
+		 */
+		template< class Y >
+		smart_atomic_reference_t(
+			const smart_atomic_reference_t< Y > & o )
+			:	m_obj( dynamic_cast< T * >( o.get() ) )
+		{
+			ensure_right_T();
+			take_object();
+		}
+
 		//! Destructor.
 		~smart_atomic_reference_t()
 		{
@@ -227,18 +240,6 @@ class smart_atomic_reference_t
 		/*!
 		 * \}
 		 */
-
-		/*!
-		 * \since v.5.2.2
-		 * \brief Make reference to different type of object.
-		 */
-		template< class Y >
-		smart_atomic_reference_t< Y >
-		make_reference() const
-		{
-			return smart_atomic_reference_t< Y >(
-					dynamic_cast< Y * >( m_obj ) );
-		}
 
 	private :
 		//! Object controlled by a smart reference.
