@@ -8,6 +8,7 @@ Mxx_ru::setup_target(
 
 		required_prj( "test/so_5/timer_thread/single_delayed/prj.ut.rb" )
 		required_prj( "test/so_5/timer_thread/single_periodic/prj.ut.rb" )
+		required_prj( "test/so_5/timer_thread/single_timer_zero_delay/prj.ut.rb" )
 
 		required_prj( "test/so_5/disp/binder/bind_to_disp_1/prj.ut.rb" )
 		required_prj( "test/so_5/disp/binder/bind_to_disp_2/prj.ut.rb" )
