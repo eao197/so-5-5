@@ -222,7 +222,7 @@ class a_test_t : public so_5::rt::agent_t
 
 			m_mbox->deliver_message( m_stored_message );
 
-			m_stored_message = so_5::rt::smart_atomic_reference_t< msg_test >();
+			m_stored_message.reset();
 		}
 
 		void

@@ -173,6 +173,16 @@ class smart_atomic_reference_t
 			o.m_obj = t;
 		}
 
+		/*!
+		 * \since v.5.2.2
+		 * \brief Drop controlled object.
+		 */
+		void
+		reset()
+		{
+			dismiss_object();
+		}
+
 		//! Is this a null reference?
 		/*!
 			i.e. whether get() != 0.
