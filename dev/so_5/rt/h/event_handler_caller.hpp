@@ -92,7 +92,7 @@ class real_event_handler_caller_t
 			message_ref_t & message_ref ) const
 		{
 			const event_data_t< MESSAGE > event_data(
-				reinterpret_cast< const MESSAGE * >( message_ref.get() ) );
+				dynamic_cast< MESSAGE * >( message_ref.get() ) );
 
 			(m_agent.*m_pfn)( event_data );
 		};

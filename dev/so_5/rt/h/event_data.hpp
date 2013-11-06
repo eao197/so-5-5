@@ -46,7 +46,7 @@ class event_data_t
 {
 	public:
 		//! Constructor.
-		event_data_t( const MSG * message_instance )
+		event_data_t( MSG * message_instance )
 			:	m_message_instance( message_instance )
 		{}
 
@@ -77,9 +77,15 @@ class event_data_t
 			return get();
 		}
 
+		smart_atomic_reference_t< MSG >
+		make_reference() const
+		{
+			return smart_atomic_reference_t< MSG >( m_message_instance );
+		}
+
 	private:
 		//! Message.
-		const MSG * const m_message_instance;
+		MSG * const m_message_instance;
 };
 
 } /* namespace rt */

@@ -228,6 +228,18 @@ class smart_atomic_reference_t
 		 * \}
 		 */
 
+		/*!
+		 * \since v.5.2.2
+		 * \brief Make reference to different type of object.
+		 */
+		template< class Y >
+		smart_atomic_reference_t< Y >
+		make_reference() const
+		{
+			return smart_atomic_reference_t< Y >(
+					dynamic_cast< Y * >( m_obj ) );
+		}
+
 	private :
 		//! Object controlled by a smart reference.
 		T * m_obj;

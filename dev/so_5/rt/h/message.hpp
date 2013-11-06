@@ -36,10 +36,8 @@ namespace rt
  */
 class SO_5_TYPE message_t
 	:
-		private atomic_refcounted_t
+		public atomic_refcounted_t
 {
-		friend class smart_atomic_reference_t< message_t >;
-
 	public:
 		message_t();
 		message_t( const message_t & );

@@ -91,8 +91,20 @@ class SO_5_TYPE mbox_t
 
 		//! Deliver message.
 		/*!
+		 * \since v.5.2.2
+		 *
 		 * Mbox takes care about destroying a message object.
-		*/
+		 */
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Message data.
+			const smart_atomic_reference_t< MESSAGE > & msg_ref ) const;
+
+		//! Deliver message.
+		/*!
+		 * Mbox takes care about destroying a message object.
+		 */
 		template< class MESSAGE >
 		inline void
 		deliver_message(
@@ -102,7 +114,7 @@ class SO_5_TYPE mbox_t
 		//! Deliver message.
 		/*!
 		 * Mbox takes care about destroying a message object.
-		*/
+		 */
 		template< class MESSAGE >
 		inline void
 		deliver_message(
@@ -165,6 +177,18 @@ class SO_5_TYPE mbox_t
 		virtual const mbox_t *
 		cmp_ordinal() const;
 };
+
+template< class MESSAGE >
+inline void
+mbox_t::deliver_message(
+	const smart_atomic_reference_t< MESSAGE > & msg_ref ) const
+{
+	ensure_message_with_actual_data( msg_ref.get() );
+
+	deliver_message(
+		type_wrapper_t( typeid( MESSAGE ) ),
+		msg_ref.make_reference< message_t >() );
+}
 
 template< class MESSAGE >
 void
