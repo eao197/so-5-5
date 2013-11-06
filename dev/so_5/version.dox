@@ -2,6 +2,20 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__2_2 5.2.2 "Tetnuld"
+
+	Method so_5::rt::event_data_t::make_reference added. It returns
+	an instance of so_5::rt::smart_atomic_reference_t<MSG> where MSG is the
+	same type as in event_data_t.
+
+	Another overloaded method deliver_message() added to so_5::rt::mbox_t.
+	It accepts so_5::rt::smart_atomic_reference_t<MSG>.
+
+	Those changes make possible to resending or storing the same message
+	without copying a message.
+
+	Method so_5::rt::smart_atomic_reference_t::reset() added.
+
 \section so_5__2_1 5.2.1 "Tetnuld"
 
 	Methods so_5::rt::so_environment_t::register_agent_as_coop() added.
