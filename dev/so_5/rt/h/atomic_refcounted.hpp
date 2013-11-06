@@ -279,11 +279,13 @@ class smart_atomic_reference_t
 		dismiss_object()
 		{
 			if( m_obj )
+			{
 				if( 0 == m_obj->dec_ref_count() )
 				{
 					delete m_obj;
-					m_obj = nullptr;
 				}
+				m_obj = nullptr;
+			}
 		}
 };
 
