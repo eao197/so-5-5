@@ -183,6 +183,17 @@ class smart_atomic_reference_t
 			dismiss_object();
 		}
 
+		/*!
+		 * \since v.5.2.2
+		 * \brief Make reference with casing to different type.
+		 */
+		template< class Y >
+		smart_atomic_reference_t< Y >
+		make_reference() const
+		{
+			return smart_atomic_reference_t< Y >( *this );
+		}
+
 		//! Is this a null reference?
 		/*!
 			i.e. whether get() != 0.

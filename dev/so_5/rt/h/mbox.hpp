@@ -187,7 +187,7 @@ mbox_t::deliver_message(
 
 	deliver_message(
 		type_wrapper_t( typeid( MESSAGE ) ),
-		message_ref_t( msg_ref ) );
+		msg_ref.template make_reference< message_t >() );
 }
 
 template< class MESSAGE >
