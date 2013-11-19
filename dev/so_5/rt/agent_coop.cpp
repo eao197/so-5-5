@@ -24,8 +24,6 @@ agent_coop_t::agent_coop_t(
 	impl::so_environment_impl_t & env_impl )
 	:
 		m_coop_name( name.query_name() ),
-		m_lock( env_impl.create_agent_coop_mutex() ),
-		m_agents_are_undefined( false ),
 		m_coop_disp_binder( std::move(coop_disp_binder) ),
 		m_so_environment_impl( env_impl ),
 		m_working_agents_count( 0 )
@@ -44,7 +42,6 @@ agent_coop_t::create_coop(
 
 agent_coop_t::~agent_coop_t()
 {
-	m_so_environment_impl.destroy_agent_coop_mutex( m_lock );
 }
 
 const std::string &
@@ -120,12 +117,6 @@ void
 agent_coop_t::undefine_some_agents(
 	agent_array_t::iterator it )
 {
-	{
-		// A flag of agent undefinition should be set.
-		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
-		m_agents_are_undefined = true;
-	}
-
 	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
 	{
 		--it;

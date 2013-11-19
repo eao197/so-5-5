@@ -82,20 +82,6 @@ class so_environment_impl_t
 		 * \}
 		 */
 
-		//! Create a lock for the agent cooperation.
-		inline ACE_Thread_Mutex &
-		create_agent_coop_mutex()
-		{
-			return m_agent_core.allocate_agent_coop_mutex();
-		}
-
-		//! Release a lock for the agent cooperation.
-		inline void
-		destroy_agent_coop_mutex( ACE_Thread_Mutex & m )
-		{
-			return m_agent_core.deallocate_agent_coop_mutex( m );
-		}
-
 		//! Create a local agent event queue.
 		inline local_event_queue_unique_ptr_t
 		create_local_queue()

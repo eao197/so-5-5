@@ -18,12 +18,10 @@ namespace impl
 
 agent_core_t::agent_core_t(
 	so_environment_t & so_environment,
-	unsigned int agent_coop_mutex_pool_size,
 	unsigned int agent_queue_mutex_pool_size,
 	coop_listener_unique_ptr_t coop_listener )
 	:
 		m_so_environment( so_environment ),
-		m_agent_coop_mutex_pool( agent_coop_mutex_pool_size ),
 		m_agent_queue_mutex_pool( agent_queue_mutex_pool_size ),
 		m_deregistration_started_cond( m_coop_operations_lock ),
 		m_deregistration_finished_cond( m_coop_operations_lock ),
@@ -54,19 +52,6 @@ agent_core_t::finish()
 
 	// Notify a dedicated thread and wait while it will be stopped.
 	m_coop_dereg_executor.finish();
-}
-
-ACE_Thread_Mutex &
-agent_core_t::allocate_agent_coop_mutex()
-{
-	return m_agent_coop_mutex_pool.allocate_mutex();
-}
-
-void
-agent_core_t::deallocate_agent_coop_mutex(
-	ACE_Thread_Mutex & m )
-{
-	m_agent_coop_mutex_pool.deallocate_mutex( m );
 }
 
 local_event_queue_unique_ptr_t

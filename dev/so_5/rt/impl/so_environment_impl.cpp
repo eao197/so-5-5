@@ -28,8 +28,6 @@ so_environment_impl_t::so_environment_impl_t(
 		m_agent_core(
 			public_so_environment,
 			so_environment_params
-				.agent_coop_mutex_pool_size(),
-			so_environment_params
 				.agent_event_queue_mutex_pool_size(),
 			std::move( so_environment_params.m_coop_listener ) ),
 		m_disp_core(

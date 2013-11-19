@@ -2,6 +2,12 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__2_3 5.2.3 "Tetnuld"
+
+	Cooperation mutex pool no more used and removed from SObjectizer code.
+	Some related method marked as deprecated and will be removed in
+	future releases.
+
 \section so_5__2_2 5.2.2 "Tetnuld"
 
 	Method so_5::rt::event_data_t::make_reference added. It returns

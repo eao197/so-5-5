@@ -53,8 +53,6 @@ class agent_core_t
 		explicit agent_core_t(
 			//! SObjectizer Environment.
 			so_environment_t & so_environment_impl,
-			//! Mutex pool size for cooperations.
-			unsigned int agent_coop_mutex_pool_size,
 			//! Mutex pool size for agent queues.
 			unsigned int agent_queue_mutex_pool_size,
 			//! Cooperation action listener.
@@ -74,22 +72,6 @@ class agent_core_t
 		 */
 		void
 		finish();
-
-		/*!
-		 * \name Methods for working with cooperation mutexes.
-		 * \{
-		 */
-		//! Get a cooperation mutex.
-		ACE_Thread_Mutex &
-		allocate_agent_coop_mutex();
-
-		//! Return a cooperation mutex.
-		void
-		deallocate_agent_coop_mutex(
-			ACE_Thread_Mutex & m );
-		/*!
-		 * \}
-		 */
 
 		//! Create a local event queue for an agent.
 		local_event_queue_unique_ptr_t
@@ -154,9 +136,6 @@ class agent_core_t
 
 		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;
-
-		//! Mutex pool for cooperations.
-		util::mutex_pool_t< ACE_Thread_Mutex > m_agent_coop_mutex_pool;
 
 		//! Mutex pool for agent's event queues.
 		util::mutex_pool_t< ACE_Thread_Mutex > m_agent_queue_mutex_pool;

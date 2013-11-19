@@ -202,12 +202,6 @@ class SO_5_TYPE agent_coop_t
 		//! Cooperation name.
 		const std::string m_coop_name;
 
-		//! Object lock.
-		ACE_Thread_Mutex & m_lock;
-
-		//! Agent undefinition flag.
-		bool m_agents_are_undefined;
-
 		//! Default agent to the dispatcher binder.
 		disp_binder_ref_t m_coop_disp_binder;
 
