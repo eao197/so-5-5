@@ -183,14 +183,15 @@ deregistration_processor_t::collect_and_modity_coop_info(
 void
 deregistration_processor_t::collect_coops()
 {
-	for( auto n = m_coops_names_to_process.begin();
-			n != m_coops_names_to_process.end(); ++n )
+	for( size_t i = 0; i != m_coops_names_to_process.size(); ++i )
 	{
+		const auto & n = m_coops_names_to_process[ i ];
+
 		const agent_core_t::parent_child_coop_names_t relation(
-				*n, std::string() );
+				n, std::string() );
 
 		for( auto f = m_core.m_parent_child_relations.lower_bound( relation );
-				f != m_core.m_parent_child_relations.end() && f->first == *n;
+				f != m_core.m_parent_child_relations.end() && f->first == n;
 				++f )
 		{
 			auto it = m_core.m_registered_coop.find( f->second );
@@ -457,7 +458,7 @@ agent_core_t::find_parent_coop_if_necessary(
 	{
 		auto it = m_registered_coop.find(
 				coop_to_be_registered.parent_coop_name() );
-		if( m_registered_coop.end() != it )
+		if( m_registered_coop.end() == it )
 		{
 			SO_5_THROW_EXCEPTION(
 				rc_parent_coop_not_found,
