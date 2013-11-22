@@ -22,11 +22,11 @@ agent_coop_t::agent_coop_t(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t coop_disp_binder,
 	impl::so_environment_impl_t & env_impl )
-	:
-		m_coop_name( name.query_name() ),
-		m_coop_disp_binder( std::move(coop_disp_binder) ),
-		m_so_environment_impl( env_impl ),
-		m_working_agents_count( 0 )
+	:	m_coop_name( name.query_name() )
+	,	m_coop_disp_binder( std::move(coop_disp_binder) )
+	,	m_so_environment_impl( env_impl )
+	,	m_working_entities_count( 0 )
+	,	m_parent_coop_ptr( nullptr )
 {
 }
 
@@ -50,6 +50,29 @@ agent_coop_t::query_coop_name() const
 	return m_coop_name;
 }
 
+bool
+agent_coop_t::has_parent_coop() const
+{
+	return !m_parent_coop_name.empty();
+}
+
+void
+agent_coop_t::set_parent_coop_name(
+	const nonempty_name_t & name )
+{
+	m_parent_coop_name = name.query_name();
+}
+
+const std::string &
+agent_coop_t::parent_coop_name() const
+{
+	if( !has_parent_coop() )
+		SO_5_THROW_EXCEPTION(
+				rc_coop_has_no_parent,
+				query_coop_name() + ": cooperation has no parent cooperation" );
+
+	return m_parent_coop_name;
+}
 
 void
 agent_coop_t::do_add_agent(
@@ -73,6 +96,32 @@ agent_coop_t::do_add_agent(
 
 	m_agent_array.push_back(
 		agent_with_disp_binder_t( agent_ref, dbinder ) );
+}
+
+void
+agent_coop_t::do_registration_specific_actions(
+	agent_coop_t * parent_coop )
+{
+	bind_agents_to_coop();
+	define_all_agents();
+
+	try
+	{
+		bind_agents_to_disp();
+	}
+	catch( const std::exception & )
+	{
+		// Because all agents are defined at this point then
+		// they should be undefined.
+		undefine_all_agents();
+
+		throw;
+	}
+
+	m_parent_coop_ptr = parent_coop;
+	if( m_parent_coop_ptr )
+		// Parent coop should known about existence of that coop.
+		m_parent_coop_ptr->m_working_entities_count += 1;
 }
 
 void
@@ -143,16 +192,12 @@ agent_coop_t::bind_agents_to_disp()
 	{
 		unbind_agents_from_disp( it );
 
-		// Because all agents are defined at this point then
-		// they should be undefined.
-		undefine_all_agents();
-
 		throw;
 	}
 
 	// A total count of all active agents should be set because
 	// all agents are successfully registered.
-	m_working_agents_count = m_agent_array.size();
+	m_working_entities_count += m_agent_array.size();
 }
 
 inline void
@@ -168,11 +213,11 @@ agent_coop_t::unbind_agents_from_disp(
 }
 
 void
-agent_coop_t::agent_finished()
+agent_coop_t::entity_finished()
 {
 	// If it is the last working agent then Environment should be
 	// informed that the cooperation is ready to be deregistered.
-	if( 0 == --m_working_agents_count )
+	if( 0 == --m_working_entities_count )
 	{
 		m_so_environment_impl.ready_to_deregister_notify( this );
 	}
@@ -184,6 +229,12 @@ agent_coop_t::final_deregister_coop()
 	unbind_agents_from_disp( m_agent_array.end() );
 
 	m_so_environment_impl.final_deregister_coop( m_coop_name );
+}
+
+agent_coop_t *
+agent_coop_t::parent_coop_ptr() const
+{
+	return m_parent_coop_ptr;
 }
 
 } /* namespace rt */

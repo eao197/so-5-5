@@ -65,6 +65,18 @@ const int rc_coop_has_not_found_among_registered_coop = 23;
 //! Cooperation couldn't be registered.
 const int rc_coop_define_agent_failed = 24;
 
+/*!
+ * \since v.5.2.3
+ * \brief Cooperation has no the parent cooperation.
+ */
+const int rc_coop_has_no_parent = 25;
+
+/*!
+ * \since v.5.2.3
+ * \brief Parent cooperation not found.
+ */
+const int rc_parent_coop_not_found = 26;
+
 //! \}
 
 

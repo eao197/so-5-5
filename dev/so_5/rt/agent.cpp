@@ -394,7 +394,7 @@ agent_t::demand_handler_on_finish(
 	// Event caller blocks no more needed.
 	agent->clean_consumers_map();
 	// Cooperation should receive notification about agent deregistration.
-	agent_coop_t::call_agent_finished( *(agent->m_agent_coop) );
+	agent_coop_t::call_entity_finished( *(agent->m_agent_coop) );
 }
 
 void

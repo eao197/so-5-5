@@ -10,9 +10,10 @@
 #if !defined( _SO_5__RT__IMPL__AGENT_CORE_HPP_ )
 #define _SO_5__RT__IMPL__AGENT_CORE_HPP_
 
-#include <memory>
-#include <string>
 #include <map>
+#include <memory>
+#include <set>
+#include <string>
 
 #include <ace/Thread_Mutex.h>
 #include <ace/Condition_Thread_Mutex.h>
@@ -38,6 +39,36 @@ namespace rt
 namespace impl
 {
 
+namespace agent_core_details
+{
+
+class deregistration_processor_t;
+
+} /* namespace agent_core_details */
+
+//
+// agent_coop_private_iface_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief A special class for accessing private members of agent_coop.
+ */
+class agent_coop_private_iface_t
+{
+	public :
+		inline static void
+		undefine_all_agents( agent_coop_t & coop )
+		{
+			coop.undefine_all_agents();
+		}
+
+		inline static agent_coop_t *
+		parent_coop_ptr( const agent_coop_t & coop )
+		{
+			return coop.parent_coop_ptr();
+		}
+};
+
 //
 // agent_core_t
 //
@@ -48,6 +79,9 @@ class agent_core_t
 		agent_core_t( const agent_core_t & );
 		void
 		operator = ( const agent_core_t & );
+
+		friend class so_5::rt::impl::agent_core_details::
+				deregistration_processor_t;
 
 	public:
 		explicit agent_core_t(
@@ -130,9 +164,22 @@ class agent_core_t
 				agent_coop_ref_t >
 			coop_map_t;
 
-		//! An auxiliary method for the std::for_each.
-		static void
-		coop_undefine_all_agents( agent_core_t::coop_map_t::value_type & coop );
+		/*!
+		 * \since v.5.2.3
+		 * \brief Typedef for pair of names of parent and child cooperations.
+		 *
+		 * \a first -- name of parent.
+		 * \a second -- name of child.
+		 */
+		typedef std::pair< std::string, std::string >
+			parent_child_coop_names_t;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Typedef for set of parent-child names pairs.
+		 */
+		typedef std::set< parent_child_coop_names_t >
+			parent_child_coop_relation_t;
 
 		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;
@@ -163,6 +210,80 @@ class agent_core_t
 
 		//! Cooperation actions listener.
 		coop_listener_unique_ptr_t m_coop_listener;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Information about parent and child cooperations
+		 * relationship.
+		 */
+		parent_child_coop_relation_t m_parent_child_relations;
+
+		//! An auxiliary method for the std::for_each.
+		static void
+		coop_undefine_all_agents( agent_core_t::coop_map_t::value_type & coop );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Ensures that name of new cooperation is unique.
+		 */
+		void
+		ensure_new_coop_name_unique(
+			const std::string & coop_name ) const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Checks that parent cooperation is registered if its name
+		 * is set for the cooperation specified.
+		 *
+		 * \retval nullptr if no parent cooperation name set. Otherwise the
+		 * pointer to parent cooperation is returned.
+		 */
+		agent_coop_t *
+		find_parent_coop_if_necessary(
+			const agent_coop_t & coop_to_be_registered ) const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Next step of cooperation registration.
+		 *
+		 * Initiate cooperation registration actions and
+		 * store cooperation info in registered cooperations map.
+		 */
+		void
+		next_coop_reg_step__update_registered_coop_map(
+			//! Cooperation to be registered.
+			agent_coop_unique_ptr_t coop,
+			//! Pointer to parent cooperation.
+			//! Equal to nullptr if \a coop has no parent.
+			agent_coop_t * parent_coop_ptr );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Next step of cooperation registration.
+		 *
+		 * Updates information about parent-child cooperation relationship
+		 * and goes further.
+		 */
+		void
+		next_coop_reg_step__parent_child_relation(
+			//! Cooperation to be registered.
+			const agent_coop_ref_t & coop,
+			//! Pointer to parent cooperation.
+			//! Equal to nullptr if \a coop has no parent.
+			agent_coop_t * parent_coop_ptr );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Do final action for cooperation deregistration.
+		 *
+		 * If parent cooperation exists then parent-child relation
+		 * is handled appropriatelly.
+		 *
+		 * Information about cooperation is removed from m_deregistered_coop.
+		 */
+		void
+		finaly_remove_cooperation_info(
+			const std::string & coop_name );
 };
 
 } /* namespace impl */

@@ -4,6 +4,8 @@
 
 #include <ace/Guard_T.h>
 
+#include <so_5/h/log_err.hpp>
+
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/agent_core.hpp>
 
@@ -15,6 +17,228 @@ namespace rt
 
 namespace impl
 {
+
+namespace agent_core_details
+{
+
+/*!
+ * \since v.5.2.3
+ * \brief Helper class for doing all actions related to
+ * start of cooperation deregistration.
+ *
+ * This class is necessary because addition of parent-child relationship
+ * in version 5.2.3. And since that version deregistration of cooperation
+ * is more complex process then in previous versions.
+ *
+ * \attention On some stages of deregistration an exception leads to
+ * call to abort().
+ */
+class deregistration_processor_t
+{
+public :
+	//! Constructor.
+	deregistration_processor_t(
+		//! Owner of all data.
+		agent_core_t & core,
+		//! Name of root cooperation to be deregistered.
+		const std::string & root_coop_name );
+
+	//! Do all necessary actions.
+	void
+	process();
+
+private :
+	//! Owner of all data to be handled.
+	agent_core_t & m_core;
+
+	//! Name of root cooperation to be deregistered.
+	const std::string & m_root_coop_name;
+
+	//! Cooperations to be deregistered.
+	std::vector< agent_coop_ref_t > m_coops_to_dereg;
+
+	//! Names of cooperations to be deregistered.
+	std::vector< std::string > m_coops_names_to_process;
+
+	void
+	first_stage();
+
+	bool
+	has_something_to_deregister() const;
+
+	void
+	second_stage();
+
+	agent_coop_ref_t
+	ensure_root_coop_exists() const;
+
+	void
+	collect_and_modity_coop_info(
+		const agent_coop_ref_t & root_coop );
+
+	void
+	collect_coops();
+
+	void
+	modify_registered_and_deregistered_maps();
+
+	void
+	initiate_abort_on_exception(
+		const std::exception & x );
+};
+
+deregistration_processor_t::deregistration_processor_t(
+	agent_core_t & core,
+	const std::string & root_coop_name )
+	:	m_core( core )
+	,	m_root_coop_name( root_coop_name )
+{}
+
+void
+deregistration_processor_t::process()
+{
+	first_stage();
+
+	if( has_something_to_deregister() )
+		second_stage();
+}
+
+void
+deregistration_processor_t::first_stage()
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_core.m_coop_operations_lock );
+
+	if( m_core.m_deregistered_coop.end() ==
+			m_core.m_deregistered_coop.find( m_root_coop_name ) )
+	{
+		agent_coop_ref_t coop = ensure_root_coop_exists();
+
+		collect_and_modity_coop_info( coop );
+	}
+}
+
+bool
+deregistration_processor_t::has_something_to_deregister() const
+{
+	return !m_coops_to_dereg.empty();
+}
+
+void
+deregistration_processor_t::second_stage()
+{
+	// Exceptions must lead to abort at this deregistration stage.
+	try
+	{
+		// All cooperations should start deregistration actions.
+		std::for_each(
+				m_coops_to_dereg.begin(),
+				m_coops_to_dereg.end(),
+				[]( const agent_coop_ref_t & coop ) {
+					agent_coop_private_iface_t::undefine_all_agents( *coop );
+				} );
+	}
+	catch( const std::exception & x )
+	{
+		initiate_abort_on_exception( x );
+	}
+}
+
+agent_coop_ref_t
+deregistration_processor_t::ensure_root_coop_exists() const
+{
+	// It is an error if the cooperation is not registered.
+	auto it = m_core.m_registered_coop.find( m_root_coop_name );
+
+	if( m_core.m_registered_coop.end() == it )
+	{
+		SO_5_THROW_EXCEPTION(
+			rc_coop_has_not_found_among_registered_coop,
+			"coop with name '" + m_root_coop_name +
+			"' not found among registered cooperations" );
+	}
+
+	return it->second;
+}
+
+void
+deregistration_processor_t::collect_and_modity_coop_info(
+	const agent_coop_ref_t & root_coop )
+{
+	// Exceptions must lead to abort at this deregistration stage.
+	try
+	{
+		m_coops_to_dereg.push_back( root_coop );
+		m_coops_names_to_process.push_back( m_root_coop_name );
+
+		collect_coops();
+
+		modify_registered_and_deregistered_maps();
+	}
+	catch( const std::exception & x )
+	{
+		initiate_abort_on_exception( x );
+	}
+}
+
+void
+deregistration_processor_t::collect_coops()
+{
+	for( auto n = m_coops_names_to_process.begin();
+			n != m_coops_names_to_process.end(); ++n )
+	{
+		const agent_core_t::parent_child_coop_names_t relation(
+				*n, std::string() );
+
+		for( auto f = m_core.m_parent_child_relations.lower_bound( relation );
+				f != m_core.m_parent_child_relations.end() && f->first == *n;
+				++f )
+		{
+			auto it = m_core.m_registered_coop.find( f->second );
+			if( it != m_core.m_registered_coop.end() )
+			{
+				m_coops_to_dereg.push_back( it->second );
+				m_coops_names_to_process.push_back( it->first );
+			}
+			else
+			{
+				SO_5_THROW_EXCEPTION(
+						rc_unexpected_error,
+						f->second + ": cooperation not registered, but "
+							"declared as child for: '" + f->first + "'" );
+			}
+		}
+	}
+}
+
+void
+deregistration_processor_t::modify_registered_and_deregistered_maps()
+{
+	std::for_each(
+			m_coops_names_to_process.begin(),
+			m_coops_names_to_process.end(),
+			[this]( const std::string & n ) {
+				auto it = m_core.m_registered_coop.find( n );
+				m_core.m_deregistered_coop.insert( *it );
+				m_core.m_registered_coop.erase( it );
+			} );
+}
+
+void
+deregistration_processor_t::initiate_abort_on_exception(
+	const std::exception & x )
+{
+	ACE_ERROR(
+			(LM_EMERGENCY,
+			 SO_5_LOG_FMT( "Exception during cooperation deregistration. "
+					"Work cannot be continued. Cooperation: '%s'. "
+					"Exception: %s" ),
+					m_root_coop_name.c_str(),
+					x.what() ) );
+
+	ACE_OS::abort();
+}
+
+} /* namespace agent_core_details */
 
 agent_core_t::agent_core_t(
 	so_environment_t & so_environment,
@@ -72,31 +296,21 @@ agent_core_t::register_coop(
 			rc_zero_ptr_to_coop,
 			"zero ptr to coop passed" );
 
-	const std::string & coop_name = agent_coop->query_coop_name();
+	const std::string coop_name = agent_coop->query_coop_name();
 
 	try
 	{
-		agent_coop->bind_agents_to_coop();
-
 		// All the following actions should be taken under the lock.
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
 		// Name should be unique.
-		if( m_registered_coop.end() !=
-			m_registered_coop.find( coop_name ) ||
-			m_deregistered_coop.end() !=
-			m_deregistered_coop.find( coop_name ) )
-		{
-			SO_5_THROW_EXCEPTION(
-				rc_coop_with_specified_name_is_already_registered,
-				"coop with name \"" + coop_name + "\" is already registered" );
-		}
+		ensure_new_coop_name_unique( coop_name );
+		// Process parent coop.
+		agent_coop_t * parent = find_parent_coop_if_necessary( *agent_coop );
 
-		agent_coop->define_all_agents();
-		agent_coop->bind_agents_to_disp();
-
-		m_registered_coop[ coop_name ] =
-			agent_coop_ref_t( agent_coop.release() );
+		next_coop_reg_step__update_registered_coop_map(
+				std::move(agent_coop),
+				parent );
 	}
 	catch( const exception_t & ex )
 	{
@@ -117,41 +331,11 @@ void
 agent_core_t::deregister_coop(
 	const nonempty_name_t & name )
 {
-	const std::string & coop_name = name.query_name();
+	agent_core_details::deregistration_processor_t processor(
+			*this,
+			name.query_name() );
 
-	agent_coop_ref_t coop;
-
-	{
-		// All the following actions should be taken under the lock.
-		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
-
-		// Noone action if cooperation is already 
-		// in the deregistration process.
-		if( m_deregistered_coop.end() !=
-			m_deregistered_coop.find( coop_name ) )
-		{
-			return;
-		}
-
-		// It is an error if the cooperation is not registered.
-		coop_map_t::iterator it = m_registered_coop.find( coop_name );
-		if( m_registered_coop.end() == it )
-		{
-			SO_5_THROW_EXCEPTION(
-				rc_coop_has_not_found_among_registered_coop,
-				"coop with name \"" + coop_name +
-				"\" not found among registered cooperations" );
-		}
-
-		coop = it->second;
-
-		m_registered_coop.erase( it );
-
-		m_deregistered_coop[ coop_name ] = coop;
-	}
-
-	// All agents of the cooperation should be marked as deregistered.
-	coop->undefine_all_agents();
+	processor.process();
 }
 
 void
@@ -169,7 +353,7 @@ agent_core_t::final_deregister_coop(
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-		m_deregistered_coop.erase( coop_name );
+		finaly_remove_cooperation_info( coop_name );
 
 		// If we are inside shutdown process and this is the last
 		// cooperation then a special flag should be set.
@@ -249,6 +433,121 @@ agent_core_t::wait_all_coop_to_deregister()
 	{
 		// Wait for the deregistration finish.
 		m_deregistration_finished_cond.wait();
+	}
+}
+
+void
+agent_core_t::ensure_new_coop_name_unique(
+	const std::string & coop_name ) const
+{
+	if( m_registered_coop.end() != m_registered_coop.find( coop_name ) ||
+		m_deregistered_coop.end() != m_deregistered_coop.find( coop_name ) )
+	{
+		SO_5_THROW_EXCEPTION(
+			rc_coop_with_specified_name_is_already_registered,
+			"coop with name \"" + coop_name + "\" is already registered" );
+	}
+}
+
+agent_coop_t *
+agent_core_t::find_parent_coop_if_necessary(
+	const agent_coop_t & coop_to_be_registered ) const
+{
+	if( coop_to_be_registered.has_parent_coop() )
+	{
+		auto it = m_registered_coop.find(
+				coop_to_be_registered.parent_coop_name() );
+		if( m_registered_coop.end() != it )
+		{
+			SO_5_THROW_EXCEPTION(
+				rc_parent_coop_not_found,
+				"parent coop with name \"" +
+					coop_to_be_registered.parent_coop_name() +
+					"\" is not registered" );
+		}
+
+		return it->second.get();
+	}
+
+	return nullptr;
+}
+
+void
+agent_core_t::next_coop_reg_step__update_registered_coop_map(
+	agent_coop_unique_ptr_t coop,
+	agent_coop_t * parent_coop_ptr )
+{
+	agent_coop_ref_t coop_ref( coop.release() );
+
+	m_registered_coop[ coop_ref->query_coop_name() ] = coop_ref;
+
+	// In case of error cooperation info should be removed
+	// from m_registered_coop.
+	try
+	{
+		next_coop_reg_step__parent_child_relation( coop_ref, parent_coop_ptr );
+	}
+	catch( const std::exception & )
+	{
+		m_registered_coop.erase( coop_ref->query_coop_name() );
+
+		throw;
+	}
+}
+
+void
+agent_core_t::next_coop_reg_step__parent_child_relation(
+	const agent_coop_ref_t & coop_ref,
+	agent_coop_t * parent_coop_ptr )
+{
+	if( parent_coop_ptr )
+	{
+		m_parent_child_relations.insert(
+			parent_child_coop_names_t(
+				parent_coop_ptr->query_coop_name(),
+				coop_ref->query_coop_name() ) );
+	}
+
+	// In case of error cooperation relation info should be removed
+	// from m_parent_child_relations.
+	try
+	{
+		coop_ref->do_registration_specific_actions( parent_coop_ptr );
+	}
+	catch( const std::exception & )
+	{
+		if( parent_coop_ptr )
+		{
+			m_parent_child_relations.erase(
+				parent_child_coop_names_t(
+					parent_coop_ptr->query_coop_name(),
+					coop_ref->query_coop_name() ) );
+		}
+
+		throw;
+	}
+}
+
+void
+agent_core_t::finaly_remove_cooperation_info(
+	const std::string & coop_name )
+{
+	auto it = m_deregistered_coop.find( coop_name );
+	if( it != m_deregistered_coop.end() )
+	{
+		agent_coop_t * parent =
+				agent_coop_private_iface_t::parent_coop_ptr( *(it->second) );
+		if( parent )
+		{
+			m_parent_child_relations.erase(
+					parent_child_coop_names_t(
+							parent->query_coop_name(),
+							coop_name ) );
+
+			parent->entity_finished();
+		}
+
+		m_deregistered_coop.erase( it );
 	}
 }
 
