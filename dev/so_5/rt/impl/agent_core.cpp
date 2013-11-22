@@ -185,13 +185,12 @@ deregistration_processor_t::collect_coops()
 {
 	for( size_t i = 0; i != m_coops_names_to_process.size(); ++i )
 	{
-		const auto & n = m_coops_names_to_process[ i ];
-
 		const agent_core_t::parent_child_coop_names_t relation(
-				n, std::string() );
+				m_coops_names_to_process[ i ], std::string() );
 
 		for( auto f = m_core.m_parent_child_relations.lower_bound( relation );
-				f != m_core.m_parent_child_relations.end() && f->first == n;
+				f != m_core.m_parent_child_relations.end() &&
+						f->first == m_coops_names_to_process[ i ];
 				++f )
 		{
 			auto it = m_core.m_registered_coop.find( f->second );
