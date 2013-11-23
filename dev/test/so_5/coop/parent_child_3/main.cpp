@@ -10,18 +10,11 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-struct init_deinit_data_t
-{
-	std::vector< int > m_init_sequence;
-	std::vector< int > m_deinit_sequence;
-};
-
 struct msg_child_started : public so_5::rt::signal_t {};
 
 void
 create_and_register_agent(
 	so_5::rt::so_environment_t & env,
-	init_deinit_data_t & data,
 	int ordinal,
 	int max_deep );
 
@@ -32,22 +25,18 @@ class a_test_t : public so_5::rt::agent_t
 	public :
 		a_test_t(
 			so_5::rt::so_environment_t & env,
-			init_deinit_data_t & data,
 			int ordinal,
 			int max_deep )
 			:	base_type_t( env )
-			,	m_data( data )
 			,	m_ordinal( ordinal )
 			,	m_max_deep( max_deep )
 			,	m_self_mbox(
 					env.create_local_mbox( mbox_name( ordinal ) ) )
 		{
-			m_data.m_init_sequence.push_back( m_ordinal );
 		}
 
 		~a_test_t()
 		{
-			m_data.m_deinit_sequence.push_back( m_ordinal );
 		}
 
 		void
@@ -63,7 +52,6 @@ class a_test_t : public so_5::rt::agent_t
 			if( m_ordinal != m_max_deep )
 				create_and_register_agent(
 						so_environment(),
-						m_data,
 						m_ordinal + 1,
 						m_max_deep );
 			else
@@ -81,8 +69,6 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		init_deinit_data_t & m_data;
-
 		const int m_ordinal;
 
 		const int m_max_deep;
@@ -116,7 +102,6 @@ create_coop_name( int ordinal )
 void
 create_and_register_agent(
 	so_5::rt::so_environment_t & env,
-	init_deinit_data_t & data,
 	int ordinal,
 	int max_deep )
 {
@@ -125,10 +110,57 @@ create_and_register_agent(
 	if( ordinal )
 		coop->set_parent_coop_name( create_coop_name( ordinal - 1 ) );
 
-	coop->add_agent( new a_test_t( env, data, ordinal, max_deep ) );
+	coop->add_agent( new a_test_t( env, ordinal, max_deep ) );
 
 	env.register_coop( std::move( coop ) );
 }
+
+struct init_deinit_data_t
+{
+	std::vector< std::string > m_init_sequence;
+	std::vector< std::string > m_deinit_sequence;
+};
+
+class test_coop_listener_t
+	:	public so_5::rt::coop_listener_t
+{
+	public :
+		test_coop_listener_t( init_deinit_data_t & data )
+			:	m_data( data )
+		{}
+
+		virtual void
+		on_registered(
+			so_5::rt::so_environment_t & env,
+			const std::string & coop_name )
+		{
+			std::cout << "registered: " << coop_name << std::endl;
+
+			m_data.m_init_sequence.push_back( coop_name );
+		}
+
+		virtual void
+		on_deregistered(
+			so_5::rt::so_environment_t & env,
+			const std::string & coop_name )
+		{
+			std::cout << "deregistered: " << coop_name << std::endl;
+
+			m_data.m_deinit_sequence.insert(
+					m_data.m_deinit_sequence.begin(),
+					coop_name );
+		}
+
+		static so_5::rt::coop_listener_unique_ptr_t
+		make( init_deinit_data_t & data )
+		{
+			return so_5::rt::coop_listener_unique_ptr_t(
+					new test_coop_listener_t( data ) );
+		}
+
+	private :
+		init_deinit_data_t & m_data;
+};
 
 class test_env_t
 {
@@ -136,16 +168,19 @@ class test_env_t
 		void
 		init( so_5::rt::so_environment_t & env )
 		{
-			create_and_register_agent( env, m_data, 0, 5 );
+			create_and_register_agent( env, 0, 5 );
+		}
+
+		so_5::rt::coop_listener_unique_ptr_t
+		make_listener()
+		{
+			return test_coop_listener_t::make( m_data );
 		}
 
 		void
 		check_result() const
 		{
-			std::vector< int > r = m_data.m_deinit_sequence;
-			std::reverse( r.begin(), r.end() );
-
-			if( m_data.m_init_sequence != r )
+			if( m_data.m_init_sequence != m_data.m_deinit_sequence )
 				throw std::runtime_error( "Wrong deinit sequence" );
 		}
 
@@ -162,7 +197,8 @@ main( int argc, char * argv[] )
 		so_5::api::run_so_environment_on_object(
 				test_env,
 				&test_env_t::init,
-				so_5::rt::so_environment_params_t() );
+				std::move( so_5::rt::so_environment_params_t().
+						coop_listener( test_env.make_listener() ) ) );
 
 		test_env.check_result();
 	}
