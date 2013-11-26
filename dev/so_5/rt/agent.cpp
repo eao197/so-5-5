@@ -356,8 +356,14 @@ agent_t::do_drop_subscription(
 		it->second->remove_caller_for_state( target_state );
 
 		if( it->second->empty() )
+		{
+			it->first.second->unsubscribe_event_handlers(
+				it->first.first,
+				this );
+
 			// There is no more interest in that subscription key.
 			m_event_consumers_map.erase( it );
+		}
 	}
 }
 
@@ -370,10 +376,17 @@ agent_t::do_drop_subscription_for_all_states(
 
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
-	if( m_is_coop_deregistered )
-		return;
+	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
-	m_event_consumers_map.erase( subscr_key );
+	if( m_event_consumers_map.end() != it )
+	{
+		it->first.second->unsubscribe_event_handlers(
+			it->first.first,
+			this );
+
+		// There is no more interest in that subscription key.
+		m_event_consumers_map.erase( it );
+	}
 }
 
 void
