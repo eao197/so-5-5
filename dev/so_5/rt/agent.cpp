@@ -340,6 +340,43 @@ agent_t::clean_consumers_map()
 }
 
 void
+agent_t::do_drop_subscription(
+	const type_wrapper_t & type_wrapper,
+	const mbox_ref_t & mbox_ref,
+	const state_t & target_state )
+{
+	subscription_key_t subscr_key( type_wrapper, mbox_ref );
+
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+
+	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
+
+	if( m_event_consumers_map.end() != it )
+	{
+		it->second->remove_caller_for_state( target_state );
+
+		if( it->second->empty() )
+			// There is no more interest in that subscription key.
+			m_event_consumers_map.erase( it );
+	}
+}
+
+void
+agent_t::do_drop_subscription_for_all_states(
+	const type_wrapper_t & type_wrapper,
+	const mbox_ref_t & mbox_ref )
+{
+	subscription_key_t subscr_key( type_wrapper, mbox_ref );
+
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+
+	if( m_is_coop_deregistered )
+		return;
+
+	m_event_consumers_map.erase( subscr_key );
+}
+
+void
 agent_t::push_event(
 	const event_caller_block_t * event_caller_block,
 	const message_ref_t & message )

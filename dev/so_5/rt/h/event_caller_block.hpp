@@ -58,6 +58,21 @@ class SO_5_TYPE event_caller_block_t
 			//! Event to be called.
 			const event_handler_caller_ref_t & ehc_ref );
 
+		/*!
+		 * \since v.5.2.3
+		 * \brief Is there no any callers?
+		 */
+		bool
+		empty() const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Remove caller for the state specified.
+		 */
+		void
+		remove_caller_for_state(
+			const state_t & target_state );
+
 	private:
 		//! Type of map from state to event_caller.
 		typedef std::map<

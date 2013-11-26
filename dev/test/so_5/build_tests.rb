@@ -35,6 +35,7 @@ Mxx_ru::setup_target(
 		required_prj( "test/so_5/coop/parent_child_3/prj.ut.rb" )
 
 		required_prj( "test/so_5/mbox/subscribe_when_deregistered/prj.ut.rb" )
+		required_prj( "test/so_5/mbox/drop_subscription/prj.ut.rb" )
 
 		required_prj( "test/so_5/layer/layer_init/prj.ut.rb" )
 		required_prj( "test/so_5/layer/layer_query/prj.ut.rb" )

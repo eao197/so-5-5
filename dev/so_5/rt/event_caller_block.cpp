@@ -50,6 +50,19 @@ event_caller_block_t::insert(
 	m_callers[ &target_state ] = ehc_ref;
 }
 
+bool
+event_caller_block_t::empty() const
+{
+	return m_callers.empty();
+}
+
+void
+event_caller_block_t::remove_caller_for_state(
+	const state_t & target_state )
+{
+	m_callers.erase( &target_state );
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */
