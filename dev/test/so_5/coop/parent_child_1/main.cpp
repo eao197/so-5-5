@@ -115,6 +115,24 @@ create_and_register_agent(
 	env.register_coop( std::move( coop ) );
 }
 
+class a_test_starter_t : public so_5::rt::agent_t
+{
+	typedef so_5::rt::agent_t base_type_t;
+
+	public :
+		a_test_starter_t( so_5::rt::so_environment_t & env )
+			:	base_type_t( env )
+		{}
+
+		void
+		so_evt_start()
+		{
+			create_and_register_agent( so_environment(), 0, 5 );
+		}
+};
+
+const std::string STARTER_COOP_NAME = "starter_coop";
+
 struct init_deinit_data_t
 {
 	std::vector< std::string > m_init_sequence;
@@ -137,9 +155,12 @@ class test_coop_listener_t
 		{
 			std::cout << "registered: " << coop_name << std::endl;
 
-			m_data.m_init_sequence.push_back( coop_name );
+			if( STARTER_COOP_NAME != coop_name )
+			{
+				m_data.m_init_sequence.push_back( coop_name );
 
-			++m_active_coops;
+				++m_active_coops;
+			}
 		}
 
 		virtual void
@@ -149,14 +170,17 @@ class test_coop_listener_t
 		{
 			std::cout << "deregistered: " << coop_name << std::endl;
 
-			m_data.m_deinit_sequence.insert(
-					m_data.m_deinit_sequence.begin(),
-					coop_name );
+			if( STARTER_COOP_NAME != coop_name )
+			{
+				m_data.m_deinit_sequence.insert(
+						m_data.m_deinit_sequence.begin(),
+						coop_name );
 
-			--m_active_coops;
+				--m_active_coops;
 
-			if( !m_active_coops )
-				env.stop();
+				if( !m_active_coops )
+					env.stop();
+			}
 		}
 
 		static so_5::rt::coop_listener_unique_ptr_t
@@ -172,13 +196,28 @@ class test_coop_listener_t
 		int m_active_coops;
 };
 
+std::string
+sequence_to_string( const std::vector< std::string > & s )
+{
+	std::string r;
+	for( auto i = s.begin(); i != s.end(); ++i )
+	{
+		if( i != s.begin() )
+			r += ", ";
+		r += *i;
+	}
+
+	return r;
+}
+
 class test_env_t
 {
 	public :
 		void
 		init( so_5::rt::so_environment_t & env )
 		{
-			create_and_register_agent( env, 0, 5 );
+			env.register_agent_as_coop(
+					STARTER_COOP_NAME, new a_test_starter_t( env ) );
 		}
 
 		so_5::rt::coop_listener_unique_ptr_t
@@ -191,7 +230,10 @@ class test_env_t
 		check_result() const
 		{
 			if( m_data.m_init_sequence != m_data.m_deinit_sequence )
-				throw std::runtime_error( "Wrong deinit sequence" );
+				throw std::runtime_error( "Wrong deinit sequence: init_seq: " +
+						sequence_to_string( m_data.m_init_sequence ) +
+						", deinit_seq: " +
+						sequence_to_string( m_data.m_deinit_sequence ) );
 		}
 
 	private :
