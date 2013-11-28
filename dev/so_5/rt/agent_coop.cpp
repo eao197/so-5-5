@@ -21,10 +21,10 @@ namespace rt
 agent_coop_t::agent_coop_t(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t coop_disp_binder,
-	impl::so_environment_impl_t & env_impl )
+	so_environment_t & env )
 	:	m_coop_name( name.query_name() )
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
-	,	m_so_environment_impl( env_impl )
+	,	m_env( env )
 	,	m_working_entities_count( 0 )
 	,	m_parent_coop_ptr( nullptr )
 {
@@ -34,10 +34,11 @@ agent_coop_unique_ptr_t
 agent_coop_t::create_coop(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t coop_disp_binder,
-	impl::so_environment_impl_t & env_impl )
+	so_environment_t & env )
 {
-	return agent_coop_unique_ptr_t( new agent_coop_t(
-		name, std::move(coop_disp_binder), env_impl ) );
+	return agent_coop_unique_ptr_t(
+			new agent_coop_t(
+					name, std::move(coop_disp_binder), env ) );
 }
 
 agent_coop_t::~agent_coop_t()
@@ -185,7 +186,7 @@ agent_coop_t::bind_agents_to_disp()
 		for( it = it_begin; it != it_end; ++it )
 		{
 			it->m_binder->bind_agent(
-				m_so_environment_impl, it->m_agent_ref );
+				m_env.so_environment_impl(), it->m_agent_ref );
 		}
 	}
 	catch( const std::exception & ex )
@@ -208,7 +209,7 @@ agent_coop_t::unbind_agents_from_disp(
 	{
 		--it;
 		it->m_binder->unbind_agent(
-			m_so_environment_impl, it->m_agent_ref );
+			m_env.so_environment_impl(), it->m_agent_ref );
 	}
 }
 
@@ -219,7 +220,7 @@ agent_coop_t::entity_finished()
 	// informed that the cooperation is ready to be deregistered.
 	if( 0 == --m_working_entities_count )
 	{
-		m_so_environment_impl.ready_to_deregister_notify( this );
+		m_env.so_environment_impl().ready_to_deregister_notify( this );
 	}
 }
 
@@ -228,7 +229,7 @@ agent_coop_t::final_deregister_coop()
 {
 	unbind_agents_from_disp( m_agent_array.end() );
 
-	m_so_environment_impl.final_deregister_coop( m_coop_name );
+	m_env.so_environment_impl().final_deregister_coop( m_coop_name );
 }
 
 agent_coop_t *

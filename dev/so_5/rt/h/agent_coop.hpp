@@ -75,7 +75,7 @@ class SO_5_TYPE agent_coop_t
 			//! Default dispatcher binding.
 			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment.
-			impl::so_environment_impl_t & env_impl );
+			so_environment_t & env );
 
 	public:
 		//! Create a cooperation.
@@ -86,7 +86,7 @@ class SO_5_TYPE agent_coop_t
 			//! Default dispatcher binding.
 			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment for which cooperation will be created.
-			impl::so_environment_impl_t & env_impl );
+			so_environment_t & env );
 
 		virtual ~agent_coop_t();
 
@@ -243,7 +243,7 @@ class SO_5_TYPE agent_coop_t
 		agent_array_t m_agent_array;
 
 		//! SObjectizer Environment for which cooperation is created.
-		impl::so_environment_impl_t & m_so_environment_impl;
+		so_environment_t & m_env;
 
 		//! Count for entities.
 		/*!

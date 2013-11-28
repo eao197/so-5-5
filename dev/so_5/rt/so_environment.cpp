@@ -241,7 +241,7 @@ so_environment_t::create_coop(
 	return agent_coop_t::create_coop(
 		name,
 		std::move(disp_binder),
-		so_environment_impl() );
+		self_ref() );
 }
 
 void
