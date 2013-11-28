@@ -3,7 +3,9 @@
 */
 
 #include <exception>
+
 #include <so_5/h/exception.hpp>
+#include <so_5/h/log_err.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/h/so_environment.hpp>
@@ -17,6 +19,49 @@ namespace so_5
 
 namespace rt
 {
+
+//
+// coop_notificators_container_t
+//
+coop_notificators_container_t::coop_notificators_container_t()
+{}
+
+coop_notificators_container_t::~coop_notificators_container_t()
+{}
+
+void
+coop_notificators_container_t::add(
+	const coop_notificator_t & notificator )
+{
+	m_notificators.push_back( notificator );
+}
+
+void
+coop_notificators_container_t::call_all(
+	so_environment_t & env,
+	const std::string & coop_name ) const
+{
+	for( auto i = m_notificators.begin(); i != m_notificators.end(); ++i )
+	{
+		// Exceptions should not go out.
+		try
+		{
+			(*i)( env, coop_name );
+		}
+		catch( const std::exception & x )
+		{
+			ACE_ERROR(
+					(LM_ERROR,
+					 SO_5_LOG_FMT( "on notification for coop '%s' exception: %s" ),
+					 coop_name.c_str(),
+					 x.what() ) );
+		}
+	}
+}
+
+//
+// agent_coop_t
+//
 
 agent_coop_t::agent_coop_t(
 	const nonempty_name_t & name,
@@ -73,6 +118,42 @@ agent_coop_t::parent_coop_name() const
 				query_coop_name() + ": cooperation has no parent cooperation" );
 
 	return m_parent_coop_name;
+}
+
+namespace
+{
+	/*!
+	 * \since v.5.2.3
+	 * \brief Helper function for notificator addition.
+	 */
+	inline void
+	do_add_notificator_to(
+		coop_notificators_container_ref_t & to,
+		const coop_notificator_t & notificator )
+	{
+		if( !to )
+		{
+			to = coop_notificators_container_ref_t(
+					new coop_notificators_container_t() );
+		}
+
+		to->add( notificator );
+	}
+
+} /* namespace anonymous */
+
+void
+agent_coop_t::add_registration_notificator(
+	const coop_notificator_t & notificator )
+{
+	do_add_notificator_to( m_reg_notificators, notificator );
+}
+
+void
+agent_coop_t::add_deregistration_notificator(
+	const coop_notificator_t & notificator )
+{
+	do_add_notificator_to( m_dereg_notificators, notificator );
 }
 
 void
@@ -236,6 +317,18 @@ agent_coop_t *
 agent_coop_t::parent_coop_ptr() const
 {
 	return m_parent_coop_ptr;
+}
+
+coop_notificators_container_ref_t
+agent_coop_t::reg_notificators() const
+{
+	return m_reg_notificators;
+}
+
+coop_notificators_container_ref_t
+agent_coop_t::dereg_notificators() const
+{
+	return m_dereg_notificators;
 }
 
 } /* namespace rt */

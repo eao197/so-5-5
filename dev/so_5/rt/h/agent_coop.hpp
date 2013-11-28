@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
@@ -39,6 +40,70 @@ class so_environment_impl_t;
 
 class so_environment_t;
 class agent_coop_t;
+
+//
+// coop_notificator_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Type of cooperation notificator.
+ *
+ * Cooperation notificator should be a function with the following
+ * prototype:
+\code
+void
+notificator(
+	// SObjectizer Environment for cooperation.
+	so_5::rt::so_environment_t & env,
+	// Name of cooperation.
+	const std::string & coop_name );
+\endcode
+ */
+typedef std::function<
+				void(so_environment_t &, const std::string &) >
+		coop_notificator_t;
+
+//
+// coop_notificators_container_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Container for cooperation notificators.
+ */
+class SO_5_TYPE coop_notificators_container_t
+	:	public atomic_refcounted_t
+{
+	public :
+		coop_notificators_container_t();
+		~coop_notificators_container_t();
+
+		//! Add a notificator.
+		void
+		add(
+			const coop_notificator_t & notificator );
+
+		//! Call all notificators.
+		/*!
+		 * \note All exceptions are suppressed.
+		 */
+		void
+		call_all(
+			so_environment_t & env,
+			const std::string & coop_name ) const;
+
+	private :
+		std::vector< coop_notificator_t > m_notificators;
+};
+
+//
+// coop_notificators_container_ref_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Typedef for smart pointer to notificators_container.
+ */
+typedef smart_atomic_reference_t< coop_notificators_container_t >
+	coop_notificators_container_ref_t;
 
 //! Typedef for the agent_coop autopointer.
 typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
@@ -211,6 +276,29 @@ class SO_5_TYPE agent_coop_t
 		 * \}
 		 */
 
+		/*!
+		 * \name Method for working with notificators.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.2.3
+		 * \brief Add notificator about cooperation registration event.
+		 */
+		void
+		add_registration_notificator(
+			const coop_notificator_t & notificator );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Add notificator about cooperation deregistration event.
+		 */
+		void
+		add_deregistration_notificator(
+			const coop_notificator_t & notificator );
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t
@@ -269,6 +357,18 @@ class SO_5_TYPE agent_coop_t
 		 * cooperation itself is registered successfully.
 		 */
 		agent_coop_t * m_parent_coop_ptr;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Notificators for registration event.
+		 */
+		coop_notificators_container_ref_t m_reg_notificators;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Notificators for deregistration event.
+		 */
+		coop_notificators_container_ref_t m_dereg_notificators;
 
 		//! Add agent to cooperation.
 		/*!
@@ -368,6 +468,20 @@ class SO_5_TYPE agent_coop_t
 		 */
 		agent_coop_t *
 		parent_coop_ptr() const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Get registration notificators.
+		 */
+		coop_notificators_container_ref_t
+		reg_notificators() const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Get deregistration notificators.
+		 */
+		coop_notificators_container_ref_t
+		dereg_notificators() const;
 };
 
 //! Typedef for the agent_coop smart pointer.

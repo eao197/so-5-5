@@ -67,6 +67,18 @@ class agent_coop_private_iface_t
 		{
 			return coop.parent_coop_ptr();
 		}
+
+		inline static coop_notificators_container_ref_t
+		reg_notificators( const agent_coop_t & coop )
+		{
+			return coop.reg_notificators();
+		}
+
+		inline static coop_notificators_container_ref_t
+		dereg_notificators( const agent_coop_t & coop )
+		{
+			return coop.dereg_notificators();
+		}
 };
 
 //
@@ -281,9 +293,29 @@ class agent_core_t
 		 *
 		 * Information about cooperation is removed from m_deregistered_coop.
 		 */
-		void
+		coop_notificators_container_ref_t
 		finaly_remove_cooperation_info(
 			const std::string & coop_name );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Do all job related to sending notification about
+		 * cooperation registration.
+		 */
+		void
+		do_coop_reg_notification_if_necessary(
+			const std::string & coop_name,
+			const coop_notificators_container_ref_t & notificators ) const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Do all job related to sending notification about
+		 * cooperation deregistration.
+		 */
+		void
+		do_coop_dereg_notification_if_necessary(
+			const std::string & coop_name,
+			const coop_notificators_container_ref_t & notificators ) const;
 };
 
 } /* namespace impl */

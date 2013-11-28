@@ -297,6 +297,8 @@ agent_core_t::register_coop(
 			"zero ptr to coop passed" );
 
 	const std::string coop_name = agent_coop->query_coop_name();
+	const coop_notificators_container_ref_t notificators =
+			agent_coop_private_iface_t::reg_notificators( *agent_coop );
 
 	try
 	{
@@ -323,8 +325,9 @@ agent_core_t::register_coop(
 			ex.what() );
 	}
 
-	if( m_coop_listener.get() )
-		m_coop_listener->on_registered( m_so_environment, coop_name );
+	do_coop_reg_notification_if_necessary(
+		coop_name,
+		notificators );
 }
 
 void
@@ -349,11 +352,13 @@ void
 agent_core_t::final_deregister_coop(
 	const std::string coop_name )
 {
+	coop_notificators_container_ref_t notificators;
+
 	bool need_signal_dereg_finished;
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-		finaly_remove_cooperation_info( coop_name );
+		notificators = finaly_remove_cooperation_info( coop_name );
 
 		// If we are inside shutdown process and this is the last
 		// cooperation then a special flag should be set.
@@ -364,10 +369,9 @@ agent_core_t::final_deregister_coop(
 	if( need_signal_dereg_finished )
 		m_deregistration_finished_cond.signal();
 
-	if( m_coop_listener.get() )
-		m_coop_listener->on_deregistered(
-			m_so_environment,
-			coop_name );
+	do_coop_dereg_notification_if_necessary(
+			coop_name,
+			notificators );
 }
 
 void
@@ -528,10 +532,12 @@ agent_core_t::next_coop_reg_step__parent_child_relation(
 	}
 }
 
-void
+coop_notificators_container_ref_t
 agent_core_t::finaly_remove_cooperation_info(
 	const std::string & coop_name )
 {
+	coop_notificators_container_ref_t ret_value;
+
 	auto it = m_deregistered_coop.find( coop_name );
 	if( it != m_deregistered_coop.end() )
 	{
@@ -547,8 +553,37 @@ agent_core_t::finaly_remove_cooperation_info(
 			parent->entity_finished();
 		}
 
+		ret_value = agent_coop_private_iface_t::dereg_notificators(
+				*(it->second) );
+
 		m_deregistered_coop.erase( it );
 	}
+
+	return ret_value;
+}
+
+void
+agent_core_t::do_coop_reg_notification_if_necessary(
+	const std::string & coop_name,
+	const coop_notificators_container_ref_t & notificators ) const
+{
+	if( m_coop_listener.get() )
+		m_coop_listener->on_registered( m_so_environment, coop_name );
+
+	if( notificators )
+		notificators->call_all( m_so_environment, coop_name );
+}
+
+void
+agent_core_t::do_coop_dereg_notification_if_necessary(
+	const std::string & coop_name,
+	const coop_notificators_container_ref_t & notificators ) const
+{
+	if( m_coop_listener.get() )
+		m_coop_listener->on_deregistered( m_so_environment, coop_name );
+
+	if( notificators )
+		notificators->call_all( m_so_environment, coop_name );
 }
 
 } /* namespace impl */
