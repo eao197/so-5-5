@@ -31,6 +31,7 @@ Mxx_ru::setup_target(
 		required_prj( "test/so_5/coop/throw_on_define_agent/prj.ut.rb" )
 		required_prj( "test/so_5/coop/throw_on_bind_to_disp/prj.ut.rb" )
 		required_prj( "test/so_5/coop/coop_notify_1/prj.ut.rb" )
+		required_prj( "test/so_5/coop/coop_notify_2/prj.ut.rb" )
 		required_prj( "test/so_5/coop/parent_child_1/prj.ut.rb" )
 		required_prj( "test/so_5/coop/parent_child_2/prj.ut.rb" )
 		required_prj( "test/so_5/coop/parent_child_3/prj.ut.rb" )
