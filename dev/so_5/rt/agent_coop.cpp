@@ -144,14 +144,14 @@ namespace
 } /* namespace anonymous */
 
 void
-agent_coop_t::add_registration_notificator(
+agent_coop_t::add_reg_notificator(
 	const coop_notificator_t & notificator )
 {
 	do_add_notificator_to( m_reg_notificators, notificator );
 }
 
 void
-agent_coop_t::add_deregistration_notificator(
+agent_coop_t::add_dereg_notificator(
 	const coop_notificator_t & notificator )
 {
 	do_add_notificator_to( m_dereg_notificators, notificator );

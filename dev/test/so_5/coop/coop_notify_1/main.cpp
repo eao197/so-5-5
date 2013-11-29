@@ -56,9 +56,9 @@ class a_test_t : public so_5::rt::agent_t
 		{
 			auto child_coop = so_environment().create_coop( "child" );
 			child_coop->set_parent_coop_name( so_coop_name() );
-			child_coop->add_registration_notificator( m_reg_notificator );
-			child_coop->add_deregistration_notificator( m_dereg_notificator );
-			child_coop->add_deregistration_notificator(
+			child_coop->add_reg_notificator( m_reg_notificator );
+			child_coop->add_dereg_notificator( m_dereg_notificator );
+			child_coop->add_dereg_notificator(
 					[this]( so_5::rt::so_environment_t &,
 						const std::string & )
 					{

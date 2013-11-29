@@ -297,7 +297,7 @@ class SO_5_TYPE agent_coop_t
 		 * \brief Add notificator about cooperation registration event.
 		 */
 		void
-		add_registration_notificator(
+		add_reg_notificator(
 			const coop_notificator_t & notificator );
 
 		/*!
@@ -305,7 +305,7 @@ class SO_5_TYPE agent_coop_t
 		 * \brief Add notificator about cooperation deregistration event.
 		 */
 		void
-		add_deregistration_notificator(
+		add_dereg_notificator(
 			const coop_notificator_t & notificator );
 		/*!
 		 * \}

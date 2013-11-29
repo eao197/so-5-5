@@ -17,5 +17,6 @@
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/so_environment.hpp>
+#include <so_5/rt/h/agent_coop_notifications.hpp>
 
 #endif

@@ -43,6 +43,7 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "agent.cpp" )
 		cpp_source( "agent_state_listener.cpp" )
 		cpp_source( "agent_coop.cpp" )
+		cpp_source( "agent_coop_notifications.cpp" )
 
 		cpp_source( "so_environment.cpp" )
 
