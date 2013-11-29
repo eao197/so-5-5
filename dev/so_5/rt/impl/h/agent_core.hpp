@@ -264,7 +264,7 @@ class agent_core_t
 		void
 		next_coop_reg_step__update_registered_coop_map(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t coop,
+			const agent_coop_ref_t & coop_ref,
 			//! Pointer to parent cooperation.
 			//! Equal to nullptr if \a coop has no parent.
 			agent_coop_t * parent_coop_ptr );

@@ -287,18 +287,52 @@ agent_core_t::create_local_queue()
 	return local_event_queue;
 }
 
+namespace
+{
+	/*!
+	 * \since v.5.2.3
+	 * \brief Special guard to increment and decrement cooperation
+	 * usage counters.
+	 */
+	class coop_usage_counter_guard_t
+	{
+		public :
+			coop_usage_counter_guard_t( agent_coop_t & coop )
+				:	m_coop( coop )
+			{
+				agent_coop_t::increment_usage_count( coop );
+			}
+			~coop_usage_counter_guard_t()
+			{
+				agent_coop_t::decrement_usage_count( m_coop );
+			}
+
+		private :
+			agent_coop_t & m_coop;
+	};
+
+} /* namespace anonymous */
+
 void
 agent_core_t::register_coop(
-	agent_coop_unique_ptr_t agent_coop )
+	agent_coop_unique_ptr_t agent_coop_ptr )
 {
-	if( 0 == agent_coop.get() )
+	/*!
+	 * \note For some important details see
+	 * agent_coop_t::increment_usage_count().
+	 */
+
+	if( 0 == agent_coop_ptr.get() )
 		SO_5_THROW_EXCEPTION(
 			rc_zero_ptr_to_coop,
 			"zero ptr to coop passed" );
 
-	const std::string coop_name = agent_coop->query_coop_name();
-	const coop_notificators_container_ref_t notificators =
-			agent_coop_private_iface_t::reg_notificators( *agent_coop );
+	// Cooperation object should life to the end of this routine.
+	agent_coop_ref_t coop_ref( agent_coop_ptr.release() );
+
+	// Usage counter for cooperation should be incremented right now,
+	// and decremented at exit point.
+	coop_usage_counter_guard_t coop_usage_quard( *coop_ref );
 
 	try
 	{
@@ -306,12 +340,12 @@ agent_core_t::register_coop(
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
 		// Name should be unique.
-		ensure_new_coop_name_unique( coop_name );
+		ensure_new_coop_name_unique( coop_ref->query_coop_name() );
 		// Process parent coop.
-		agent_coop_t * parent = find_parent_coop_if_necessary( *agent_coop );
+		agent_coop_t * parent = find_parent_coop_if_necessary( *coop_ref );
 
 		next_coop_reg_step__update_registered_coop_map(
-				std::move(agent_coop),
+				coop_ref,
 				parent );
 	}
 	catch( const exception_t & ex )
@@ -326,8 +360,8 @@ agent_core_t::register_coop(
 	}
 
 	do_coop_reg_notification_if_necessary(
-		coop_name,
-		notificators );
+		coop_ref->query_coop_name(),
+		agent_coop_private_iface_t::reg_notificators( *coop_ref ) );
 }
 
 void
@@ -478,11 +512,9 @@ agent_core_t::find_parent_coop_if_necessary(
 
 void
 agent_core_t::next_coop_reg_step__update_registered_coop_map(
-	agent_coop_unique_ptr_t coop,
+	const agent_coop_ref_t & coop_ref,
 	agent_coop_t * parent_coop_ptr )
 {
-	agent_coop_ref_t coop_ref( coop.release() );
-
 	m_registered_coop[ coop_ref->query_coop_name() ] = coop_ref;
 
 	// In case of error cooperation info should be removed
@@ -550,7 +582,7 @@ agent_core_t::finaly_remove_cooperation_info(
 							parent->query_coop_name(),
 							coop_name ) );
 
-			parent->entity_finished();
+			agent_coop_t::decrement_usage_count( *parent );
 		}
 
 		ret_value = agent_coop_private_iface_t::dereg_notificators(

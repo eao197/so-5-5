@@ -70,8 +70,9 @@ agent_coop_t::agent_coop_t(
 	:	m_coop_name( name.query_name() )
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
 	,	m_env( env )
-	,	m_working_entities_count( 0 )
+	,	m_reference_count( 0 )
 	,	m_parent_coop_ptr( nullptr )
+	,	m_registration_status( COOP_NOT_REGISTERED )
 {
 }
 
@@ -203,7 +204,10 @@ agent_coop_t::do_registration_specific_actions(
 	m_parent_coop_ptr = parent_coop;
 	if( m_parent_coop_ptr )
 		// Parent coop should known about existence of that coop.
-		m_parent_coop_ptr->m_working_entities_count += 1;
+		m_parent_coop_ptr->m_reference_count += 1;
+
+	// Cooperation should assume that it is registered now.
+	m_registration_status = COOP_REGISTERED;
 }
 
 void
@@ -279,7 +283,7 @@ agent_coop_t::bind_agents_to_disp()
 
 	// A total count of all active agents should be set because
 	// all agents are successfully registered.
-	m_working_entities_count += m_agent_array.size();
+	m_reference_count += m_agent_array.size();
 }
 
 inline void
@@ -295,13 +299,27 @@ agent_coop_t::unbind_agents_from_disp(
 }
 
 void
-agent_coop_t::entity_finished()
+agent_coop_t::increment_usage_count()
+{
+	m_reference_count += 1;
+}
+
+void
+agent_coop_t::decrement_usage_count()
 {
 	// If it is the last working agent then Environment should be
 	// informed that the cooperation is ready to be deregistered.
-	if( 0 == --m_working_entities_count )
+	if( 0 == --m_reference_count )
 	{
-		m_env.so_environment_impl().ready_to_deregister_notify( this );
+		// NOTE: usage counter incremented and decremented during
+		// registration process even if registration of cooperation failed.
+		// So decrement_usage_count() could be called when cooperation
+		// has COOP_NOT_REGISTERED status.
+		if( COOP_REGISTERED == m_registration_status )
+		{
+			m_registration_status = COOP_DEREGISTERING;
+			m_env.so_environment_impl().ready_to_deregister_notify( this );
+		}
 	}
 }
 

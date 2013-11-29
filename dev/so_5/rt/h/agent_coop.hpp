@@ -226,13 +226,25 @@ class SO_5_TYPE agent_coop_t
 
 		//! Internal SObjectizer method.
 		/*!
+		 * \since v.5.2.3
+		 *
+		 * Informs cooperation that it is used by yet another entity.
+		 */
+		static inline void
+		increment_usage_count( agent_coop_t & coop )
+		{
+			coop.increment_usage_count();
+		}
+
+		//! Internal SObjectizer method.
+		/*!
 		 * Informs cooperation about full finishing of agent's or
 		 * child cooperation work.
 		 */
 		static inline void
-		call_entity_finished( agent_coop_t & coop )
+		decrement_usage_count( agent_coop_t & coop )
 		{
-			coop.entity_finished();
+			coop.decrement_usage_count();
 		}
 
 		//! Internal SObjectizer method.
@@ -321,6 +333,28 @@ class SO_5_TYPE agent_coop_t
 		//! Typedef for the agent information container.
 		typedef std::vector< agent_with_disp_binder_t > agent_array_t;
 
+		/*!
+		 * \since v.5.2.3
+		 * \brief Registration status.
+		 */
+		enum registration_status_t
+		{
+			//! Cooperation is not registered yet.
+			COOP_NOT_REGISTERED,
+			//! Cooperation is registered.
+			/*!
+			 * Reference count for cooperation in that state should
+			 * be greater than zero.
+			 */
+			COOP_REGISTERED,
+			//! Cooperation is in deregistration process.
+			/*!
+			 * Reference count for cooperation in that state should
+			 * be zero.
+			 */
+			COOP_DEREGISTERING
+		};
+
 		//! Cooperation name.
 		const std::string m_coop_name;
 
@@ -338,8 +372,11 @@ class SO_5_TYPE agent_coop_t
 		 * Since v.5.2.3 this counter includes:
 		 * - count of agents from cooperation;
 		 * - count of direct child cooperations;
+		 * - usage of cooperation pointer in cooperation registration routine.
+		 *
+		 * \sa agent_coop_t::increment_usage_count()
 		 */
-		atomic_counter_t m_working_entities_count;
+		atomic_counter_t m_reference_count;
 
 		/*!
 		 * \since v.5.2.3.
@@ -369,6 +406,20 @@ class SO_5_TYPE agent_coop_t
 		 * \brief Notificators for deregistration event.
 		 */
 		coop_notificators_container_ref_t m_dereg_notificators;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief The registration status of cooperation.
+		 *
+		 * By default cooperation has NOT_REGISTERED status.
+		 * It is changed to REGISTERED after successfull completion
+		 * of all registration-specific actions.
+		 *
+		 * And then changed to DEREGISTERING when m_reference_count
+		 * becames zero and final deregistration demand would be
+		 * put to deregistration thread.
+		 */
+		registration_status_t m_registration_status;
 
 		//! Add agent to cooperation.
 		/*!
@@ -438,6 +489,34 @@ class SO_5_TYPE agent_coop_t
 			//! Right border of the processing range.
 			agent_array_t::iterator it );
 
+		/*!
+		 * \since v.5.2.3
+		 * \brief Increment usage counter for this cooperation.
+		 *
+		 * In v.5.2.3 the counter m_reference_count is used to
+		 * reflect count of references to the cooperation. There are
+		 * the following entities who can refer to cooperation:
+		 * - agents from that cooperation. When cooperation is successfully
+		 *   registered the counter is incremented by count of agents.
+		 *   During cooperation deregistration agents finish their work and
+		 *   each agent decrement cooperation usage counter;
+		 * - children cooperations. Each child cooperation increments
+		 *   reference counter on its registration and decrements counter
+		 *   on its deregistration;
+		 * - cooperation registration routine. It increment reference counter
+		 *   to prevent cooperation deregistration before the end of
+		 *   registration process. It is possible if cooperation do its
+		 *   work very quickly and initiates deregistration. When cooperation
+		 *   has coop_notificators its registration process may be longer
+		 *   then cooperation working time. And cooperation could be
+		 *   deregistered and even destroyed before return from registration
+		 *   routine. To prevent this cooperation registration routine
+		 *   increments cooperation usage counter and the begin of process
+		 *   and decrement it when registration process finished.
+		 */
+		void
+		increment_usage_count();
+
 		//! Process signal about finished work of an agent or
 		//! child cooperation.
 		/*!
@@ -454,7 +533,7 @@ class SO_5_TYPE agent_coop_t
 		 * children cooperations are deregistered and destroyed.
 		 */
 		void
-		entity_finished();
+		decrement_usage_count();
 
 		//! Do the final deregistration stage.
 		void
