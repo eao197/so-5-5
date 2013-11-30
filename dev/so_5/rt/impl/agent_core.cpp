@@ -134,7 +134,8 @@ deregistration_processor_t::second_stage()
 				m_coops_to_dereg.begin(),
 				m_coops_to_dereg.end(),
 				[]( const agent_coop_ref_t & coop ) {
-					agent_coop_private_iface_t::undefine_all_agents( *coop );
+					agent_coop_private_iface_t::
+						do_deregistration_specific_actions( *coop );
 				} );
 	}
 	catch( const std::exception & x )
@@ -436,10 +437,10 @@ agent_core_t::wait_for_start_deregistration()
 }
 
 void
-agent_core_t::coop_undefine_all_agents(
+agent_core_t::initiate_coop_deregistration(
 	agent_core_t::coop_map_t::value_type & coop )
 {
-	coop.second->undefine_all_agents();
+	coop.second->do_deregistration_specific_actions();
 }
 
 void
@@ -450,7 +451,7 @@ agent_core_t::deregister_all_coop()
 	std::for_each(
 		m_registered_coop.begin(),
 		m_registered_coop.end(),
-		agent_core_t::coop_undefine_all_agents );
+		agent_core_t::initiate_coop_deregistration );
 
 	m_deregistered_coop.insert(
 		m_registered_coop.begin(),

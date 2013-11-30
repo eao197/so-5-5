@@ -147,39 +147,6 @@ agent_t::define_agent()
 	m_was_defined = true;
 }
 
-void
-agent_t::undefine_agent()
-{
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
-
-	m_is_coop_deregistered = true;
-
-	// Subscriptions should be destroyed.
-	destroy_all_subscriptions();
-
-	if( m_dispatcher != &g_void_dispatcher )
-	{
-		// A final event handler should be added.
-		m_local_event_queue->push(
-			impl::event_item_t(
-				nullptr,
-				message_ref_t(),
-				&agent_t::demand_handler_on_finish ) );
-
-		// Dispatcher should be informed about this event.
-		m_dispatcher->put_event_execution_request( this, 1 );
-	}
-	else
-	{
-		// There is no the real dispatcher.
-		// So all events could be simple removed.
-		m_local_event_queue->clear();
-
-		// And all created event_caller_blocks should be erased.
-		clean_consumers_map();
-	}
-}
-
 so_environment_t &
 agent_t::so_environment()
 {
@@ -220,8 +187,6 @@ void
 agent_t::bind_to_disp(
 	dispatcher_t & disp )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
-
 	// A pointer to the stub should be in the m_dispatcher.
 	// If it is not true then agent is already bound to the dispatcher.
 	if( m_dispatcher != &g_void_dispatcher )
@@ -232,11 +197,42 @@ agent_t::bind_to_disp(
 	}
 
 	m_dispatcher = &disp;
+}
+
+void
+agent_t::start_agent()
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+
+	// Cooperation usage counter should be incremented.
+	// It will be decremented during final agent event execution.
+	agent_coop_t::increment_usage_count( *m_agent_coop );
 
 	// Dispatcher should be informed about events in the local queue.
 	m_dispatcher->put_event_execution_request(
 		this,
 		m_local_event_queue->size() );
+}
+
+void
+agent_t::shutdown_agent()
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+
+	m_is_coop_deregistered = true;
+
+	// Subscriptions should be destroyed.
+	destroy_all_subscriptions();
+
+	// A final event handler should be added.
+	m_local_event_queue->push(
+		impl::event_item_t(
+			nullptr,
+			message_ref_t(),
+			&agent_t::demand_handler_on_finish ) );
+
+	// Dispatcher should be informed about this event.
+	m_dispatcher->put_event_execution_request( this, 1 );
 }
 
 //! Make textual representation of the subscription key.

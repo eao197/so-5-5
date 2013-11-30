@@ -454,6 +454,14 @@ class SO_5_TYPE agent_coop_t
 			//! Contains nullptr if there is no parent cooperation.
 			agent_coop_t * agent_coop );
 
+		/*!
+		 * \since v.5.2.3
+		 * \brief Perform all necessary actions related to
+		 * cooperation deregistration.
+		 */
+		void
+		do_deregistration_specific_actions();
+
 		//! Bind agents to the cooperation.
 		void
 		bind_agents_to_coop();
@@ -461,20 +469,6 @@ class SO_5_TYPE agent_coop_t
 		//! Calls define_agent method for all cooperation agents.
 		void
 		define_all_agents();
-
-		//! Calls undefine_agent method for all cooperation agents.
-		void
-		undefine_all_agents();
-
-		//! Calls undefine_agent method for the agent specified.
-		/*!
-		 * Calls undefine_agent for all agents in range
-		 * [m_agent_array.begin(), it).
-		 */
-		void
-		undefine_some_agents(
-			//! Right border of the processing range.
-			agent_array_t::iterator it );
 
 		//! Bind agents to the dispatcher.
 		void
@@ -488,6 +482,24 @@ class SO_5_TYPE agent_coop_t
 		unbind_agents_from_disp(
 			//! Right border of the processing range.
 			agent_array_t::iterator it );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Start all agents as the final part of cooperation registration.
+		 *
+		 * An exception from agent_t::start_agent() leads to call to abort().
+		 */
+		void
+		start_all_agents();
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Shutdown all agents as a part of cooperation deregistration.
+		 *
+		 * An exception from agent_t::shutdown_agent() leads to call to abort().
+		 */
+		void
+		shutdown_all_agents();
 
 		/*!
 		 * \since v.5.2.3

@@ -57,9 +57,9 @@ class agent_coop_private_iface_t
 {
 	public :
 		inline static void
-		undefine_all_agents( agent_coop_t & coop )
+		do_deregistration_specific_actions( agent_coop_t & coop )
 		{
-			coop.undefine_all_agents();
+			coop.do_deregistration_specific_actions();
 		}
 
 		inline static agent_coop_t *
@@ -232,7 +232,8 @@ class agent_core_t
 
 		//! An auxiliary method for the std::for_each.
 		static void
-		coop_undefine_all_agents( agent_core_t::coop_map_t::value_type & coop );
+		initiate_coop_deregistration(
+			agent_core_t::coop_map_t::value_type & coop );
 
 		/*!
 		 * \since v.5.2.3

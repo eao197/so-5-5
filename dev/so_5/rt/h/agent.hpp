@@ -703,28 +703,40 @@ class SO_5_TYPE agent_t
 		//! Bind agent to the dispatcher.
 		/*!
 		 * Method initializes the internal dispatcher poiner.
+		 */
+		void
+		bind_to_disp(
+			dispatcher_t & disp );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Start agent work.
+		 *
+		 * This method is called after all registration specific actions.
 		 *
 		 * Method checks the local event queue. If the queue is not empty then
 		 * method tells to dispatcher to schedule the agent 
 		 * for the event processing.
 		 */
 		void
-		bind_to_disp(
-			dispatcher_t & disp );
+		start_agent();
 
 		//! Agent definition driver.
 		/*!
-		 * Method calls so_define_agent() and then stores an agent definition flag.
+		 * Method calls so_define_agent() and then stores an agent
+		 * definition flag.
 		 */
 		void
 		define_agent();
 
-		//! Agent undefinition deriver.
+		//! Agent shutdown deriver.
 		/*!
+		 * \since v.5.2.3
+		 *
 		 * Method destroys all agent subscriptions.
-		*/
+		 */
 		void
-		undefine_agent();
+		shutdown_agent();
 		/*!
 		 * \}
 		 */

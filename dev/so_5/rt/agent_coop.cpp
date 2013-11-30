@@ -188,18 +188,9 @@ agent_coop_t::do_registration_specific_actions(
 	bind_agents_to_coop();
 	define_all_agents();
 
-	try
-	{
-		bind_agents_to_disp();
-	}
-	catch( const std::exception & )
-	{
-		// Because all agents are defined at this point then
-		// they should be undefined.
-		undefine_all_agents();
+	bind_agents_to_disp();
 
-		throw;
-	}
+	start_all_agents();
 
 	m_parent_coop_ptr = parent_coop;
 	if( m_parent_coop_ptr )
@@ -208,6 +199,12 @@ agent_coop_t::do_registration_specific_actions(
 
 	// Cooperation should assume that it is registered now.
 	m_registration_status = COOP_REGISTERED;
+}
+
+void
+agent_coop_t::do_deregistration_specific_actions()
+{
+	shutdown_all_agents();
 }
 
 void
@@ -228,34 +225,9 @@ agent_coop_t::define_all_agents()
 	agent_array_t::iterator it = m_agent_array.begin();
 	agent_array_t::iterator it_end = m_agent_array.end();
 
-	try
+	for(; it != it_end; ++it )
 	{
-		for(; it != it_end; ++it )
-		{
-			it->m_agent_ref->define_agent();
-		}
-	}
-	catch( const std::exception & ex )
-	{
-		undefine_some_agents( it );
-		throw;
-	}
-}
-
-void
-agent_coop_t::undefine_all_agents()
-{
-	undefine_some_agents( m_agent_array.end() );
-}
-
-void
-agent_coop_t::undefine_some_agents(
-	agent_array_t::iterator it )
-{
-	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
-	{
-		--it;
-		it->m_agent_ref->undefine_agent();
+		it->m_agent_ref->define_agent();
 	}
 }
 
@@ -280,10 +252,6 @@ agent_coop_t::bind_agents_to_disp()
 
 		throw;
 	}
-
-	// A total count of all active agents should be set because
-	// all agents are successfully registered.
-	m_reference_count += m_agent_array.size();
 }
 
 inline void
@@ -295,6 +263,56 @@ agent_coop_t::unbind_agents_from_disp(
 		--it;
 		it->m_binder->unbind_agent(
 			m_env.so_environment_impl(), it->m_agent_ref );
+	}
+}
+
+void
+agent_coop_t::start_all_agents()
+{
+	try
+	{
+		for( auto it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
+		{
+			it->m_agent_ref->start_agent();
+		}
+	}
+	catch( const std::exception & x )
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT(
+					 	"Exception during starting cooperation agents. "
+						"Work cannot be continued. Cooperation: '%s'. "
+						"Exception: %s" ),
+						m_coop_name.c_str(),
+						x.what() ) );
+
+		ACE_OS::abort();
+	}
+}
+
+void
+agent_coop_t::shutdown_all_agents()
+{
+	try
+	{
+		for( auto it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
+		{
+			it->m_agent_ref->shutdown_agent();
+		}
+	}
+	catch( const std::exception & x )
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT(
+					 	"Exception during shutting cooperation agents down. "
+						"Work cannot be continued. Cooperation: '%s'. "
+						"Exception: %s" ),
+						m_coop_name.c_str(),
+						x.what() ) );
+
+		ACE_OS::abort();
 	}
 }
 
