@@ -167,7 +167,7 @@ agent_t::undefine_agent()
 				&agent_t::demand_handler_on_finish ) );
 
 		// Dispatcher should be informed about this event.
-		m_dispatcher->put_event_execution_request( create_ref(), 1 );
+		m_dispatcher->put_event_execution_request( this, 1 );
 	}
 	else
 	{
@@ -235,7 +235,7 @@ agent_t::bind_to_disp(
 
 	// Dispatcher should be informed about events in the local queue.
 	m_dispatcher->put_event_execution_request(
-		create_ref(),
+		this,
 		m_local_event_queue->size() );
 }
 
@@ -405,7 +405,7 @@ agent_t::push_event(
 				message,
 				&agent_t::demand_handler_on_message ) );
 
-		m_dispatcher->put_event_execution_request( create_ref(), 1 );
+		m_dispatcher->put_event_execution_request( this, 1 );
 	}
 }
 

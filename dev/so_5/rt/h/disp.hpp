@@ -101,7 +101,7 @@ class SO_5_TYPE dispatcher_t
 		virtual void
 		put_event_execution_request(
 			//! Events of this agent should be executed.
-			const agent_ref_t & agent_ref,
+			agent_t * agent_ptr,
 			//! Count of events for this agent.
 			unsigned int event_count ) = 0;
 

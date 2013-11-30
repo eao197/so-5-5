@@ -46,7 +46,7 @@ void_dispatcher_t::wait()
 
 void
 void_dispatcher_t::put_event_execution_request(
-	const agent_ref_t &,
+	agent_t *,
 	unsigned int )
 {
 	// Do nothing.

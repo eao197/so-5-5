@@ -50,7 +50,7 @@ class void_dispatcher_t
 
 		virtual void
 		put_event_execution_request(
-			const agent_ref_t & agent_ref,
+			agent_t * agent_ptr,
 			unsigned int request_count );
 };
 

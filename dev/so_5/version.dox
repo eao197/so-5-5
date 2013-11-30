@@ -4,6 +4,19 @@
 
 \section so_5__2_3 5.2.3 "Tetnuld"
 
+	Demands queues now store agent pointers, not smart references as in
+	previous versions.
+
+	so_5::rt::msg_coop_registered and so_5::rt::msg_coop_deregistered added.
+	so_5::rt::make_coop_reg_notificator() and
+	so_5::rt::make_coop_deref_notificator() added.
+
+	so_5::rt::coop_notificator_t and
+	so_5::rt::agent_coop_t::add_reg_notificator() and
+	so_5::rt::agent_coop_t::add_dereg_notificator() are introduced.
+
+	Parent-child relationship added for cooperations.
+
 	Cooperation mutex pool no more used and removed from SObjectizer code.
 	Some related method marked as deprecated and will be removed in
 	future releases.

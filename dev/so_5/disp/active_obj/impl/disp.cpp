@@ -79,7 +79,7 @@ dispatcher_t::wait()
 
 void
 dispatcher_t::put_event_execution_request(
-	const so_5::rt::agent_ref_t & agent_ref,
+	so_5::rt::agent_t *,
 	unsigned int event_count )
 {
 	// This method shall not be called!

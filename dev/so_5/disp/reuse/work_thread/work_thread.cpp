@@ -41,7 +41,7 @@ demand_queue_t::~demand_queue_t()
 
 void
 demand_queue_t::push(
-	const so_5::rt::agent_ref_t & agent_ref,
+	so_5::rt::agent_t * agent_ptr,
 	unsigned int event_cnt )
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
@@ -58,7 +58,7 @@ demand_queue_t::push(
 		{
 			// ...and the last demand in the queue is for the same agent...
 			demand_t & dmnd = m_demands.back();
-			if( agent_ref.get() == dmnd.m_agent_ref.get() )
+			if( agent_ptr == dmnd.m_agent_ptr )
 			{
 				// ... then only the demand counter should be incremented.
 				dmnd.m_event_cnt += event_cnt;
@@ -68,7 +68,7 @@ demand_queue_t::push(
 
 		if( create_new_demand_needed )
 		{
-			m_demands.push_back( demand_t( agent_ref, event_cnt ) );
+			m_demands.push_back( demand_t( agent_ptr, event_cnt ) );
 		}
 
 		if( demands_empty_before_service )
@@ -156,11 +156,11 @@ work_thread_t::~work_thread_t()
 
 void
 work_thread_t::put_event_execution_request(
-	const so_5::rt::agent_ref_t & agent_ref,
+	so_5::rt::agent_t * agent_ptr,
 	unsigned int event_count )
 {
 	// Demands queue should serve this call.
-	m_queue.push( agent_ref, event_count );
+	m_queue.push( agent_ptr, event_count );
 }
 
 void
@@ -208,28 +208,16 @@ work_thread_t::body()
 
 	while( m_continue_work.value() == WORK_THREAD_CONTINUE )
 	{
-		try
+		while( m_continue_work.value() == WORK_THREAD_CONTINUE )
 		{
-			while( m_continue_work.value() == WORK_THREAD_CONTINUE )
-			{
-				// If the local queue is empty then we should try
-				// to get new demands.
-				if( demands.empty() )
-					result = m_queue.pop( demands );
+			// If the local queue is empty then we should try
+			// to get new demands.
+			if( demands.empty() )
+				result = m_queue.pop( demands );
 
-				// Serve demands if any.
-				if( demand_queue_t::demand_extracted == result )
-					serve_demands_block( demands );
-			}
-		}
-		catch( const std::exception & ex )
-		{
-			// Exception should be processed.
-//FIXME: is it possible that the exception would be 
-// caught when demands is empty?
-			handle_exception(
-				ex,
-				demands.front().m_agent_ref );
+			// Serve demands if any.
+			if( demand_queue_t::demand_extracted == result )
+				serve_demands_block( demands );
 		}
 	}
 }
@@ -237,12 +225,12 @@ work_thread_t::body()
 void
 work_thread_t::handle_exception(
 	const std::exception & ex,
-	const so_5::rt::agent_ref_t & a_exception_producer )
+	const so_5::rt::agent_t & a_exception_producer )
 {
 	auto response_action =
 			m_disp.query_disp_evt_except_handler().handle_exception(
 				ex,
-				a_exception_producer->so_coop_name() );
+				a_exception_producer.so_coop_name() );
 
 	response_action->respond_to_exception();
 }
@@ -251,16 +239,24 @@ inline void
 work_thread_t::serve_demands_block(
 	demand_container_t & demands )
 {
-	size_t demands_size_counter = demands.size();
-	while( demands_size_counter-- )
+	while( !demands.empty() )
 	{
-		demand_t & demand = demands.front();
-		while( demand.m_event_cnt-- )
-		{
-			so_5::rt::agent_t::call_next_event(
-				*demand.m_agent_ref );
-		}
+		demand_t demand = demands.front();
 		demands.pop_front();
+
+		try
+		{
+			while( demand.m_event_cnt-- )
+			{
+				so_5::rt::agent_t::call_next_event(
+					*demand.m_agent_ptr );
+			}
+		}
+		catch( const std::exception & x )
+		{
+			// Exception should be processed.
+			handle_exception( x, *(demand.m_agent_ptr) );
+		}
 	}
 }
 

@@ -70,7 +70,7 @@ class dispatcher_t
 		 */
 		virtual void
 		put_event_execution_request(
-			const so_5::rt::agent_ref_t &,
+			so_5::rt::agent_t *,
 			unsigned int event_count );
 		//! \}
 

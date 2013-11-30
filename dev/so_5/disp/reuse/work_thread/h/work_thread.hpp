@@ -39,24 +39,23 @@ namespace work_thread
 struct demand_t
 {
 	//! Agent which events will be dispatched.
-	so_5::rt::agent_ref_t m_agent_ref;
+	so_5::rt::agent_t * m_agent_ptr;
 
 	//! Count of events to dispatch.
 	unsigned int m_event_cnt;
 
 	demand_t()
-		:
-			m_event_cnt( 0 )
+		:	m_agent_ptr( nullptr )
+		,	m_event_cnt( 0 )
 	{}
 
 	demand_t(
 		//! Agent which events will be dispatched.
-		const so_5::rt::agent_ref_t & agent_ref,
+		so_5::rt::agent_t * agent_ptr,
 		//! Count of events to dispatch.
 		unsigned int event_cnt )
-		:
-			m_agent_ref( agent_ref ),
-			m_event_cnt( event_cnt )
+		:	m_agent_ptr( agent_ptr )
+		,	m_event_cnt( event_cnt )
 	{}
 };
 
@@ -84,7 +83,7 @@ class demand_queue_t
 		void
 		push(
 			//! Agent which events will be dispatched.
-			const so_5::rt::agent_ref_t & agent_ref,
+			so_5::rt::agent_t * agent_ptr,
 			//! Count of events to dispatch.
 			unsigned int event_cnt );
 
@@ -170,7 +169,7 @@ class work_thread_t
 		void
 		put_event_execution_request(
 			//! Events will be sheduled to this agent.
-			const so_5::rt::agent_ref_t & agent_ref,
+			so_5::rt::agent_t * agent_ptr,
 			//! Count of events to be scheduled.
 			unsigned int event_count );
 
@@ -201,7 +200,7 @@ class work_thread_t
 			//! Raised and caught exception.
 			const std::exception & ex,
 			//! Agent who is the producer of the exception.
-			const so_5::rt::agent_ref_t & a_exception_producer );
+			const so_5::rt::agent_t & a_exception_producer );
 
 		//! Handle a bunch of demands.
 		void

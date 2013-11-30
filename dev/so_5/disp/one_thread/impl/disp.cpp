@@ -46,11 +46,11 @@ dispatcher_t::wait()
 
 void
 dispatcher_t::put_event_execution_request(
-	const so_5::rt::agent_ref_t & agent_ref,
+	so_5::rt::agent_t * agent_ptr,
 	unsigned int event_count )
 {
 	m_work_thread.put_event_execution_request(
-		agent_ref,
+		agent_ptr,
 		event_count );
 }
 
