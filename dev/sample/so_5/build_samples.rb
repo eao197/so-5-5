@@ -11,6 +11,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/coop_listener/prj.rb" )
 	required_prj( "sample/so_5/exception_logger/prj.rb" )
 	required_prj( "sample/so_5/exception_handler/prj.rb" )
+	required_prj( "sample/so_5/coop_notification/prj.rb" )
 	required_prj( "sample/so_5/layer/prj.rb" )
 	required_prj( "sample/so_5/mboxes/prj.rb" )
 	required_prj( "sample/so_5/parent_coop/prj.rb" )

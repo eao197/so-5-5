@@ -4,6 +4,8 @@
 
 \section so_5__2_3 5.2.3 "Tetnuld"
 
+	New sample 'coop_notification' added.
+
 	Demands queues now store agent pointers, not smart references as in
 	previous versions.
 
