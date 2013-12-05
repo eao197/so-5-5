@@ -11,7 +11,7 @@
 
 	so_5::rt::msg_coop_registered and so_5::rt::msg_coop_deregistered added.
 	so_5::rt::make_coop_reg_notificator() and
-	so_5::rt::make_coop_deref_notificator() added.
+	so_5::rt::make_coop_dereg_notificator() added.
 
 	so_5::rt::coop_notificator_t and
 	so_5::rt::agent_coop_t::add_reg_notificator() and
