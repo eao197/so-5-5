@@ -89,6 +89,14 @@ agent_coop_t::create_coop(
 
 agent_coop_t::~agent_coop_t()
 {
+	// Initiate deleting of agents by hand to guarantee that
+	// agents will be destroyed before return from agent_coop_t
+	// destructor.
+	//
+	// NOTE: because agents are stored here by smart references
+	// for some agents this operation will lead only to reference
+	// counter descrement. Not to deletion of agent.
+	m_agent_array.clear();
 }
 
 const std::string &
