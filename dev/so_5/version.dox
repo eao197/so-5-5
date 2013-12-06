@@ -4,6 +4,12 @@
 
 \section so_5__2_3 5.2.3 "Tetnuld"
 
+	The so_5::rt::agent_coop_t contructor is now declared as public. It means
+	that it is possible to create classess which are derived from agent_coop_t.
+	The agent_coop_t destructor is protected now. So the only way to work
+	with agent cooperations is create them as dynamically allocated objects
+	and pass pointers to them to so_5::rt::agent_coop_unique_ptr_t wrappers.
+
 	New sample 'coop_notification' added.
 
 	Demands queues now store agent pointers, not smart references as in
