@@ -73,6 +73,9 @@ agent_coop_t::~agent_coop_t()
 	// for some agents this operation will lead only to reference
 	// counter descrement. Not to deletion of agent.
 	m_agent_array.clear();
+
+	// Now all user resources should be destroyed.
+	delete_user_resources();
 }
 
 void
@@ -368,6 +371,15 @@ coop_notificators_container_ref_t
 agent_coop_t::dereg_notificators() const
 {
 	return m_dereg_notificators;
+}
+
+void
+agent_coop_t::delete_user_resources()
+{
+	for( auto d = m_resource_deleters.begin();
+			d != m_resource_deleters.end();
+			++d )
+		(*d)();
 }
 
 } /* namespace rt */

@@ -307,6 +307,42 @@ class SO_5_TYPE agent_coop_t
 		 * \}
 		 */
 
+		/*!
+		 * \name Method for working with user resources.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.2.3
+		 * \brief Take a user resouce under cooperation control.
+		 */
+		template< class T >
+		T *
+		take_under_control( std::unique_ptr< T > resource )
+		{
+			T * ret_value = resource.get();
+
+			resource_deleter_t d = [ret_value]() { delete ret_value; };
+			m_resource_deleters.emplace_back( std::move(d) );
+
+			resource.release();
+
+			return ret_value;
+		}
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Take a user resouce under cooperation control.
+		 */
+		template< class T >
+		T *
+		take_under_control( T * resource )
+		{
+			return take_under_control( std::unique_ptr< T >( resource ) );
+		}
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t
@@ -350,6 +386,18 @@ class SO_5_TYPE agent_coop_t
 			 */
 			COOP_DEREGISTERING
 		};
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Type of user resource deleter.
+		 */
+		typedef std::function< void() > resource_deleter_t;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Type of container for user resource deleters.
+		 */
+		typedef std::vector< resource_deleter_t > resource_deleter_vector_t;
 
 		//! Cooperation name.
 		const std::string m_coop_name;
@@ -416,6 +464,12 @@ class SO_5_TYPE agent_coop_t
 		 * put to deregistration thread.
 		 */
 		registration_status_t m_registration_status;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Container of user resource deleters.
+		 */
+		resource_deleter_vector_t m_resource_deleters;
 
 		//! Add agent to cooperation.
 		/*!
@@ -569,6 +623,13 @@ class SO_5_TYPE agent_coop_t
 		 */
 		coop_notificators_container_ref_t
 		dereg_notificators() const;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Delete all user resources.
+		 */
+		void
+		delete_user_resources();
 };
 
 /*!
