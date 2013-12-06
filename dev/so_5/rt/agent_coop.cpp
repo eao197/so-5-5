@@ -63,6 +63,24 @@ coop_notificators_container_t::call_all(
 // agent_coop_t
 //
 
+agent_coop_t::~agent_coop_t()
+{
+	// Initiate deleting of agents by hand to guarantee that
+	// agents will be destroyed before return from agent_coop_t
+	// destructor.
+	//
+	// NOTE: because agents are stored here by smart references
+	// for some agents this operation will lead only to reference
+	// counter descrement. Not to deletion of agent.
+	m_agent_array.clear();
+}
+
+void
+agent_coop_t::destroy( agent_coop_t * coop )
+{
+	delete coop;
+}
+
 agent_coop_t::agent_coop_t(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t coop_disp_binder,
@@ -74,29 +92,6 @@ agent_coop_t::agent_coop_t(
 	,	m_parent_coop_ptr( nullptr )
 	,	m_registration_status( COOP_NOT_REGISTERED )
 {
-}
-
-agent_coop_unique_ptr_t
-agent_coop_t::create_coop(
-	const nonempty_name_t & name,
-	disp_binder_unique_ptr_t coop_disp_binder,
-	so_environment_t & env )
-{
-	return agent_coop_unique_ptr_t(
-			new agent_coop_t(
-					name, std::move(coop_disp_binder), env ) );
-}
-
-agent_coop_t::~agent_coop_t()
-{
-	// Initiate deleting of agents by hand to guarantee that
-	// agents will be destroyed before return from agent_coop_t
-	// destructor.
-	//
-	// NOTE: because agents are stored here by smart references
-	// for some agents this operation will lead only to reference
-	// counter descrement. Not to deletion of agent.
-	m_agent_array.clear();
 }
 
 const std::string &

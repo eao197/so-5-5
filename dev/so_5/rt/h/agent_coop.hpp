@@ -105,9 +105,6 @@ class SO_5_TYPE coop_notificators_container_t
 typedef smart_atomic_reference_t< coop_notificators_container_t >
 	coop_notificators_container_ref_t;
 
-//! Typedef for the agent_coop autopointer.
-typedef std::unique_ptr< agent_coop_t > agent_coop_unique_ptr_t;
-
 //! Agent cooperation.
 /*!
  * The main purpose of the cooperation is the introducing of several agents into
@@ -133,6 +130,18 @@ class SO_5_TYPE agent_coop_t
 		friend class impl::agent_core_t;
 		friend class impl::agent_coop_private_iface_t;
 
+
+	protected :
+		virtual ~agent_coop_t();
+
+	public:
+		/*!
+		 * \since v.5.2.3
+		 * \brief Deleter for agent_coop.
+		 */
+		static void
+		destroy( agent_coop_t * coop );
+
 		//! Constructor.
 		agent_coop_t(
 			//! Cooperation name.
@@ -141,19 +150,6 @@ class SO_5_TYPE agent_coop_t
 			disp_binder_unique_ptr_t coop_disp_binder,
 			//! SObjectizer Environment.
 			so_environment_t & env );
-
-	public:
-		//! Create a cooperation.
-		static agent_coop_unique_ptr_t
-		create_coop(
-			//! Cooperation name.
-			const nonempty_name_t & name,
-			//! Default dispatcher binding.
-			disp_binder_unique_ptr_t coop_disp_binder,
-			//! SObjectizer Environment for which cooperation will be created.
-			so_environment_t & env );
-
-		virtual ~agent_coop_t();
 
 		//! Get cooperation name.
 		const std::string &
@@ -574,6 +570,21 @@ class SO_5_TYPE agent_coop_t
 		coop_notificators_container_ref_t
 		dereg_notificators() const;
 };
+
+/*!
+ * \since v.5.2.3
+ * \brief A custom deleter for cooperation.
+ */
+class agent_coop_deleter_t
+{
+	public :
+		inline void
+		operator()( agent_coop_t * coop ) { agent_coop_t::destroy( coop ); }
+};
+
+//! Typedef for the agent_coop autopointer.
+typedef std::unique_ptr< agent_coop_t, agent_coop_deleter_t >
+	agent_coop_unique_ptr_t;
 
 //! Typedef for the agent_coop smart pointer.
 typedef std::shared_ptr< agent_coop_t > agent_coop_ref_t;

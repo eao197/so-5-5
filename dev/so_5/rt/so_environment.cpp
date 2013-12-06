@@ -238,10 +238,8 @@ so_environment_t::create_coop(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t disp_binder )
 {
-	return agent_coop_t::create_coop(
-		name,
-		std::move(disp_binder),
-		self_ref() );
+	return agent_coop_unique_ptr_t(
+			new agent_coop_t( name, std::move(disp_binder), self_ref() ) );
 }
 
 void

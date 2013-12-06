@@ -329,7 +329,9 @@ agent_core_t::register_coop(
 			"zero ptr to coop passed" );
 
 	// Cooperation object should life to the end of this routine.
-	agent_coop_ref_t coop_ref( agent_coop_ptr.release() );
+	agent_coop_ref_t coop_ref(
+			agent_coop_ptr.release(),
+			agent_coop_deleter_t() );
 
 	// Usage counter for cooperation should be incremented right now,
 	// and decremented at exit point.
