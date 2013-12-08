@@ -165,7 +165,9 @@ init(
 		env.register_coop( std::move( coop ) );
 		g_stage_monitors.wait_for_registration();
 
-		env.deregister_coop( so_5::rt::nonempty_name_t( "test_coop" ) );
+		env.deregister_coop(
+				"test_coop",
+				so_5::rt::dereg_reason::normal );
 		g_stage_monitors.wait_for_deregistration();
 	}
 	env.stop();
@@ -185,7 +187,8 @@ class listener_t : public so_5::rt::coop_listener_t
 		virtual void
 		on_deregistered(
 			so_5::rt::so_environment_t & so_env,
-			const std::string & coop_name )
+			const std::string & coop_name,
+			const so_5::rt::coop_dereg_reason_t &)
 		{
 			g_stage_monitors.notify_about_deregistration();
 		}

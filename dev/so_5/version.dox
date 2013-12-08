@@ -4,6 +4,13 @@
 
 \section so_5__2_3 5.2.3 "Tetnuld"
 
+	A class so_5::rt::coop_dereg_reason_t added. New namespace with
+	cooperation deregistration reasons enumeration added:
+	so_5::rt::dereg_reason.
+
+	Format of so_5::rt::so_environment_t::deregisted_coop() changed. It is
+	necessary to specify reason of cooperation deregistration.
+
 	New sample 'coop_user_resources' added.
 
 	An ability to store some dynamically allocated user resource inside
@@ -25,7 +32,7 @@
 	so_5::rt::make_coop_reg_notificator() and
 	so_5::rt::make_coop_dereg_notificator() added.
 
-	so_5::rt::coop_notificator_t and
+	so_5::rt::coop_reg_notificator_t and so_5::rt::coop_dereg_notificator_t
 	so_5::rt::agent_coop_t::add_reg_notificator() and
 	so_5::rt::agent_coop_t::add_dereg_notificator() are introduced.
 

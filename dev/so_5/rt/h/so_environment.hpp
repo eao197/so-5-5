@@ -638,7 +638,9 @@ class SO_5_TYPE so_environment_t
 		void
 		deregister_coop(
 			//! Name of the cooperation to be registered.
-			const nonempty_name_t & name );
+			const nonempty_name_t & name,
+			//! Deregistration reason.
+			int reason );
 		/*!
 		 * \}
 		 */

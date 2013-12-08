@@ -21,23 +21,23 @@ namespace rt
 {
 
 //
-// coop_notificators_container_t
+// coop_reg_notificators_container_t
 //
-coop_notificators_container_t::coop_notificators_container_t()
+coop_reg_notificators_container_t::coop_reg_notificators_container_t()
 {}
 
-coop_notificators_container_t::~coop_notificators_container_t()
+coop_reg_notificators_container_t::~coop_reg_notificators_container_t()
 {}
 
 void
-coop_notificators_container_t::add(
-	const coop_notificator_t & notificator )
+coop_reg_notificators_container_t::add(
+	const coop_reg_notificator_t & notificator )
 {
 	m_notificators.push_back( notificator );
 }
 
 void
-coop_notificators_container_t::call_all(
+coop_reg_notificators_container_t::call_all(
 	so_environment_t & env,
 	const std::string & coop_name ) const
 {
@@ -52,13 +52,54 @@ coop_notificators_container_t::call_all(
 		{
 			ACE_ERROR(
 					(LM_ERROR,
-					 SO_5_LOG_FMT( "on notification for coop '%s' exception: %s" ),
+					 SO_5_LOG_FMT( "on reg_notification for coop "
+						 	"'%s' exception: %s" ),
 					 coop_name.c_str(),
 					 x.what() ) );
 		}
 	}
 }
 
+//
+// coop_dereg_notificators_container_t
+//
+coop_dereg_notificators_container_t::coop_dereg_notificators_container_t()
+{}
+
+coop_dereg_notificators_container_t::~coop_dereg_notificators_container_t()
+{}
+
+void
+coop_dereg_notificators_container_t::add(
+	const coop_dereg_notificator_t & notificator )
+{
+	m_notificators.push_back( notificator );
+}
+
+void
+coop_dereg_notificators_container_t::call_all(
+	so_environment_t & env,
+	const std::string & coop_name,
+	const coop_dereg_reason_t & reason ) const
+{
+	for( auto i = m_notificators.begin(); i != m_notificators.end(); ++i )
+	{
+		// Exceptions should not go out.
+		try
+		{
+			(*i)( env, coop_name, reason );
+		}
+		catch( const std::exception & x )
+		{
+			ACE_ERROR(
+					(LM_ERROR,
+					 SO_5_LOG_FMT( "on dereg_notification for coop "
+						 	"'%s' exception: %s" ),
+					 coop_name.c_str(),
+					 x.what() ) );
+		}
+	}
+}
 //
 // agent_coop_t
 //
@@ -133,15 +174,15 @@ namespace
 	 * \since v.5.2.3
 	 * \brief Helper function for notificator addition.
 	 */
+	template< class C, class N >
 	inline void
 	do_add_notificator_to(
-		coop_notificators_container_ref_t & to,
-		const coop_notificator_t & notificator )
+		smart_atomic_reference_t< C > & to,
+		const N & notificator )
 	{
 		if( !to )
 		{
-			to = coop_notificators_container_ref_t(
-					new coop_notificators_container_t() );
+			to = smart_atomic_reference_t< C >( new C() );
 		}
 
 		to->add( notificator );
@@ -151,14 +192,14 @@ namespace
 
 void
 agent_coop_t::add_reg_notificator(
-	const coop_notificator_t & notificator )
+	const coop_reg_notificator_t & notificator )
 {
 	do_add_notificator_to( m_reg_notificators, notificator );
 }
 
 void
 agent_coop_t::add_dereg_notificator(
-	const coop_notificator_t & notificator )
+	const coop_dereg_notificator_t & notificator )
 {
 	do_add_notificator_to( m_dereg_notificators, notificator );
 }
@@ -208,8 +249,11 @@ agent_coop_t::do_registration_specific_actions(
 }
 
 void
-agent_coop_t::do_deregistration_specific_actions()
+agent_coop_t::do_deregistration_specific_actions(
+	coop_dereg_reason_t dereg_reason )
 {
+	m_dereg_reason = std::move( dereg_reason );
+
 	shutdown_all_agents();
 }
 
@@ -361,13 +405,13 @@ agent_coop_t::parent_coop_ptr() const
 	return m_parent_coop_ptr;
 }
 
-coop_notificators_container_ref_t
+coop_reg_notificators_container_ref_t
 agent_coop_t::reg_notificators() const
 {
 	return m_reg_notificators;
 }
 
-coop_notificators_container_ref_t
+coop_dereg_notificators_container_ref_t
 agent_coop_t::dereg_notificators() const
 {
 	return m_dereg_notificators;
@@ -380,6 +424,12 @@ agent_coop_t::delete_user_resources()
 			d != m_resource_deleters.end();
 			++d )
 		(*d)();
+}
+
+const coop_dereg_reason_t &
+agent_coop_t::dereg_reason() const
+{
+	return m_dereg_reason;
 }
 
 } /* namespace rt */

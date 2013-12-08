@@ -54,7 +54,9 @@ class a_test_t : public so_5::rt::agent_t
 		void
 		so_evt_start()
 		{
-			so_environment().deregister_coop( so_coop_name() );
+			so_environment().deregister_coop(
+					so_coop_name(),
+					so_5::rt::dereg_reason::normal );
 		}
 
 	private :

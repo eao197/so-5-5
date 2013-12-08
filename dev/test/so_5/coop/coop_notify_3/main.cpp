@@ -65,7 +65,9 @@ class a_test_t : public so_5::rt::agent_t
 
 			so_change_state( st_wait_deregistration );
 
-			so_environment().deregister_coop( evt->m_coop_name );
+			so_environment().deregister_coop(
+					evt->m_coop_name,
+					so_5::rt::dereg_reason::normal );
 		}
 
 		void

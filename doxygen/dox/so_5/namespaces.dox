@@ -103,6 +103,14 @@ namespace so_5
 
 		} /* namespace impl */
 
+		/*!
+		 * \since v.5.2.3
+		 * \brief Enumeration of cooperation deregistration reasons.
+		 */
+		namespace dereg_reason
+		{
+		} /* namespace dereg_reason */
+
 	} /* namespace rt */
 
 	/*!

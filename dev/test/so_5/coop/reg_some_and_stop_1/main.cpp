@@ -56,11 +56,11 @@ init( so_5::rt::so_environment_t & env )
 
 	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000) );
 
-	env.deregister_coop( "test_coop_1" );
+	env.deregister_coop( "test_coop_1", so_5::rt::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_6" );
+	env.deregister_coop( "test_coop_6", so_5::rt::dereg_reason::normal );
 
-	env.deregister_coop( "test_coop_3" );
+	env.deregister_coop( "test_coop_3", so_5::rt::dereg_reason::normal );
 
 	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000) );
 

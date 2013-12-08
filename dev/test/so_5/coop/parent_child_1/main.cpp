@@ -65,7 +65,9 @@ class a_test_t : public so_5::rt::agent_t
 			if( m_ordinal )
 				notify_parent();
 			else
-				so_environment().deregister_coop( so_coop_name() );
+				so_environment().deregister_coop(
+						so_coop_name(),
+						so_5::rt::dereg_reason::normal );
 		}
 
 	private :
@@ -166,9 +168,11 @@ class test_coop_listener_t
 		virtual void
 		on_deregistered(
 			so_5::rt::so_environment_t & env,
-			const std::string & coop_name )
+			const std::string & coop_name,
+			const so_5::rt::coop_dereg_reason_t & reason )
 		{
-			std::cout << "deregistered: " << coop_name << std::endl;
+			std::cout << "deregistered: " << coop_name
+					<< ", reason: " << reason.reason() << std::endl;
 
 			if( STARTER_COOP_NAME != coop_name )
 			{

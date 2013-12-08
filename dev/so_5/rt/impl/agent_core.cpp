@@ -41,7 +41,9 @@ public :
 		//! Owner of all data.
 		agent_core_t & core,
 		//! Name of root cooperation to be deregistered.
-		const std::string & root_coop_name );
+		const std::string & root_coop_name,
+		//! Deregistration reason.
+		coop_dereg_reason_t dereg_reason );
 
 	//! Do all necessary actions.
 	void
@@ -53,6 +55,12 @@ private :
 
 	//! Name of root cooperation to be deregistered.
 	const std::string & m_root_coop_name;
+
+	//! Deregistration reason.
+	/*!
+	 * This value used only for parent cooperation.
+	 */
+	coop_dereg_reason_t m_root_coop_dereg_reason;
 
 	//! Cooperations to be deregistered.
 	std::vector< agent_coop_ref_t > m_coops_to_dereg;
@@ -89,9 +97,11 @@ private :
 
 deregistration_processor_t::deregistration_processor_t(
 	agent_core_t & core,
-	const std::string & root_coop_name )
+	const std::string & root_coop_name,
+	coop_dereg_reason_t dereg_reason )
 	:	m_core( core )
 	,	m_root_coop_name( root_coop_name )
+	,	m_root_coop_dereg_reason( std::move( dereg_reason ) )
 {}
 
 void
@@ -130,13 +140,22 @@ deregistration_processor_t::second_stage()
 	try
 	{
 		// All cooperations should start deregistration actions.
-		std::for_each(
-				m_coops_to_dereg.begin(),
-				m_coops_to_dereg.end(),
-				[]( const agent_coop_ref_t & coop ) {
-					agent_coop_private_iface_t::
-						do_deregistration_specific_actions( *coop );
-				} );
+		for( auto it = m_coops_to_dereg.begin();
+				it != m_coops_to_dereg.end();
+				++it )
+		{
+			// The first item in that vector is a root cooperation.
+			// So the actual coop_dereg_reason should be used for it.
+			if( it == m_coops_to_dereg.begin() )
+				agent_coop_private_iface_t::
+					do_deregistration_specific_actions(
+						**it, std::move( m_root_coop_dereg_reason ) );
+			else
+				agent_coop_private_iface_t::
+					do_deregistration_specific_actions(
+						**it,
+						coop_dereg_reason_t( dereg_reason::parent_deregistration ) );
+		}
 	}
 	catch( const std::exception & x )
 	{
@@ -369,11 +388,13 @@ agent_core_t::register_coop(
 
 void
 agent_core_t::deregister_coop(
-	const nonempty_name_t & name )
+	const nonempty_name_t & name,
+	coop_dereg_reason_t dereg_reason )
 {
 	agent_core_details::deregistration_processor_t processor(
 			*this,
-			name.query_name() );
+			name.query_name(),
+			std::move( dereg_reason ) );
 
 	processor.process();
 }
@@ -389,13 +410,13 @@ void
 agent_core_t::final_deregister_coop(
 	const std::string coop_name )
 {
-	coop_notificators_container_ref_t notificators;
+	info_for_dereg_notification_t notification_info;
 
 	bool need_signal_dereg_finished;
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-		notificators = finaly_remove_cooperation_info( coop_name );
+		notification_info = finaly_remove_cooperation_info( coop_name );
 
 		// If we are inside shutdown process and this is the last
 		// cooperation then a special flag should be set.
@@ -408,7 +429,7 @@ agent_core_t::final_deregister_coop(
 
 	do_coop_dereg_notification_if_necessary(
 			coop_name,
-			notificators );
+			notification_info );
 }
 
 void
@@ -439,22 +460,17 @@ agent_core_t::wait_for_start_deregistration()
 }
 
 void
-agent_core_t::initiate_coop_deregistration(
-	agent_core_t::coop_map_t::value_type & coop )
-{
-	coop.second->do_deregistration_specific_actions();
-}
-
-void
 agent_core_t::deregister_all_coop()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
 
-	std::for_each(
-		m_registered_coop.begin(),
-		m_registered_coop.end(),
-		agent_core_t::initiate_coop_deregistration );
-
+	for( auto it = m_registered_coop.begin(), it_end = m_registered_coop.end();
+			it != it_end;
+			++it )
+		agent_coop_private_iface_t::do_deregistration_specific_actions(
+				*(it->second),
+				coop_dereg_reason_t( dereg_reason::shutdown ) );
+			
 	m_deregistered_coop.insert(
 		m_registered_coop.begin(),
 		m_registered_coop.end() );
@@ -567,11 +583,11 @@ agent_core_t::next_coop_reg_step__parent_child_relation(
 	}
 }
 
-coop_notificators_container_ref_t
+agent_core_t::info_for_dereg_notification_t
 agent_core_t::finaly_remove_cooperation_info(
 	const std::string & coop_name )
 {
-	coop_notificators_container_ref_t ret_value;
+	info_for_dereg_notification_t ret_value;
 
 	auto it = m_deregistered_coop.find( coop_name );
 	if( it != m_deregistered_coop.end() )
@@ -588,8 +604,11 @@ agent_core_t::finaly_remove_cooperation_info(
 			agent_coop_t::decrement_usage_count( *parent );
 		}
 
-		ret_value = agent_coop_private_iface_t::dereg_notificators(
-				*(it->second) );
+		ret_value = info_for_dereg_notification_t(
+				agent_coop_private_iface_t::dereg_reason(
+						*(it->second) ),
+				agent_coop_private_iface_t::dereg_notificators(
+						*(it->second) ) );
 
 		m_deregistered_coop.erase( it );
 	}
@@ -600,7 +619,7 @@ agent_core_t::finaly_remove_cooperation_info(
 void
 agent_core_t::do_coop_reg_notification_if_necessary(
 	const std::string & coop_name,
-	const coop_notificators_container_ref_t & notificators ) const
+	const coop_reg_notificators_container_ref_t & notificators ) const
 {
 	if( m_coop_listener.get() )
 		m_coop_listener->on_registered( m_so_environment, coop_name );
@@ -612,13 +631,19 @@ agent_core_t::do_coop_reg_notification_if_necessary(
 void
 agent_core_t::do_coop_dereg_notification_if_necessary(
 	const std::string & coop_name,
-	const coop_notificators_container_ref_t & notificators ) const
+	const info_for_dereg_notification_t & notification_info ) const
 {
 	if( m_coop_listener.get() )
-		m_coop_listener->on_deregistered( m_so_environment, coop_name );
+		m_coop_listener->on_deregistered(
+				m_so_environment,
+				coop_name,
+				notification_info.m_reason );
 
-	if( notificators )
-		notificators->call_all( m_so_environment, coop_name );
+	if( notification_info.m_notificators )
+		notification_info.m_notificators->call_all(
+				m_so_environment,
+				coop_name,
+				notification_info.m_reason );
 }
 
 } /* namespace impl */

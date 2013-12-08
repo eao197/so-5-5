@@ -63,7 +63,9 @@ class std_event_exception_response_action_t
 		virtual void
 		respond_to_exception()
 		{
-			m_so_environment.deregister_coop( m_coop_name );
+			m_so_environment.deregister_coop(
+					m_coop_name,
+					dereg_reason::unhandled_exception );
 		}
 
 	private:

@@ -31,7 +31,9 @@ class dereg_coop_exception_response_action_t
 			std::cout << "Cooperation will be deregistered: "
 				<< m_coop_name << std::endl;
 
-			m_so_environment.deregister_coop( m_coop_name );
+			m_so_environment.deregister_coop(
+					m_coop_name,
+					so_5::rt::dereg_reason::unhandled_exception );
 		}
 
 	private:
@@ -133,7 +135,8 @@ class a_parent_t
 			const so_5::rt::event_data_t<
 					so_5::rt::msg_coop_deregistered > & evt )
 		{
-			std::cout << "coop_dereg: " << evt->m_coop_name << std::endl;
+			std::cout << "coop_dereg: " << evt->m_coop_name
+				<< ", reason: " << evt->m_reason.reason() << std::endl;
 
 			++m_counter;
 			register_child_coop();

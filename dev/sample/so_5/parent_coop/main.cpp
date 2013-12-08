@@ -107,7 +107,9 @@ class a_child_t
 
 			// Deregister child cooperation and close 
 			// down activity of this child instance.
-			so_environment().deregister_coop( so_coop_name() );
+			so_environment().deregister_coop(
+					so_coop_name(),
+					so_5::rt::dereg_reason::normal );
 		}
 
 	private:

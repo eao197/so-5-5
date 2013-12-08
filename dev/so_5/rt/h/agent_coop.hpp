@@ -37,16 +37,80 @@ class so_environment_impl_t;
 
 } /* namespace impl */
 
-
 class so_environment_t;
 class agent_coop_t;
 
+namespace dereg_reason
+{
+
+/*!
+ * \name Cooperation deregistration reasons.
+ * \{
+ */
+//! Normal deregistration.
+const int normal = 0;
+
+//! Deregistration because SObjectizer Environment shutdown.
+const int shutdown = 1;
+
+//! Deregistration because parent cooperation deregistration.
+const int parent_deregistration = 2;
+
+//! Deregistration because of unhandled exception.
+const int unhandled_exception = 3;
+
+//! Deregistration because of unknown error.
+const int unknown_error = 4;
+
+//! Reason is not properly defined.
+const int undefined = -1;
+
+//! A starting point for user-defined reasons.
+const int user_defined_reason = 0x1000;
+/*!
+ * \}
+ */
+} /* namespace dereg_reason */
+
 //
-// coop_notificator_t
+// coop_dereg_reason_t
 //
 /*!
  * \since v.5.2.3
- * \brief Type of cooperation notificator.
+ */
+class coop_dereg_reason_t
+{
+	public :
+		inline coop_dereg_reason_t()
+			:	m_reason( dereg_reason::undefined )
+		{}
+
+		inline explicit coop_dereg_reason_t( int reason )
+			:	m_reason( reason )
+		{}
+
+		inline int
+		reason() const
+		{
+			return m_reason;
+		}
+
+		inline void
+		swap( coop_dereg_reason_t & o )
+		{
+			std::swap( m_reason, o.m_reason );
+		}
+
+	private :
+		int m_reason;
+};
+
+//
+// coop_reg_notificator_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Type of cooperation registration notificator.
  *
  * Cooperation notificator should be a function with the following
  * prototype:
@@ -61,26 +125,26 @@ notificator(
  */
 typedef std::function<
 				void(so_environment_t &, const std::string &) >
-		coop_notificator_t;
+		coop_reg_notificator_t;
 
 //
-// coop_notificators_container_t
+// coop_reg_notificators_container_t
 //
 /*!
  * \since v.5.2.3
- * \brief Container for cooperation notificators.
+ * \brief Container for cooperation registration notificators.
  */
-class SO_5_TYPE coop_notificators_container_t
+class SO_5_TYPE coop_reg_notificators_container_t
 	:	public atomic_refcounted_t
 {
 	public :
-		coop_notificators_container_t();
-		~coop_notificators_container_t();
+		coop_reg_notificators_container_t();
+		~coop_reg_notificators_container_t();
 
 		//! Add a notificator.
 		void
 		add(
-			const coop_notificator_t & notificator );
+			const coop_reg_notificator_t & notificator );
 
 		//! Call all notificators.
 		/*!
@@ -92,18 +156,88 @@ class SO_5_TYPE coop_notificators_container_t
 			const std::string & coop_name ) const;
 
 	private :
-		std::vector< coop_notificator_t > m_notificators;
+		std::vector< coop_reg_notificator_t > m_notificators;
 };
 
 //
-// coop_notificators_container_ref_t
+// coop_reg_notificators_container_ref_t
 //
 /*!
  * \since v.5.2.3
  * \brief Typedef for smart pointer to notificators_container.
  */
-typedef smart_atomic_reference_t< coop_notificators_container_t >
-	coop_notificators_container_ref_t;
+typedef smart_atomic_reference_t< coop_reg_notificators_container_t >
+	coop_reg_notificators_container_ref_t;
+
+//
+// coop_dereg_notificator_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Type of cooperation deregistration notificator.
+ *
+ * Cooperation notificator should be a function with the following
+ * prototype:
+\code
+void
+notificator(
+	// SObjectizer Environment for cooperation.
+	so_5::rt::so_environment_t & env,
+	// Name of cooperation.
+	const std::string & coop_name,
+	// Reason of deregistration.
+	const so_5::rt::coop_dereg_reason_t & reason );
+\endcode
+ */
+typedef std::function<
+				void(
+						so_environment_t &,
+						const std::string &,
+						const coop_dereg_reason_t &) >
+		coop_dereg_notificator_t;
+
+//
+// coop_dereg_notificators_container_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Container for cooperation deregistration notificators.
+ */
+class SO_5_TYPE coop_dereg_notificators_container_t
+	:	public atomic_refcounted_t
+{
+	public :
+		coop_dereg_notificators_container_t();
+		~coop_dereg_notificators_container_t();
+
+		//! Add a notificator.
+		void
+		add(
+			const coop_dereg_notificator_t & notificator );
+
+		//! Call all notificators.
+		/*!
+		 * \note All exceptions are suppressed.
+		 */
+		void
+		call_all(
+			so_environment_t & env,
+			const std::string & coop_name,
+			const coop_dereg_reason_t & reason ) const;
+
+	private :
+		std::vector< coop_dereg_notificator_t > m_notificators;
+};
+
+//
+// coop_dereg_notificators_container_ref_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief Typedef for smart pointer to notificators_container.
+ */
+typedef smart_atomic_reference_t< coop_dereg_notificators_container_t >
+	coop_dereg_notificators_container_ref_t;
 
 //! Agent cooperation.
 /*!
@@ -129,7 +263,6 @@ class SO_5_TYPE agent_coop_t
 		friend class agent_t;
 		friend class impl::agent_core_t;
 		friend class impl::agent_coop_private_iface_t;
-
 
 	protected :
 		virtual ~agent_coop_t();
@@ -294,7 +427,7 @@ class SO_5_TYPE agent_coop_t
 		 */
 		void
 		add_reg_notificator(
-			const coop_notificator_t & notificator );
+			const coop_reg_notificator_t & notificator );
 
 		/*!
 		 * \since v.5.2.3
@@ -302,7 +435,7 @@ class SO_5_TYPE agent_coop_t
 		 */
 		void
 		add_dereg_notificator(
-			const coop_notificator_t & notificator );
+			const coop_dereg_notificator_t & notificator );
 		/*!
 		 * \}
 		 */
@@ -443,13 +576,13 @@ class SO_5_TYPE agent_coop_t
 		 * \since v.5.2.3
 		 * \brief Notificators for registration event.
 		 */
-		coop_notificators_container_ref_t m_reg_notificators;
+		coop_reg_notificators_container_ref_t m_reg_notificators;
 
 		/*!
 		 * \since v.5.2.3
 		 * \brief Notificators for deregistration event.
 		 */
-		coop_notificators_container_ref_t m_dereg_notificators;
+		coop_dereg_notificators_container_ref_t m_dereg_notificators;
 
 		/*!
 		 * \since v.5.2.3
@@ -470,6 +603,14 @@ class SO_5_TYPE agent_coop_t
 		 * \brief Container of user resource deleters.
 		 */
 		resource_deleter_vector_t m_resource_deleters;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Deregistration reason.
+		 *
+		 * Receives actual value only in do_deregistration_specific_actions().
+		 */
+		coop_dereg_reason_t m_dereg_reason;
 
 		//! Add agent to cooperation.
 		/*!
@@ -510,7 +651,9 @@ class SO_5_TYPE agent_coop_t
 		 * cooperation deregistration.
 		 */
 		void
-		do_deregistration_specific_actions();
+		do_deregistration_specific_actions(
+			//! Deregistration reason.
+			coop_dereg_reason_t dereg_reason );
 
 		//! Bind agents to the cooperation.
 		void
@@ -614,14 +757,14 @@ class SO_5_TYPE agent_coop_t
 		 * \since v.5.2.3
 		 * \brief Get registration notificators.
 		 */
-		coop_notificators_container_ref_t
+		coop_reg_notificators_container_ref_t
 		reg_notificators() const;
 
 		/*!
 		 * \since v.5.2.3
 		 * \brief Get deregistration notificators.
 		 */
-		coop_notificators_container_ref_t
+		coop_dereg_notificators_container_ref_t
 		dereg_notificators() const;
 
 		/*!
@@ -630,6 +773,13 @@ class SO_5_TYPE agent_coop_t
 		 */
 		void
 		delete_user_resources();
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Get deregistration reason.
+		 */
+		const coop_dereg_reason_t &
+		dereg_reason() const;
 };
 
 /*!

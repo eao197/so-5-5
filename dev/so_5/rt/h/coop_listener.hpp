@@ -22,6 +22,7 @@ namespace rt
 {
 
 class so_environment_t;
+class coop_dereg_reason_t;
 
 //
 // coop_listener_t
@@ -62,7 +63,9 @@ class SO_5_TYPE coop_listener_t
 			//! SObjectizer Environment.
 			so_environment_t & so_env,
 			//! Cooperation which was registered.
-			const std::string & coop_name ) = 0;
+			const std::string & coop_name,
+			//! Reason of deregistration.
+			const coop_dereg_reason_t & reason ) = 0;
 };
 
 //! Typedef for the coop_listener autopointer.

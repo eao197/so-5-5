@@ -26,7 +26,9 @@ class a_child_t : public so_5::rt::agent_t
 		void
 		so_evt_start()
 		{
-			so_environment().deregister_coop( so_coop_name() );
+			so_environment().deregister_coop(
+					so_coop_name(),
+					so_5::rt::dereg_reason::normal );
 		}
 };
 
@@ -37,8 +39,8 @@ class a_test_t : public so_5::rt::agent_t
 	public :
 		a_test_t(
 			so_5::rt::so_environment_t & env,
-			const so_5::rt::coop_notificator_t & reg_notificator,
-			const so_5::rt::coop_notificator_t & dereg_notificator )
+			const so_5::rt::coop_reg_notificator_t & reg_notificator,
+			const so_5::rt::coop_dereg_notificator_t & dereg_notificator )
 			:	base_type_t( env )
 			,	m_reg_notificator( reg_notificator )
 			,	m_dereg_notificator( dereg_notificator )
@@ -60,7 +62,8 @@ class a_test_t : public so_5::rt::agent_t
 			child_coop->add_dereg_notificator( m_dereg_notificator );
 			child_coop->add_dereg_notificator(
 					[this]( so_5::rt::so_environment_t &,
-						const std::string & )
+						const std::string &,
+						const so_5::rt::coop_dereg_reason_t &)
 					{
 						m_mbox->deliver_signal< msg_child_deregistered >();
 					} );
@@ -78,8 +81,8 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::coop_notificator_t m_reg_notificator;
-		const so_5::rt::coop_notificator_t m_dereg_notificator;
+		const so_5::rt::coop_reg_notificator_t m_reg_notificator;
+		const so_5::rt::coop_dereg_notificator_t m_dereg_notificator;
 
 		const so_5::rt::mbox_ref_t m_mbox;
 };
@@ -103,7 +106,8 @@ class test_env_t
 					};
 			auto on_dereg =
 					[this]( so_5::rt::so_environment_t &,
-							const std::string & )
+							const std::string &,
+							const so_5::rt::coop_dereg_reason_t &)
 					{
 						m_dereg_notify_received = true;
 					};

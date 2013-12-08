@@ -146,9 +146,13 @@ class so_environment_impl_t
 		void
 		deregister_coop(
 			//! Cooperation to be deregistered.
-			const nonempty_name_t & name )
+			const nonempty_name_t & name,
+			//! Deregistration reason.
+			int reason )
 		{
-			m_agent_core.deregister_coop( name );
+			m_agent_core.deregister_coop(
+					name,
+					coop_dereg_reason_t( reason ) );
 		}
 
 		//! Notification about readiness to the deregistration.

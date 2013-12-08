@@ -57,9 +57,12 @@ class agent_coop_private_iface_t
 {
 	public :
 		inline static void
-		do_deregistration_specific_actions( agent_coop_t & coop )
+		do_deregistration_specific_actions(
+			agent_coop_t & coop,
+			coop_dereg_reason_t dereg_reason )
 		{
-			coop.do_deregistration_specific_actions();
+			coop.do_deregistration_specific_actions(
+					std::move( dereg_reason ) );
 		}
 
 		inline static agent_coop_t *
@@ -68,16 +71,22 @@ class agent_coop_private_iface_t
 			return coop.parent_coop_ptr();
 		}
 
-		inline static coop_notificators_container_ref_t
+		inline static coop_reg_notificators_container_ref_t
 		reg_notificators( const agent_coop_t & coop )
 		{
 			return coop.reg_notificators();
 		}
 
-		inline static coop_notificators_container_ref_t
+		inline static coop_dereg_notificators_container_ref_t
 		dereg_notificators( const agent_coop_t & coop )
 		{
 			return coop.dereg_notificators();
+		}
+
+		inline static coop_dereg_reason_t
+		dereg_reason( const agent_coop_t & coop )
+		{
+			return coop.dereg_reason();
 		}
 };
 
@@ -133,7 +142,9 @@ class agent_core_t
 		void
 		deregister_coop(
 			//! Cooperation name which being deregistered.
-			const nonempty_name_t & name );
+			const nonempty_name_t & name,
+			//! Deregistration reason.
+			coop_dereg_reason_t dereg_reason );
 
 		//! Notification about readiness of the cooperation deregistration.
 		void
@@ -193,6 +204,46 @@ class agent_core_t
 		typedef std::set< parent_child_coop_names_t >
 			parent_child_coop_relation_t;
 
+		/*!
+		 * \since v.5.2.3
+		 * \brief Information for deregistration notification.
+		 */
+		struct info_for_dereg_notification_t
+		{
+			coop_dereg_reason_t m_reason;
+			coop_dereg_notificators_container_ref_t m_notificators;
+
+			info_for_dereg_notification_t()
+			{}
+
+			info_for_dereg_notification_t(
+				coop_dereg_reason_t reason,
+				coop_dereg_notificators_container_ref_t notificators )
+				:	m_reason( std::move( reason ) )
+				,	m_notificators( notificators )
+			{}
+
+			info_for_dereg_notification_t(
+				info_for_dereg_notification_t && info )
+				:	m_reason( std::move( info.m_reason ) )
+				,	m_notificators( std::move( info.m_notificators ) )
+			{}
+
+			info_for_dereg_notification_t &
+			operator=( info_for_dereg_notification_t o )
+			{
+				o.swap( *this );
+				return *this;
+			}
+
+			void
+			swap( info_for_dereg_notification_t & o )
+			{
+				m_reason.swap( o.m_reason );
+				m_notificators.swap( o.m_notificators );
+			}
+		};
+
 		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;
 
@@ -229,11 +280,6 @@ class agent_core_t
 		 * relationship.
 		 */
 		parent_child_coop_relation_t m_parent_child_relations;
-
-		//! An auxiliary method for the std::for_each.
-		static void
-		initiate_coop_deregistration(
-			agent_core_t::coop_map_t::value_type & coop );
 
 		/*!
 		 * \since v.5.2.3
@@ -294,7 +340,7 @@ class agent_core_t
 		 *
 		 * Information about cooperation is removed from m_deregistered_coop.
 		 */
-		coop_notificators_container_ref_t
+		info_for_dereg_notification_t
 		finaly_remove_cooperation_info(
 			const std::string & coop_name );
 
@@ -306,7 +352,7 @@ class agent_core_t
 		void
 		do_coop_reg_notification_if_necessary(
 			const std::string & coop_name,
-			const coop_notificators_container_ref_t & notificators ) const;
+			const coop_reg_notificators_container_ref_t & notificators ) const;
 
 		/*!
 		 * \since v.5.2.3
@@ -316,7 +362,7 @@ class agent_core_t
 		void
 		do_coop_dereg_notification_if_necessary(
 			const std::string & coop_name,
-			const coop_notificators_container_ref_t & notificators ) const;
+			const info_for_dereg_notification_t & notification_info ) const;
 };
 
 } /* namespace impl */

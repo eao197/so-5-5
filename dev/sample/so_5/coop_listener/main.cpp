@@ -59,10 +59,12 @@ class coop_listener_impl_t
 		virtual void
 		on_deregistered(
 			so_5::rt::so_environment_t & so_env,
-			const std::string & coop_name ) throw()
+			const std::string & coop_name,
+			const so_5::rt::coop_dereg_reason_t & reason ) throw()
 		{
 			std::cout << "coop_listener: deregister coop '"
-				<< coop_name << "'\n";
+				<< coop_name << "', reason: "
+				<< reason.reason() << "\n";
 		}
 };
 

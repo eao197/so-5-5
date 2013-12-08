@@ -251,9 +251,10 @@ so_environment_t::register_coop(
 
 void
 so_environment_t::deregister_coop(
-	const nonempty_name_t & name )
+	const nonempty_name_t & name,
+	int reason )
 {
-	m_so_environment_impl->deregister_coop( name );
+	m_so_environment_impl->deregister_coop( name, reason );
 }
 
 so_5::timer_thread::timer_id_ref_t

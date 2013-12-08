@@ -41,7 +41,8 @@ class a_slave_t
 		so_evt_start()
 		{
 			so_environment().deregister_coop(
-				so_5::rt::nonempty_name_t( so_coop_name() ) );
+				so_coop_name(),
+				so_5::rt::dereg_reason::normal );
 
 			m_master_mbox->deliver_signal< slave_coop_finished_signal >();
 		}
