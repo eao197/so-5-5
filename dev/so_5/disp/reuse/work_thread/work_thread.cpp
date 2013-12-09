@@ -9,7 +9,10 @@
 #include <ace/Guard_T.h>
 #include <ace/Thread_Manager.h>
 
+#include <so_5/h/log_err.hpp>
+
 #include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/so_environment.hpp>
 #include <so_5/rt/h/event_exception_handler.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
@@ -208,16 +211,26 @@ work_thread_t::body()
 
 	while( m_continue_work.value() == WORK_THREAD_CONTINUE )
 	{
-		while( m_continue_work.value() == WORK_THREAD_CONTINUE )
+		try
 		{
-			// If the local queue is empty then we should try
-			// to get new demands.
-			if( demands.empty() )
-				result = m_queue.pop( demands );
+			while( m_continue_work.value() == WORK_THREAD_CONTINUE )
+			{
+				// If the local queue is empty then we should try
+				// to get new demands.
+				if( demands.empty() )
+					result = m_queue.pop( demands );
 
-			// Serve demands if any.
-			if( demand_queue_t::demand_extracted == result )
-				serve_demands_block( demands );
+				// Serve demands if any.
+				if( demand_queue_t::demand_extracted == result )
+					serve_demands_block( demands );
+			}
+		}
+		catch( const std::exception & x )
+		{
+			if( !demands.empty() )
+				handle_exception( x, *(demands.front().m_agent_ptr) );
+			else
+				handle_exception_on_empty_demands_queue( x );
 		}
 	}
 }
@@ -225,14 +238,117 @@ work_thread_t::body()
 void
 work_thread_t::handle_exception(
 	const std::exception & ex,
-	const so_5::rt::agent_t & a_exception_producer )
+	so_5::rt::agent_t & a_exception_producer )
 {
-	auto response_action =
-			m_disp.query_disp_evt_except_handler().handle_exception(
-				ex,
-				a_exception_producer.so_coop_name() );
+	log_unhandled_exception( ex, a_exception_producer );
 
-	response_action->respond_to_exception();
+	auto reaction = a_exception_producer.so_exception_reaction();
+	if( so_5::rt::abort_on_exception == reaction )
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT( "Application will be aborted due to unhandled "
+					 	"exception '%s' from cooperation '%s'" ),
+				 ex.what(),
+				 a_exception_producer.so_coop_name().c_str()) );
+		ACE_OS::abort();
+	}
+	else if( so_5::rt::deregister_coop_on_exception == reaction )
+	{
+		ACE_ERROR(
+				(LM_ALERT,
+				 SO_5_LOG_FMT( "Cooperation '%s' will be deregistered "
+					 	"due to unhandled exception '%s'" ),
+				 a_exception_producer.so_coop_name().c_str(),
+				 ex.what()) );
+
+		switch_agent_to_special_state_and_deregister_coop(
+				a_exception_producer );
+	}
+	else if( so_5::rt::ignore_exception == reaction )
+	{
+		ACE_ERROR(
+				(LM_WARNING,
+				 SO_5_LOG_FMT( "Unhandled exception '%s' from cooperation '%s'"
+					 	" will be ignored" ),
+				 ex.what(),
+				 a_exception_producer.so_coop_name().c_str()) );
+	}
+	else
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT( "Unknown exception_reaction code: %d. "
+					 	"Application will be aborted. "
+					 	"Unhandled exception '%s' from cooperation '%s'" ),
+				 static_cast< int >(reaction),
+				 ex.what(),
+				 a_exception_producer.so_coop_name().c_str()) );
+		ACE_OS::abort();
+	}
+}
+
+void
+work_thread_t::handle_exception_on_empty_demands_queue(
+	const std::exception & ex )
+{
+	ACE_ERROR(
+			(LM_EMERGENCY,
+			 SO_5_LOG_FMT( "An exception caught without the current "
+				 	"working agent. Exception: %s" ),
+			 ex.what()) );
+}
+
+void
+work_thread_t::log_unhandled_exception(
+	const std::exception & ex_to_log,
+	so_5::rt::agent_t & a_exception_producer )
+{
+	try
+	{
+		a_exception_producer.so_environment().call_exception_logger(
+				ex_to_log,
+				a_exception_producer.so_coop_name() );
+	}
+	catch( const std::exception & x )
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT( "An exception '%s' during logging unhandled "
+					 	"exception '%s' from cooperation '%s'. "
+						"Application will be aborted." ),
+				 x.what(),
+				 ex_to_log.what(),
+				 a_exception_producer.so_coop_name().c_str()) );
+
+		ACE_OS::abort();
+	}
+}
+
+void
+work_thread_t::switch_agent_to_special_state_and_deregister_coop(
+	so_5::rt::agent_t & a_exception_producer )
+{
+	const std::string coop_name = a_exception_producer.so_coop_name();
+	try
+	{
+		a_exception_producer.so_switch_to_awaiting_deregistration_state();
+		a_exception_producer.so_environment().deregister_coop(
+				coop_name,
+				so_5::rt::dereg_reason::unhandled_exception );
+	}
+	catch( const std::exception & x )
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT( "An exception '%s' during "
+					 	"deregistring cooperation '%s' on unhandled exception"
+						"processing. Application will be aborted." ),
+				 x.what(),
+				 coop_name.c_str()) );
+
+		ACE_OS::abort();
+	}
 }
 
 inline void
@@ -241,22 +357,15 @@ work_thread_t::serve_demands_block(
 {
 	while( !demands.empty() )
 	{
-		demand_t demand = demands.front();
-		demands.pop_front();
+		demand_t & demand = demands.front();
 
-		try
+		while( demand.m_event_cnt-- )
 		{
-			while( demand.m_event_cnt-- )
-			{
-				so_5::rt::agent_t::call_next_event(
-					*demand.m_agent_ptr );
-			}
+			so_5::rt::agent_t::call_next_event(
+				*demand.m_agent_ptr );
 		}
-		catch( const std::exception & x )
-		{
-			// Exception should be processed.
-			handle_exception( x, *(demand.m_agent_ptr) );
-		}
+
+		demands.pop_front();
 	}
 }
 

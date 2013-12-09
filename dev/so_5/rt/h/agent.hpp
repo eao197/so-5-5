@@ -50,6 +50,24 @@ class agent_coop_t;
 class agent_t;
 
 //
+// exception_reaction_t
+//
+/*!
+ * \since v.5.2.3
+ * \brief A reaction of SObjectizer to an exception from agent event.
+ */
+enum exception_reaction_t
+{
+	//! Execution of application must be aborted immediatelly.
+	abort_on_exception,
+	//! Agent must be switched to special state and agent's cooperation
+	//! must be deregistered.
+	deregister_coop_on_exception,
+	//! Exception should be ignored and agent should continue its work.
+	ignore_exception
+};
+
+//
 // subscription_bind_t
 //
 
@@ -331,6 +349,28 @@ class SO_5_TYPE agent_t
 		void
 		so_add_destroyable_listener(
 			agent_state_listener_unique_ptr_t state_listener );
+
+		/*!
+		 * \since v.5.2.3.
+		 * \brief A reaction from SObjectizer to an exception from
+		 * agent's event.
+		 *
+		 * If an exception is going out from agent's event it will be
+		 * caught by SObjectizer. Then SObjectizer will call this method
+		 * and perform some actions in dependence of return value.
+		 *
+		 * By default this method returns deregister_coop_on_exception.
+		 */
+		virtual exception_reaction_t
+		so_exception_reaction() const;
+
+		/*!
+		 * \since 5.2.3
+		 * \brief Switching agent to special state in case of unhandled
+		 * exception.
+		 */
+		void
+		so_switch_to_awaiting_deregistration_state();
 
 		//! Push an event to the agent's event queue.
 		/*!
@@ -618,6 +658,15 @@ class SO_5_TYPE agent_t
 
 		//! Current agent state.
 		const state_t * m_current_state_ptr;
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief A special state for awaiting deregistration.
+		 *
+		 * Agent is switched to that state when it let an exception to go
+		 * out from event handler.
+		 */
+		const state_t m_awaiting_deregistration_state;
 
 		//! Agent definition flag.
 		/*!

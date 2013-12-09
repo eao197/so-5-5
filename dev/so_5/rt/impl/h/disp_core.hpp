@@ -89,6 +89,17 @@ class disp_core_t
 			//! A cooperation to which agent is belong.
 			const std::string & coop_name );
 
+		/*!
+		 * \since v.5.2.3.
+		 * \brief Call event exception logger for logging an exception.
+		 */
+		void
+		call_exception_logger(
+			//! Exception caught.
+			const std::exception & event_exception,
+			//! A cooperation to which agent is belong.
+			const std::string & coop_name );
+
 	private:
 		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;

@@ -313,6 +313,14 @@ so_environment_t::so_environment_impl()
 	return *m_so_environment_impl;
 }
 
+void
+so_environment_t::call_exception_logger(
+	const std::exception & event_exception,
+	const std::string & coop_name )
+{
+	m_so_environment_impl->call_exception_logger( event_exception, coop_name );
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */

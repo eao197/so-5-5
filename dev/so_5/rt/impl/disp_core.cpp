@@ -133,6 +133,16 @@ disp_core_t::handle_exception(
 }
 
 void
+disp_core_t::call_exception_logger(
+	const std::exception & event_exception,
+	const std::string & coop_name )
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_exception_logger_lock );
+
+	m_event_exception_logger->log_exception( event_exception, coop_name );
+}
+
+void
 disp_core_t::send_shutdown_signal()
 {
 	named_dispatcher_map_t::iterator it = m_named_dispatcher_map.begin();

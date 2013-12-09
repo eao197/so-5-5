@@ -124,6 +124,20 @@ class so_environment_impl_t
 		{
 			m_disp_core.install_exception_handler( std::move( handler ) );
 		}
+
+		/*!
+		 * \since v.5.2.3.
+		 * \brief Call event exception logger for logging an exception.
+		 */
+		inline void
+		call_exception_logger(
+			//! Exception caught.
+			const std::exception & event_exception,
+			//! A cooperation to which agent is belong.
+			const std::string & coop_name )
+		{
+			m_disp_core.call_exception_logger( event_exception, coop_name );
+		}
 		/*!
 		 * \}
 		 */

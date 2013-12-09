@@ -40,6 +40,7 @@ agent_t::agent_t(
 	:
 		m_default_state( self_ptr() ),
 		m_current_state_ptr( &m_default_state ),
+		m_awaiting_deregistration_state( self_ptr() ),
 		m_was_defined( false ),
 		m_state_listener_controller(
 			new impl::state_listener_controller_t ),
@@ -100,6 +101,18 @@ agent_t::so_add_destroyable_listener(
 {
 	m_state_listener_controller->so_add_destroyable_listener(
 		std::move( state_listener ) );
+}
+
+exception_reaction_t
+agent_t::so_exception_reaction() const
+{
+	return deregister_coop_on_exception;
+}
+
+void
+agent_t::so_switch_to_awaiting_deregistration_state()
+{
+	so_change_state( m_awaiting_deregistration_state );
 }
 
 const state_t &

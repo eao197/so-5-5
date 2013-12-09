@@ -833,6 +833,17 @@ class SO_5_TYPE so_environment_t
 		impl::so_environment_impl_t &
 		so_environment_impl();
 
+		/*!
+		 * \since v.5.2.3.
+		 * \brief Call event exception logger for logging an exception.
+		 */
+		void
+		call_exception_logger(
+			//! Exception caught.
+			const std::exception & event_exception,
+			//! A cooperation to which agent is belong.
+			const std::string & coop_name );
+
 	private:
 		//! Schedule timer event.
 		so_5::timer_thread::timer_id_ref_t

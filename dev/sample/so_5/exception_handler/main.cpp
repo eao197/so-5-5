@@ -1,5 +1,5 @@
 /*
- * A sample for the exception handler.
+ * A sample for the exception reaction.
  */
 
 #include <iostream>
@@ -8,58 +8,6 @@
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
-
-// A reaction to an exception.
-// Will finish SObjectizer work.
-class sample_event_exception_response_action_t
-	:
-		public so_5::rt::event_exception_response_action_t
-{
-	public:
-		sample_event_exception_response_action_t(
-			// SObjectizer Environment to be stopped.
-			so_5::rt::so_environment_t & so_environment )
-			:
-				m_so_environment( so_environment )
-		{}
-
-		virtual ~sample_event_exception_response_action_t()
-		{}
-
-		virtual void
-		respond_to_exception()
-		{
-			std::cout
-				<< "Respond to exception:  stop SO Environment."
-				<< std::endl;
-
-			m_so_environment.stop();
-		}
-
-	private:
-		so_5::rt::so_environment_t & m_so_environment;
-};
-
-// Exception handler class.
-class sample_event_exception_handler_t
-	:
-		public so_5::rt::event_exception_handler_t
-{
-	public:
-		virtual ~sample_event_exception_handler_t()
-		{}
-
-		// A reaction to exception.
-		virtual so_5::rt::event_exception_response_action_unique_ptr_t
-		handle_exception(
-			so_5::rt::so_environment_t & so_environment,
-			const std::exception & ,
-			const std::string &  )
-		{
-			return so_5::rt::event_exception_response_action_unique_ptr_t(
-				new sample_event_exception_response_action_t( so_environment ) );
-		}
-};
 
 // A class of an agent which will throw an exception.
 class a_hello_t
@@ -78,11 +26,13 @@ class a_hello_t
 		virtual void
 		so_evt_start()
 		{
-			so_environment().install_exception_handler(
-				so_5::rt::event_exception_handler_unique_ptr_t(
-					new sample_event_exception_handler_t ) );
-
 			throw std::runtime_error( "sample exception" );
+		}
+
+		virtual so_5::rt::exception_reaction_t
+		so_exception_reaction() const
+		{
+			return so_5::rt::abort_on_exception;
 		}
 };
 

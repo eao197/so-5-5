@@ -65,6 +65,13 @@ class a_hello_t
 			// Stopping SObjectizer.
 			so_environment().stop();
 		}
+
+		// An instruction to SObjectizer for unhandled exception.
+		so_5::rt::exception_reaction_t
+		so_exception_reaction() const
+		{
+			return so_5::rt::deregister_coop_on_exception;
+		}
 };
 
 // The SObjectizer Environment initialization.
