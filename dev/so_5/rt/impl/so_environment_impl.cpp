@@ -33,8 +33,7 @@ so_environment_impl_t::so_environment_impl_t(
 		m_disp_core(
 			public_so_environment,
 			so_environment_params.named_dispatcher_map(),
-			std::move( so_environment_params.m_event_exception_logger ),
-			std::move( so_environment_params.m_event_exception_handler ) ),
+			std::move( so_environment_params.m_event_exception_logger ) ),
 		m_layer_core(
 			so_environment_params.so_layers_map(),
 			&public_so_environment ),

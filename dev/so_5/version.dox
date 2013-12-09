@@ -4,6 +4,11 @@
 
 \section so_5__2_3 5.2.3 "Tetnuld"
 
+	New exception handling mechanism implemented.
+	An enumeration so_5::rt::exception_reaction_t and method
+	so_5::rt::agent_t::so_exception_reaction() added.
+	Old event_exception_handler_t and related stuff removed.
+
 	A class so_5::rt::coop_dereg_reason_t added. New namespace with
 	cooperation deregistration reasons enumeration added:
 	so_5::rt::dereg_reason.

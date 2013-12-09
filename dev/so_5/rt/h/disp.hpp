@@ -18,32 +18,12 @@
 #include <so_5/h/ret_code.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
-#include <so_5/rt/h/event_exception_handler.hpp>
 
 namespace so_5
 {
 
 namespace rt
 {
-
-//
-// disp_evt_except_handler_t
-//
-
-//! Interface of the exception handler for the dispatcher.
-class SO_5_TYPE disp_evt_except_handler_t
-{
-	public:
-		virtual ~disp_evt_except_handler_t();
-
-		//! Handle exception.
-		virtual event_exception_response_action_unique_ptr_t
-		handle_exception(
-			//! Exception which was caught.
-			const std::exception & event_exception,
-			//! Cooperation name of an agent which threw the exception.
-			const std::string & coop_name ) = 0;
-};
 
 //
 // dispatcher_t
@@ -104,23 +84,6 @@ class SO_5_TYPE dispatcher_t
 			agent_t * agent_ptr,
 			//! Count of events for this agent.
 			unsigned int event_count ) = 0;
-
-		//! Set an exception handler.
-		/*!
-		 * \attention Caller must guarantee that the \a disp_evt_except_handler 
-		 * is alive while the dispatcher is in use.
-		 */
-		void
-		set_disp_event_exception_handler(
-			disp_evt_except_handler_t & disp_evt_except_handler );
-
-		//! Access to the current exception handler.
-		disp_evt_except_handler_t &
-		query_disp_evt_except_handler();
-
-	private:
-		//! Exception handler for the dispatcher.
-		disp_evt_except_handler_t * m_disp_evt_except_handler;
 };
 
 //! Typedef of the dispatcher autopointer.

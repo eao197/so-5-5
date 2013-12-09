@@ -13,7 +13,6 @@
 
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/so_environment.hpp>
-#include <so_5/rt/h/event_exception_handler.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
 namespace so_5
@@ -269,8 +268,8 @@ work_thread_t::handle_exception(
 	{
 		ACE_ERROR(
 				(LM_WARNING,
-				 SO_5_LOG_FMT( "Unhandled exception '%s' from cooperation '%s'"
-					 	" will be ignored" ),
+				 SO_5_LOG_FMT( "Ignore unhandled exception '%s' from "
+					 	"cooperation '%s'"),
 				 ex.what(),
 				 a_exception_producer.so_coop_name().c_str()) );
 	}
@@ -284,6 +283,7 @@ work_thread_t::handle_exception(
 				 static_cast< int >(reaction),
 				 ex.what(),
 				 a_exception_producer.so_coop_name().c_str()) );
+
 		ACE_OS::abort();
 	}
 }

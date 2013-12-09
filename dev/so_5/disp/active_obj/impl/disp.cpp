@@ -104,7 +104,6 @@ dispatcher_t::create_disp_for_agent( const so_5::rt::agent_t & agent )
 	so_5::rt::dispatcher_ref_t disp(
 		new so_5::disp::one_thread::impl::dispatcher_t );
 
-	disp->set_disp_event_exception_handler( query_disp_evt_except_handler() );
 	disp->start();
 	m_agent_disp[ &agent ] = disp;
 

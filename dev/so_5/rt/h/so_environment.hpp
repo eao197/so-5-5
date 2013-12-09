@@ -22,7 +22,6 @@
 #include <so_5/rt/h/so_layer.hpp>
 #include <so_5/rt/h/coop_listener.hpp>
 #include <so_5/rt/h/event_exception_logger.hpp>
-#include <so_5/rt/h/event_exception_handler.hpp>
 
 #include <so_5/timer_thread/h/timer_thread.hpp>
 #include <so_5/timer_thread/h/timer_id.hpp>
@@ -182,10 +181,6 @@ class SO_5_TYPE so_environment_params_t
 		event_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
 
-		so_environment_params_t &
-		event_exception_handler(
-			event_exception_handler_unique_ptr_t handler );
-
 		unsigned int
 		mbox_mutex_pool_size() const;
 
@@ -244,9 +239,6 @@ class SO_5_TYPE so_environment_params_t
 
 		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
-
-		//! Exception handler.
-		event_exception_handler_unique_ptr_t m_event_exception_handler;
 };
 
 //
@@ -440,11 +432,6 @@ class SO_5_TYPE so_environment_t
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
-
-		//! Set up an exception handler.
-		void
-		install_exception_handler(
-			event_exception_handler_unique_ptr_t handler );
 		/*!
 		 * \}
 		 */

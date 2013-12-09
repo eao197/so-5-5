@@ -21,8 +21,7 @@ so_environment_params_t::so_environment_params_t()
 		m_mbox_mutex_pool_size( 128 ),
 		m_agent_coop_mutex_pool_size( 32 ),
 		m_agent_event_queue_mutex_pool_size( 128 ),
-		m_event_exception_logger( create_std_event_exception_logger() ),
-		m_event_exception_handler( create_std_event_exception_handler() )
+		m_event_exception_logger( create_std_event_exception_logger() )
 {
 }
 
@@ -86,16 +85,6 @@ so_environment_params_t::event_exception_logger(
 {
 	if( nullptr != logger.get() )
 		m_event_exception_logger = std::move( logger );
-
-	return *this;
-}
-
-so_environment_params_t &
-so_environment_params_t::event_exception_handler(
-	event_exception_handler_unique_ptr_t handler )
-{
-	if( nullptr != handler.get() )
-		m_event_exception_handler = std::move( handler );
 
 	return *this;
 }
@@ -215,13 +204,6 @@ so_environment_t::install_exception_logger(
 	event_exception_logger_unique_ptr_t logger )
 {
 	m_so_environment_impl->install_exception_logger( std::move( logger ) );
-}
-
-void
-so_environment_t::install_exception_handler(
-	event_exception_handler_unique_ptr_t handler )
-{
-	m_so_environment_impl->install_exception_handler( std::move( handler ) );
 }
 
 agent_coop_unique_ptr_t

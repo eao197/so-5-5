@@ -9,61 +9,6 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-// A reaction to an exception.
-// Will deregister problematic cooperation.
-class dereg_coop_exception_response_action_t
-	:
-		public so_5::rt::event_exception_response_action_t
-{
-	public:
-		dereg_coop_exception_response_action_t(
-			// SObjectizer Environment to be stopped.
-			so_5::rt::so_environment_t & so_environment,
-			// Cooperation to be deregistered.
-			std::string coop_name )
-			:	m_so_environment( so_environment )
-			,	m_coop_name( std::move( coop_name ) )
-		{}
-
-		virtual void
-		respond_to_exception()
-		{
-			std::cout << "Cooperation will be deregistered: "
-				<< m_coop_name << std::endl;
-
-			m_so_environment.deregister_coop(
-					m_coop_name,
-					so_5::rt::dereg_reason::unhandled_exception );
-		}
-
-	private:
-		so_5::rt::so_environment_t & m_so_environment;
-		const std::string m_coop_name;
-};
-
-// Exception handler class.
-class dereg_coop_exception_handler_t
-	:
-		public so_5::rt::event_exception_handler_t
-{
-	public:
-		virtual ~dereg_coop_exception_handler_t()
-		{}
-
-		// A reaction to exception.
-		virtual so_5::rt::event_exception_response_action_unique_ptr_t
-		handle_exception(
-			so_5::rt::so_environment_t & so_environment,
-			const std::exception & ex,
-			const std::string & coop_name )
-		{
-			return so_5::rt::event_exception_response_action_unique_ptr_t(
-				new dereg_coop_exception_response_action_t(
-						so_environment,
-						coop_name ) );
-		}
-};
-
 // A class of an agent which will throw an exception.
 class a_child_t
 	:	public so_5::rt::agent_t
@@ -174,11 +119,6 @@ class a_parent_t
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Installing exception handler.
-	env.install_exception_handler(
-			so_5::rt::event_exception_handler_unique_ptr_t(
-					new dereg_coop_exception_handler_t() ) );
-
 	// Creating and registering a cooperation.
 	env.register_agent_as_coop( "parent", new a_parent_t( env ) );
 }

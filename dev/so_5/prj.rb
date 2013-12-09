@@ -38,7 +38,6 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "event_handler_caller.cpp" )
 		cpp_source( "event_caller_block.cpp" )
 		cpp_source( "event_exception_logger.cpp" )
-		cpp_source( "event_exception_handler.cpp" )
 
 		cpp_source( "agent.cpp" )
 		cpp_source( "agent_state_listener.cpp" )

@@ -17,7 +17,6 @@
 #include <so_5/rt/h/disp.hpp>
 
 #include <so_5/rt/h/event_exception_logger.hpp>
-#include <so_5/rt/h/event_exception_handler.hpp>
 
 namespace so_5
 {
@@ -34,15 +33,12 @@ namespace impl
 
 //! A utility class for work with dispatchers.
 class disp_core_t
-	:
-		public disp_evt_except_handler_t
 {
 	public:
 		disp_core_t(
 			so_environment_t & so_environment,
 			const named_dispatcher_map_t & named_dispatcher_map,
-			event_exception_logger_unique_ptr_t logger,
-			event_exception_handler_unique_ptr_t handler );
+			event_exception_logger_unique_ptr_t logger );
 
 		virtual ~disp_core_t();
 
@@ -73,22 +69,6 @@ class disp_core_t
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
 
-		//! Install an exception handler.
-		void
-		install_exception_handler(
-			event_exception_handler_unique_ptr_t handler );
-
-		//! Handle an exception.
-		/*!
-		 * Calls exception logger and handler.
-		*/
-		virtual event_exception_response_action_unique_ptr_t
-		handle_exception(
-			//! Exception caught.
-			const std::exception & event_exception,
-			//! A cooperation to which agent is belong.
-			const std::string & coop_name );
-
 		/*!
 		 * \since v.5.2.3.
 		 * \brief Call event exception logger for logging an exception.
@@ -115,9 +95,6 @@ class disp_core_t
 
 		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
-
-		//! Exception handler.
-		event_exception_handler_unique_ptr_t m_event_exception_handler;
 
 		/*!
 		 * \since v.5.2.0
