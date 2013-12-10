@@ -62,7 +62,26 @@ class SO_5_TYPE so_environment_params_t
 		 * Sets default values for parameters.
 		 */
 		so_environment_params_t();
+		/*!
+		 * \since v.5.2.3
+		 * \brief Move constructor.
+		 */
+		so_environment_params_t( so_environment_params_t && other );
 		~so_environment_params_t();
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Move operator.
+		 */
+		so_environment_params_t &
+		operator=( so_environment_params_t && other );
+
+		/*!
+		 * \since v.5.2.3
+		 * \brief Swap operation.
+		 */
+		void
+		swap( so_environment_params_t & other );
 
 		//! Set mutex pool size for the syncronizing work with mboxes.
 		/*!

@@ -2,7 +2,10 @@
 
 \page so_5__version so_5: Version History
 
-\section so_5__2_3 5.2.3 "Tetnuld"
+\section so_5__2_3 5.2.3 "Mijirgi"
+
+	Class so_5::rt::so_environment_params_t is now moveable (but not
+	copyable).
 
 	New exception handling mechanism implemented.
 	An enumeration so_5::rt::exception_reaction_t and method

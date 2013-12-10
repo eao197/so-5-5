@@ -25,8 +25,45 @@ so_environment_params_t::so_environment_params_t()
 {
 }
 
+so_environment_params_t::so_environment_params_t(
+	so_environment_params_t && other )
+	:	m_mbox_mutex_pool_size( other.m_mbox_mutex_pool_size )
+	,	m_agent_coop_mutex_pool_size( other.m_agent_coop_mutex_pool_size )
+	,	m_agent_event_queue_mutex_pool_size(
+			other.m_agent_event_queue_mutex_pool_size )
+	,	m_named_dispatcher_map( std::move( other.m_named_dispatcher_map ) )
+	,	m_timer_thread( std::move( other.m_timer_thread ) )
+	,	m_so_layers( std::move( other.m_so_layers ) )
+	,	m_coop_listener( std::move( other.m_coop_listener ) )
+	,	m_event_exception_logger( std::move( other.m_event_exception_logger ) )
+{}
+
 so_environment_params_t::~so_environment_params_t()
 {
+}
+
+so_environment_params_t &
+so_environment_params_t::operator=( so_environment_params_t && other )
+{
+	so_environment_params_t tmp( std::move( other ) );
+	this->swap( tmp );
+
+	return *this;
+}
+
+void
+so_environment_params_t::swap( so_environment_params_t & other )
+{
+	std::swap( m_mbox_mutex_pool_size, other.m_mbox_mutex_pool_size );
+	std::swap( m_agent_coop_mutex_pool_size,
+			other.m_agent_coop_mutex_pool_size );
+	std::swap( m_agent_event_queue_mutex_pool_size,
+			other.m_agent_event_queue_mutex_pool_size );
+	m_named_dispatcher_map.swap( other.m_named_dispatcher_map );
+	m_timer_thread.swap( other.m_timer_thread );
+	m_so_layers.swap( other.m_so_layers );
+	m_coop_listener.swap( other.m_coop_listener );
+	m_event_exception_logger.swap( other.m_event_exception_logger );
 }
 
 so_environment_params_t &
