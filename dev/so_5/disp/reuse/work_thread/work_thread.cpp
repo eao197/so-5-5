@@ -252,6 +252,18 @@ work_thread_t::handle_exception(
 				 a_exception_producer.so_coop_name().c_str()) );
 		ACE_OS::abort();
 	}
+	else if( so_5::rt::shutdown_sobjectizer_on_exception == reaction )
+	{
+		ACE_ERROR(
+				(LM_CRITICAL,
+				 SO_5_LOG_FMT( "SObjectizer will be shutted down due to unhandled "
+					 	"exception '%s' from cooperation '%s'" ),
+				 ex.what(),
+				 a_exception_producer.so_coop_name().c_str()) );
+
+		switch_agent_to_special_state_and_shutdown_sobjectizer(
+				a_exception_producer );
+	}
 	else if( so_5::rt::deregister_coop_on_exception == reaction )
 	{
 		ACE_ERROR(
@@ -320,6 +332,28 @@ work_thread_t::log_unhandled_exception(
 				 x.what(),
 				 ex_to_log.what(),
 				 a_exception_producer.so_coop_name().c_str()) );
+
+		ACE_OS::abort();
+	}
+}
+
+void
+work_thread_t::switch_agent_to_special_state_and_shutdown_sobjectizer(
+	so_5::rt::agent_t & a_exception_producer )
+{
+	try
+	{
+		a_exception_producer.so_switch_to_awaiting_deregistration_state();
+		a_exception_producer.so_environment().stop();
+	}
+	catch( const std::exception & x )
+	{
+		ACE_ERROR(
+				(LM_EMERGENCY,
+				 SO_5_LOG_FMT( "An exception '%s' during "
+					 	"shutting down SObjectizer on unhandled exception"
+						"processing. Application will be aborted." ),
+				 x.what()) );
 
 		ACE_OS::abort();
 	}

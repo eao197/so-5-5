@@ -59,12 +59,15 @@ class agent_t;
 enum exception_reaction_t
 {
 	//! Execution of application must be aborted immediatelly.
-	abort_on_exception,
+	abort_on_exception = 1,
+	//! Agent must be switched to special state and SObjectizer
+	//! Environment will be stopped.
+	shutdown_sobjectizer_on_exception = 2,
 	//! Agent must be switched to special state and agent's cooperation
 	//! must be deregistered.
-	deregister_coop_on_exception,
+	deregister_coop_on_exception = 3,
 	//! Exception should be ignored and agent should continue its work.
-	ignore_exception
+	ignore_exception = 4
 };
 
 //

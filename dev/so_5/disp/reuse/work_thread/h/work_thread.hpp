@@ -227,6 +227,18 @@ class work_thread_t
 
 		/*!
 		 * \since v.5.2.3
+		 * \brief Switch agent to special state and initiate stopping
+		 * of SObjectizer Environment.
+		 *
+		 * Calls abort() if an exception is raised during work.
+		 */
+		void
+		switch_agent_to_special_state_and_shutdown_sobjectizer(
+			//! Agent who is the producer of the exception.
+			so_5::rt::agent_t & a_exception_producer );
+
+		/*!
+		 * \since v.5.2.3
 		 * \brief Switch agent to special state and deregister its cooperation.
 		 *
 		 * Calls abort() if an exception is raised during work.

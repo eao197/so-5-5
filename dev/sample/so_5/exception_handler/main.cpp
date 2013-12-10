@@ -32,7 +32,7 @@ class a_hello_t
 		virtual so_5::rt::exception_reaction_t
 		so_exception_reaction() const
 		{
-			return so_5::rt::abort_on_exception;
+			return so_5::rt::shutdown_sobjectizer_on_exception;
 		}
 };
 
