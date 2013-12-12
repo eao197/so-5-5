@@ -28,8 +28,8 @@ return value and does appropriate actions:
   application execution.
 
 - so_5::rt::deregister_coop_on_exception -- switches agent to the special state and
-  initiates cooperation deregistration. Only cooperation to which agent is
-  belong will be deregistered (if there are some children cooperation they will
+  initiates cooperation deregistration. Only cooperation to which agent belongs to
+  will be deregistered (if there are some children cooperation they will
   be deregistered too). In that special state agent cannot receive messages.
   That return code means that agent provides basic exception safety guarantee
   (no leak or damage of any resources), but agent's state is not logically
@@ -40,11 +40,11 @@ return value and does appropriate actions:
   execution. That return code means that agent provides strong exception safety
   guarantee.
 
-By default agent_t::so_exception_reaction() returns
+Default implementation of agent_t::so_exception_reaction() returns
 so_5::rt::deregister_coop_on_exception. It means that SObjectizer expects that
 agents provide basic exception guarantee even in case of unhandled exceptions.
 
-If agent wants different reaction from SObjectizer it should reimplement
+If agent wants a different reaction from SObjectizer it should override
 so_exception_reaction() method. For example, a stateless agent which only do
 some transformation of message could return so_5::rt::ignore_exception:
 
