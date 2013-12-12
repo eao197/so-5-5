@@ -11,6 +11,7 @@
 	An enumeration so_5::rt::exception_reaction_t and method
 	so_5::rt::agent_t::so_exception_reaction() added.
 	Old event_exception_handler_t and related stuff removed.
+	For more details see \ref so_5_2_3__exception_reaction.
 
 	A class so_5::rt::coop_dereg_reason_t added. New namespace with
 	cooperation deregistration reasons enumeration added:
