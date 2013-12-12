@@ -46,6 +46,7 @@
 	so_5::rt::agent_coop_t::add_dereg_notificator() are introduced.
 
 	Parent-child relationship added for cooperations.
+	For the details see \ref so_5_2_3__parent_child_coops.
 
 	Cooperation mutex pool no more used and removed from SObjectizer code.
 	Some related method marked as deprecated and will be removed in
