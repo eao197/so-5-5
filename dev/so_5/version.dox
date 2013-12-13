@@ -45,6 +45,7 @@
 	so_5::rt::coop_reg_notificator_t and so_5::rt::coop_dereg_notificator_t
 	so_5::rt::agent_coop_t::add_reg_notificator() and
 	so_5::rt::agent_coop_t::add_dereg_notificator() are introduced.
+	See \ref so_5_2_3__cooperation_notificators for more details.
 
 	Parent-child relationship added for cooperations.
 	For the details see \ref so_5_2_3__parent_child_coops.
