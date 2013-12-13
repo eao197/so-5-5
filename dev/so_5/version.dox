@@ -25,6 +25,7 @@
 	An ability to store some dynamically allocated user resource inside
 	cooperation is added via so_5::rt::agent_coop_t::take_under_control()
 	method.
+	For more details see \ref so_5_2_3__cooperation_controlled_resources.
 
 	The so_5::rt::agent_coop_t contructor is now declared as public. It means
 	that it is possible to create classess which are derived from agent_coop_t.
