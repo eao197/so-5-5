@@ -187,7 +187,7 @@ private :
 	void
 	create_child_cooperation()
 	{
-		auto coop = so_environment().create_coop( “child” );
+		auto coop = so_environment().create_coop( "child" );
 		coop->set_parent_coop_name( so_coop_name() );
 		coop->add_reg_notificator(
 			so_5::rt::make_coop_reg_notificator( m_mbox ) );
