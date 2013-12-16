@@ -5,12 +5,12 @@
 \section so_5_2_3__cooperation_controlled_resources__the_problem The problem
 
 Sometimes it is necessary to provide some resource to all cooperation's agents.
-For example: DB connection object or logger object. That resource must live
-longer than agents of cooperation. One obvious way to do this is to use
-std::shared_ptr or something like it:
+For example: DB connection object or logger object. And that resource must live
+longer than the lifetime of agents of cooperation. One obvious solution is to use
+std::shared_ptr or another kind of smart pointer:
 
 \code
-so_5::rt::so_environment_t & env = ...; 
+so_5::rt::so_environment_t & env = ...;
 auto coop = env.create_coop( "sample" );
 std::shared_ptr< logger_t > logger( new some_task_specific_logger_t() );
 coop->add_agent( new first_agent_t( env, logger, ... ) );
@@ -33,9 +33,9 @@ Since v.5.2.3 it is possible to make a derived class from
 so_5::rt::agent_coop_t. The only condition for derived classes: its object
 should be dynamically allocated. It is necessary because SObjectizer
 Environment takes those objects under control and destroys them by calling
-delete.
+\c delete.
 
-With this approach cooperation could control object lifetime this way:
+Under this approach cooperation could control object lifetime this way:
 
 \code
 class coop_with_logger_t : public so_5::rt::agent_coop_t
@@ -83,7 +83,7 @@ allocated objects and takes this object under control of cooperation. Non
 limited count of objects could be taken under control of cooperation. They will
 be destroyed only after destroying agents of cooperation.
 
-With this approach the sample with logger object could be rewritten as such:
+With this approach the sample with logger object could be rewritten in the following way:
 
 \code
 so_5::rt::so_environment_t & env = ...;
@@ -106,9 +106,9 @@ and this leads to agents destruction. But there is a possibility that user
 receive and store smart reference to an agent somewhere else. In that
 situation agent will not be destroyed with its cooperation. If the agent
 will access some external resource via reference/pointer (like logger from
-example above) anything will happen. But this situation it not under
+example above) anything might happen. But this situation is not under
 control of SObjectizer. And user should provide appropriate resource
-lifetime policy for such cases.
+lifetime policy in such cases.
 
 */
 
