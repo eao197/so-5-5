@@ -7,7 +7,7 @@ related events.
 
 \section so_5_2_3__cooperation_notificators__dereg_reason Cooperation deregistration reason
 
-Very important change in v.5.2.3 is introduction of
+Very important change in v.5.2.3 is the introduction of
 so_5::rt::coop_dereg_reason_t structure and so_5::rt::dereg_reason namespace.
 The so_5::rt::coop_dereg_reason_t describes the reason of cooperation
 deregistration. For example: normal deregistration due to application logic
@@ -63,15 +63,15 @@ receives not only name of deregistered cooperation but also the cooperation
 deregistration reason:
 
 \code
-virtual void 
+virtual void
 on_deregistered(
 	so_environment_t & so_env,
 	const std::string & coop_name,
 	const coop_dereg_reason_t & reason);
 \endcode
 
-It is incompatibility with previous version and appropriate changes must be
-done to cooperation listeners.
+It is incompatible with previous version and appropriate changes must be
+applied to cooperation listeners.
 
 \section so_5_2_3__cooperation_notificators__reg_notificators Cooperation registration notificators
 
@@ -101,7 +101,7 @@ coop->add_reg_notificator(
 There is no limit for cooperation reg_notificator count. All of them will be
 called by SObjectizer Environment inside
 so_5::rt::so_environment_t::register_coop() method right after all registration
-specific action will be done.
+specific actions will be complete.
 
 \section so_5_2_3__cooperation_notificators__dereg_notificators Cooperation deregistration notificators
 
@@ -139,9 +139,9 @@ deregistration notificators.
 
 \section so_5_2_3__cooperation_notificators__std_notificators Standard registration and deregistration notificators implementation
 
-SObjectizer provides standard implementation for reg_ and dereg_notificators.
+SObjectizer provides standard implementation for \c reg_ and \c dereg_notificators.
 They just send so_5::rt::msg_coop_registered and
-so_5::rt::msg_coop_deregistered to the mbox specified. Standard reg_notificator
+so_5::rt::msg_coop_deregistered to the mbox specified. Standard \c reg_notificator
 is created by so_5::rt::make_coop_reg_notificator() function. And standard
 dereg_notificator is created by so_5::rt::make_coop_dereg_notificator()
 function. They could be used for controlling lifetime of child cooperation,
