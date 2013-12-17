@@ -19,15 +19,12 @@
 
 struct	cfg_t
 {
-	unsigned int	m_size;
-
 	unsigned int	m_request_count;
 
 	bool	m_active_objects;
 
 	cfg_t()
-		:	m_size( 256 )
-		,	m_request_count( 1000 )
+		:	m_request_count( 1000 )
 		,	m_active_objects( false )
 		{}
 };
@@ -44,7 +41,6 @@ try_parse_cmdline(
 					"_test.bench.ping_pong <options>\n"
 					"\noptions:\n"
 					"-a, --active-objects agents should be active objects\n"
-					"-l, --length         length of data in request\n"
 					"-r, --requests       count of requests to send\n"
 					<< std::endl;
 
@@ -52,15 +48,11 @@ try_parse_cmdline(
 				( LM_ERROR, ACE_TEXT( "No arguments supplied\n" ) ), -1 );
 		}
 
-	ACE_Get_Opt opt( argc, argv, ":al:r:" );
+	ACE_Get_Opt opt( argc, argv, ":ar:" );
 	if( -1 == opt.long_option(
 			"active-objects", 'a', ACE_Get_Opt::NO_ARG ) )
 		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
 						"Unable to set long option 'active-objects'\n" )), -1 );
-	if( -1 == opt.long_option(
-			"length", 'l', ACE_Get_Opt::ARG_REQUIRED ) )
-		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
-						"Unable to set long option 'length'\n" )), -1 );
 	if( -1 == opt.long_option(
 			"requests", 'r', ACE_Get_Opt::ARG_REQUIRED ) )
 		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
@@ -75,10 +67,6 @@ try_parse_cmdline(
 				{
 				case 'a' :
 					tmp_cfg.m_active_objects = true;
-				break;
-
-				case 'l' :
-					tmp_cfg.m_size = ACE_OS::atoi( opt.opt_arg() );
 				break;
 
 				case 'r' :
@@ -109,21 +97,7 @@ struct	measure_result_t
 	ACE_Time_Value	m_finish_time;
 };
 
-struct msg_data : public so_5::rt::message_t
-{
-	std::vector< char > m_data;
-
-	msg_data()
-		{}
-	msg_data(
-		unsigned int capacity )
-		:	m_data( capacity )
-		{}
-	msg_data(
-		const std::vector< char > & data )
-		:	m_data( data )
-		{}
-};
+struct msg_data : public so_5::rt::signal_t {};
 
 class a_pinger_t
 	:	public so_5::rt::agent_t
@@ -184,7 +158,7 @@ class a_pinger_t
 		void
 		send_ping()
 			{
-				m_ponger_mbox->deliver_message( new msg_data( m_cfg.m_size ) );
+				m_ponger_mbox->deliver_signal< msg_data >();
 			}
 	};
 
@@ -213,7 +187,7 @@ class a_ponger_t
 		evt_ping(
 			const so_5::rt::event_data_t< msg_data > & cmd )
 			{
-				m_pinger_mbox->deliver_message( new msg_data( cmd->m_data ) );
+				m_pinger_mbox->deliver_signal< msg_data >();
 			}
 
 	private :
@@ -227,7 +201,6 @@ show_cfg(
 	{
 		std::cout << "Configuration: "
 			<< "active objects: " << ( cfg.m_active_objects ? "yes" : "no" )
-			<< ", data length: " << cfg.m_size
 			<< ", requests: " << cfg.m_request_count
 			<< std::endl;
 	}
@@ -245,7 +218,8 @@ show_result(
 		double price = total_msec / total_msg_count / 1000.0;
 		double throughtput = 1 / price;
 
-		std::cout << 
+		std::cout.precision( 10 );
+		std::cout <<
 			"total time: " << total_msec / 1000.0 << 
 			", messages sent: " << total_msg_count <<
 			", price: " << price <<
@@ -310,13 +284,16 @@ main( int argc, char ** argv )
 		{
 			test_env_t test_env( cfg );
 
+			so_5::rt::so_environment_params_t params;
+			if( cfg.m_active_objects )
+				params.add_named_dispatcher(
+						"active_obj",
+						so_5::disp::active_obj::create_disp() );
+
 			so_5::api::run_so_environment_on_object(
 					test_env,
 					&test_env_t::init,
-					std::move( so_5::rt::so_environment_params_t().
-							add_named_dispatcher(
-									"active_obj",
-									so_5::disp::active_obj::create_disp() ) ) );
+					std::move( params ) );
 
 			test_env.process_results();
 
