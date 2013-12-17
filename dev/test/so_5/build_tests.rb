@@ -6,6 +6,7 @@ MxxRu::Cpp::composite_target {
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 
 	required_prj( "test/so_5/bench/work_thread_speed/prj.rb" )
+	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
 
 	required_prj( "test/so_5/timer_thread/single_delayed/prj.ut.rb" )
 	required_prj( "test/so_5/timer_thread/single_periodic/prj.ut.rb" )
