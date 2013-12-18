@@ -4,6 +4,11 @@
 
 \section so_5__2_3 5.2.3 "Mijirgi"
 
+	Methods so_5::rt::agent_t::so_subscribe(),
+	so_5::rt::agent_t::so_drop_subscription() and
+	so_5::rt::agent_t::so_drop_subscription_for_all_states() are made public
+	since v.5.2.3.2.
+
 	Class so_5::rt::so_environment_params_t is now moveable (but not
 	copyable).
 
