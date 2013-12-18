@@ -152,9 +152,7 @@ class demand_queue_t
 class work_thread_t
 {
 	public:
-		work_thread_t(
-			rt::dispatcher_t & disp );
-
+		work_thread_t();
 		~work_thread_t();
 
 		//! Shedule event(s) for the agent.
@@ -282,13 +280,6 @@ class work_thread_t
 			\note m_tid has the actual value only after start().
 		*/
 		ACE_thread_t m_tid;
-
-		//! Owner of this working thread.
-		/*!
-		 * This reference is necessary to handle exceptions.
-		 * The exception handler is got from the dispatcher.
-		 */
-		rt::dispatcher_t & m_disp;
 };
 
 } /* namespace work_thread */
