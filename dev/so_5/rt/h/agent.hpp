@@ -444,6 +444,9 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
+	public : /* Note: since v.5.2.3.2 subscription-related method are
+					made public. */
+
 		/*!
 		 * \name Subscription methods.
 		 * \{
@@ -534,6 +537,8 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+	protected :
 
 		/*!
 		 * \name Agent initialization methods.
