@@ -68,7 +68,7 @@ main(int argc, char ** argv)
 {
 	work_thread_t context;
 
-	size_t iterations = 10000;
+	size_t iterations = 1000000;
 	agent_imitator_t agent( context, iterations );
 
 	context.put_event( &agent_imitator_t::on_start, &agent );
