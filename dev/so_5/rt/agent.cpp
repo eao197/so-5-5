@@ -264,12 +264,12 @@ subscription_key_string( const PAIR & sk )
 
 void
 agent_t::create_event_subscription(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	mbox_ref_t & mbox_ref,
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc )
 {
-	subscription_key_t subscr_key( type_wrapper, mbox_ref );
+	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
@@ -282,7 +282,7 @@ agent_t::create_event_subscription(
 	if( m_event_consumers_map.end() == it )
 	{
 		create_and_register_event_caller_block(
-				type_wrapper,
+				type_index,
 				mbox_ref,
 				target_state,
 				ehc,
@@ -296,7 +296,7 @@ agent_t::create_event_subscription(
 
 void
 agent_t::create_and_register_event_caller_block(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	mbox_ref_t & mbox_ref,
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc,
@@ -307,7 +307,7 @@ agent_t::create_and_register_event_caller_block(
 	caller_block->insert( target_state, ehc );
 
 	mbox_ref->subscribe_event_handler(
-		type_wrapper,
+		type_index,
 		this,
 		caller_block.get() );
 
@@ -322,7 +322,7 @@ agent_t::create_and_register_event_caller_block(
 	}
 	catch( ... )
 	{
-		mbox_ref->unsubscribe_event_handlers( type_wrapper, this );
+		mbox_ref->unsubscribe_event_handlers( type_index, this );
 		throw;
 	}
 }
@@ -350,11 +350,11 @@ agent_t::clean_consumers_map()
 
 void
 agent_t::do_drop_subscription(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref,
 	const state_t & target_state )
 {
-	subscription_key_t subscr_key( type_wrapper, mbox_ref );
+	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
@@ -378,10 +378,10 @@ agent_t::do_drop_subscription(
 
 void
 agent_t::do_drop_subscription_for_all_states(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref )
 {
-	subscription_key_t subscr_key( type_wrapper, mbox_ref );
+	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 

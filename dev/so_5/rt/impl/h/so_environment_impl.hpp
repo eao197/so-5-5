@@ -190,7 +190,7 @@ class so_environment_impl_t
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
 			//! Message type.
-			const rt::type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Message to be sent.
 			const message_ref_t & msg,
 			//! Mbox receiver.
@@ -205,7 +205,7 @@ class so_environment_impl_t
 		void
 		single_timer(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Message to be sent.
 			const message_ref_t & msg,
 			//! Mbox receiver.
@@ -223,7 +223,7 @@ class so_environment_impl_t
 		 */
 		so_layer_t *
 		query_layer(
-			const type_wrapper_t & type ) const;
+			const std::type_index & type ) const;
 
 		//! Add an extra layer.
 		/*!
@@ -231,7 +231,7 @@ class so_environment_impl_t
 		*/
 		void
 		add_extra_layer(
-			const type_wrapper_t & type,
+			const std::type_index & type,
 			const so_layer_ref_t & layer );
 		/*!
 		 * \}

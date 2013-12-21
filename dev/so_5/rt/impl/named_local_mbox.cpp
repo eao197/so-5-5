@@ -39,33 +39,33 @@ named_local_mbox_t::~named_local_mbox_t()
 
 void
 named_local_mbox_t::subscribe_event_handler(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	agent_t * subscriber,
 	const event_caller_block_t * event_caller )
 {
 	m_mbox->subscribe_event_handler(
-		type_wrapper,
+		type_index,
 		subscriber,
 		event_caller );
 }
 
 void
 named_local_mbox_t::unsubscribe_event_handlers(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	agent_t * subscriber )
 {
 	return m_mbox->unsubscribe_event_handlers(
-		type_wrapper,
+		type_index,
 		subscriber );
 }
 
 void
 named_local_mbox_t::deliver_message(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	const message_ref_t & message_ref ) const
 {
 	m_mbox->deliver_message(
-		type_wrapper,
+		type_index,
 		message_ref );
 }
 

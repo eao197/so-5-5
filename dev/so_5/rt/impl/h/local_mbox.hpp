@@ -11,6 +11,7 @@
 #define _SO_5__RT__IMPL__LOCAL_MBOX_HPP_
 
 #include <map>
+#include <typeindex>
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
@@ -60,7 +61,7 @@ class local_mbox_t
 		virtual void
 		subscribe_event_handler(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The first event caller for this message.
@@ -74,7 +75,7 @@ class local_mbox_t
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Agent-subscriber.
 			agent_t * subscriber );
 		//! \}
@@ -82,7 +83,7 @@ class local_mbox_t
 		//! Deliver message for all subscribers.
 		void
 		deliver_message(
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			const message_ref_t & message_ref ) const;
 
 	private:
@@ -98,8 +99,8 @@ class local_mbox_t
 					const event_caller_block_t * >
 				subscribers_to_msg_map_t;
 
-		//! Typedef for map from type_wrapper to callers blocks.
-		typedef std::map< type_wrapper_t, subscribers_to_msg_map_t >
+		//! Typedef for map from type_index to callers blocks.
+		typedef std::map< std::type_index, subscribers_to_msg_map_t >
 				subscribers_to_mbox_map_t;
 
 		//! Map of subscribers to messages.

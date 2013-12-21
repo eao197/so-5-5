@@ -47,23 +47,23 @@ local_mbox_t::~local_mbox_t()
 
 void
 local_mbox_t::subscribe_event_handler(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	agent_t * subscriber,
 	const event_caller_block_t * event_caller )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-	m_subscribers[ type_wrapper ][ subscriber ] = event_caller;
+	m_subscribers[ type_index ][ subscriber ] = event_caller;
 }
 
 void
 local_mbox_t::unsubscribe_event_handlers(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	agent_t * subscriber )
 {
 	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-	auto it = m_subscribers.find( type_wrapper );
+	auto it = m_subscribers.find( type_index );
 	if( it != m_subscribers.end() )
 	{
 		it->second.erase( subscriber );
@@ -74,12 +74,12 @@ local_mbox_t::unsubscribe_event_handlers(
 
 void
 local_mbox_t::deliver_message(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_index,
 	const message_ref_t & message_ref ) const
 {
 	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-	auto it = m_subscribers.find( type_wrapper );
+	auto it = m_subscribers.find( type_index );
 	if( it != m_subscribers.end() )
 	{
 		for( auto s = it->second.begin(), e = it->second.end(); s != e; ++s )

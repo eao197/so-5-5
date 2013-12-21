@@ -2,6 +2,11 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__2_4 5.2.4
+
+	Type std::type_index is used instead of type_wrapper_t. The type_wrapper_t
+	is completelly removed.
+
 \section so_5__2_3 5.2.3 "Mijirgi"
 
 	Methods so_5::rt::agent_t::so_subscribe(),
