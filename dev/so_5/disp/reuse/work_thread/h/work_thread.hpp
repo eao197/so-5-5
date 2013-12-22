@@ -131,12 +131,11 @@ class demand_queue_t
 		ACE_Condition_Thread_Mutex m_not_empty;
 		//! \}
 
-		//! Service flag.
-		/*!
-			true -- shall do the service, methods push/pop must work.
-			false -- the service is stopped or will be stopped.
-		*/
-		bool m_in_service;
+		//! Shutdown in progess flag.
+		bool m_shutting_down;
+
+		//! Is someone waiting for new demands.
+		bool m_is_someone_waiting;
 };
 
 //
