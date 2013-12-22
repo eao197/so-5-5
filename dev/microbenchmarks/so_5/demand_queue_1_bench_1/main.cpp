@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include <test/so_5/bench/time_value_msec_helper.hpp>
 
@@ -36,7 +37,6 @@ class agent_imitator_t
 		on_start( void * param )
 		{
 			auto p = reinterpret_cast< agent_imitator_t * >(param);
-
 			p->m_start_time = ACE_OS::gettimeofday();
 
 			p->m_context.put_event( &on_demand, param );
@@ -63,12 +63,24 @@ class agent_imitator_t
 		}
 };
 
+size_t
+iteration_count( int argc, char ** argv )
+{
+	if( argc > 1 )
+	{
+		return std::stoul( argv[ 1 ] );
+	}
+
+	return 1000000;
+}
 int
 main(int argc, char ** argv)
 {
 	work_thread_t context;
 
-	size_t iterations = 1000000;
+	const size_t iterations = iteration_count( argc, argv );
+	std::cout << "iterations: " << iterations << std::endl;
+
 	agent_imitator_t agent( context, iterations );
 
 	context.put_event( &agent_imitator_t::on_start, &agent );

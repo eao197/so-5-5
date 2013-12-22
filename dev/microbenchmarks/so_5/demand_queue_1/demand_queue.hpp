@@ -76,12 +76,14 @@ class demand_queue_t
 		ACE_Thread_Mutex m_lock;
 		ACE_Condition_Thread_Mutex m_not_empty;
 
-		bool m_in_service;
+		bool m_shutting_down;
+		bool m_is_waiting;
 };
 
 demand_queue_t::demand_queue_t()
-	:
-		m_not_empty( m_lock )
+	:	m_not_empty( m_lock )
+	,	m_shutting_down( false )
+	,	m_is_waiting( false )
 {
 }
 
@@ -97,16 +99,15 @@ demand_queue_t::push(
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	if( m_in_service )
+	if( !m_shutting_down )
 	{
-		const bool demands_empty_before_service = m_demands.empty();
-
 		m_demands.push_back( demand_t( handler, param ) );
 
-		if( demands_empty_before_service )
+		if( m_is_waiting )
 		{
-			// May be someone is waiting...
+			// Someone is waiting...
 			// It should be informed about new demands.
+			m_is_waiting = false;
 			m_not_empty.signal();
 		}
 	}
@@ -120,17 +121,18 @@ demand_queue_t::pop(
 
 	while( true )
 	{
-		if( m_in_service && !m_demands.empty() )
+		if( m_shutting_down )
+			return shutting_down;
+		else if( !m_demands.empty() )
 		{
 			demands.swap( m_demands );
 			break;
 		}
-		else if( !m_in_service )
-			return shutting_down;
 		else
 		{
 			// Queue is empty. We should wait for a demand or
 			// a shutdown signal.
+			m_is_waiting = true;
 			m_not_empty.wait();
 		}
 	}
@@ -142,26 +144,21 @@ void
 demand_queue_t::start_service()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
-
-	m_in_service = true;
 }
 
 void
 demand_queue_t::stop_service()
 {
-	bool is_someone_waiting_us = false;
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-		m_in_service = false;
+		m_shutting_down = true;
+
 		// If the demands queue is empty then someone is waiting
 		// for new demands inside pop().
-		is_someone_waiting_us = m_demands.empty();
+		if( m_is_waiting )
+			m_not_empty.signal();
 	}
-
-	// In case if someone is waiting.
-	if( is_someone_waiting_us )
-		m_not_empty.signal();
 }
 
 void
