@@ -3,7 +3,8 @@
 
 #include <test/so_5/bench/time_value_msec_helper.hpp>
 
-#include <microbenchmarks/so_5/demand_queue_1/demand_queue.hpp>
+//#include <microbenchmarks/so_5/demand_queue_1/demand_queue.hpp>
+#include <microbenchmarks/so_5/demand_queue_1_naive_spinlock/demand_queue.hpp>
 
 class agent_imitator_t
 {
