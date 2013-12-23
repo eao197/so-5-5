@@ -1,11 +1,12 @@
 #include <iostream>
 #include <string>
+#include <chrono>
+ 
+#include <microbenchmarks/so_5/demand_queue_1_stdcpp/demand_queue.hpp>
 
-#include <test/so_5/bench/time_value_msec_helper.hpp>
-
-#include <microbenchmarks/so_5/demand_queue_1/demand_queue.hpp>
-//#include <microbenchmarks/so_5/demand_queue_1_naive_spinlock/demand_queue.hpp>
-//#include <microbenchmarks/so_5/demand_queue_1_naive_spinlock_2/demand_queue.hpp>
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
+using std::chrono::steady_clock;
 
 class agent_imitator_t
 {
@@ -15,8 +16,8 @@ class agent_imitator_t
 		const size_t m_iteration_count;
 		size_t m_current_iteration;
 
-		ACE_Time_Value m_start_time;
-		ACE_Time_Value m_finish_time;
+		steady_clock::time_point m_start_time;
+		steady_clock::time_point m_finish_time;
 
 	public :
 		agent_imitator_t(
@@ -25,21 +26,20 @@ class agent_imitator_t
 			:	m_context( context )
 			,	m_iteration_count( iteration_count )
 			,	m_current_iteration( 0 )
-			,	m_start_time( ACE_OS::gettimeofday() )
-			,	m_finish_time( ACE_OS::gettimeofday() )
 		{}
 
-		ACE_UINT64
+		uint64_t
 		duration() const
 		{
-			return milliseconds( m_finish_time - m_start_time );
+			return duration_cast< milliseconds >( m_finish_time - m_start_time )
+					.count();
 		}
 
 		static void
 		on_start( void * param )
 		{
 			auto p = reinterpret_cast< agent_imitator_t * >(param);
-			p->m_start_time = ACE_OS::gettimeofday();
+			p->m_start_time = steady_clock::now();
 
 			p->m_context.put_event( &on_demand, param );
 		}
@@ -60,7 +60,7 @@ class agent_imitator_t
 		{
 			auto p = reinterpret_cast< agent_imitator_t * >(param);
 
-			p->m_finish_time = ACE_OS::gettimeofday();
+			p->m_finish_time = steady_clock::now();
 			p->m_context.shutdown();
 		}
 };
