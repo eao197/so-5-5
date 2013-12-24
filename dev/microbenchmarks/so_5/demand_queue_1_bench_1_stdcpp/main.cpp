@@ -68,10 +68,12 @@ class agent_imitator_t
 size_t
 iteration_count( int argc, char ** argv )
 {
+#if 0
 	if( argc > 1 )
 	{
 		return std::stoul( argv[ 1 ] );
 	}
+#endif
 
 	return 1000000;
 }
