@@ -108,7 +108,7 @@ class a_benchmarker_t
 		void
 		send_msg_demand()
 			{
-				send_message( new msg_demand_t(), m_demand_event_caller );
+				send_message( nullptr, m_demand_event_caller );
 			}
 
 		void
