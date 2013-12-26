@@ -4,12 +4,79 @@
 #include <deque>
 #include <queue>
 #include <list>
+#include <vector>
+#include <cstdint>
 
 #include <ace/Thread_Mutex.h>
 #include <ace/Condition_Thread_Mutex.h>
 #include <ace/Atomic_Op.h>
 #include <ace/Guard_T.h>
 #include <ace/Thread_Manager.h>
+
+template< class T >
+class circular_buffer_queue_t
+	{
+		typedef std::vector< T > buffer_t;
+
+		const size_t m_buffer_size;
+
+		buffer_t m_buffer;
+
+		uint64_t m_head_index;
+		uint64_t m_tail_index;
+
+		inline size_t
+		actual_position( uint64_t index ) const
+			{
+				return index % m_buffer_size;
+			}
+
+	public :
+		circular_buffer_queue_t(
+			size_t buffer_size )
+			:	m_buffer_size( buffer_size )
+			,	m_buffer( buffer_size )
+			,	m_head_index( 0 )
+			,	m_tail_index( 0 )
+			{}
+
+		bool
+		empty() const
+			{
+				return m_head_index == m_tail_index;
+			}
+
+		T &
+		front()
+			{
+				return m_buffer[ actual_position( m_head_index ) ];
+			}
+
+		void
+		pop()
+			{
+				++m_head_index;
+			}
+
+		void
+		pop_front()
+			{
+				pop();
+			}
+
+		void
+		push( const T & item )
+			{
+				m_buffer[ actual_position( m_tail_index ) ] = item;
+				++m_tail_index;
+			}
+
+		void
+		push_back( const T & item )
+			{
+				push( item );
+			}
+	};
 
 class agent_t;
 
@@ -124,16 +191,32 @@ class agent_t
 			{
 				return m_dispatcher_notificator;
 			}
+
+		void
+		send_message( message_t * msg, event_caller_t & caller )
+			{
+				dispatcher_notificator_t::local_lock_t lock(
+						dispatcher_notificator() );
+
+				demand_storage().push( msg, &caller );
+
+				lock.push( this );
+			}
 	};
 
 class simple_demand_storage_t
 	:	public agent_demand_storage_t
 	{
-		typedef std::deque< agent_demand_t > container_t;
+//		typedef std::deque< agent_demand_t > container_t;
+		typedef circular_buffer_queue_t< agent_demand_t > container_t;
 
 		container_t m_storage;
 
 	public :
+		simple_demand_storage_t()
+			:	m_storage( 128 )
+			{}
+
 		virtual ~simple_demand_storage_t()
 			{}
 
@@ -186,7 +269,8 @@ class real_dispatcher_notificator_t
 			};
 
 	private :
-		typedef std::queue< agent_t * > notifies_t;
+		typedef circular_buffer_queue_t< agent_t * > notifies_t;
+//		typedef std::queue< agent_t * > notifies_t;
 
 		notifies_t m_notifies;
 
@@ -198,7 +282,8 @@ class real_dispatcher_notificator_t
 
 	public :
 		real_dispatcher_notificator_t()
-			:	m_condition( m_lock )
+			:	m_notifies( 16 )
+			,	m_condition( m_lock )
 			,	m_shutting_down( false )
 			,	m_someone_waiting( false )
 			{}

@@ -116,17 +116,6 @@ class a_benchmarker_t
 			{
 				send_message( nullptr, m_finish_event_caller );
 			}
-
-		void
-		send_message( message_t * msg, event_caller_t & caller )
-			{
-				dispatcher_notificator_t::local_lock_t lock(
-						dispatcher_notificator() );
-
-				demand_storage().push( msg, &caller );
-
-				lock.push( this );
-			}
 	};
 
 size_t
