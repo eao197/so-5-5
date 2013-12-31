@@ -1,5 +1,5 @@
-#if !defined( DEMAND_QUEUE_2__DEMAND_QUEUE_HPP )
-#define DEMAND_QUEUE_2__DEMAND_QUEUE_HPP
+#if !defined( DEMAND_QUEUE_3__DEMAND_QUEUE_HPP )
+#define DEMAND_QUEUE_3__DEMAND_QUEUE_HPP
 
 #include <deque>
 #include <queue>
@@ -94,35 +94,26 @@ class event_caller_t
 		call( agent_t * agent, message_t * msg ) = 0;
 	};
 
-struct agent_demand_t
+struct demand_t
 	{
+		agent_t * m_agent;
 		message_t * m_msg;
 		event_caller_t * m_caller;
 
-		agent_demand_t()
-			:	m_msg( nullptr )
+		demand_t()
+			:	m_agent( nullptr )
+			,	m_msg( nullptr )
 			,	m_caller( nullptr )
 			{}
 
-		agent_demand_t(
+		demand_t(
+			agent_t * agent,
 			message_t * msg,
 			event_caller_t * caller )
-			:	m_msg( msg )
+			:	m_agent( agent )
+			,	m_msg( msg )
 			,	m_caller( caller )
 			{}
-	};
-
-class agent_demand_storage_t
-	{
-	public :
-		virtual ~agent_demand_storage_t()
-			{}
-
-		virtual void
-		push( message_t * msg, event_caller_t * caller ) = 0;
-
-		virtual agent_demand_t
-		pop() = 0;
 	};
 
 class dispatcher_notificator_t
@@ -138,7 +129,7 @@ class dispatcher_notificator_t
 		unlock() = 0;
 
 		virtual void
-		push( agent_t * agent ) = 0;
+		push( agent_t * agent, message_t * msg, event_caller_t * caller ) = 0;
 
 	public :
 		class local_lock_t
@@ -156,9 +147,11 @@ class dispatcher_notificator_t
 				}
 
 			void
-			push( agent_t * agent )
+			push( agent_t * agent,
+				message_t * msg,
+				event_caller_t * caller )
 				{
-					m_notificator.push( agent );
+					m_notificator.push( agent, msg, caller );
 				}
 		};
 	};
@@ -166,25 +159,15 @@ class dispatcher_notificator_t
 class agent_t
 	{
 	private :
-		std::unique_ptr< agent_demand_storage_t > m_demand_storage;
-
 		dispatcher_notificator_t & m_dispatcher_notificator;
 
 	public :
 		agent_t(
-			std::unique_ptr< agent_demand_storage_t > demand_storage,
 			dispatcher_notificator_t & dispatcher_notificator )
-			:	m_demand_storage( std::move( demand_storage ) )
-			,	m_dispatcher_notificator( dispatcher_notificator )
+			:	m_dispatcher_notificator( dispatcher_notificator )
 			{}
 		virtual ~agent_t()
 			{}
-
-		agent_demand_storage_t &
-		demand_storage()
-			{
-				return *m_demand_storage;
-			}
 
 		dispatcher_notificator_t &
 		dispatcher_notificator()
@@ -198,40 +181,7 @@ class agent_t
 				dispatcher_notificator_t::local_lock_t lock(
 						dispatcher_notificator() );
 
-				demand_storage().push( msg, &caller );
-
-				lock.push( this );
-			}
-	};
-
-class simple_demand_storage_t
-	:	public agent_demand_storage_t
-	{
-//		typedef std::deque< agent_demand_t > container_t;
-		typedef circular_buffer_queue_t< agent_demand_t > container_t;
-
-		container_t m_storage;
-
-	public :
-		simple_demand_storage_t()
-			:	m_storage( 128 )
-			{}
-
-		virtual ~simple_demand_storage_t()
-			{}
-
-		virtual void
-		push( message_t * msg, event_caller_t * caller )
-			{
-				m_storage.push_back( agent_demand_t( msg, caller ) );
-			}
-
-		virtual agent_demand_t
-		pop()
-			{
-				auto result = m_storage.front();
-				m_storage.pop_front();
-				return result;
+				lock.push( this, msg, &caller );
 			}
 	};
 
@@ -269,8 +219,7 @@ class real_dispatcher_notificator_t
 			};
 
 	private :
-		typedef circular_buffer_queue_t< agent_t * > notifies_t;
-//		typedef std::queue< agent_t * > notifies_t;
+		typedef circular_buffer_queue_t< event_info_t > notifies_t;
 
 		notifies_t m_notifies;
 
@@ -314,17 +263,12 @@ class real_dispatcher_notificator_t
 					}
 					else
 					{
-						agent_t * a = m_notifies.front();
+						event_info_t info = m_notifies.front();
 						m_notifies.pop();
 
 						m_not_empty = m_notifies.empty() ? 0 : 1;
 
-						const agent_demand_t & d = a->demand_storage().pop();
-
-						return event_info_t(
-								a,
-								d.m_msg,
-								d.m_caller );
+						return info;
 					}
 				}
 				while( true );
@@ -356,9 +300,9 @@ class real_dispatcher_notificator_t
 			}
 
 		virtual void
-		push( agent_t * agent )
+		push( agent_t * agent, message_t * msg, event_caller_t * caller )
 			{
-				m_notifies.push( agent );
+				m_notifies.push( event_info_t( agent, msg, caller ) );
 				m_not_empty = 1;
 
 				if( m_someone_waiting )
