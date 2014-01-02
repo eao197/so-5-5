@@ -400,7 +400,7 @@ agent_t::do_drop_subscription_for_all_states(
 
 void
 agent_t::push_event(
-	const event_caller_block_t * event_caller_block,
+	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
@@ -430,7 +430,7 @@ agent_t::exec_next_event()
 
 	(*event_item.m_demand_handler)(
 			event_item.m_message_ref,
-			event_item.m_event_caller_block,
+			event_item.m_event_caller_block.get(),
 			this );
 }
 

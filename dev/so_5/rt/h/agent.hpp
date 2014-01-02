@@ -383,7 +383,7 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
-			const event_caller_block_t * event_handler_caller,
+			const event_caller_block_ref_t & event_handler_caller,
 			const message_ref_t & message )
 		{
 			agent.push_event( event_handler_caller, message );
@@ -879,7 +879,7 @@ class SO_5_TYPE agent_t
 		void
 		push_event(
 			//! Event handler caller for an event.
-			const event_caller_block_t * event_handler_caller,
+			const event_caller_block_ref_t & event_handler_caller,
 			//! Event message.
 			const message_ref_t & message );
 
