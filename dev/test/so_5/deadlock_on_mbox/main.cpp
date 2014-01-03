@@ -13,26 +13,6 @@ class test_controller_t
 			,	m_push_event_point( m_lock )
 			{}
 
-#if 0
-		void
-		pause_for_start()
-			{
-				m_lock.acquire();
-			}
-
-		void
-		do_start()
-			{
-				m_start_point.broadcast();
-				m_lock.release();
-			}
-
-		void
-		wait_for_start_point()
-			{
-			}
-#endif
-
 		void
 		wait_for_subscribe_event_handler_point()
 			{
@@ -63,7 +43,6 @@ class test_controller_t
 
 	private :
 		ACE_Thread_Mutex m_lock;
-//		ACE_Condition_Thread_Mutex m_start_point;
 		ACE_Condition_Thread_Mutex m_subscribe_event_handler_point;
 		ACE_Condition_Thread_Mutex m_push_event_point;
 	};
