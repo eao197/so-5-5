@@ -51,7 +51,7 @@ local_mbox_t::subscribe_event_handler(
 	agent_t * subscriber,
 	const event_caller_block_ref_t & event_caller )
 {
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+	// Since v.5.2.3.4 there is no locking inside the method!
 
 	m_subscribers[ type_wrapper ][ subscriber ] = event_caller;
 }
@@ -61,7 +61,7 @@ local_mbox_t::unsubscribe_event_handlers(
 	const type_wrapper_t & type_wrapper,
 	agent_t * subscriber )
 {
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+	// Since v.5.2.3.4 there is no locking inside the method!
 
 	auto it = m_subscribers.find( type_wrapper );
 	if( it != m_subscribers.end() )
@@ -85,6 +85,22 @@ local_mbox_t::deliver_message(
 		for( auto s = it->second.begin(), e = it->second.end(); s != e; ++s )
 			agent_t::call_push_event( *(s->first), s->second, message_ref );
 	}
+}
+
+void
+local_mbox_t::read_write_lock_acquire()
+{
+	if( -1 == m_lock.acquire_write() )
+		SO_5_THROW_EXCEPTION( rc_unexpected_error,
+				"ACE_RW_Thread_Mutex::acquire_write() failed." );
+}
+
+void
+local_mbox_t::read_write_lock_release()
+{
+	if( -1 == m_lock.release() )
+		SO_5_THROW_EXCEPTION( rc_unexpected_error,
+				"ACE_RW_Thread_Mutex::release() failed." );
 }
 
 const std::string g_mbox_empty_name;

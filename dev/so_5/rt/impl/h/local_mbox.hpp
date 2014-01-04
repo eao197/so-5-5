@@ -85,6 +85,12 @@ class local_mbox_t
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) const;
 
+		virtual void
+		read_write_lock_acquire();
+
+		virtual void
+		read_write_lock_release();
+
 	private:
 		//! Implementation data.
 		impl::mbox_core_ref_t m_mbox_core;

@@ -265,12 +265,13 @@ subscription_key_string( const PAIR & sk )
 void
 agent_t::create_event_subscription(
 	const type_wrapper_t & type_wrapper,
-	mbox_ref_t & mbox_ref,
+	const mbox_ref_t & mbox_ref,
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc )
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
+	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	if( m_is_coop_deregistered )
@@ -283,7 +284,7 @@ agent_t::create_event_subscription(
 	{
 		create_and_register_event_caller_block(
 				type_wrapper,
-				mbox_ref,
+				mbox_proxy,
 				target_state,
 				ehc,
 				subscr_key );
@@ -297,7 +298,7 @@ agent_t::create_event_subscription(
 void
 agent_t::create_and_register_event_caller_block(
 	const type_wrapper_t & type_wrapper,
-	mbox_ref_t & mbox_ref,
+	mbox_subscription_management_proxy_t & mbox_proxy,
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc,
 	const subscription_key_t & subscr_key )
@@ -306,7 +307,7 @@ agent_t::create_and_register_event_caller_block(
 			new event_caller_block_t() );
 	caller_block->insert( target_state, ehc );
 
-	mbox_ref->subscribe_event_handler(
+	mbox_proxy.subscribe_event_handler(
 		type_wrapper,
 		this,
 		caller_block.get() );
@@ -322,7 +323,7 @@ agent_t::create_and_register_event_caller_block(
 	}
 	catch( ... )
 	{
-		mbox_ref->unsubscribe_event_handlers( type_wrapper, this );
+		mbox_proxy.unsubscribe_event_handlers( type_wrapper, this );
 		throw;
 	}
 }
@@ -335,8 +336,9 @@ agent_t::destroy_all_subscriptions()
 
 	for(; it != it_end; ++it )
 	{
-		mbox_ref_t mbox( it->first.second );
-		mbox->unsubscribe_event_handlers(
+		mbox_subscription_management_proxy_t mbox_proxy( it->first.second );
+
+		mbox_proxy.unsubscribe_event_handlers(
 			it->first.first,
 			this );
 	}
@@ -356,6 +358,7 @@ agent_t::do_drop_subscription(
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
+	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
@@ -366,7 +369,7 @@ agent_t::do_drop_subscription(
 
 		if( it->second->empty() )
 		{
-			it->first.second->unsubscribe_event_handlers(
+			mbox_proxy.unsubscribe_event_handlers(
 				it->first.first,
 				this );
 
@@ -383,13 +386,14 @@ agent_t::do_drop_subscription_for_all_states(
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
+	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
 	if( m_event_consumers_map.end() != it )
 	{
-		it->first.second->unsubscribe_event_handlers(
+		mbox_proxy.unsubscribe_event_handlers(
 			it->first.first,
 			this );
 

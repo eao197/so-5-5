@@ -69,6 +69,18 @@ named_local_mbox_t::deliver_message(
 		message_ref );
 }
 
+void
+named_local_mbox_t::read_write_lock_acquire()
+{
+	m_mbox->read_write_lock_acquire();
+}
+
+void
+named_local_mbox_t::read_write_lock_release()
+{
+	m_mbox->read_write_lock_release();
+}
+
 const std::string &
 named_local_mbox_t::query_name() const
 {

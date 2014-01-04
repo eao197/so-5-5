@@ -73,6 +73,12 @@ class named_local_mbox_t
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) const;
 
+		virtual void
+		read_write_lock_acquire();
+
+		virtual void
+		read_write_lock_release();
+
 		//! Get data for a comparision.
 		virtual const mbox_t *
 		cmp_ordinal() const;

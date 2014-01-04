@@ -809,7 +809,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
+			const mbox_ref_t & mbox_ref,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
@@ -824,7 +824,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
+			mbox_subscription_management_proxy_t & mbox_proxy,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
