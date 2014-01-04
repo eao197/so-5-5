@@ -834,14 +834,8 @@ class SO_5_TYPE agent_t
 
 		//! Destroy all agent subscriptions.
 		void
-		destroy_all_subscriptions();
-
-		/*!
-		 * \since v.5.2.0
-		 * \brief Clean event consumers map.
-		 */
-		void
-		clean_consumers_map();
+		destroy_all_subscriptions(
+			consumers_map_t & subscriptions );
 
 		/*!
 		 * \since v.5.2.3
