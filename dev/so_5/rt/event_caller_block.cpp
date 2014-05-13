@@ -40,7 +40,6 @@ event_caller_block_t::insert(
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc_ref )
 {
-
 	auto it = m_callers.find( &target_state );
 	if( it != m_callers.end() )
 		SO_5_THROW_EXCEPTION(
