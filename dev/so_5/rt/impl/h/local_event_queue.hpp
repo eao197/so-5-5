@@ -29,6 +29,8 @@ namespace rt
 namespace impl
 {
 
+//TODO: this struct is no more needed!
+
 //
 // event_item_t
 //
@@ -63,6 +65,8 @@ struct event_item_t
 	 */
 	demand_handler_pfn_t m_demand_handler;
 };
+
+//TODO: this class is no more needed!
 
 //
 // local_event_queue_t

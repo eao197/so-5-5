@@ -46,6 +46,7 @@ MxxRu::Cpp::dll_target {
 
 		cpp_source( "so_environment.cpp" )
 
+		cpp_source( "exec_ctx.cpp" )
 		cpp_source( "disp.cpp" )
 		cpp_source( "disp_binder.cpp" )
 

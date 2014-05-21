@@ -17,6 +17,7 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
+//TODO: no more needed!
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 
 namespace so_5
@@ -77,6 +78,7 @@ class SO_5_TYPE dispatcher_t
 		virtual void
 		wait() = 0;
 
+//TODO: should be removed!
 		//! Schedule execution of agent events.
 		virtual void
 		put_event_execution_request(

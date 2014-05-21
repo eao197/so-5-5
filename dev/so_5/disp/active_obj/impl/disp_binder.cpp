@@ -56,9 +56,10 @@ disp_binder_t::bind_agent(
 
 		try
 		{
-			so_5::rt::agent_t::call_bind_to_disp(
+			so_5::rt::agent_t::bind_to_dispatcher(
 				*agent_ref,
-				disp_for_agent );
+				disp_for_agent,
+				dynamic_cast< so_5::rt::exec_ctx_t & >( disp_for_agent ) );
 		}
 		catch( ... )
 		{

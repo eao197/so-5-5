@@ -44,6 +44,7 @@ class state_listener_controller_t;
 
 } /* namespace impl */
 
+class exec_ctx_t;
 class state_t;
 class so_environment_t;
 class agent_coop_t;
@@ -403,13 +404,11 @@ class SO_5_TYPE agent_t
 		}
 
 		//! Bind agent to the dispatcher.
-		static inline void
-		call_bind_to_disp(
+		static void
+		bind_to_dispatcher(
 			agent_t & agent,
-			dispatcher_t & disp )
-		{
-			agent.bind_to_disp( disp );
-		}
+			dispatcher_t & disp,
+			exec_ctx_t & exec_ctx );
 
 	protected:
 		/*!
@@ -715,6 +714,15 @@ class SO_5_TYPE agent_t
 		 * agent to the real dispatcher.
 		 */
 		dispatcher_t * m_dispatcher;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Execution context for the agent.
+		 *
+		 * This pointer receives the actual value during binding
+		 * agent to the real dispatcher.
+		 */
+		exec_ctx_t * m_exec_ctx;
 
 		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;

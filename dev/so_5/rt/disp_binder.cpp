@@ -7,6 +7,7 @@
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/h/so_environment.hpp>
 
+#include <so_5/rt/h/exec_ctx.hpp>
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
 
@@ -37,8 +38,8 @@ namespace /* ananymous */
 
 //! Default dispatcher binder implementation.
 class default_disp_binder_t
-	:
-		public disp_binder_t
+	:	public disp_binder_t
+	,	public exec_ctx_t
 {
 	public:
 		default_disp_binder_t();
@@ -68,9 +69,10 @@ default_disp_binder_t::bind_agent(
 	impl::so_environment_impl_t & env,
 	agent_ref_t & agent_ref )
 {
-	agent_t::call_bind_to_disp(
+	agent_t::bind_to_dispatcher(
 		*agent_ref,
-		env.query_default_dispatcher() );
+		env.query_default_dispatcher(),
+		dynamic_cast< exec_ctx_t & >( env.query_default_dispatcher() ) );
 }
 
 void

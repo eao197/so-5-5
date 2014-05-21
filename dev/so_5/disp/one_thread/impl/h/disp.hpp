@@ -11,6 +11,7 @@
 #define _SO_5__DISP__ONE_THREAD__IMPL__DISP_HPP_
 
 #include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/h/exec_ctx.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
 namespace so_5
@@ -33,8 +34,8 @@ namespace impl
 	\brief A dispatcher with the single working thread and an event queue.
 */
 class dispatcher_t
-	:
-		public so_5::rt::dispatcher_t
+	:	public so_5::rt::dispatcher_t
+	,	public so_5::rt::exec_ctx_t
 {
 	public:
 		dispatcher_t();
@@ -62,7 +63,6 @@ class dispatcher_t
 		//! Working thread for the dispatcher.
 		so_5::disp::reuse::work_thread::work_thread_t m_work_thread;
 };
-
 
 } /* namespace impl */
 
