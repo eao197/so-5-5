@@ -176,11 +176,10 @@ class a_creature_t
 		a_creature_t(
 			so_5::rt::so_environment_t & env,
 			const so_5::rt::mbox_ref_t & meeting_place_mbox,
-			const so_5::rt::mbox_ref_t & self_mbox,
 			color_t color )
 			:	so_5::rt::agent_t( env )
 			,	m_meeting_place_mbox( meeting_place_mbox )
-			,	m_self_mbox( self_mbox )
+			,	m_self_mbox( env.create_local_mbox() )
 			,	m_meeting_counter( 0 )
 			,	m_color( color )
 			{}
@@ -279,7 +278,6 @@ init(
 						new a_creature_t(
 								env,
 								meeting_place_mbox,
-								env.create_local_mbox(),
 								creature_colors[ i ] ) );
 			}
 
