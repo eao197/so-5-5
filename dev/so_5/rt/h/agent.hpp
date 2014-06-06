@@ -383,7 +383,7 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
-			const event_caller_block_t * event_handler_caller,
+			const event_caller_block_ref_t & event_handler_caller,
 			const message_ref_t & message )
 		{
 			agent.push_event( event_handler_caller, message );
@@ -443,6 +443,9 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+	public : /* Note: since v.5.2.3.2 subscription-related method are
+					made public. */
 
 		/*!
 		 * \name Subscription methods.
@@ -534,6 +537,8 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+	protected :
 
 		/*!
 		 * \name Agent initialization methods.
@@ -804,7 +809,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
+			const mbox_ref_t & mbox_ref,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
@@ -819,7 +824,7 @@ class SO_5_TYPE agent_t
 			//! Message type.
 			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
+			mbox_subscription_management_proxy_t & mbox_proxy,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
@@ -829,14 +834,8 @@ class SO_5_TYPE agent_t
 
 		//! Destroy all agent subscriptions.
 		void
-		destroy_all_subscriptions();
-
-		/*!
-		 * \since v.5.2.0
-		 * \brief Clean event consumers map.
-		 */
-		void
-		clean_consumers_map();
+		destroy_all_subscriptions(
+			consumers_map_t & subscriptions );
 
 		/*!
 		 * \since v.5.2.3
@@ -874,7 +873,7 @@ class SO_5_TYPE agent_t
 		void
 		push_event(
 			//! Event handler caller for an event.
-			const event_caller_block_t * event_handler_caller,
+			const event_caller_block_ref_t & event_handler_caller,
 			//! Event message.
 			const message_ref_t & message );
 

@@ -64,7 +64,7 @@ class local_mbox_t
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The first event caller for this message.
-			const event_caller_block_t * event_caller );
+			const event_caller_block_ref_t & event_caller );
 
 		//! Remove all subscription for the specified message.
 		/*!
@@ -85,6 +85,12 @@ class local_mbox_t
 			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) const;
 
+		virtual void
+		read_write_lock_acquire();
+
+		virtual void
+		read_write_lock_release();
+
 	private:
 		//! Implementation data.
 		impl::mbox_core_ref_t m_mbox_core;
@@ -95,7 +101,7 @@ class local_mbox_t
 		//! Typedef for map of subscribers to caller blocks.
 		typedef std::map<
 					agent_t *,
-					const event_caller_block_t * >
+					event_caller_block_ref_t >
 				subscribers_to_msg_map_t;
 
 		//! Typedef for map from type_wrapper to callers blocks.

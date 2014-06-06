@@ -230,22 +230,45 @@ agent_t::start_agent()
 void
 agent_t::shutdown_agent()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	// Since v.5.2.3.4 shutdown is done by three steps:
+	//
+	// 1. Lock object, set deregistration status and move subscription
+	// map to different location.
+	//
+	// 2. Unlock object and remove all subscription. Subscriptions must be
+	// removed on unlocked object to avoid deadlocks on mbox operations (see for
+	// example: https://sourceforge.net/p/sobjectizer/bugs/10/).
+	//
+	// 3. Lock object and send the last demand to the agent.
 
-	m_is_coop_deregistered = true;
+	consumers_map_t subscriptions;
+	{
+		// Step #1. Must be done on locked object.
+		ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
+		m_is_coop_deregistered = true;
+		m_event_consumers_map.swap( subscriptions );
+	}
+
+	// Step #2. Must be done on unlocked object.
+	
 	// Subscriptions should be destroyed.
-	destroy_all_subscriptions();
+	destroy_all_subscriptions( subscriptions );
 
-	// A final event handler should be added.
-	m_local_event_queue->push(
-		impl::event_item_t(
-			nullptr,
-			message_ref_t(),
-			&agent_t::demand_handler_on_finish ) );
+	{
+		// Step #3. Must be done on locked object.
+		ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
-	// Dispatcher should be informed about this event.
-	m_dispatcher->put_event_execution_request( this, 1 );
+		// A final event handler should be added.
+		m_local_event_queue->push(
+			impl::event_item_t(
+				nullptr,
+				message_ref_t(),
+				&agent_t::demand_handler_on_finish ) );
+
+		// Dispatcher should be informed about this event.
+		m_dispatcher->put_event_execution_request( this, 1 );
+	}
 }
 
 //! Make textual representation of the subscription key.
@@ -265,12 +288,13 @@ subscription_key_string( const PAIR & sk )
 void
 agent_t::create_event_subscription(
 	const type_wrapper_t & type_wrapper,
-	mbox_ref_t & mbox_ref,
+	const mbox_ref_t & mbox_ref,
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc )
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
+	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	if( m_is_coop_deregistered )
@@ -283,7 +307,7 @@ agent_t::create_event_subscription(
 	{
 		create_and_register_event_caller_block(
 				type_wrapper,
-				mbox_ref,
+				mbox_proxy,
 				target_state,
 				ehc,
 				subscr_key );
@@ -297,7 +321,7 @@ agent_t::create_event_subscription(
 void
 agent_t::create_and_register_event_caller_block(
 	const type_wrapper_t & type_wrapper,
-	mbox_ref_t & mbox_ref,
+	mbox_subscription_management_proxy_t & mbox_proxy,
 	const state_t & target_state,
 	const event_handler_caller_ref_t & ehc,
 	const subscription_key_t & subscr_key )
@@ -306,7 +330,7 @@ agent_t::create_and_register_event_caller_block(
 			new event_caller_block_t() );
 	caller_block->insert( target_state, ehc );
 
-	mbox_ref->subscribe_event_handler(
+	mbox_proxy.subscribe_event_handler(
 		type_wrapper,
 		this,
 		caller_block.get() );
@@ -322,30 +346,26 @@ agent_t::create_and_register_event_caller_block(
 	}
 	catch( ... )
 	{
-		mbox_ref->unsubscribe_event_handlers( type_wrapper, this );
+		mbox_proxy.unsubscribe_event_handlers( type_wrapper, this );
 		throw;
 	}
 }
 
 void
-agent_t::destroy_all_subscriptions()
+agent_t::destroy_all_subscriptions(
+	consumers_map_t & subscriptions )
 {
-	consumers_map_t::iterator it = m_event_consumers_map.begin();
-	consumers_map_t::iterator it_end = m_event_consumers_map.end();
+	consumers_map_t::iterator it = subscriptions.begin();
+	consumers_map_t::iterator it_end = subscriptions.end();
 
 	for(; it != it_end; ++it )
 	{
-		mbox_ref_t mbox( it->first.second );
-		mbox->unsubscribe_event_handlers(
+		mbox_subscription_management_proxy_t mbox_proxy( it->first.second );
+
+		mbox_proxy.unsubscribe_event_handlers(
 			it->first.first,
 			this );
 	}
-}
-
-void
-agent_t::clean_consumers_map()
-{
-	m_event_consumers_map.clear();
 }
 
 void
@@ -356,6 +376,7 @@ agent_t::do_drop_subscription(
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
+	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
@@ -366,7 +387,7 @@ agent_t::do_drop_subscription(
 
 		if( it->second->empty() )
 		{
-			it->first.second->unsubscribe_event_handlers(
+			mbox_proxy.unsubscribe_event_handlers(
 				it->first.first,
 				this );
 
@@ -383,13 +404,14 @@ agent_t::do_drop_subscription_for_all_states(
 {
 	subscription_key_t subscr_key( type_wrapper, mbox_ref );
 
+	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
 	if( m_event_consumers_map.end() != it )
 	{
-		it->first.second->unsubscribe_event_handlers(
+		mbox_proxy.unsubscribe_event_handlers(
 			it->first.first,
 			this );
 
@@ -400,7 +422,7 @@ agent_t::do_drop_subscription_for_all_states(
 
 void
 agent_t::push_event(
-	const event_caller_block_t * event_caller_block,
+	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
@@ -430,7 +452,7 @@ agent_t::exec_next_event()
 
 	(*event_item.m_demand_handler)(
 			event_item.m_message_ref,
-			event_item.m_event_caller_block,
+			event_item.m_event_caller_block.get(),
 			this );
 }
 
@@ -450,8 +472,6 @@ agent_t::demand_handler_on_finish(
 	agent_t * agent )
 {
 	agent->so_evt_finish();
-	// Event caller blocks no more needed.
-	agent->clean_consumers_map();
 	// Cooperation should receive notification about agent deregistration.
 	agent_coop_t::decrement_usage_count( *(agent->m_agent_coop) );
 }

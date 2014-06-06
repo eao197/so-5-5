@@ -41,7 +41,7 @@ void
 named_local_mbox_t::subscribe_event_handler(
 	const type_wrapper_t & type_wrapper,
 	agent_t * subscriber,
-	const event_caller_block_t * event_caller )
+	const event_caller_block_ref_t & event_caller )
 {
 	m_mbox->subscribe_event_handler(
 		type_wrapper,
@@ -67,6 +67,18 @@ named_local_mbox_t::deliver_message(
 	m_mbox->deliver_message(
 		type_wrapper,
 		message_ref );
+}
+
+void
+named_local_mbox_t::read_write_lock_acquire()
+{
+	m_mbox->read_write_lock_acquire();
+}
+
+void
+named_local_mbox_t::read_write_lock_release()
+{
+	m_mbox->read_write_lock_release();
 }
 
 const std::string &
