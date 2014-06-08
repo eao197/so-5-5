@@ -13,7 +13,7 @@ namespace timer_thread
 {
 
 timer_act_t::timer_act_t(
-	const rt::type_wrapper_t & type_wrapper,
+	const std::type_index & type_wrapper,
 	const rt::mbox_ref_t & mbox,
 	const rt::message_ref_t & msg,
 	unsigned int delay,

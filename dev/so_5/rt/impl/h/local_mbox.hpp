@@ -60,7 +60,7 @@ class local_mbox_t
 		virtual void
 		subscribe_event_handler(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_wrapper,
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The first event caller for this message.
@@ -74,7 +74,7 @@ class local_mbox_t
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_wrapper,
 			//! Agent-subscriber.
 			agent_t * subscriber );
 		//! \}
@@ -82,7 +82,7 @@ class local_mbox_t
 		//! Deliver message for all subscribers.
 		void
 		deliver_message(
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_wrapper,
 			const message_ref_t & message_ref ) const;
 
 		virtual void
@@ -104,8 +104,8 @@ class local_mbox_t
 					event_caller_block_ref_t >
 				subscribers_to_msg_map_t;
 
-		//! Typedef for map from type_wrapper to callers blocks.
-		typedef std::map< type_wrapper_t, subscribers_to_msg_map_t >
+		//! Typedef for map from type_index to callers blocks.
+		typedef std::map< std::type_index, subscribers_to_msg_map_t >
 				subscribers_to_mbox_map_t;
 
 		//! Map of subscribers to messages.

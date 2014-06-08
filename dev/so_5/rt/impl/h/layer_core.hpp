@@ -11,12 +11,12 @@
 #define _SO_5__RT__IMPL__LAYER_CORE_HPP_
 
 #include <vector>
+#include <typeindex>
 
 #include <ace/RW_Thread_Mutex.h>
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/so_layer.hpp>
 
 namespace so_5
@@ -42,14 +42,14 @@ struct typed_layer_ref_t
 	typed_layer_ref_t();
 	typed_layer_ref_t( const so_layer_map_t::value_type & v );
 	typed_layer_ref_t(
-		const type_wrapper_t & type,
+		const std::type_index & type,
 		const so_layer_ref_t & layer );
 
 	bool
 	operator < ( const typed_layer_ref_t & tl ) const;
 
 	//! Layer type.
-	type_wrapper_t m_true_type;
+	std::type_index m_true_type;
 
 	//! Layer itself.
 	so_layer_ref_t m_layer;
@@ -104,7 +104,7 @@ class layer_core_t
 		 */
 		so_layer_t *
 		query_layer(
-			const type_wrapper_t & type ) const;
+			const std::type_index & type ) const;
 
 		//! Start all layers.
 		void
@@ -120,7 +120,7 @@ class layer_core_t
 		//! Add an extra layer.
 		void
 		add_extra_layer(
-			const type_wrapper_t & type,
+			const std::type_index & type,
 			const so_layer_ref_t & layer );
 
 	private:

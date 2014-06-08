@@ -47,7 +47,7 @@ local_mbox_t::~local_mbox_t()
 
 void
 local_mbox_t::subscribe_event_handler(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_wrapper,
 	agent_t * subscriber,
 	const event_caller_block_ref_t & event_caller )
 {
@@ -58,7 +58,7 @@ local_mbox_t::subscribe_event_handler(
 
 void
 local_mbox_t::unsubscribe_event_handlers(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_wrapper,
 	agent_t * subscriber )
 {
 	// Since v.5.2.3.4 there is no locking inside the method!
@@ -74,7 +74,7 @@ local_mbox_t::unsubscribe_event_handlers(
 
 void
 local_mbox_t::deliver_message(
-	const type_wrapper_t & type_wrapper,
+	const std::type_index & type_wrapper,
 	const message_ref_t & message_ref ) const
 {
 	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );

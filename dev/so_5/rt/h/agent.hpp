@@ -22,7 +22,6 @@
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
@@ -687,7 +686,7 @@ class SO_5_TYPE agent_t
 			m_state_listener_controller;
 
 		//! Typedef for subscription key.
-		typedef std::pair< type_wrapper_t, mbox_ref_t > subscription_key_t;
+		typedef std::pair< std::type_index, mbox_ref_t > subscription_key_t;
 
 		//! Typedef for the map from subscriptions to event handlers.
 		typedef std::map<
@@ -807,7 +806,7 @@ class SO_5_TYPE agent_t
 		void
 		create_event_subscription(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Message's mbox.
 			const mbox_ref_t & mbox_ref,
 			//! State for event.
@@ -822,7 +821,7 @@ class SO_5_TYPE agent_t
 		void
 		create_and_register_event_caller_block(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Message's mbox.
 			mbox_subscription_management_proxy_t & mbox_proxy,
 			//! State for event.
@@ -844,7 +843,7 @@ class SO_5_TYPE agent_t
 		void
 		do_drop_subscription(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Message's mbox.
 			const mbox_ref_t & mbox_ref,
 			//! State for event.
@@ -857,7 +856,7 @@ class SO_5_TYPE agent_t
 		void
 		do_drop_subscription_for_all_states(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Message's mbox.
 			const mbox_ref_t & mbox_ref );
 		/*!

@@ -13,6 +13,7 @@
 
 #include <string>
 #include <memory>
+#include <typeindex>
 
 #include <ace/RW_Thread_Mutex.h>
 
@@ -21,7 +22,6 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
-#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
@@ -151,7 +151,7 @@ class SO_5_TYPE mbox_t
 		virtual void
 		subscribe_event_handler(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The very first message handler.
@@ -161,14 +161,14 @@ class SO_5_TYPE mbox_t
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Agent-subcriber.
 			agent_t * subscriber ) = 0;
 
 		//! Deliver message for all subscribers.
 		virtual void
 		deliver_message(
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			const message_ref_t & message_ref ) const = 0;
 
 		/*!
@@ -201,7 +201,7 @@ mbox_t::deliver_message(
 	ensure_message_with_actual_data( msg_ref.get() );
 
 	deliver_message(
-		type_wrapper_t( typeid( MESSAGE ) ),
+		std::type_index( typeid( MESSAGE ) ),
 		msg_ref.template make_reference< message_t >() );
 }
 
@@ -213,7 +213,7 @@ mbox_t::deliver_message(
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
 
 	deliver_message(
-		type_wrapper_t( typeid( MESSAGE ) ),
+		std::type_index( typeid( MESSAGE ) ),
 		message_ref_t( msg_unique_ptr.release() ) );
 }
 
@@ -232,7 +232,7 @@ mbox_t::deliver_signal() const
 	ensure_signal< MESSAGE >();
 
 	deliver_message(
-		type_wrapper_t( typeid( MESSAGE ) ),
+		std::type_index( typeid( MESSAGE ) ),
 		message_ref_t() );
 }
 
@@ -272,14 +272,14 @@ class mbox_subscription_management_proxy_t
 		inline void
 		subscribe_event_handler(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The very first message handler.
 			const event_caller_block_ref_t & event_caller )
 		{
 			m_mbox->subscribe_event_handler(
-					type_wrapper,
+					type_index,
 					subscriber,
 					event_caller );
 		}
@@ -288,11 +288,11 @@ class mbox_subscription_management_proxy_t
 		inline void
 		unsubscribe_event_handlers(
 			//! Message type.
-			const type_wrapper_t & type_wrapper,
+			const std::type_index & type_index,
 			//! Agent-subcriber.
 			agent_t * subscriber )
 		{
-			m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
+			m_mbox->unsubscribe_event_handlers( type_index, subscriber );
 		}
 
 	private :
