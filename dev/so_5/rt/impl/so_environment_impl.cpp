@@ -54,7 +54,7 @@ so_environment_impl_t::~so_environment_impl_t()
 
 so_5::timer_thread::timer_id_ref_t
 so_environment_impl_t::schedule_timer(
-	const std::type_index & type_index,
+	const rt::type_wrapper_t & type_wrapper,
 	const message_ref_t & msg,
 	const mbox_ref_t & mbox,
 	unsigned int delay_msec,
@@ -62,7 +62,7 @@ so_environment_impl_t::schedule_timer(
 {
 	timer_thread::timer_act_unique_ptr_t timer_act(
 		new timer_thread::timer_act_t(
-			type_index,
+			type_wrapper,
 			mbox,
 			msg,
 			delay_msec,
@@ -78,14 +78,14 @@ so_environment_impl_t::schedule_timer(
 
 void
 so_environment_impl_t::single_timer(
-	const std::type_index & type_index,
+	const type_wrapper_t & type_wrapper,
 	const message_ref_t & msg,
 	const mbox_ref_t & mbox,
 	unsigned int delay_msec )
 {
 	timer_thread::timer_act_unique_ptr_t timer_act(
 		new timer_thread::timer_act_t(
-			type_index,
+			type_wrapper,
 			mbox,
 			msg,
 			delay_msec,
@@ -96,14 +96,14 @@ so_environment_impl_t::single_timer(
 
 so_layer_t *
 so_environment_impl_t::query_layer(
-	const std::type_index & type ) const
+	const type_wrapper_t & type ) const
 {
 	return m_layer_core.query_layer( type );
 }
 
 void
 so_environment_impl_t::add_extra_layer(
-	const std::type_index & type,
+	const type_wrapper_t & type,
 	const so_layer_ref_t & layer )
 {
 	m_layer_core.add_extra_layer( type, layer );

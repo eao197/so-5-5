@@ -41,7 +41,7 @@ struct event_item_t
 
 	event_item_t(
 		//! Event handler caller.
-		const event_caller_block_t * event_caller_block,
+		const event_caller_block_ref_t & event_caller_block,
 		//! Message.
 		const message_ref_t & message_ref,
 		//! Demand handler.
@@ -52,7 +52,7 @@ struct event_item_t
 	{}
 
 	//! Event handler caller.
-	const event_caller_block_t * m_event_caller_block;
+	event_caller_block_ref_t m_event_caller_block;
 
 	//! Message.
 	message_ref_t m_message_ref;

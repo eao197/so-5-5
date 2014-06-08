@@ -13,7 +13,6 @@
 
 #include <string>
 #include <memory>
-#include <typeindex>
 
 #include <ace/RW_Thread_Mutex.h>
 
@@ -22,6 +21,7 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
@@ -75,11 +75,12 @@ class SO_5_TYPE mbox_t
 	:
 		private atomic_refcounted_t
 {
-		friend class agent_t;
 		friend class impl::named_local_mbox_t;
 		friend class so_5::timer_thread::timer_act_t;
 
 		friend class smart_atomic_reference_t< mbox_t >;
+
+		friend class mbox_subscription_management_proxy_t;
 
 		mbox_t( const mbox_t & );
 		void
@@ -150,25 +151,39 @@ class SO_5_TYPE mbox_t
 		virtual void
 		subscribe_event_handler(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Agent-subcriber.
 			agent_t * subscriber,
 			//! The very first message handler.
-			const event_caller_block_t * event_caller ) = 0;
+			const event_caller_block_ref_t & event_caller ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Agent-subcriber.
 			agent_t * subscriber ) = 0;
 
 		//! Deliver message for all subscribers.
 		virtual void
 		deliver_message(
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) const = 0;
+
+		/*!
+		 * \since v.5.2.3.4
+		 * \brief Lock mbox in read-write mode.
+		 */
+		virtual void
+		read_write_lock_acquire() = 0;
+
+		/*!
+		 * \since v.5.2.3.4
+		 * \brief Release mbox's read-write lock.
+		 */
+		virtual void
+		read_write_lock_release() = 0;
 
 		//! Get data for the object comparision.
 		/*!
@@ -186,7 +201,7 @@ mbox_t::deliver_message(
 	ensure_message_with_actual_data( msg_ref.get() );
 
 	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
+		type_wrapper_t( typeid( MESSAGE ) ),
 		msg_ref.template make_reference< message_t >() );
 }
 
@@ -198,7 +213,7 @@ mbox_t::deliver_message(
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
 
 	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
+		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t( msg_unique_ptr.release() ) );
 }
 
@@ -217,7 +232,7 @@ mbox_t::deliver_signal() const
 	ensure_signal< MESSAGE >();
 
 	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
+		type_wrapper_t( typeid( MESSAGE ) ),
 		message_ref_t() );
 }
 
@@ -229,6 +244,61 @@ mbox_t::deliver_signal() const
  * \note Defined as typedef since v.5.2.0
  */
 typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
+
+/*!
+ * \since v.5.2.3.4
+ * \brief A special interface to perform subscription management.
+ *
+ * Mbox should be locked in read-write mode before making any
+ * changes to subscriptions. This interface provides an approach
+ * to do that without possibility to make some error with object
+ * locking/unlocking.
+ */
+class mbox_subscription_management_proxy_t
+{
+	public :
+		inline mbox_subscription_management_proxy_t(
+			const mbox_ref_t & mbox )
+			:	m_mbox( mbox )
+		{
+			m_mbox->read_write_lock_acquire();
+		}
+		inline ~mbox_subscription_management_proxy_t()
+		{
+			m_mbox->read_write_lock_release();
+		}
+
+		//! Add the message handler.
+		inline void
+		subscribe_event_handler(
+			//! Message type.
+			const type_wrapper_t & type_wrapper,
+			//! Agent-subcriber.
+			agent_t * subscriber,
+			//! The very first message handler.
+			const event_caller_block_ref_t & event_caller )
+		{
+			m_mbox->subscribe_event_handler(
+					type_wrapper,
+					subscriber,
+					event_caller );
+		}
+
+		//! Remove all message handlers.
+		inline void
+		unsubscribe_event_handlers(
+			//! Message type.
+			const type_wrapper_t & type_wrapper,
+			//! Agent-subcriber.
+			agent_t * subscriber )
+		{
+			m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
+		}
+
+	private :
+		//! Mbox to work with.
+		const mbox_ref_t m_mbox;
+};
 
 } /* namespace rt */
 

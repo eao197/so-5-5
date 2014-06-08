@@ -13,13 +13,13 @@ namespace timer_thread
 {
 
 timer_act_t::timer_act_t(
-	const std::type_index & type_index,
+	const rt::type_wrapper_t & type_wrapper,
 	const rt::mbox_ref_t & mbox,
 	const rt::message_ref_t & msg,
 	unsigned int delay,
 	unsigned int period )
 	:
-		m_type_index( type_index ),
+		m_type_wrapper( type_wrapper ),
 		m_mbox( mbox ),
 		m_msg( msg ),
 		m_delay( delay ),
@@ -34,7 +34,7 @@ timer_act_t::~timer_act_t()
 void
 timer_act_t::exec()
 {
-	m_mbox->deliver_message( m_type_index, m_msg );
+	m_mbox->deliver_message( m_type_wrapper, m_msg );
 }
 
 bool

@@ -12,13 +12,14 @@
 
 #include <memory>
 #include <map>
-#include <typeindex>
 
 #include <ace/Refcounted_Auto_Ptr.h>
 #include <ace/Null_Mutex.h>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
+
+#include <so_5/rt/h/type_wrapper.hpp>
 
 namespace so_5
 {
@@ -101,7 +102,7 @@ typedef std::unique_ptr< so_layer_t > so_layer_unique_ptr_t;
 typedef std::shared_ptr< so_layer_t > so_layer_ref_t;
 
 //! Typedef for rhe map from a layer typeid to the layer.
-typedef std::map< std::type_index, so_layer_ref_t > so_layer_map_t;
+typedef std::map< type_wrapper_t, so_layer_ref_t > so_layer_map_t;
 
 } /* namespace rt */
 

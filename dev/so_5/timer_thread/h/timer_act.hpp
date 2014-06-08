@@ -11,10 +11,10 @@
 #define _SO_5__TIMER_THREAD__TIMER_ACT_HPP_
 
 #include <memory>
-#include <typeindex>
 
 #include <so_5/h/declspec.hpp>
 
+#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/message.hpp>
 
@@ -38,7 +38,7 @@ class SO_5_TYPE timer_act_t
 	public:
 		timer_act_t(
 			//! Message type.
-			const std::type_index & type_index,
+			const rt::type_wrapper_t & type_wrapper,
 			//! mbox to receive a message.
 			const rt::mbox_ref_t & mbox,
 			//! Message to be sent on timer.
@@ -78,7 +78,7 @@ class SO_5_TYPE timer_act_t
 
 	private:
 		//! Message type.
-		const std::type_index m_type_index;
+		const rt::type_wrapper_t m_type_wrapper;
 
 		//! mbox to receive a message. 
 		rt::mbox_ref_t m_mbox;

@@ -12,7 +12,6 @@
 
 #include <memory>
 #include <map>
-#include <typeindex>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
@@ -23,6 +22,7 @@
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
@@ -383,7 +383,7 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
-			const event_caller_block_t * event_handler_caller,
+			const event_caller_block_ref_t & event_handler_caller,
 			const message_ref_t & message )
 		{
 			agent.push_event( event_handler_caller, message );
@@ -687,7 +687,7 @@ class SO_5_TYPE agent_t
 			m_state_listener_controller;
 
 		//! Typedef for subscription key.
-		typedef std::pair< std::type_index, mbox_ref_t > subscription_key_t;
+		typedef std::pair< type_wrapper_t, mbox_ref_t > subscription_key_t;
 
 		//! Typedef for the map from subscriptions to event handlers.
 		typedef std::map<
@@ -807,9 +807,9 @@ class SO_5_TYPE agent_t
 		void
 		create_event_subscription(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
+			const mbox_ref_t & mbox_ref,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
@@ -822,9 +822,9 @@ class SO_5_TYPE agent_t
 		void
 		create_and_register_event_caller_block(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
-			mbox_ref_t & mbox_ref,
+			mbox_subscription_management_proxy_t & mbox_proxy,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
@@ -834,14 +834,8 @@ class SO_5_TYPE agent_t
 
 		//! Destroy all agent subscriptions.
 		void
-		destroy_all_subscriptions();
-
-		/*!
-		 * \since v.5.2.0
-		 * \brief Clean event consumers map.
-		 */
-		void
-		clean_consumers_map();
+		destroy_all_subscriptions(
+			consumers_map_t & subscriptions );
 
 		/*!
 		 * \since v.5.2.3
@@ -850,7 +844,7 @@ class SO_5_TYPE agent_t
 		void
 		do_drop_subscription(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
 			const mbox_ref_t & mbox_ref,
 			//! State for event.
@@ -863,7 +857,7 @@ class SO_5_TYPE agent_t
 		void
 		do_drop_subscription_for_all_states(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Message's mbox.
 			const mbox_ref_t & mbox_ref );
 		/*!
@@ -879,7 +873,7 @@ class SO_5_TYPE agent_t
 		void
 		push_event(
 			//! Event handler caller for an event.
-			const event_caller_block_t * event_handler_caller,
+			const event_caller_block_ref_t & event_handler_caller,
 			//! Event message.
 			const message_ref_t & message );
 

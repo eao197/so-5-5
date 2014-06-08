@@ -12,12 +12,12 @@
 #define _SO_5__RT__EVENT_HANDLER_CALLER_HPP_
 
 #include <cstdio>
-#include <typeindex>
 
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/event_data.hpp>
+#include <so_5/rt/h/type_wrapper.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_handler_caller_ref_fwd.hpp>
 

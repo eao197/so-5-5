@@ -26,7 +26,7 @@ namespace impl
 
 typed_layer_ref_t::typed_layer_ref_t()
 	:
-		m_true_type( std::type_index( typeid( int ) ) )
+		m_true_type( type_wrapper_t( typeid( int ) ) )
 {
 }
 
@@ -39,7 +39,7 @@ typed_layer_ref_t::typed_layer_ref_t(
 }
 
 typed_layer_ref_t::typed_layer_ref_t(
-	const std::type_index & type,
+	const type_wrapper_t & type,
 	const so_layer_ref_t & layer )
 	:
 		m_true_type( type ),
@@ -82,7 +82,7 @@ layer_core_t::~layer_core_t()
 inline so_layer_list_t::const_iterator
 search_for_layer(
 	const so_layer_list_t & layers,
-	const std::type_index & type )
+	const type_wrapper_t & type )
 {
 	so_layer_list_t::const_iterator
 		it = layers.begin(),
@@ -126,7 +126,7 @@ search_for_layer(
 
 so_layer_t *
 layer_core_t::query_layer(
-	const std::type_index & type ) const
+	const type_wrapper_t & type ) const
 {
 	// Try search within default layers first.
 	so_layer_list_t::const_iterator layer_it = search_for_layer(
@@ -191,7 +191,7 @@ layer_core_t::finish()
 
 void
 layer_core_t::add_extra_layer(
-	const std::type_index & type,
+	const type_wrapper_t & type,
 	const so_layer_ref_t & layer )
 {
 //FIXME: check for exception safety!

@@ -31,9 +31,8 @@ namespace work_thread
 // demand_queue
 //
 demand_queue_t::demand_queue_t()
-	:	m_not_empty( m_lock )
-	,	m_shutting_down( false )
-	,	m_is_someone_waiting( false )
+	:
+		m_not_empty( m_lock )
 {
 }
 
@@ -49,13 +48,15 @@ demand_queue_t::push(
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-	if( !m_shutting_down )
+	if( m_in_service )
 	{
+		const bool demands_empty_before_service = m_demands.empty();
+
 		// Assume that the new demand should be added to the queue.
 		bool create_new_demand_needed = true;
 
 		// Is queue was not empty...
-		if( !m_demands.empty() )
+		if( !demands_empty_before_service )
 		{
 			// ...and the last demand in the queue is for the same agent...
 			demand_t & dmnd = m_demands.back();
@@ -72,11 +73,10 @@ demand_queue_t::push(
 			m_demands.push_back( demand_t( agent_ptr, event_cnt ) );
 		}
 
-		if( m_is_someone_waiting )
+		if( demands_empty_before_service )
 		{
-			// Someone is waiting...
+			// May be someone is waiting...
 			// It should be informed about new demands.
-			m_is_someone_waiting = false;
 			m_not_empty.signal();
 		}
 	}
@@ -90,18 +90,17 @@ demand_queue_t::pop(
 
 	while( true )
 	{
-		if( m_shutting_down )
-			return m_shutting_down;
-		else if( !m_demands.empty() )
+		if( m_in_service && !m_demands.empty() )
 		{
 			demands.swap( m_demands );
 			break;
 		}
+		else if( !m_in_service )
+			return shutting_down;
 		else
 		{
 			// Queue is empty. We should wait for a demand or
 			// a shutdown signal.
-			m_is_someone_waiting = true;
 			m_not_empty.wait();
 		}
 	}
@@ -113,20 +112,26 @@ void
 demand_queue_t::start_service()
 {
 	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+
+	m_in_service = true;
 }
 
 void
 demand_queue_t::stop_service()
 {
+	bool is_someone_waiting_us = false;
 	{
 		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
 
-		m_shutting_down = true;
+		m_in_service = false;
 		// If the demands queue is empty then someone is waiting
 		// for new demands inside pop().
-		if( m_is_someone_waiting )
-			m_not_empty.signal();
+		is_someone_waiting_us = m_demands.empty();
 	}
+
+	// In case if someone is waiting.
+	if( is_someone_waiting_us )
+		m_not_empty.signal();
 }
 
 void
@@ -140,7 +145,10 @@ demand_queue_t::clear()
 // work_thread_t
 //
 
-work_thread_t::work_thread_t()
+work_thread_t::work_thread_t(
+	rt::dispatcher_t & disp )
+	:
+		m_disp( disp )
 {
 }
 

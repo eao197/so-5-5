@@ -39,6 +39,8 @@ class so_environment_impl_t;
 
 } /* namespace impl */
 
+class type_wrapper_t;
+
 //
 // so_environment_params_t
 //
@@ -166,7 +168,7 @@ class SO_5_TYPE so_environment_params_t
 				so_layer_unique_ptr_t ptr( layer_ptr.release() );
 
 				add_layer(
-					std::type_index( typeid( SO_LAYER ) ),
+					type_wrapper_t( typeid( SO_LAYER ) ),
 					std::move( ptr ) );
 			}
 
@@ -226,7 +228,7 @@ class SO_5_TYPE so_environment_params_t
 		void
 		add_layer(
 			//! Type identification for layer.
-			const std::type_index & type,
+			const type_wrapper_t & type,
 			//! A layer to be added.
 			so_layer_unique_ptr_t layer_ptr );
 
@@ -674,7 +676,7 @@ class SO_5_TYPE so_environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
 				delay_msec,
@@ -699,7 +701,7 @@ class SO_5_TYPE so_environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t(),
 				mbox,
 				delay_msec,
@@ -720,7 +722,7 @@ class SO_5_TYPE so_environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t( msg.release() ),
 				mbox,
 				delay_msec );
@@ -738,7 +740,7 @@ class SO_5_TYPE so_environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				type_wrapper_t( typeid( MESSAGE ) ),
 				message_ref_t(),
 				mbox,
 				delay_msec );
@@ -763,7 +765,7 @@ class SO_5_TYPE so_environment_t
 			so_layer_t * layer = static_cast< so_layer_t* >( (SO_LAYER *)0 );
 
 			return dynamic_cast< SO_LAYER * >(
-					query_layer( std::type_index( typeid( SO_LAYER ) ) ) );
+					query_layer( type_wrapper_t( typeid( SO_LAYER ) ) ) );
 		}
 
 		//! Get access to the layer with exception if layer is not found.
@@ -788,7 +790,7 @@ class SO_5_TYPE so_environment_t
 			std::unique_ptr< SO_LAYER > layer_ptr )
 		{
 			add_extra_layer(
-				std::type_index( typeid( SO_LAYER ) ),
+				type_wrapper_t( typeid( SO_LAYER ) ),
 				so_layer_ref_t( layer_ptr.release() ) );
 		}
 
@@ -853,7 +855,7 @@ class SO_5_TYPE so_environment_t
 		so_5::timer_thread::timer_id_ref_t
 		schedule_timer(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Message to be sent after timeout.
 			const message_ref_t & msg,
 			//! Mbox to which message will be delivered.
@@ -871,7 +873,7 @@ class SO_5_TYPE so_environment_t
 		void
 		single_timer(
 			//! Message type.
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			//! Message to be sent after timeout.
 			const message_ref_t & msg,
 			//! Mbox to which message will be delivered.
@@ -882,18 +884,18 @@ class SO_5_TYPE so_environment_t
 		//! Access to an additional layer.
 		so_layer_t *
 		query_layer(
-			const std::type_index & type_index ) const;
+			const type_wrapper_t & type ) const;
 
 		//! Add an additional layer.
 		void
 		add_extra_layer(
-			const std::type_index & type_index,
+			const type_wrapper_t & type,
 			const so_layer_ref_t & layer );
 
 		//! Remove an additional layer.
 		void
 		remove_extra_layer(
-			const std::type_index & type_index );
+			const type_wrapper_t & type );
 
 		//! Real SObjectizer Environment implementation.
 		impl::so_environment_impl_t * m_so_environment_impl;

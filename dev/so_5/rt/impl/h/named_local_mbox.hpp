@@ -57,21 +57,27 @@ class named_local_mbox_t
 	protected:
 		virtual void
 		subscribe_event_handler(
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			agent_t * subscriber,
-			const event_caller_block_t * event_caller );
+			const event_caller_block_ref_t & event_caller );
 
 		virtual void
 		unsubscribe_event_handlers(
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			agent_t * subscriber );
 		//! \}
 
 		//! Deliver message to all consumers.
 		void
 		deliver_message(
-			const std::type_index & type_index,
+			const type_wrapper_t & type_wrapper,
 			const message_ref_t & message_ref ) const;
+
+		virtual void
+		read_write_lock_acquire();
+
+		virtual void
+		read_write_lock_release();
 
 		//! Get data for a comparision.
 		virtual const mbox_t *

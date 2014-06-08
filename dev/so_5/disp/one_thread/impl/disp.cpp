@@ -17,6 +17,8 @@ namespace impl
 {
 
 dispatcher_t::dispatcher_t()
+	:
+		m_work_thread( *self_ptr() )
 {
 }
 
