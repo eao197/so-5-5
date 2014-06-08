@@ -6,7 +6,6 @@
 
 #include <ace/Guard_T.h>
 
-#include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/impl/h/local_event_queue.hpp>

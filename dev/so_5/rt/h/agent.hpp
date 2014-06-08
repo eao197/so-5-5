@@ -23,7 +23,6 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
-#include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 
 namespace so_5
@@ -812,7 +811,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			const event_handler_caller_ref_t & ehc );
+			event_handler_method_t && method );
 
 		/*!
 		 * \since v.5.2.0
@@ -827,7 +826,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			const event_handler_caller_ref_t & ehc,
+			event_handler_method_t && method,
 			//! Subscription key for that event.
 			const subscription_key_t & subscr_key );
 
@@ -970,14 +969,19 @@ subscription_bind_t::event(
 				typeid(AGENT).name() );
 	}
 
+	auto method = [cast_result,pfn](message_ref_t & message_ref)
+		{
+			const event_data_t< MESSAGE > event_data(
+				dynamic_cast< MESSAGE * >( message_ref.get() ) );
+
+			(cast_result->*pfn)( event_data );
+		};
+
 	m_agent.create_event_subscription(
 		typeid( MESSAGE ),
 		m_mbox_ref,
 		*m_state,
-		event_handler_caller_ref_t(
-			new real_event_handler_caller_t< MESSAGE, AGENT >(
-				pfn,
-				*cast_result ) ) );
+		std::move(method) );
 }
 
 } /* namespace rt */
