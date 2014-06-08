@@ -16,5 +16,4 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/layer/prj.rb" )
 	required_prj( "sample/so_5/mboxes/prj.rb" )
 	required_prj( "sample/so_5/parent_coop/prj.rb" )
-	required_prj( "sample/so_5/chameneos_simple/prj.rb" )
 }

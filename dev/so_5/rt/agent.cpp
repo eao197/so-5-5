@@ -37,17 +37,17 @@ impl::void_dispatcher_t g_void_dispatcher;
 
 agent_t::agent_t(
 	so_environment_t & env )
-	:	m_default_state( self_ptr() )
-	,	m_current_state_ptr( &m_default_state )
-	,	m_awaiting_deregistration_state( self_ptr() )
-	,	m_was_defined( false )
-	,	m_state_listener_controller(
-			new impl::state_listener_controller_t )
-	,	m_so_environment_impl( nullptr )
-	,	m_dispatcher( &g_void_dispatcher )
-	,	m_exec_ctx( nullptr )
-	,	m_agent_coop( nullptr )
-	,	m_is_coop_deregistered( false )
+	:
+		m_default_state( self_ptr() ),
+		m_current_state_ptr( &m_default_state ),
+		m_awaiting_deregistration_state( self_ptr() ),
+		m_was_defined( false ),
+		m_state_listener_controller(
+			new impl::state_listener_controller_t ),
+		m_so_environment_impl( 0 ),
+		m_dispatcher( &g_void_dispatcher ),
+		m_agent_coop( 0 ),
+		m_is_coop_deregistered( false )
 {
 	// Bind to the environment should be done.
 	bind_to_environment( env.so_environment_impl() );
@@ -113,25 +113,6 @@ void
 agent_t::so_switch_to_awaiting_deregistration_state()
 {
 	so_change_state( m_awaiting_deregistration_state );
-}
-
-void
-agent_t::bind_to_dispatcher(
-	agent_t & agent,
-	dispatcher_t & disp,
-	exec_ctx_t & exec_ctx )
-{
-	// A pointer to the stub should be in the m_dispatcher.
-	// If it is not true then agent is already bound to the dispatcher.
-	if( agent.m_dispatcher != &g_void_dispatcher )
-	{
-		throw exception_t(
-			"agent is already bind to dispatcher",
-			rc_agent_is_already_bind_to_disp );
-	}
-
-	agent.m_dispatcher = &disp;
-	agent.m_exec_ctx = &exec_ctx;
 }
 
 const state_t &
@@ -213,6 +194,22 @@ agent_t::bind_to_environment(
 			nullptr,
 			message_ref_t(),
 			&agent_t::demand_handler_on_start ) );
+}
+
+void
+agent_t::bind_to_disp(
+	dispatcher_t & disp )
+{
+	// A pointer to the stub should be in the m_dispatcher.
+	// If it is not true then agent is already bound to the dispatcher.
+	if( m_dispatcher != &g_void_dispatcher )
+	{
+		throw exception_t(
+			"agent is already bind to dispatcher",
+			rc_agent_is_already_bind_to_disp );
+	}
+
+	m_dispatcher = &disp;
 }
 
 void

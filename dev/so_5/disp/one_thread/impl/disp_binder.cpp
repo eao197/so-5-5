@@ -51,8 +51,9 @@ disp_binder_t::bind_agent(
 						"\", expected one_thread disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::agent_t::bind_to_dispatcher(
-				*agent_ref, *disp, *disp );
+		so_5::rt::agent_t::call_bind_to_disp(
+			*agent_ref,
+			*disp );
 	}
 	else
 	{

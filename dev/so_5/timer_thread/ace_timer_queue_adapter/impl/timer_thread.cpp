@@ -183,12 +183,7 @@ timer_thread_t::utilize_timer_act(
 		timer_act_unique_ptr_t timer_act( act );
 
 		// Its description should be destroyed too.
-		auto it = m_scheduled_act_to_id.find( timer_act.get() );
-		if( m_scheduled_act_to_id.end() != it )
-		{
-			m_timer_id_to_ace_id.erase( it->second.m_timer_id );
-			m_scheduled_act_to_id.erase( it );
-		}
+		m_scheduled_act_to_id.erase( timer_act.get() );
 	}
 }
 

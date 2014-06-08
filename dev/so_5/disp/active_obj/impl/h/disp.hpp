@@ -15,7 +15,6 @@
 #include <ace/Thread_Mutex.h>
 
 #include <so_5/rt/h/disp.hpp>
-#include <so_5/rt/h/exec_ctx.hpp>
 
 namespace so_5 {
 
@@ -43,8 +42,8 @@ namespace impl
 	\brief Active objects dispatcher.
 */
 class dispatcher_t
-	:	public so_5::rt::dispatcher_t
-	,	public so_5::rt::exec_ctx_t
+	:
+		public so_5::rt::dispatcher_t
 {
 	public:
 		dispatcher_t();
