@@ -127,6 +127,17 @@ class SO_5_TYPE mbox_t
 		inline void
 		deliver_signal() const;
 
+		/*!
+		 * \since v.5.3.0.
+		 * \brief Deliver service request.
+		 */
+		virtual void
+		deliver_service_request(
+			//! This is type_index for service PARAM type.
+			const std::type_index & type_index,
+			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
+			const message_ref_t & svc_request_ref ) const = 0;
+
 		//! Get the mbox name.
 		virtual const std::string &
 		query_name() const = 0;
@@ -244,6 +255,106 @@ mbox_t::deliver_signal() const
  * \note Defined as typedef since v.5.2.0
  */
 typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
+
+/*!
+ * \since v.5.3.0
+ * \brief A special proxy for service request invocation.
+ */
+template< class RESULT >
+class service_invoke_proxy_t
+	{
+	public :
+		service_invoke_proxy_t( const mbox_t & mbox )
+			:	m_mbox( mbox )
+			{}
+
+		//! Make call for service request.
+		/*!
+		 * This method should be used for the cases where PARAM is a signal.
+		 */
+		template< class PARAM >
+		std::future< RESULT >
+		request() const
+			{
+				std::promise< RESULT > promise;
+				auto f = promise.get_future();
+
+				message_ref_t ref(
+						new msg_service_request_t< RESULT, PARAM >(
+								std::move(promise) ) );
+				m_mbox.deliver_service_request(
+						std::type_index( typeid(PARAM) ),
+						ref );
+
+				return f;
+			}
+
+		//! Make call for service request with param.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM >
+		std::future< RESULT >
+		request( PARAM * msg )
+			{
+				message_ref_t param_msg( msg );
+
+				std::promise< RESULT > promise;
+				auto f = promise.get_future();
+
+				message_ref_t ref(
+						new msg_service_request_t< RESULT, PARAM >(
+								std::move(promise),
+								std::move(param_msg) ) );
+
+				m_mbox.deliver_service_request(
+						std::type_index( typeid(PARAM) ),
+						ref );
+
+				return f;
+			}
+
+		//! Make synchonious call for service request with param.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+//FIXME: there should be timeout as second parameter!
+		template< class PARAM >
+		RESULT
+		sync_request( PARAM * msg )
+			{
+				message_ref_t param_msg( msg );
+
+				std::promise< RESULT > promise;
+				auto f = promise.get_future();
+
+				message_ref_t ref(
+						new msg_service_request_t< RESULT, PARAM >(
+								std::move(promise),
+								std::move(param_msg) ) );
+
+				m_mbox.deliver_service_request(
+						std::type_index( typeid(PARAM) ),
+						ref );
+
+				return f.get();
+			}
+
+
+	private :
+		const mbox_t & m_mbox;
+	};
+
+/*!
+ * \since v.5.3.0
+ * \brief Create a special proxy for service request invocation.
+ */
+template< class RESULT >
+inline service_invoke_proxy_t< RESULT >
+service( const mbox_ref_t & mbox )
+	{
+		return service_invoke_proxy_t< RESULT >( *mbox );
+	}
 
 /*!
  * \since v.5.2.3.4

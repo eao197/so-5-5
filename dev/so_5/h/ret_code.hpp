@@ -147,6 +147,26 @@ const int rc_mbox_unable_to_find_mbox = 81;
  * A signal should be used for this.
  */
 const int rc_null_message_data = 82;
+
+/*!
+ * \since v.5.3.0
+ * \brief No handlers for service request found.
+ */
+const int rc_no_svc_handlers = 83;
+
+/*!
+ * \since v.5.3.0
+ * \brief There are more then one handler for service request.
+ */
+const int rc_more_than_one_svc_handler = 84;
+
+/*!
+ * \since v.5.3.0
+ * \brief Service request has not been handled. Service handler 
+ * is disabled in the current agent state.
+ */
+const int rc_svc_not_handled = 85;
+
 //! \}
 
 //! \name Error codes for delayed or repeated events.

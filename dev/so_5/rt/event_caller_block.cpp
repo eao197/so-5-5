@@ -2,7 +2,6 @@
 	SObjectizer 5.
 */
 
-#include <so_5/rt/h/event_handler_caller.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 
 #include <algorithm>

@@ -98,6 +98,16 @@ class subscription_bind_t
 			//! Event handling method.
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) );
 
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription for service request.
+		 */
+		template< class RESULT, class PARAM, class AGENT >
+		void
+		service(
+			//! Service handling method.
+			RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ) );
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t & m_agent;
@@ -385,6 +395,19 @@ class SO_5_TYPE agent_t
 			const message_ref_t & message )
 		{
 			agent.push_event( event_handler_caller, message );
+		}
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Push service request to the agent's event queue.
+		 */
+		static inline void
+		call_push_service_request(
+			agent_t & agent,
+			const event_caller_block_ref_t & event_handler_caller,
+			const message_ref_t & message )
+		{
+			agent.push_service_request( event_handler_caller, message );
 		}
 
 		//! Run the event handler for the next event.
@@ -875,6 +898,17 @@ class SO_5_TYPE agent_t
 			//! Event message.
 			const message_ref_t & message );
 
+		/*!
+		 * \since v.5.3.0
+		 * \brief Push service request to local event queue.
+		 */
+		void
+		push_service_request(
+			//! Event handler caller for an event.
+			const event_caller_block_ref_t & event_handler_caller,
+			//! Event message.
+			const message_ref_t & message );
+
 		//! Execute the next event.
 		/*!
 		 * \attention Must be called only on working thread context.
@@ -914,6 +948,15 @@ class SO_5_TYPE agent_t
 		 */
 		static void
 		demand_handler_on_message(
+			message_ref_t & msg,
+			const event_caller_block_t * event_handler,
+			agent_t * );
+		/*!
+		 * \since v.5.3.0
+		 * \brief Calls request handler for message.
+		 */
+		static void
+		service_request_handler_on_message(
 			message_ref_t & msg,
 			const event_caller_block_t * event_handler,
 			agent_t * );
@@ -982,6 +1025,50 @@ subscription_bind_t::event(
 		m_mbox_ref,
 		*m_state,
 		std::move(method) );
+}
+
+template< class RESULT, class PARAM, class AGENT >
+inline void
+subscription_bind_t::service(
+	RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ) )
+{
+	// Agent must have right type.
+	AGENT * cast_result = dynamic_cast< AGENT * >( &m_agent );
+
+	// Was conversion successful?
+	if( nullptr == cast_result )
+	{
+		// No. Actual type of the agent is not convertible to the AGENT.
+		SO_5_THROW_EXCEPTION(
+			rc_agent_incompatible_type_conversion,
+			std::string( "Unable convert agent to type: " ) +
+				typeid(AGENT).name() );
+	}
+
+	auto service_handler = [cast_result, pfn](message_ref_t & svc_request_msg)
+		{
+			typedef msg_service_request_t< RESULT, PARAM > actual_request_msg_t;
+
+			actual_request_msg_t & actual_request =
+					dynamic_cast< actual_request_msg_t & >(
+							*svc_request_msg.get() );
+
+			const event_data_t< PARAM > event_data(
+				dynamic_cast< PARAM * >( actual_request.m_param.get() ) );
+
+//FIXME: there should be a special workaround for the case
+//where PESULT is 'void'.
+
+			// All exceptions will be processed in service_handler_on_message.
+			actual_request.m_promise.set_value(
+					(cast_result->*pfn)( event_data ) );
+		};
+
+	m_agent.create_event_subscription(
+		typeid( PARAM ),
+		m_mbox_ref,
+		*m_state,
+		std::move(service_handler) );
 }
 
 } /* namespace rt */

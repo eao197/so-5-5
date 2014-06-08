@@ -51,6 +51,11 @@ class named_local_mbox_t
 	public:
 		virtual ~named_local_mbox_t();
 
+		virtual void
+		deliver_service_request(
+			const std::type_index & type_index,
+			const message_ref_t & svc_request_ref ) const;
+
 		virtual const std::string &
 		query_name() const;
 

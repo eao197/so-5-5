@@ -49,6 +49,13 @@ class local_mbox_t
 	public:
 		virtual ~local_mbox_t();
 
+		virtual void
+		deliver_service_request(
+			const std::type_index & type_index,
+			const message_ref_t & svc_request_ref ) const;
+
+//FIXME: It should return something like <anonymous:MEMORY_ADDRESS>
+//instead of empty string.
 		/*!
 		 * \return Empty string.
 		 */

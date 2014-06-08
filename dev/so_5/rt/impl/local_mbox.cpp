@@ -103,6 +103,50 @@ local_mbox_t::read_write_lock_release()
 				"ACE_RW_Thread_Mutex::release() failed." );
 }
 
+void
+local_mbox_t::deliver_service_request(
+	const std::type_index & type_index,
+	const message_ref_t & svc_request_ref ) const
+{
+	msg_service_request_base_t & svc_request =
+			*(dynamic_cast< msg_service_request_base_t * >(
+					svc_request_ref.get() ));
+
+	try
+		{
+			ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+
+			auto it = m_subscribers.find( type_index );
+			if( it != m_subscribers.end() )
+			{
+				auto f = it->second.begin();
+				if( f == it->second.end() )
+					SO_5_THROW_EXCEPTION(
+							so_5::rc_no_svc_handlers,
+							"no service handlers [ACTUAL SUBSCRIBERS MAP EMPTY!]" );
+
+				auto s = ++(it->second.begin());
+				if( s != it->second.end() )
+					SO_5_THROW_EXCEPTION(
+							so_5::rc_more_than_one_svc_handler,
+							"more than one service handler found" );
+
+				agent_t::call_push_service_request(
+						*(f->first),
+						f->second,
+						svc_request_ref );
+			}
+			else
+				SO_5_THROW_EXCEPTION(
+						so_5::rc_no_svc_handlers,
+						"no service handlers (no subscribers for message)" );
+		}
+	catch( ... )
+		{
+			svc_request.set_exception( std::current_exception() );
+		}
+}
+
 const std::string g_mbox_empty_name;
 
 const std::string &

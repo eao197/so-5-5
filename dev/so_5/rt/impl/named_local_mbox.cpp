@@ -81,6 +81,14 @@ named_local_mbox_t::read_write_lock_release()
 	m_mbox->read_write_lock_release();
 }
 
+void
+named_local_mbox_t::deliver_service_request(
+	const std::type_index & type_index,
+	const message_ref_t & svc_request_ref ) const
+{
+	m_mbox->deliver_service_request( type_index, svc_request_ref );
+}
+
 const std::string &
 named_local_mbox_t::query_name() const
 {

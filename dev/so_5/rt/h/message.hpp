@@ -15,6 +15,7 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
 #include <type_traits>
+#include <future>
 
 namespace so_5
 {
@@ -141,6 +142,59 @@ ensure_signal()
 	static_assert( std::is_base_of< signal_t, MSG >::value,
 			"expected a type derived from the signal_t" );
 }
+
+//
+// msg_service_request_base_t
+//
+
+/*!
+ * \since v.5.3.0
+ * \brief A base class for concrete messages with information
+ * about service requests.
+ */
+class SO_5_TYPE msg_service_request_base_t : public message_t
+{
+	public:
+		//! Setup exception information to underlying promise/future objects.
+		virtual void
+		set_exception( std::exception_ptr ex ) = 0;
+};
+
+//
+// msg_service_request_t
+//
+/*!
+ * \since v.5.3.0
+ * \brief A concrete message with information about service request.
+ */
+template< class RESULT, class PARAM >
+struct msg_service_request_t : public msg_service_request_base_t
+	{
+		//! A promise object for result of service function.
+		std::promise< RESULT > m_promise;
+		//! A parameter for service function.
+		message_ref_t m_param;
+
+		//! Constructor for the case where PARAM is a signal.
+		msg_service_request_t(
+			std::promise< RESULT > && promise )
+			:	m_promise( std::move( promise ) )
+			{}
+
+		//! Constructor for the case where PARAM is a message.
+		msg_service_request_t(
+			std::promise< RESULT > && promise,
+			message_ref_t && param )
+			:	m_promise( std::move( promise ) )
+			,	m_param( std::move( param ) )
+			{}
+
+		virtual void
+		set_exception( std::exception_ptr what )
+			{
+				m_promise.set_exception( what );
+			}
+	};
 
 } /* namespace rt */
 

@@ -440,6 +440,26 @@ agent_t::push_event(
 }
 
 void
+agent_t::push_service_request(
+	const event_caller_block_ref_t & event_caller_block,
+	const message_ref_t & message )
+{
+	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+
+	// Event can be added only if the agent is not deregistered yet.
+	if( !m_is_coop_deregistered )
+	{
+		m_local_event_queue->push(
+			impl::event_item_t(
+				event_caller_block,
+				message,
+				&agent_t::service_request_handler_on_message ) );
+
+		m_dispatcher->put_event_execution_request( this, 1 );
+	}
+}
+
+void
 agent_t::exec_next_event()
 {
 	impl::event_item_t event_item;
@@ -482,6 +502,28 @@ agent_t::demand_handler_on_message(
 	agent_t * agent )
 {
 	event_handler->call( agent->so_current_state(), msg );
+}
+
+void
+agent_t::service_request_handler_on_message(
+	message_ref_t & msg,
+	const event_caller_block_t * event_handler,
+	agent_t * agent )
+{
+	try
+		{
+			if( !event_handler->call( agent->so_current_state(), msg ) )
+				SO_5_THROW_EXCEPTION(
+						so_5::rc_svc_not_handled,
+						"service request handler is not found for "
+								"the current agent state" );
+		}
+	catch( ... )
+		{
+			auto & svc_request =
+					*(dynamic_cast< msg_service_request_base_t * >( msg.get() ));
+			svc_request.set_exception( std::current_exception() );
+		}
 }
 
 } /* namespace rt */
