@@ -108,6 +108,20 @@ class SO_5_TYPE event_caller_block_t
 					:	m_state( o.m_state )
 					,	m_method( std::move(o.m_method) )
 					{}
+
+				state_and_handler_t &
+				operator=( state_and_handler_t && o )
+					{
+						state_and_handler_t( std::move(o) ).swap( *this );
+						return *this;
+					}
+
+				void
+				swap( state_and_handler_t & o )
+					{
+						std::swap( m_state, o.m_state );
+						std::swap( m_method, o.m_method );
+					}
 			};
 
 		/*!
