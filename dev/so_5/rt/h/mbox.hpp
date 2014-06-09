@@ -276,6 +276,8 @@ class service_invoke_proxy_t
 		std::future< RESULT >
 		request() const
 			{
+				ensure_signal< PARAM >();
+
 				std::promise< RESULT > promise;
 				auto f = promise.get_future();
 
@@ -296,20 +298,9 @@ class service_invoke_proxy_t
 //FIXME: there should be timeout as second parameter!
 		template< class PARAM >
 		RESULT
-		sync_request()
+		sync_request() const
 			{
-				std::promise< RESULT > promise;
-				auto f = promise.get_future();
-
-				message_ref_t ref(
-						new msg_service_request_t< RESULT, PARAM >(
-								std::move(promise) ) );
-
-				m_mbox.deliver_service_request(
-						std::type_index( typeid(PARAM) ),
-						ref );
-
-				return f.get();
+				return this->request< PARAM >().get();
 			}
 
 		//! Make call for service request with param.
@@ -318,9 +309,9 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		std::future< RESULT >
-		request( PARAM * msg )
+		request( smart_atomic_reference_t< PARAM > msg_ref ) const
 			{
-				message_ref_t param_msg( msg );
+				ensure_message_with_actual_data( msg_ref.get() );
 
 				std::promise< RESULT > promise;
 				auto f = promise.get_future();
@@ -328,13 +319,36 @@ class service_invoke_proxy_t
 				message_ref_t ref(
 						new msg_service_request_t< RESULT, PARAM >(
 								std::move(promise),
-								std::move(param_msg) ) );
+								msg_ref.template make_reference< message_t >() ) );
 
 				m_mbox.deliver_service_request(
 						std::type_index( typeid(PARAM) ),
 						ref );
 
 				return f;
+			}
+
+		//! Make call for service request with param.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM >
+		std::future< RESULT >
+		request( std::unique_ptr< PARAM > msg_unique_ptr ) const
+			{
+				return this->request( smart_atomic_reference_t< PARAM >(
+							msg_unique_ptr.release() ) );
+			}
+
+		//! Make call for service request with param.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM >
+		std::future< RESULT >
+		request( PARAM * msg ) const
+			{
+				return this->request( smart_atomic_reference_t< PARAM >( msg ) );
 			}
 
 		//! Make synchronous service request call with parameter.
@@ -344,25 +358,22 @@ class service_invoke_proxy_t
 //FIXME: there should be timeout as second parameter!
 		template< class PARAM >
 		RESULT
-		sync_request( PARAM * msg )
+		sync_request( std::unique_ptr< PARAM > msg_unique_ptr ) const
 			{
-				message_ref_t param_msg( msg );
-
-				std::promise< RESULT > promise;
-				auto f = promise.get_future();
-
-				message_ref_t ref(
-						new msg_service_request_t< RESULT, PARAM >(
-								std::move(promise),
-								std::move(param_msg) ) );
-
-				m_mbox.deliver_service_request(
-						std::type_index( typeid(PARAM) ),
-						ref );
-
-				return f.get();
+				return this->request( std::move(msg_unique_ptr) ).get();
 			}
 
+		//! Make synchronous service request call with parameter.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+//FIXME: there should be timeout as second parameter!
+		template< class PARAM >
+		RESULT
+		sync_request( PARAM * msg ) const
+			{
+				return this->sync_request( std::unique_ptr< PARAM >( msg ) );
+			}
 
 	private :
 		const mbox_t & m_mbox;
