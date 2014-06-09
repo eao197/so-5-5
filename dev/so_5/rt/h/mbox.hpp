@@ -268,7 +268,7 @@ class service_invoke_proxy_t
 			:	m_mbox( mbox )
 			{}
 
-		//! Make call for service request.
+		//! Make asynchronous service request.
 		/*!
 		 * This method should be used for the cases where PARAM is a signal.
 		 */
@@ -287,6 +287,29 @@ class service_invoke_proxy_t
 						ref );
 
 				return f;
+			}
+
+		//! Make synchronous service request call.
+		/*!
+		 * This method should be used for the case where PARAM is a signal.
+		 */
+//FIXME: there should be timeout as second parameter!
+		template< class PARAM >
+		RESULT
+		sync_request()
+			{
+				std::promise< RESULT > promise;
+				auto f = promise.get_future();
+
+				message_ref_t ref(
+						new msg_service_request_t< RESULT, PARAM >(
+								std::move(promise) ) );
+
+				m_mbox.deliver_service_request(
+						std::type_index( typeid(PARAM) ),
+						ref );
+
+				return f.get();
 			}
 
 		//! Make call for service request with param.
@@ -314,7 +337,7 @@ class service_invoke_proxy_t
 				return f;
 			}
 
-		//! Make synchonious call for service request with param.
+		//! Make synchronous service request call with parameter.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 */

@@ -85,6 +85,38 @@ class a_convert_service_t
 		const so_5::rt::mbox_ref_t m_self_mbox;
 	};
 
+struct msg_shutdown : public so_5::rt::signal_t {};
+
+class a_shutdowner_t
+	:	public so_5::rt::agent_t
+	{
+	public :
+		a_shutdowner_t(
+			so_5::rt::so_environment_t & env,
+			const so_5::rt::mbox_ref_t & self_mbox )
+			:	so_5::rt::agent_t( env )
+			,	m_self_mbox( self_mbox )
+			{}
+
+		virtual void
+		so_define_agent()
+			{
+				so_subscribe( m_self_mbox )
+						.service( &a_shutdowner_t::svc_shutdown );
+			}
+
+		void
+		svc_shutdown( const so_5::rt::event_data_t< msg_shutdown > & evt )
+			{
+				std::cout << "svc_shutdown called" << std::endl;
+
+				so_environment().stop();
+			}
+
+	private :
+		const so_5::rt::mbox_ref_t m_self_mbox;
+	};
+
 class a_client_t
 	:	public so_5::rt::agent_t
 	{
@@ -132,7 +164,9 @@ class a_client_t
 				std::cout << "convert_svc: c2=" << c2.get() << std::endl;
 				std::cout << "convert_svc: c1=" << c1.get() << std::endl;
 
-				so_environment().stop();
+				// Initiate shutdown via another synchonyous service.
+				so_5::rt::service< void >( m_svc_mbox )
+						.sync_request< msg_shutdown >();
 			}
 
 	private :
@@ -151,6 +185,7 @@ init(
 
 		coop->add_agent( new a_hello_service_t( env, svc_mbox ) );
 		coop->add_agent( new a_convert_service_t( env, svc_mbox ) );
+		coop->add_agent( new a_shutdowner_t( env, svc_mbox ) );
 		coop->add_agent( new a_client_t( env, svc_mbox ) );
 
 		env.register_coop( std::move( coop ) );

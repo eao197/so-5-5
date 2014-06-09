@@ -1027,6 +1027,42 @@ subscription_bind_t::event(
 		std::move(method) );
 }
 
+namespace promise_result_setting_details
+{
+
+template< class RESULT >
+struct result_setter_t
+	{
+		template< class AGENT, class PARAM >
+		void
+		call_and_set(
+			std::promise< RESULT > & to,
+			AGENT * a,
+			RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ),
+			const event_data_t< PARAM > & evt )
+			{
+				to.set_value( (a->*pfn)( evt ) );
+			}
+	};
+
+template<>
+struct result_setter_t< void >
+	{
+		template< class AGENT, class PARAM >
+		void
+		call_and_set(
+			std::promise< void > & to,
+			AGENT * a,
+			void (AGENT::*pfn)( const event_data_t< PARAM > & ),
+			const event_data_t< PARAM > & evt )
+			{
+				(a->*pfn)( evt );
+				to.set_value();
+			}
+	};
+
+} /* namespace promise_result_setting_details */
+
 template< class RESULT, class PARAM, class AGENT >
 inline void
 subscription_bind_t::service(
@@ -1047,6 +1083,8 @@ subscription_bind_t::service(
 
 	auto service_handler = [cast_result, pfn](message_ref_t & svc_request_msg)
 		{
+			using namespace promise_result_setting_details;
+
 			typedef msg_service_request_t< RESULT, PARAM > actual_request_msg_t;
 
 			actual_request_msg_t & actual_request =
@@ -1056,12 +1094,12 @@ subscription_bind_t::service(
 			const event_data_t< PARAM > event_data(
 				dynamic_cast< PARAM * >( actual_request.m_param.get() ) );
 
-//FIXME: there should be a special workaround for the case
-//where PESULT is 'void'.
-
 			// All exceptions will be processed in service_handler_on_message.
-			actual_request.m_promise.set_value(
-					(cast_result->*pfn)( event_data ) );
+			result_setter_t< RESULT >().call_and_set(
+					actual_request.m_promise,
+					cast_result,
+					pfn,
+					event_data );
 		};
 
 	m_agent.create_event_subscription(
