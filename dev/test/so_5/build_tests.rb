@@ -53,4 +53,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/api/run_so_environment/prj.ut.rb" )
 
 	required_prj( "test/so_5/svc/simple_svc/prj.ut.rb" )
+	required_prj( "test/so_5/svc/svc_handler_exception/prj.ut.rb" )
 }
