@@ -358,9 +358,23 @@ class service_invoke_proxy_t
 //FIXME: there should be timeout as second parameter!
 		template< class PARAM >
 		RESULT
+		sync_request( smart_atomic_reference_t< PARAM > msg_ref ) const
+			{
+				return this->request( std::move(msg_ref) ).get();
+			}
+
+		//! Make synchronous service request call with parameter.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+//FIXME: there should be timeout as second parameter!
+		template< class PARAM >
+		RESULT
 		sync_request( std::unique_ptr< PARAM > msg_unique_ptr ) const
 			{
-				return this->request( std::move(msg_unique_ptr) ).get();
+				return this->sync_request(
+						smart_atomic_reference_t< PARAM >(
+								msg_unique_ptr.release() ) );
 			}
 
 		//! Make synchronous service request call with parameter.
@@ -372,7 +386,8 @@ class service_invoke_proxy_t
 		RESULT
 		sync_request( PARAM * msg ) const
 			{
-				return this->sync_request( std::unique_ptr< PARAM >( msg ) );
+				return this->sync_request(
+						smart_atomic_reference_t< PARAM >( msg ) );
 			}
 
 	private :
