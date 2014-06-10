@@ -145,7 +145,7 @@ class a_client_t
 
 				std::cout << "sync_convert_svc: "
 						<< so_5::rt::service< std::string >( m_svc_mbox )
-								.sync_request( new msg_convert( 1020 ) )
+								.wait_forever().request( new msg_convert( 1020 ) )
 						<< std::endl;
 
 				// More complex case with conversion.
@@ -157,7 +157,7 @@ class a_client_t
 
 				// Two previous request should be processed before that call.
 				std::cout << "sync_convert_svc: "
-						<< svc_proxy.sync_request( new msg_convert( 3 ) )
+						<< svc_proxy.wait_forever().request( new msg_convert( 3 ) )
 						<< std::endl;
 
 				// But their value will be accessed only now.
@@ -166,7 +166,7 @@ class a_client_t
 
 				// Initiate shutdown via another synchonyous service.
 				so_5::rt::service< void >( m_svc_mbox )
-						.sync_request< msg_shutdown >();
+						.wait_forever().request< msg_shutdown >();
 			}
 
 	private :

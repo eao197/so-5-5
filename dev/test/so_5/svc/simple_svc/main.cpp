@@ -117,14 +117,14 @@ class a_client_t
 				auto c2 = svc_proxy.request( new msg_convert( 2 ) );
 
 				compare_and_abort_if_missmatch(
-						svc_proxy.sync_request( new msg_convert( 3 ) ),
+						svc_proxy.wait_forever().request( new msg_convert( 3 ) ),
 						"3" );
 
 				compare_and_abort_if_missmatch( c2.get(), "2" );
 				compare_and_abort_if_missmatch( c1.get(), "1" );
 
 				so_5::rt::service< void >( m_svc_mbox )
-						.sync_request< msg_shutdown >();
+						.wait_forever().request< msg_shutdown >();
 			}
 
 	private :

@@ -13,5 +13,6 @@ MxxRu::Cpp::composite_target {
 
 	if not ("vc" == toolset.name and 11 <= toolset.tag( 'ver_hi' ).to_i)
 		required_prj( "test/so_5/svc/make_sync_request/prj.ut.rb" )
+		required_prj( "test/so_5/svc/sync_request_and_wait_for/prj.ut.rb" )
 	end
 }

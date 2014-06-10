@@ -73,13 +73,13 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				auto svc_proxy = so_5::rt::service< std::string >( m_svc_mbox );
-
 				try
 					{
-						svc_proxy.sync_request( new msg_convert( 3 ) );
+						so_5::rt::service< std::string >( m_svc_mbox )
+								.wait_forever()
+								.request( new msg_convert( 3 ) );
 
-						std::cerr << "An exception rc_more_than_one_svc_handler excpected"
+						std::cerr << "An exception rc_more_than_one_svc_handler expected"
 								<< std::endl;
 
 						std::abort();

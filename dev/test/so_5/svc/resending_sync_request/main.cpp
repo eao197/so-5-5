@@ -1,6 +1,6 @@
 /*
  * A test for resending request parameter to another svc_handler.
- * sync_request method is used.
+ * wait_forever().request() method chain is used.
  */
 
 #include <iostream>
@@ -91,7 +91,7 @@ class a_service_t
 				if( m_next_mbox )
 					{
 						so_5::rt::service< void >( m_next_mbox )
-								.sync_request( evt.make_reference() );
+								.wait_forever().request( evt.make_reference() );
 					}
 			}
 
@@ -124,7 +124,9 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				so_5::rt::service< void >( m_svc_mbox ).sync_request( m_param );
+				so_5::rt::service< void >( m_svc_mbox )
+						.wait_forever()
+						.request( m_param );
 
 				so_environment().stop();
 

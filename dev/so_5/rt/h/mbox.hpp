@@ -263,6 +263,66 @@ class service_invoke_proxy_t;
 
 /*!
  * \since v.5.3.0
+ * \brief A special helper class for infinite waiting of service call.
+ */
+template< class RESULT >
+class infinite_wait_service_invoke_proxy_t
+	{
+		//! Type of creator of that object.
+		typedef service_invoke_proxy_t< RESULT > creator_t;
+
+	public :
+		infinite_wait_service_invoke_proxy_t(
+			const creator_t & creator );
+
+		//! Make synchronous service request call.
+		/*!
+		 * This method should be used for the case where PARAM is a signal.
+		 */
+		template< class PARAM >
+		RESULT
+		request() const;
+
+		//! Make synchronous service request call with parameter.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM >
+		RESULT
+		request( smart_atomic_reference_t< PARAM > msg_ref ) const;
+
+		//! Make synchronous service request call with parameter.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM >
+		RESULT
+		request( std::unique_ptr< PARAM > msg_unique_ptr ) const;
+
+		//! Make synchronous service request call with parameter.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM >
+		RESULT
+		request( PARAM * msg ) const;
+
+#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
+		//! Create param and make service request call.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM, typename... ARGS >
+		RESULT
+		make_request( ARGS&&... args ) const;
+#endif
+
+	private :
+		const creator_t m_creator;
+	};
+
+/*!
+ * \since v.5.3.0
  * \brief A special helper class for waiting of service call for
  * the specified timeout.
  */
@@ -329,6 +389,7 @@ class wait_for_service_invoke_proxy_t
 		RESULT
 		request( PARAM * msg ) const;
 
+#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
@@ -336,9 +397,10 @@ class wait_for_service_invoke_proxy_t
 		template< class PARAM, typename... ARGS >
 		RESULT
 		make_request( ARGS&&... args ) const;
+#endif
 
 	private :
-		const creator_t & m_creator;
+		const creator_t m_creator;
 		const DURATION m_timeout;
 	};
 
@@ -377,18 +439,7 @@ class service_invoke_proxy_t
 				return f;
 			}
 
-		//! Make synchronous service request call.
-		/*!
-		 * This method should be used for the case where PARAM is a signal.
-		 */
-		template< class PARAM >
-		RESULT
-		sync_request() const
-			{
-				return this->request< PARAM >().get();
-			}
-
-		//! Make call for service request with param.
+		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 */
@@ -413,7 +464,7 @@ class service_invoke_proxy_t
 				return f;
 			}
 
-		//! Make call for service request with param.
+		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 */
@@ -425,7 +476,7 @@ class service_invoke_proxy_t
 							msg_unique_ptr.release() ) );
 			}
 
-		//! Make call for service request with param.
+		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
 		 */
@@ -436,43 +487,16 @@ class service_invoke_proxy_t
 				return this->request( smart_atomic_reference_t< PARAM >( msg ) );
 			}
 
-		//! Make synchronous service request call with parameter.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 */
-		template< class PARAM >
-		RESULT
-		sync_request( smart_atomic_reference_t< PARAM > msg_ref ) const
+		//! Make another proxy for time-unlimited synchronous
+		//! service request calls.
+		infinite_wait_service_invoke_proxy_t< RESULT >
+		wait_forever() const
 			{
-				return this->request( std::move(msg_ref) ).get();
+				return infinite_wait_service_invoke_proxy_t< RESULT >( *this );
 			}
 
-		//! Make synchronous service request call with parameter.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 */
-		template< class PARAM >
-		RESULT
-		sync_request( std::unique_ptr< PARAM > msg_unique_ptr ) const
-			{
-				return this->sync_request(
-						smart_atomic_reference_t< PARAM >(
-								msg_unique_ptr.release() ) );
-			}
-
-		//! Make synchronous service request call with parameter.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 */
-		template< class PARAM >
-		RESULT
-		sync_request( PARAM * msg ) const
-			{
-				return this->sync_request(
-						smart_atomic_reference_t< PARAM >( msg ) );
-			}
-
-		//! Make another proxy for time-limited service requests.
+		//! Make another proxy for time-limited synchronous
+		//! service requests calls.
 		template< class DURATION >
 		wait_for_service_invoke_proxy_t< RESULT, DURATION >
 		wait_for(
@@ -497,23 +521,69 @@ class service_invoke_proxy_t
 
 				return this->request( std::move( msg ) );
 			}
-
-		//! Create param and make synchronous service request call.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 */
-		template< class PARAM, typename... ARGS >
-		RESULT
-		make_sync_request( ARGS&&... args ) const
-			{
-				return make_request< PARAM, ARGS... >( std::forward<ARGS>(args)... )
-						.get();
-			}
 #endif
 
 	private :
 		const mbox_t & m_mbox;
 	};
+
+//
+// implementation of infinite_wait_service_invoke_proxy_t
+//
+
+template< class RESULT >
+infinite_wait_service_invoke_proxy_t< RESULT >::
+infinite_wait_service_invoke_proxy_t(
+	const creator_t & creator )
+	:	m_creator( creator )
+	{}
+
+template< class RESULT >
+template< class PARAM >
+RESULT
+infinite_wait_service_invoke_proxy_t< RESULT >::request() const
+	{
+		return m_creator.request< PARAM >().get();
+	}
+
+template< class RESULT >
+template< class PARAM >
+RESULT
+infinite_wait_service_invoke_proxy_t< RESULT >::request(
+	smart_atomic_reference_t< PARAM > msg_ref ) const
+	{
+		return m_creator.request( std::move(msg_ref) ).get();
+	}
+
+template< class RESULT >
+template< class PARAM >
+RESULT
+infinite_wait_service_invoke_proxy_t< RESULT >::request(
+	std::unique_ptr< PARAM > msg_unique_ptr ) const
+	{
+		return this->request(
+				smart_atomic_reference_t< PARAM >( msg_unique_ptr.release() ) );
+	}
+
+template< class RESULT >
+template< class PARAM >
+RESULT
+infinite_wait_service_invoke_proxy_t< RESULT >::request( PARAM * msg ) const
+	{
+		return this->request(
+				smart_atomic_reference_t< PARAM >( msg ) );
+	}
+
+#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
+template< class RESULT >
+template< class PARAM, typename... ARGS >
+RESULT
+infinite_wait_service_invoke_proxy_t< RESULT >::make_request( ARGS&&... args ) const
+	{
+		return m_creator.make_request< PARAM, ARGS... >(
+				std::forward<ARGS>(args)... ).get();
+	}
+#endif /* SO_5_NO_VARIADIC_TEMPLATES */
 
 //
 // implemetation of wait_for_service_invoke_proxy_t
@@ -580,6 +650,7 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::request(
 				smart_atomic_reference_t< PARAM >( msg ) );
 	}
 
+#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 template< class RESULT, class DURATION >
 template< class PARAM, typename... ARGS >
 RESULT
@@ -591,6 +662,7 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_request(
 
 		return this->request( std::move( msg ) );
 	}
+#endif
 
 /*!
  * \since v.5.3.0

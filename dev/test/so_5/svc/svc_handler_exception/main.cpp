@@ -131,12 +131,12 @@ class a_client_t
 				auto svc_proxy = so_5::rt::service< std::string >( m_svc_mbox );
 
 				compare_and_abort_if_missmatch(
-						svc_proxy.sync_request( new msg_convert( 3 ) ),
+						svc_proxy.wait_forever().request( new msg_convert( 3 ) ),
 						"3" );
 
 				try
 					{
-						svc_proxy.sync_request( new msg_convert( 42 ) );
+						svc_proxy.wait_forever().request( new msg_convert( 42 ) );
 
 						std::cerr << "SVC_HANDLER must throw exception!" << std::endl;
 
@@ -146,7 +146,7 @@ class a_client_t
 					{}
 
 				so_5::rt::service< void >( m_svc_mbox )
-						.sync_request< msg_shutdown >();
+						.wait_forever().request< msg_shutdown >();
 			}
 
 	private :

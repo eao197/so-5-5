@@ -1,5 +1,5 @@
 /*
- * A test for sync_request_and_wait_for and make_sync_request_and_wait_for.
+ * A test for time-limited synchronous service request calls.
  */
 
 #include <iostream>
@@ -88,7 +88,7 @@ class a_convert_service_t
 				std::cout << "back_call_get_default" << std::endl;
 
 				so_5::rt::service< void >( m_back_call_mbox )
-						.sync_request< msg_back_call >();
+						.wait_forever().request< msg_back_call >();
 
 				return "NOT USED DEFAULT";
 			}
@@ -111,7 +111,7 @@ class a_convert_service_t
 				std::cout << "back_call_convert: " << evt->m_value << std::endl;
 
 				so_5::rt::service< void >( m_back_call_mbox )
-						.sync_request< msg_back_call >();
+						.wait_forever().request< msg_back_call >();
 
 				return "NOT USED";
 			}
@@ -245,7 +245,8 @@ class a_client_t
 						[this]() {
 							compare_and_abort_if_missmatch(
 									so_5::rt::service< std::string >( m_svc_mbox )
-											.sync_request< msg_get_default >(),
+											.wait_forever()
+											.request< msg_get_default >(),
 									"DEFAULT" );
 							} );
 
@@ -253,7 +254,8 @@ class a_client_t
 						[this]() {
 							compare_and_abort_if_missmatch(
 									so_5::rt::service< std::string >( m_svc_mbox )
-											.sync_request( new msg_convert(1) ),
+											.wait_forever()
+											.request( new msg_convert(1) ),
 									"1" );
 							} );
 
@@ -261,7 +263,8 @@ class a_client_t
 						[this]() {
 							compare_and_abort_if_missmatch(
 									so_5::rt::service< std::string >( m_svc_mbox )
-											.sync_request(
+											.wait_forever()
+											.request(
 													std::unique_ptr< msg_convert >(
 															new msg_convert(2) ) ),
 									"2" );
@@ -272,7 +275,8 @@ class a_client_t
 						[this]() {
 							compare_and_abort_if_missmatch(
 									so_5::rt::service< std::string >( m_svc_mbox )
-											.make_sync_request< msg_convert >( 3 ),
+											.wait_forever()
+											.make_request< msg_convert >( 3 ),
 									"3" );
 							} );
 #endif

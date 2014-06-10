@@ -120,11 +120,11 @@ class a_client_t
 		so_evt_start()
 			{
 				so_5::rt::service< std::string >( m_svc_mbox )
-						.make_sync_request< msg_convert >( 1 );
+						.wait_forever().make_request< msg_convert >( 1 );
 
 				long long l = 10;
 				so_5::rt::service< void >( m_svc_mbox )
-						.make_sync_request< msg_complex_svc >(
+						.wait_forever().make_request< msg_complex_svc >(
 								1,
 								"Hello, World",
 								std::unique_ptr< std::vector< int > >(
