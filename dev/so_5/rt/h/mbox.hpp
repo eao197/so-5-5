@@ -14,6 +14,7 @@
 #include <string>
 #include <memory>
 #include <typeindex>
+#include <utility>
 
 #include <ace/RW_Thread_Mutex.h>
 
@@ -389,6 +390,35 @@ class service_invoke_proxy_t
 				return this->sync_request(
 						smart_atomic_reference_t< PARAM >( msg ) );
 			}
+
+// Visual C++ 2012 and earlier doesn't support variadic templates.
+#if !( defined( _MSC_VER ) && _MSC_VER <= 1700 )
+		//! Create param and make service request call.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM, typename... ARGS >
+		std::future< RESULT >
+		make_request( ARGS&&... args )
+			{
+				smart_atomic_reference_t< PARAM > msg(
+						new PARAM( std::forward<ARGS>(args)... ) );
+
+				return this->request( std::move( msg ) );
+			}
+
+		//! Create param and make synchronous service request call.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 */
+		template< class PARAM, typename... ARGS >
+		RESULT
+		make_sync_request( ARGS&&... args )
+			{
+				return make_request< PARAM, ARGS... >( std::forward<ARGS>(args)... )
+						.get();
+			}
+#endif
 
 	private :
 		const mbox_t & m_mbox;
