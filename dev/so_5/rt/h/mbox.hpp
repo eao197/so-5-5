@@ -596,19 +596,35 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::wait_for_service_invoke_pro
 	,	m_timeout( timeout )
 	{}
 
+namespace wait_for_service_invoke_proxy_details
+{
+	template< class RESULT, class DURATION, class FUTURE >
+	RESULT
+	wait_and_return( const DURATION & timeout, FUTURE & f )
+		{
+#if defined( SO_5_STD_FUTURE_WAIT_FOR_ALWAYS_DEFFERED )
+	#pragma message("THERE IS ERROR IN MSVC 11.0: std::future::wait_for returns std::future_status::deffered almost always")
+#endif
+			auto wait_result = f.wait_for( timeout );
+			if( std::future_status::ready != wait_result )
+				SO_5_THROW_EXCEPTION(
+						rc_svc_result_not_received_yet,
+						"no result from svc_handler after timeout" );
+			
+			return f.get();
+		}
+
+} /* namespace wait_for_service_invoke_proxy_details */
+
 template< class RESULT, class DURATION >
 template< class PARAM >
 RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::request() const
 	{
 		auto f = m_creator.request< PARAM >();
-		auto wait_result = f.wait_for( m_timeout );
-		if( std::future_status::ready != wait_result )
-			SO_5_THROW_EXCEPTION(
-					rc_svc_result_not_received_yet,
-					"no result from svc_handler after timeout" );
-		
-		return f.get();
+
+		return wait_for_service_invoke_proxy_details::wait_and_return
+				<RESULT, DURATION, decltype(f) >( m_timeout, f );
 	}
 
 template< class RESULT, class DURATION >
@@ -618,13 +634,9 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::request(
 	smart_atomic_reference_t< PARAM > msg_ref ) const
 	{
 		auto f = m_creator.request( std::move(msg_ref) );
-		auto wait_result = f.wait_for( m_timeout );
-if( std::future_status::deferred == wait_result ) std::cout << "DEFFERED" <<std::endl;
-if( std::future_status::timeout == wait_result ) std::cout << "TIMEOUT" <<std::endl;
-		if( std::future_status::ready != wait_result )
-			SO_5_THROW_EXCEPTION(
-					rc_svc_result_not_received_yet,
-					"no result from svc_handler after timeout" );
+
+		return wait_for_service_invoke_proxy_details::wait_and_return
+				<RESULT, DURATION, decltype(f) >( m_timeout, f );
 		
 		return f.get();
 	}

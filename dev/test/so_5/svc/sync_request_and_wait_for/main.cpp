@@ -85,8 +85,6 @@ class a_convert_service_t
 		svc_back_call_default(
 			const so_5::rt::event_data_t< msg_back_call_get_default > & )
 			{
-				std::cout << "back_call_get_default" << std::endl;
-
 				so_5::rt::service< void >( m_back_call_mbox )
 						.wait_forever().request< msg_back_call >();
 
@@ -96,8 +94,6 @@ class a_convert_service_t
 		std::string
 		svc_convert( const so_5::rt::event_data_t< msg_convert > & evt )
 			{
-				std::cout << "convert: " << evt->m_value << std::endl;
-
 				std::ostringstream s;
 				s << evt->m_value;
 
@@ -108,8 +104,6 @@ class a_convert_service_t
 		svc_back_call_convert(
 			const so_5::rt::event_data_t< msg_back_call_convert > & evt )
 			{
-				std::cout << "back_call_convert: " << evt->m_value << std::endl;
-
 				so_5::rt::service< void >( m_back_call_mbox )
 						.wait_forever().request< msg_back_call >();
 
@@ -219,7 +213,6 @@ class a_client_t
 		void
 		svc_back_call( const so_5::rt::event_data_t< msg_back_call > & )
 			{
-				std::cout << "back_call" << std::endl;
 			}
 
 	private :
@@ -326,11 +319,8 @@ class a_client_t
 				return [action, description]() {
 					try
 						{
-							std::cout << "test case initiated: " << description << std::endl;
-
 							action();
 
-							std::cout << "test case result received: " << description << std::endl;
 							std::cerr << "an exception expected for the case: "
 									<< description << std::endl;
 
@@ -338,7 +328,6 @@ class a_client_t
 						}
 					catch( const so_5::exception_t & x )
 						{
-std::cout << "test case: " << description << ", x=" << x.error_code() << std::endl;
 							if( so_5::rc_svc_result_not_received_yet != x.error_code() )
 								{
 									std::cerr << "test case: '" << description << "', "
