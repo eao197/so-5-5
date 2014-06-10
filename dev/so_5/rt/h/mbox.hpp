@@ -258,6 +258,69 @@ mbox_t::deliver_signal() const
  */
 typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
 
+template< class RESULT >
+class service_invoke_proxy_t;
+
+/*!
+ * \since v.5.3.0
+ * \brief A special helper class for waiting of service call for
+ * the specified timeout.
+ */
+template< class RESULT, class DURATION >
+class wait_for_service_invoke_proxy_t
+	{
+		//! Type of creator of that object.
+		typedef service_invoke_proxy_t< RESULT > creator_t;
+
+	public :
+		wait_for_service_invoke_proxy_t(
+			const creator_t & creator,
+			const DURATION & timeout );
+
+		//! Make synchronous service request call with parameter and
+		//! wait timeout.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \throw so_5::exception_t with error code
+		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
+		 * after timeout.
+		 */
+		template< class PARAM >
+		RESULT
+		request( smart_atomic_reference_t< PARAM > msg_ref ) const;
+
+		//! Make synchronous service request call with parameter and
+		//! wait timeout.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \throw so_5::exception_t with error code
+		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
+		 * after timeout.
+		 */
+		template< class PARAM >
+		RESULT
+		request( std::unique_ptr< PARAM > msg_unique_ptr ) const;
+
+		//! Make synchronous service request call with parameter and
+		//! wait timeout.
+		/*!
+		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \throw so_5::exception_t with error code
+		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
+		 * after timeout.
+		 */
+		template< class PARAM >
+		RESULT
+		request( PARAM * msg ) const;
+
+	private :
+		const creator_t & m_creator;
+		const DURATION m_timeout;
+	};
+
 /*!
  * \since v.5.3.0
  * \brief A special proxy for service request invocation.
@@ -313,6 +376,7 @@ class service_invoke_proxy_t
 		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
 		 * after timeout.
 		 */
+//FIXME: should be moved to wait_for_service_invoke_proxy_t!
 		template< class DURATION, class PARAM >
 		RESULT
 		sync_request_and_wait_for(
@@ -387,33 +451,6 @@ class service_invoke_proxy_t
 				return this->request( std::move(msg_ref) ).get();
 			}
 
-		//! Make synchronous service request call with parameter and
-		//! wait timeout.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 *
-		 * \throw so_5::exception_t with error code
-		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
-		 * after timeout.
-		 */
-		template< class DURATION, class PARAM >
-		RESULT
-		sync_request_and_wait_for(
-			const DURATION & timeout,
-			smart_atomic_reference_t< PARAM > msg_ref ) const
-			{
-				auto f = this->request( std::move(msg_ref) );
-				auto wait_result = f.wait_for( timeout );
-if( std::future_status::deferred == wait_result ) std::cout << "DEFFERED" <<std::endl;
-if( std::future_status::timeout == wait_result ) std::cout << "TIMEOUT" <<std::endl;
-				if( std::future_status::ready != wait_result )
-					SO_5_THROW_EXCEPTION(
-							rc_svc_result_not_received_yet,
-							"no result from svc_handler after timeout" );
-				
-				return f.get();
-			}
-
 		//! Make synchronous service request call with parameter.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
@@ -423,27 +460,6 @@ if( std::future_status::timeout == wait_result ) std::cout << "TIMEOUT" <<std::e
 		sync_request( std::unique_ptr< PARAM > msg_unique_ptr ) const
 			{
 				return this->sync_request(
-						smart_atomic_reference_t< PARAM >(
-								msg_unique_ptr.release() ) );
-			}
-
-		//! Make synchronous service request call with parameter and
-		//! wait timeout.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 *
-		 * \throw so_5::exception_t with error code
-		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
-		 * after timeout.
-		 */
-		template< class DURATION, class PARAM >
-		RESULT
-		sync_request_and_wait_for(
-			const DURATION & timeout,
-			std::unique_ptr< PARAM > msg_unique_ptr ) const
-			{
-				return this->sync_request_and_wait_for(
-						timeout,
 						smart_atomic_reference_t< PARAM >(
 								msg_unique_ptr.release() ) );
 			}
@@ -460,24 +476,15 @@ if( std::future_status::timeout == wait_result ) std::cout << "TIMEOUT" <<std::e
 						smart_atomic_reference_t< PARAM >( msg ) );
 			}
 
-		//! Make synchronous service request call with parameter and
-		//! wait timeout.
-		/*!
-		 * This method should be used for the case where PARAM is a message.
-		 *
-		 * \throw so_5::exception_t with error code
-		 * so_5::rc_svc_result_not_received_yet if there is no svc_handler result
-		 * after timeout.
-		 */
-		template< class DURATION, class PARAM >
-		RESULT
-		sync_request_and_wait_for(
-			const DURATION & timeout,
-			PARAM * msg ) const
+		//! Make another proxy for time-limited service requests.
+		template< class DURATION >
+		wait_for_service_invoke_proxy_t< RESULT, DURATION >
+		wait_for(
+			//! Timeout for std::future::wait_for().
+			const DURATION & timeout ) const
 			{
-				return this->sync_request_and_wait_for(
-						timeout,
-						smart_atomic_reference_t< PARAM >( msg ) );
+				return wait_for_service_invoke_proxy_t< RESULT, DURATION >(
+						*this, timeout );
 			}
 
 #if !defined( SO_5_NO_VARIADIC_TEMPLATES )
@@ -511,6 +518,56 @@ if( std::future_status::timeout == wait_result ) std::cout << "TIMEOUT" <<std::e
 	private :
 		const mbox_t & m_mbox;
 	};
+
+//
+// implemetation of wait_for_service_invoke_proxy_t
+//
+template< class RESULT, class DURATION >
+wait_for_service_invoke_proxy_t< RESULT, DURATION >::wait_for_service_invoke_proxy_t(
+	const creator_t & creator,
+	const DURATION & timeout )
+	:	m_creator( creator )
+	,	m_timeout( timeout )
+	{}
+
+template< class RESULT, class DURATION >
+template< class PARAM >
+RESULT
+wait_for_service_invoke_proxy_t< RESULT, DURATION >::request(
+	smart_atomic_reference_t< PARAM > msg_ref ) const
+	{
+		auto f = m_creator.request( std::move(msg_ref) );
+		auto wait_result = f.wait_for( m_timeout );
+if( std::future_status::deferred == wait_result ) std::cout << "DEFFERED" <<std::endl;
+if( std::future_status::timeout == wait_result ) std::cout << "TIMEOUT" <<std::endl;
+		if( std::future_status::ready != wait_result )
+			SO_5_THROW_EXCEPTION(
+					rc_svc_result_not_received_yet,
+					"no result from svc_handler after timeout" );
+		
+		return f.get();
+	}
+
+template< class RESULT, class DURATION >
+template< class PARAM >
+RESULT
+wait_for_service_invoke_proxy_t< RESULT, DURATION >::request(
+	std::unique_ptr< PARAM > msg_unique_ptr ) const
+	{
+		return this->request(
+				smart_atomic_reference_t< PARAM >(
+						msg_unique_ptr.release() ) );
+	}
+
+template< class RESULT, class DURATION >
+template< class PARAM >
+RESULT
+wait_for_service_invoke_proxy_t< RESULT, DURATION >::request(
+	PARAM * msg ) const
+	{
+		return this->request(
+				smart_atomic_reference_t< PARAM >( msg ) );
+	}
 
 /*!
  * \since v.5.3.0

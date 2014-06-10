@@ -246,15 +246,14 @@ class a_client_t
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							so_5::rt::service< std::string >( m_svc_mbox )
-									.sync_request_and_wait_for(
-											std::chrono::milliseconds( 50 ),
-											new msg_back_call_convert(11) );
+									.wait_for( std::chrono::milliseconds( 50 ) )
+									.request( new msg_back_call_convert(11) );
 						}, "11" ) );
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							so_5::rt::service< std::string >( m_svc_mbox )
-									.sync_request_and_wait_for(
-											std::chrono::milliseconds( 50 ),
+									.wait_for( std::chrono::milliseconds( 50 ) )
+									.request(
 											std::unique_ptr< msg_back_call_convert >(
 													new msg_back_call_convert(12) ) );
 						}, "12" ) );
