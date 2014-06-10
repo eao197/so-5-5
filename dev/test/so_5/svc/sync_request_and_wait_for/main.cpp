@@ -15,6 +15,12 @@
 
 #include "../a_time_sentinel.hpp"
 
+struct msg_get_default : public so_5::rt::signal_t
+	{};
+
+struct msg_back_call_get_default : public so_5::rt::signal_t
+	{};
+
 struct msg_convert : public so_5::rt::message_t
 	{
 		int m_value;
@@ -57,10 +63,34 @@ class a_convert_service_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
+						.service( &a_convert_service_t::svc_default );
+
+				so_subscribe( m_self_mbox )
+						.service( &a_convert_service_t::svc_back_call_default );
+
+				so_subscribe( m_self_mbox )
 						.service( &a_convert_service_t::svc_convert );
 
 				so_subscribe( m_self_mbox )
 						.service( &a_convert_service_t::svc_back_call_convert );
+			}
+
+		std::string
+		svc_default( const so_5::rt::event_data_t< msg_get_default > & )
+			{
+				return "DEFAULT";
+			}
+
+		std::string
+		svc_back_call_default(
+			const so_5::rt::event_data_t< msg_back_call_get_default > & )
+			{
+				std::cout << "back_call_get_default" << std::endl;
+
+				so_5::rt::service< void >( m_back_call_mbox )
+						.sync_request< msg_back_call >();
+
+				return "NOT USED DEFAULT";
 			}
 
 		std::string
@@ -215,6 +245,14 @@ class a_client_t
 						[this]() {
 							compare_and_abort_if_missmatch(
 									so_5::rt::service< std::string >( m_svc_mbox )
+											.sync_request< msg_get_default >(),
+									"DEFAULT" );
+							} );
+
+				m_normal_convert_actions.emplace_back(
+						[this]() {
+							compare_and_abort_if_missmatch(
+									so_5::rt::service< std::string >( m_svc_mbox )
 											.sync_request( new msg_convert(1) ),
 									"1" );
 							} );
@@ -247,8 +285,16 @@ class a_client_t
 						[this]() {
 							so_5::rt::service< std::string >( m_svc_mbox )
 									.wait_for( std::chrono::milliseconds( 50 ) )
+									.request< msg_back_call_get_default >();
+						}, "get_default" ) );
+
+				m_back_call_actions.emplace_back( make_exception_handling_envelope(
+						[this]() {
+							so_5::rt::service< std::string >( m_svc_mbox )
+									.wait_for( std::chrono::milliseconds( 50 ) )
 									.request( new msg_back_call_convert(11) );
 						}, "11" ) );
+
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							so_5::rt::service< std::string >( m_svc_mbox )
@@ -258,16 +304,13 @@ class a_client_t
 													new msg_back_call_convert(12) ) );
 						}, "12" ) );
 
-#if 0
 #if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							so_5::rt::service< std::string >( m_svc_mbox )
-									.make_sync_request_and_wait_for< msg_back_call_convert >(
-											std::chrono::milliseconds( 50 ),
-											13 );
+									.wait_for( std::chrono::milliseconds( 50 ) )
+									.make_request< msg_back_call_convert >( 13 );
 						}, "13" ) );
-#endif
 #endif
 			}
 
