@@ -167,6 +167,12 @@ const int rc_more_than_one_svc_handler = 84;
  */
 const int rc_svc_not_handled = 85;
 
+/*!
+ * \since v.5.3.0
+ * \brief Service request result has not beed received yet.
+ */
+const int rc_svc_result_not_received_yet = 86;
+
 //! \}
 
 //! \name Error codes for delayed or repeated events.
