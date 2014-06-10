@@ -19,6 +19,7 @@
 #include <ace/RW_Thread_Mutex.h>
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
 
 #include <so_5/h/exception.hpp>
 
@@ -391,8 +392,7 @@ class service_invoke_proxy_t
 						smart_atomic_reference_t< PARAM >( msg ) );
 			}
 
-// Visual C++ 2012 and earlier doesn't support variadic templates.
-#if !( defined( _MSC_VER ) && _MSC_VER <= 1700 )
+#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
