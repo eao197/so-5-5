@@ -77,7 +77,7 @@ class a_client_t
 					{
 						m_svc_mbox->get_one< std::string >()
 								.wait_forever()
-								.request( new msg_convert( 3 ) );
+								.sync_get( new msg_convert( 3 ) );
 
 						std::cerr << "An exception rc_more_than_one_svc_handler expected"
 								<< std::endl;

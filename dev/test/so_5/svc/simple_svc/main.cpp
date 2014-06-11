@@ -113,18 +113,17 @@ class a_client_t
 			{
 				auto svc_proxy = m_svc_mbox->get_one< std::string >();
 
-				auto c1 = svc_proxy.request( new msg_convert( 1 ) );
-				auto c2 = svc_proxy.request( new msg_convert( 2 ) );
+				auto c1 = svc_proxy.async( new msg_convert( 1 ) );
+				auto c2 = svc_proxy.async( new msg_convert( 2 ) );
 
 				compare_and_abort_if_missmatch(
-						svc_proxy.wait_forever().request( new msg_convert( 3 ) ),
+						svc_proxy.wait_forever().sync_get( new msg_convert( 3 ) ),
 						"3" );
 
 				compare_and_abort_if_missmatch( c2.get(), "2" );
 				compare_and_abort_if_missmatch( c1.get(), "1" );
 
-				m_svc_mbox->get_one< void >()
-						.wait_forever().request< msg_shutdown >();
+				m_svc_mbox->run_one().wait_forever().sync_get< msg_shutdown >();
 			}
 
 	private :

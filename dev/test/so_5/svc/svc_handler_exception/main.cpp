@@ -131,12 +131,12 @@ class a_client_t
 				auto svc_proxy = m_svc_mbox->get_one< std::string >();
 
 				compare_and_abort_if_missmatch(
-						svc_proxy.wait_forever().request( new msg_convert( 3 ) ),
+						svc_proxy.wait_forever().sync_get( new msg_convert( 3 ) ),
 						"3" );
 
 				try
 					{
-						svc_proxy.wait_forever().request( new msg_convert( 42 ) );
+						svc_proxy.wait_forever().sync_get( new msg_convert( 42 ) );
 
 						std::cerr << "SVC_HANDLER must throw exception!" << std::endl;
 
@@ -145,8 +145,7 @@ class a_client_t
 				catch( const test_exception_ex_t & x )
 					{}
 
-				m_svc_mbox->get_one< void >()
-						.wait_forever().request< msg_shutdown >();
+				m_svc_mbox->run_one().wait_forever().sync_get< msg_shutdown >();
 			}
 
 	private :

@@ -45,7 +45,7 @@ class a_client_t
 				try
 					{
 						m_svc_mbox->get_one< std::string >()
-								.wait_forever().request( new msg_convert( 3 ) );
+								.wait_forever().sync_get( new msg_convert( 3 ) );
 
 						std::cerr << "An exception no_svc_handlers excpected"
 								<< std::endl;

@@ -85,8 +85,8 @@ class a_convert_service_t
 		svc_back_call_default(
 			const so_5::rt::event_data_t< msg_back_call_get_default > & )
 			{
-				m_back_call_mbox->get_one< void >()
-						.wait_forever().request< msg_back_call >();
+				m_back_call_mbox->run_one()
+						.wait_forever().sync_get< msg_back_call >();
 
 				return "NOT USED DEFAULT";
 			}
@@ -104,8 +104,8 @@ class a_convert_service_t
 		svc_back_call_convert(
 			const so_5::rt::event_data_t< msg_back_call_convert > & evt )
 			{
-				m_back_call_mbox->get_one< void >()
-						.wait_forever().request< msg_back_call >();
+				m_back_call_mbox->run_one()
+						.wait_forever().sync_get< msg_back_call >();
 
 				return "NOT USED";
 			}
@@ -239,7 +239,7 @@ class a_client_t
 							compare_and_abort_if_missmatch(
 									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
-											.request< msg_get_default >(),
+											.sync_get< msg_get_default >(),
 									"DEFAULT" );
 							} );
 
@@ -248,7 +248,7 @@ class a_client_t
 							compare_and_abort_if_missmatch(
 									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
-											.request( new msg_convert(1) ),
+											.sync_get( new msg_convert(1) ),
 									"1" );
 							} );
 
@@ -257,7 +257,7 @@ class a_client_t
 							compare_and_abort_if_missmatch(
 									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
-											.request(
+											.sync_get(
 													std::unique_ptr< msg_convert >(
 															new msg_convert(2) ) ),
 									"2" );
@@ -269,7 +269,7 @@ class a_client_t
 							compare_and_abort_if_missmatch(
 									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
-											.make_request< msg_convert >( 3 ),
+											.make_sync_get< msg_convert >( 3 ),
 									"3" );
 							} );
 #endif
@@ -282,21 +282,21 @@ class a_client_t
 						[this]() {
 							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
-									.request< msg_back_call_get_default >();
+									.sync_get< msg_back_call_get_default >();
 						}, "get_default" ) );
 
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
-									.request( new msg_back_call_convert(11) );
+									.sync_get( new msg_back_call_convert(11) );
 						}, "11" ) );
 
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
 							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
-									.request(
+									.sync_get(
 											std::unique_ptr< msg_back_call_convert >(
 													new msg_back_call_convert(12) ) );
 						}, "12" ) );
@@ -306,7 +306,7 @@ class a_client_t
 						[this]() {
 							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
-									.make_request< msg_back_call_convert >( 13 );
+									.make_sync_get< msg_back_call_convert >( 13 );
 						}, "13" ) );
 #endif
 			}

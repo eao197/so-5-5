@@ -89,8 +89,8 @@ class a_service_t
 
 				if( m_next_mbox )
 					{
-						auto f = m_next_mbox->get_one< void >()
-								.request( evt.make_reference() );
+						auto f = m_next_mbox->run_one().async(
+								evt.make_reference() );
 						f.get();
 					}
 			}
@@ -124,7 +124,7 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				auto f = m_svc_mbox->get_one< void >().request( m_param );
+				auto f = m_svc_mbox->run_one().async( m_param );
 				f.get();
 
 				so_environment().stop();

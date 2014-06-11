@@ -133,29 +133,29 @@ class a_client_t
 			{
 				std::cout << "hello_svc: "
 						<< m_svc_mbox->get_one< std::string >()
-								.request< msg_hello_svc >().get()
+								.async< msg_hello_svc >().get()
 						<< std::endl;
 
 				std::cout << "convert_svc: "
 						<< m_svc_mbox->get_one< std::string >()
-								.request( new msg_convert( 42 ) ).get()
+								.async( new msg_convert( 42 ) ).get()
 						<< std::endl;
 
 				std::cout << "sync_convert_svc: "
 						<< m_svc_mbox->get_one< std::string >()
-								.wait_forever().request( new msg_convert( 1020 ) )
+								.wait_forever().sync_get( new msg_convert( 1020 ) )
 						<< std::endl;
 
 				// More complex case with conversion.
 				auto svc_proxy = m_svc_mbox->get_one< std::string >();
 
 				// These requests should be processed before next 'sync_request'...
-				auto c1 = svc_proxy.request( new msg_convert( 1 ) );
-				auto c2 = svc_proxy.request( new msg_convert( 2 ) );
+				auto c1 = svc_proxy.async( new msg_convert( 1 ) );
+				auto c2 = svc_proxy.async( new msg_convert( 2 ) );
 
 				// Two previous request should be processed before that call.
 				std::cout << "sync_convert_svc: "
-						<< svc_proxy.wait_forever().request( new msg_convert( 3 ) )
+						<< svc_proxy.wait_forever().sync_get( new msg_convert( 3 ) )
 						<< std::endl;
 
 				// But their value will be accessed only now.
@@ -163,8 +163,7 @@ class a_client_t
 				std::cout << "convert_svc: c1=" << c1.get() << std::endl;
 
 				// Initiate shutdown via another synchonyous service.
-				m_svc_mbox->get_one< void >()
-						.wait_forever().request< msg_shutdown >();
+				m_svc_mbox->run_one().wait_forever().sync_get< msg_shutdown >();
 			}
 
 	private :
