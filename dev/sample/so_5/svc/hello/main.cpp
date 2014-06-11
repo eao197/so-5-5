@@ -131,25 +131,23 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				auto hello =
-					//NOTE: it could be a method of agent_t.
-					so_5::rt::service< std::string >( m_svc_mbox )
-							.request< msg_hello_svc >();
+				std::cout << "hello_svc: "
+						<< m_svc_mbox->get_one< std::string >()
+								.request< msg_hello_svc >().get()
+						<< std::endl;
 
-				auto convert =
-					so_5::rt::service< std::string >( m_svc_mbox )
-							.request( new msg_convert( 42 ) );
-
-				std::cout << "hello_svc: " << hello.get() << std::endl;
-				std::cout << "convert_svc: " << convert.get() << std::endl;
+				std::cout << "convert_svc: "
+						<< m_svc_mbox->get_one< std::string >()
+								.request( new msg_convert( 42 ) ).get()
+						<< std::endl;
 
 				std::cout << "sync_convert_svc: "
-						<< so_5::rt::service< std::string >( m_svc_mbox )
+						<< m_svc_mbox->get_one< std::string >()
 								.wait_forever().request( new msg_convert( 1020 ) )
 						<< std::endl;
 
 				// More complex case with conversion.
-				auto svc_proxy = so_5::rt::service< std::string >( m_svc_mbox );
+				auto svc_proxy = m_svc_mbox->get_one< std::string >();
 
 				// These requests should be processed before next 'sync_request'...
 				auto c1 = svc_proxy.request( new msg_convert( 1 ) );
@@ -165,7 +163,7 @@ class a_client_t
 				std::cout << "convert_svc: c1=" << c1.get() << std::endl;
 
 				// Initiate shutdown via another synchonyous service.
-				so_5::rt::service< void >( m_svc_mbox )
+				m_svc_mbox->get_one< void >()
 						.wait_forever().request< msg_shutdown >();
 			}
 

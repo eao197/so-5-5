@@ -47,216 +47,8 @@ class named_local_mbox_t;
 
 } /* namespace impl */
 
+class mbox_t;
 class agent_t;
-
-//
-// mbox_t
-//
-
-//! Mail box class.
-/*!
- * The class serves as an interface for sending and receiving messages.
- *
- * All mboxes can be created via the SObjectizer Environment. References to
- * mboxes are stored and manipulated by so_5::rt::mbox_ref_t objects.
- *
- * mbox_t has two versions of the deliver_message() method. 
- * The first one requires pointer to the actual message data and is intended 
- * for delivering messages to agents.
- * The second one doesn't use a pointer to the actual message data and 
- * is intended for delivering signals to agents.
- *
- * mbox_t also is used for the delivery of delayed and periodic messages.
- * The SObjectizer Environment stores mbox for which messages must be
- * delivered and the timer thread pushes message instances to the mbox
- * at the appropriate time.
- *
- * \see so_environment_t::schedule_timer(), so_environment_t::single_timer().
- */
-class SO_5_TYPE mbox_t
-	:
-		private atomic_refcounted_t
-{
-		friend class impl::named_local_mbox_t;
-		friend class so_5::timer_thread::timer_act_t;
-
-		friend class smart_atomic_reference_t< mbox_t >;
-
-		friend class mbox_subscription_management_proxy_t;
-
-		mbox_t( const mbox_t & );
-		void
-		operator = ( const mbox_t & );
-
-	public:
-		mbox_t();
-		virtual ~mbox_t();
-
-		//! Deliver message.
-		/*!
-		 * \since v.5.2.2
-		 *
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class MESSAGE >
-		inline void
-		deliver_message(
-			//! Message data.
-			const smart_atomic_reference_t< MESSAGE > & msg_ref ) const;
-
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class MESSAGE >
-		inline void
-		deliver_message(
-			//! Message data.
-			std::unique_ptr< MESSAGE > msg_unique_ptr ) const;
-
-		//! Deliver message.
-		/*!
-		 * Mbox takes care about destroying a message object.
-		 */
-		template< class MESSAGE >
-		inline void
-		deliver_message(
-			//! Message data.
-			MESSAGE * msg_raw_ptr ) const;
-
-		//! Deliver signal.
-		template< class MESSAGE >
-		inline void
-		deliver_signal() const;
-
-		/*!
-		 * \since v.5.3.0.
-		 * \brief Deliver service request.
-		 */
-		virtual void
-		deliver_service_request(
-			//! This is type_index for service PARAM type.
-			const std::type_index & type_index,
-			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
-			const message_ref_t & svc_request_ref ) const = 0;
-
-		//! Get the mbox name.
-		virtual const std::string &
-		query_name() const = 0;
-
-		/*!
-		 * \name Comparision.
-		 * \{
-		 */
-		bool operator==( const mbox_t & o ) const;
-
-		bool operator<( const mbox_t & o ) const;
-		/*!
-		 * \}
-		 */
-
-	protected:
-		//! Add the message handler.
-		/*!
-		 * This method is called when the agent is subscribing to the message
-		 * at the first time.
-		 */
-		virtual void
-		subscribe_event_handler(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber,
-			//! The very first message handler.
-			const event_caller_block_ref_t & event_caller ) = 0;
-
-		//! Remove all message handlers.
-		virtual void
-		unsubscribe_event_handlers(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber ) = 0;
-
-		//! Deliver message for all subscribers.
-		virtual void
-		deliver_message(
-			const std::type_index & type_index,
-			const message_ref_t & message_ref ) const = 0;
-
-		/*!
-		 * \since v.5.2.3.4
-		 * \brief Lock mbox in read-write mode.
-		 */
-		virtual void
-		read_write_lock_acquire() = 0;
-
-		/*!
-		 * \since v.5.2.3.4
-		 * \brief Release mbox's read-write lock.
-		 */
-		virtual void
-		read_write_lock_release() = 0;
-
-		//! Get data for the object comparision.
-		/*!
-		 * Default implementation returns this pointer.
-		*/
-		virtual const mbox_t *
-		cmp_ordinal() const;
-};
-
-template< class MESSAGE >
-inline void
-mbox_t::deliver_message(
-	const smart_atomic_reference_t< MESSAGE > & msg_ref ) const
-{
-	ensure_message_with_actual_data( msg_ref.get() );
-
-	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
-		msg_ref.template make_reference< message_t >() );
-}
-
-template< class MESSAGE >
-void
-mbox_t::deliver_message(
-	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
-{
-	ensure_message_with_actual_data( msg_unique_ptr.get() );
-
-	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
-		message_ref_t( msg_unique_ptr.release() ) );
-}
-
-template< class MESSAGE >
-void
-mbox_t::deliver_message(
-	MESSAGE * msg_raw_ptr ) const
-{
-	this->deliver_message( std::unique_ptr< MESSAGE >( msg_raw_ptr ) );
-}
-
-template< class MESSAGE >
-void
-mbox_t::deliver_signal() const
-{
-	ensure_signal< MESSAGE >();
-
-	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
-		message_ref_t() );
-}
-
-//
-// mbox_ref_t
-//
-//! Smart reference for the mbox_t.
-/*!
- * \note Defined as typedef since v.5.2.0
- */
-typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
 
 template< class RESULT >
 class service_invoke_proxy_t;
@@ -412,9 +204,7 @@ template< class RESULT >
 class service_invoke_proxy_t
 	{
 	public :
-		service_invoke_proxy_t( const mbox_t & mbox )
-			:	m_mbox( mbox )
-			{}
+		service_invoke_proxy_t( const mbox_t & mbox );
 
 		//! Make asynchronous service request.
 		/*!
@@ -422,22 +212,7 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		std::future< RESULT >
-		request() const
-			{
-				ensure_signal< PARAM >();
-
-				std::promise< RESULT > promise;
-				auto f = promise.get_future();
-
-				message_ref_t ref(
-						new msg_service_request_t< RESULT, PARAM >(
-								std::move(promise) ) );
-				m_mbox.deliver_service_request(
-						std::type_index( typeid(PARAM) ),
-						ref );
-
-				return f;
-			}
+		request() const;
 
 		//! Make service request call with param.
 		/*!
@@ -445,24 +220,7 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		std::future< RESULT >
-		request( smart_atomic_reference_t< PARAM > msg_ref ) const
-			{
-				ensure_message_with_actual_data( msg_ref.get() );
-
-				std::promise< RESULT > promise;
-				auto f = promise.get_future();
-
-				message_ref_t ref(
-						new msg_service_request_t< RESULT, PARAM >(
-								std::move(promise),
-								msg_ref.template make_reference< message_t >() ) );
-
-				m_mbox.deliver_service_request(
-						std::type_index( typeid(PARAM) ),
-						ref );
-
-				return f;
-			}
+		request( smart_atomic_reference_t< PARAM > msg_ref ) const;
 
 		//! Make service request call with param.
 		/*!
@@ -470,11 +228,7 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		std::future< RESULT >
-		request( std::unique_ptr< PARAM > msg_unique_ptr ) const
-			{
-				return this->request( smart_atomic_reference_t< PARAM >(
-							msg_unique_ptr.release() ) );
-			}
+		request( std::unique_ptr< PARAM > msg_unique_ptr ) const;
 
 		//! Make service request call with param.
 		/*!
@@ -482,18 +236,12 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM >
 		std::future< RESULT >
-		request( PARAM * msg ) const
-			{
-				return this->request( smart_atomic_reference_t< PARAM >( msg ) );
-			}
+		request( PARAM * msg ) const;
 
 		//! Make another proxy for time-unlimited synchronous
 		//! service request calls.
 		infinite_wait_service_invoke_proxy_t< RESULT >
-		wait_forever() const
-			{
-				return infinite_wait_service_invoke_proxy_t< RESULT >( *this );
-			}
+		wait_forever() const;
 
 		//! Make another proxy for time-limited synchronous
 		//! service requests calls.
@@ -501,11 +249,7 @@ class service_invoke_proxy_t
 		wait_for_service_invoke_proxy_t< RESULT, DURATION >
 		wait_for(
 			//! Timeout for std::future::wait_for().
-			const DURATION & timeout ) const
-			{
-				return wait_for_service_invoke_proxy_t< RESULT, DURATION >(
-						*this, timeout );
-			}
+			const DURATION & timeout ) const;
 
 #if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 		//! Create param and make service request call.
@@ -514,18 +258,329 @@ class service_invoke_proxy_t
 		 */
 		template< class PARAM, typename... ARGS >
 		std::future< RESULT >
-		make_request( ARGS&&... args ) const
-			{
-				smart_atomic_reference_t< PARAM > msg(
-						new PARAM( std::forward<ARGS>(args)... ) );
-
-				return this->request( std::move( msg ) );
-			}
+		make_request( ARGS&&... args ) const;
 #endif
 
 	private :
 		const mbox_t & m_mbox;
 	};
+
+//
+// mbox_t
+//
+
+//! Mail box class.
+/*!
+ * The class serves as an interface for sending and receiving messages.
+ *
+ * All mboxes can be created via the SObjectizer Environment. References to
+ * mboxes are stored and manipulated by so_5::rt::mbox_ref_t objects.
+ *
+ * mbox_t has two versions of the deliver_message() method. 
+ * The first one requires pointer to the actual message data and is intended 
+ * for delivering messages to agents.
+ * The second one doesn't use a pointer to the actual message data and 
+ * is intended for delivering signals to agents.
+ *
+ * mbox_t also is used for the delivery of delayed and periodic messages.
+ * The SObjectizer Environment stores mbox for which messages must be
+ * delivered and the timer thread pushes message instances to the mbox
+ * at the appropriate time.
+ *
+ * \see so_environment_t::schedule_timer(), so_environment_t::single_timer().
+ */
+class SO_5_TYPE mbox_t
+	:
+		private atomic_refcounted_t
+{
+		friend class impl::named_local_mbox_t;
+		friend class so_5::timer_thread::timer_act_t;
+
+		friend class smart_atomic_reference_t< mbox_t >;
+
+		friend class mbox_subscription_management_proxy_t;
+
+		mbox_t( const mbox_t & );
+		void
+		operator = ( const mbox_t & );
+
+	public:
+		mbox_t();
+		virtual ~mbox_t();
+
+		//! Deliver message.
+		/*!
+		 * \since v.5.2.2
+		 *
+		 * Mbox takes care about destroying a message object.
+		 */
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Message data.
+			const smart_atomic_reference_t< MESSAGE > & msg_ref ) const;
+
+		//! Deliver message.
+		/*!
+		 * Mbox takes care about destroying a message object.
+		 */
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Message data.
+			std::unique_ptr< MESSAGE > msg_unique_ptr ) const;
+
+		//! Deliver message.
+		/*!
+		 * Mbox takes care about destroying a message object.
+		 */
+		template< class MESSAGE >
+		inline void
+		deliver_message(
+			//! Message data.
+			MESSAGE * msg_raw_ptr ) const;
+
+		//! Deliver signal.
+		template< class MESSAGE >
+		inline void
+		deliver_signal() const;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Create a special proxy for service request invocation.
+		 */
+		template< class RESULT >
+		inline service_invoke_proxy_t< RESULT >
+		get_one()
+			{
+				return service_invoke_proxy_t< RESULT >( *this );
+			}
+
+		/*!
+		 * \since v.5.3.0.
+		 * \brief Deliver service request.
+		 */
+		virtual void
+		deliver_service_request(
+			//! This is type_index for service PARAM type.
+			const std::type_index & type_index,
+			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
+			const message_ref_t & svc_request_ref ) const = 0;
+
+		//! Get the mbox name.
+		virtual const std::string &
+		query_name() const = 0;
+
+		/*!
+		 * \name Comparision.
+		 * \{
+		 */
+		bool operator==( const mbox_t & o ) const;
+
+		bool operator<( const mbox_t & o ) const;
+		/*!
+		 * \}
+		 */
+
+	protected:
+		//! Add the message handler.
+		/*!
+		 * This method is called when the agent is subscribing to the message
+		 * at the first time.
+		 */
+		virtual void
+		subscribe_event_handler(
+			//! Message type.
+			const std::type_index & type_index,
+			//! Agent-subcriber.
+			agent_t * subscriber,
+			//! The very first message handler.
+			const event_caller_block_ref_t & event_caller ) = 0;
+
+		//! Remove all message handlers.
+		virtual void
+		unsubscribe_event_handlers(
+			//! Message type.
+			const std::type_index & type_index,
+			//! Agent-subcriber.
+			agent_t * subscriber ) = 0;
+
+		//! Deliver message for all subscribers.
+		virtual void
+		deliver_message(
+			const std::type_index & type_index,
+			const message_ref_t & message_ref ) const = 0;
+
+		/*!
+		 * \since v.5.2.3.4
+		 * \brief Lock mbox in read-write mode.
+		 */
+		virtual void
+		read_write_lock_acquire() = 0;
+
+		/*!
+		 * \since v.5.2.3.4
+		 * \brief Release mbox's read-write lock.
+		 */
+		virtual void
+		read_write_lock_release() = 0;
+
+		//! Get data for the object comparision.
+		/*!
+		 * Default implementation returns this pointer.
+		*/
+		virtual const mbox_t *
+		cmp_ordinal() const;
+};
+
+template< class MESSAGE >
+inline void
+mbox_t::deliver_message(
+	const smart_atomic_reference_t< MESSAGE > & msg_ref ) const
+{
+	ensure_message_with_actual_data( msg_ref.get() );
+
+	deliver_message(
+		std::type_index( typeid( MESSAGE ) ),
+		msg_ref.template make_reference< message_t >() );
+}
+
+template< class MESSAGE >
+void
+mbox_t::deliver_message(
+	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
+{
+	ensure_message_with_actual_data( msg_unique_ptr.get() );
+
+	deliver_message(
+		std::type_index( typeid( MESSAGE ) ),
+		message_ref_t( msg_unique_ptr.release() ) );
+}
+
+template< class MESSAGE >
+void
+mbox_t::deliver_message(
+	MESSAGE * msg_raw_ptr ) const
+{
+	this->deliver_message( std::unique_ptr< MESSAGE >( msg_raw_ptr ) );
+}
+
+template< class MESSAGE >
+void
+mbox_t::deliver_signal() const
+{
+	ensure_signal< MESSAGE >();
+
+	deliver_message(
+		std::type_index( typeid( MESSAGE ) ),
+		message_ref_t() );
+}
+
+//
+// mbox_ref_t
+//
+//! Smart reference for the mbox_t.
+/*!
+ * \note Defined as typedef since v.5.2.0
+ */
+typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
+
+//
+// service_invoke_proxy_t implementation.
+//
+template< class RESULT >
+service_invoke_proxy_t<RESULT>::service_invoke_proxy_t( const mbox_t & mbox )
+	:	m_mbox( mbox )
+	{}
+
+template< class RESULT >
+template< class PARAM >
+std::future< RESULT >
+service_invoke_proxy_t<RESULT>::request() const
+	{
+		ensure_signal< PARAM >();
+
+		std::promise< RESULT > promise;
+		auto f = promise.get_future();
+
+		message_ref_t ref(
+				new msg_service_request_t< RESULT, PARAM >(
+						std::move(promise) ) );
+		m_mbox.deliver_service_request(
+				std::type_index( typeid(PARAM) ),
+				ref );
+
+		return f;
+	}
+
+template< class RESULT >
+template< class PARAM >
+std::future< RESULT >
+service_invoke_proxy_t<RESULT>::request( smart_atomic_reference_t< PARAM > msg_ref ) const
+	{
+		ensure_message_with_actual_data( msg_ref.get() );
+
+		std::promise< RESULT > promise;
+		auto f = promise.get_future();
+
+		message_ref_t ref(
+				new msg_service_request_t< RESULT, PARAM >(
+						std::move(promise),
+						msg_ref.template make_reference< message_t >() ) );
+
+		m_mbox.deliver_service_request(
+				std::type_index( typeid(PARAM) ),
+				ref );
+
+		return f;
+	}
+
+template< class RESULT >
+template< class PARAM >
+std::future< RESULT >
+service_invoke_proxy_t<RESULT>::request( std::unique_ptr< PARAM > msg_unique_ptr ) const
+	{
+		return this->request( smart_atomic_reference_t< PARAM >(
+					msg_unique_ptr.release() ) );
+	}
+
+template< class RESULT >
+template< class PARAM >
+std::future< RESULT >
+service_invoke_proxy_t<RESULT>::request( PARAM * msg ) const
+	{
+		return this->request( smart_atomic_reference_t< PARAM >( msg ) );
+	}
+
+template< class RESULT >
+infinite_wait_service_invoke_proxy_t< RESULT >
+service_invoke_proxy_t<RESULT>::wait_forever() const
+	{
+		return infinite_wait_service_invoke_proxy_t< RESULT >( *this );
+	}
+
+template< class RESULT >
+template< class DURATION >
+wait_for_service_invoke_proxy_t< RESULT, DURATION >
+service_invoke_proxy_t<RESULT>::wait_for(
+	const DURATION & timeout ) const
+	{
+		return wait_for_service_invoke_proxy_t< RESULT, DURATION >(
+				*this, timeout );
+	}
+
+#if !defined( SO_5_NO_VARIADIC_TEMPLATES )
+template< class RESULT >
+template< class PARAM, typename... ARGS >
+std::future< RESULT >
+service_invoke_proxy_t<RESULT>::make_request( ARGS&&... args ) const
+	{
+		smart_atomic_reference_t< PARAM > msg(
+				new PARAM( std::forward<ARGS>(args)... ) );
+
+		return this->request( std::move( msg ) );
+	}
+#endif
 
 //
 // implementation of infinite_wait_service_invoke_proxy_t
@@ -675,17 +730,6 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_request(
 		return this->request( std::move( msg ) );
 	}
 #endif
-
-/*!
- * \since v.5.3.0
- * \brief Create a special proxy for service request invocation.
- */
-template< class RESULT >
-inline service_invoke_proxy_t< RESULT >
-service( const mbox_ref_t & mbox )
-	{
-		return service_invoke_proxy_t< RESULT >( *mbox );
-	}
 
 /*!
  * \since v.5.2.3.4

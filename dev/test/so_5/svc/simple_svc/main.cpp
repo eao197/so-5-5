@@ -111,7 +111,7 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				auto svc_proxy = so_5::rt::service< std::string >( m_svc_mbox );
+				auto svc_proxy = m_svc_mbox->get_one< std::string >();
 
 				auto c1 = svc_proxy.request( new msg_convert( 1 ) );
 				auto c2 = svc_proxy.request( new msg_convert( 2 ) );
@@ -123,7 +123,7 @@ class a_client_t
 				compare_and_abort_if_missmatch( c2.get(), "2" );
 				compare_and_abort_if_missmatch( c1.get(), "1" );
 
-				so_5::rt::service< void >( m_svc_mbox )
+				m_svc_mbox->get_one< void >()
 						.wait_forever().request< msg_shutdown >();
 			}
 

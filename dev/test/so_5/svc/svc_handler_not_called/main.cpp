@@ -78,7 +78,7 @@ class a_client_t
 			{
 				try
 					{
-						so_5::rt::service< std::string >( m_svc_mbox )
+						m_svc_mbox->get_one< std::string >()
 								.wait_forever()
 								.request( new msg_convert( 3 ) );
 

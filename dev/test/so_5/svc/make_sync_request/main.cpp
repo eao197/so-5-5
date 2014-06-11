@@ -119,11 +119,11 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				so_5::rt::service< std::string >( m_svc_mbox )
+				m_svc_mbox->get_one< std::string >()
 						.wait_forever().make_request< msg_convert >( 1 );
 
 				long long l = 10;
-				so_5::rt::service< void >( m_svc_mbox )
+				m_svc_mbox->get_one< void >()
 						.wait_forever().make_request< msg_complex_svc >(
 								1,
 								"Hello, World",

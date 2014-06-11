@@ -85,7 +85,7 @@ class a_convert_service_t
 		svc_back_call_default(
 			const so_5::rt::event_data_t< msg_back_call_get_default > & )
 			{
-				so_5::rt::service< void >( m_back_call_mbox )
+				m_back_call_mbox->get_one< void >()
 						.wait_forever().request< msg_back_call >();
 
 				return "NOT USED DEFAULT";
@@ -104,7 +104,7 @@ class a_convert_service_t
 		svc_back_call_convert(
 			const so_5::rt::event_data_t< msg_back_call_convert > & evt )
 			{
-				so_5::rt::service< void >( m_back_call_mbox )
+				m_back_call_mbox->get_one< void >()
 						.wait_forever().request< msg_back_call >();
 
 				return "NOT USED";
@@ -237,7 +237,7 @@ class a_client_t
 				m_normal_convert_actions.emplace_back(
 						[this]() {
 							compare_and_abort_if_missmatch(
-									so_5::rt::service< std::string >( m_svc_mbox )
+									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
 											.request< msg_get_default >(),
 									"DEFAULT" );
@@ -246,7 +246,7 @@ class a_client_t
 				m_normal_convert_actions.emplace_back(
 						[this]() {
 							compare_and_abort_if_missmatch(
-									so_5::rt::service< std::string >( m_svc_mbox )
+									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
 											.request( new msg_convert(1) ),
 									"1" );
@@ -255,7 +255,7 @@ class a_client_t
 				m_normal_convert_actions.emplace_back(
 						[this]() {
 							compare_and_abort_if_missmatch(
-									so_5::rt::service< std::string >( m_svc_mbox )
+									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
 											.request(
 													std::unique_ptr< msg_convert >(
@@ -267,7 +267,7 @@ class a_client_t
 				m_normal_convert_actions.emplace_back(
 						[this]() {
 							compare_and_abort_if_missmatch(
-									so_5::rt::service< std::string >( m_svc_mbox )
+									m_svc_mbox->get_one< std::string >()
 											.wait_forever()
 											.make_request< msg_convert >( 3 ),
 									"3" );
@@ -280,21 +280,21 @@ class a_client_t
 			{
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
-							so_5::rt::service< std::string >( m_svc_mbox )
+							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
 									.request< msg_back_call_get_default >();
 						}, "get_default" ) );
 
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
-							so_5::rt::service< std::string >( m_svc_mbox )
+							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
 									.request( new msg_back_call_convert(11) );
 						}, "11" ) );
 
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
-							so_5::rt::service< std::string >( m_svc_mbox )
+							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
 									.request(
 											std::unique_ptr< msg_back_call_convert >(
@@ -304,7 +304,7 @@ class a_client_t
 #if !defined( SO_5_NO_VARIADIC_TEMPLATES )
 				m_back_call_actions.emplace_back( make_exception_handling_envelope(
 						[this]() {
-							so_5::rt::service< std::string >( m_svc_mbox )
+							m_svc_mbox->get_one< std::string >()
 									.wait_for( std::chrono::milliseconds( 50 ) )
 									.make_request< msg_back_call_convert >( 13 );
 						}, "13" ) );

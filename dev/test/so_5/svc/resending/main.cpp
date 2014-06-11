@@ -89,7 +89,7 @@ class a_service_t
 
 				if( m_next_mbox )
 					{
-						auto f = so_5::rt::service< void >( m_next_mbox )
+						auto f = m_next_mbox->get_one< void >()
 								.request( evt.make_reference() );
 						f.get();
 					}
@@ -124,8 +124,7 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				auto svc_proxy = so_5::rt::service< void >( m_svc_mbox );
-				auto f = svc_proxy.request( m_param );
+				auto f = m_svc_mbox->get_one< void >().request( m_param );
 				f.get();
 
 				so_environment().stop();

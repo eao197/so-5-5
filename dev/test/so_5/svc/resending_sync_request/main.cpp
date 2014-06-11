@@ -90,7 +90,7 @@ class a_service_t
 
 				if( m_next_mbox )
 					{
-						so_5::rt::service< void >( m_next_mbox )
+						m_next_mbox->get_one< void >()
 								.wait_forever().request( evt.make_reference() );
 					}
 			}
@@ -124,7 +124,7 @@ class a_client_t
 		virtual void
 		so_evt_start()
 			{
-				so_5::rt::service< void >( m_svc_mbox )
+				m_svc_mbox->get_one< void >()
 						.wait_forever()
 						.request( m_param );
 
