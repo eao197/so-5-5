@@ -63,16 +63,16 @@ class a_convert_service_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
-						.service( &a_convert_service_t::svc_default );
+						.event( &a_convert_service_t::svc_default );
 
 				so_subscribe( m_self_mbox )
-						.service( &a_convert_service_t::svc_back_call_default );
+						.event( &a_convert_service_t::svc_back_call_default );
 
 				so_subscribe( m_self_mbox )
-						.service( &a_convert_service_t::svc_convert );
+						.event( &a_convert_service_t::svc_convert );
 
 				so_subscribe( m_self_mbox )
-						.service( &a_convert_service_t::svc_back_call_convert );
+						.event( &a_convert_service_t::svc_back_call_convert );
 			}
 
 		std::string
@@ -166,7 +166,7 @@ class a_client_t
 						.event( &a_client_t::evt_next_back_call_convert );
 
 				so_subscribe( m_self_mbox ).in( st_deadlocks )
-						.service( &a_client_t::svc_back_call );
+						.event( &a_client_t::svc_back_call );
 			}
 
 		virtual void

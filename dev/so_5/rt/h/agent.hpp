@@ -92,21 +92,14 @@ class subscription_bind_t
 			const state_t & state );
 
 		//! Make subscription to the message.
-		template< class MESSAGE, class AGENT >
+		/*!
+		 * Since v.5.3.0 could be used for event handlers and service handlers.
+		 */
+		template< class RESULT, class MESSAGE, class AGENT >
 		void
 		event(
 			//! Event handling method.
-			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) );
-
-		/*!
-		 * \since v.5.3.0
-		 * \brief Make subscription for service request.
-		 */
-		template< class RESULT, class PARAM, class AGENT >
-		void
-		service(
-			//! Service handling method.
-			RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ) );
+			RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) );
 
 	private:
 		//! Agent to which we are subscribing.
@@ -994,39 +987,10 @@ subscription_bind_t::in(
 	return *this;
 }
 
-template< class MESSAGE, class AGENT >
-inline void
-subscription_bind_t::event(
-	void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
-{
-	// Agent must have right type.
-	AGENT * cast_result = dynamic_cast< AGENT * >( &m_agent );
-
-	// Was conversion successful?
-	if( nullptr == cast_result )
-	{
-		// No. Actual type of the agent is not convertible to the AGENT.
-		SO_5_THROW_EXCEPTION(
-			rc_agent_incompatible_type_conversion,
-			std::string( "Unable convert agent to type: " ) +
-				typeid(AGENT).name() );
-	}
-
-	auto method = [cast_result,pfn](message_ref_t & message_ref)
-		{
-			const event_data_t< MESSAGE > event_data(
-				dynamic_cast< MESSAGE * >( message_ref.get() ) );
-
-			(cast_result->*pfn)( event_data );
-		};
-
-	m_agent.create_event_subscription(
-		typeid( MESSAGE ),
-		m_mbox_ref,
-		*m_state,
-		std::move(method) );
-}
-
+/*!
+ * \since v.5.3.0
+ * \brief Internal namespace for details of agent method invocation implementation.
+ */
 namespace promise_result_setting_details
 {
 
@@ -1063,10 +1027,10 @@ struct result_setter_t< void >
 
 } /* namespace promise_result_setting_details */
 
-template< class RESULT, class PARAM, class AGENT >
+template< class RESULT, class MESSAGE, class AGENT >
 inline void
-subscription_bind_t::service(
-	RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ) )
+subscription_bind_t::event(
+	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 {
 	// Agent must have right type.
 	AGENT * cast_result = dynamic_cast< AGENT * >( &m_agent );
@@ -1081,32 +1045,45 @@ subscription_bind_t::service(
 				typeid(AGENT).name() );
 	}
 
-	auto service_handler = [cast_result, pfn](message_ref_t & svc_request_msg)
+	auto method = [cast_result,pfn](
+			invocation_type_t invocation_type,
+			message_ref_t & message_ref)
 		{
-			using namespace promise_result_setting_details;
+			if( invocation_type_t::service_request == invocation_type )
+				{
+					using namespace promise_result_setting_details;
 
-			typedef msg_service_request_t< RESULT, PARAM > actual_request_msg_t;
+					typedef msg_service_request_t< RESULT, MESSAGE >
+							actual_request_msg_t;
 
-			actual_request_msg_t & actual_request =
-					dynamic_cast< actual_request_msg_t & >(
-							*svc_request_msg.get() );
+					actual_request_msg_t & actual_request =
+							dynamic_cast< actual_request_msg_t & >(
+									*message_ref.get() );
 
-			const event_data_t< PARAM > event_data(
-				dynamic_cast< PARAM * >( actual_request.m_param.get() ) );
+					const event_data_t< MESSAGE > event_data(
+						dynamic_cast< MESSAGE * >( actual_request.m_param.get() ) );
 
-			// All exceptions will be processed in service_handler_on_message.
-			result_setter_t< RESULT >().call_and_set(
-					actual_request.m_promise,
-					cast_result,
-					pfn,
-					event_data );
+					// All exceptions will be processed in service_handler_on_message.
+					result_setter_t< RESULT >().call_and_set(
+							actual_request.m_promise,
+							cast_result,
+							pfn,
+							event_data );
+				}
+			else
+				{
+					const event_data_t< MESSAGE > event_data(
+						dynamic_cast< MESSAGE * >( message_ref.get() ) );
+
+					(cast_result->*pfn)( event_data );
+				}
 		};
 
 	m_agent.create_event_subscription(
-		typeid( PARAM ),
+		typeid( MESSAGE ),
 		m_mbox_ref,
 		*m_state,
-		std::move(service_handler) );
+		std::move(method) );
 }
 
 } /* namespace rt */

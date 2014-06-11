@@ -501,7 +501,10 @@ agent_t::demand_handler_on_message(
 	const event_caller_block_t * event_handler,
 	agent_t * agent )
 {
-	event_handler->call( agent->so_current_state(), msg );
+	event_handler->call(
+			agent->so_current_state(),
+			invocation_type_t::event,
+			msg );
 }
 
 void
@@ -512,7 +515,10 @@ agent_t::service_request_handler_on_message(
 {
 	try
 		{
-			if( !event_handler->call( agent->so_current_state(), msg ) )
+			if( !event_handler->call(
+					agent->so_current_state(),
+					invocation_type_t::service_request,
+					msg ) )
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,
 						"service request handler is not found for "

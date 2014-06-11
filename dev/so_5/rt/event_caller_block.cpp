@@ -46,13 +46,14 @@ event_caller_block_t::~event_caller_block_t()
 bool
 event_caller_block_t::call(
 	const state_t & current_state,
+	invocation_type_t invocation_type,
 	message_ref_t & message ) const
 {
 	auto it = try_find_handler( m_states_and_handlers, current_state );
 
 	if( it != std::end( m_states_and_handlers ) )
 	{
-		it->m_method( message );
+		it->m_method( invocation_type, message );
 		return true;
 	}
 

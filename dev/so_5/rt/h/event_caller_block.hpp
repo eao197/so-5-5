@@ -27,13 +27,34 @@ namespace rt
 {
 
 //
+// invocation_type_t
+//
+/*!
+ * \since v.5.3.0
+ * \brief Type of agent method invocation (event handling, service request).
+ */
+enum class invocation_type_t : int
+	{
+		//! Ordinal event handler invocation.
+		/*! Return value of event handler could be skipped. */
+		event,
+		//! Service handler invocation.
+		/*!
+		 * Return value of service handler should be stored into
+		 * underlying std::promise object.
+		 */
+		service_request
+	};
+
+//
 // event_handler_method_t
 //
 /*!
  * \since v.5.3.0
  * \brief Type of event handler method.
  */
-typedef std::function< void(message_ref_t &) > event_handler_method_t;
+typedef std::function< void(invocation_type_t, message_ref_t &) >
+		event_handler_method_t;
 
 //
 // event_caller_block_t
@@ -59,6 +80,7 @@ class SO_5_TYPE event_caller_block_t
 		bool
 		call(
 			const state_t & current_state,
+			invocation_type_t invocation_type,
 			message_ref_t & message_ref ) const;
 
 		//! Add caller.

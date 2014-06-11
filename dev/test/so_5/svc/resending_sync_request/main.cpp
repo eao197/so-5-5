@@ -73,7 +73,7 @@ class a_service_t
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( m_self_mbox ).service( &a_service_t::svc );
+				so_subscribe( m_self_mbox ).event( &a_service_t::svc );
 			}
 
 		void

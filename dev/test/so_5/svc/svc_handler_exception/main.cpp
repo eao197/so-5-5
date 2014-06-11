@@ -45,7 +45,7 @@ class a_convert_service_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
-						.service( &a_convert_service_t::svc_convert );
+						.event( &a_convert_service_t::svc_convert );
 			}
 
 		std::string
@@ -81,7 +81,7 @@ class a_shutdowner_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
-						.service( &a_shutdowner_t::svc_shutdown );
+						.event( &a_shutdowner_t::svc_shutdown );
 			}
 
 		void

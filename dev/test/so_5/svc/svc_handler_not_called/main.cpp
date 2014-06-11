@@ -38,7 +38,7 @@ class a_convert_service_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox ).in( st_dummy )
-						.service( &a_convert_service_t::svc_convert );
+						.event( &a_convert_service_t::svc_convert );
 			}
 
 		std::string
