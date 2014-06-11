@@ -173,6 +173,27 @@ const int rc_svc_not_handled = 85;
  */
 const int rc_svc_result_not_received_yet = 86;
 
+/*!
+ * \since v.5.3.0
+ * \brief Unable to cast service call description object to
+ * the appropriate type.
+ *
+ * This error is possible when type of service request doesn't match
+ * actual type of request handler. For example:
+ *
+ *
+\code
+// Actual service type.
+int a_some_svc_t::evt_query_state(
+	const so_5::rt::event_data_t< msg_query_state > & )
+	{ ... }
+
+// Service request call with wrong return type.
+mbox.get_one< std::string >().wait_forever().sync_get<msg_query_state>();
+\endcode
+ */
+const int rc_msg_service_request_bad_cast = 87;
+
 //! \}
 
 //! \name Error codes for delayed or repeated events.

@@ -1056,16 +1056,24 @@ subscription_bind_t::event(
 					typedef msg_service_request_t< RESULT, MESSAGE >
 							actual_request_msg_t;
 
-					actual_request_msg_t & actual_request =
-							dynamic_cast< actual_request_msg_t & >(
-									*message_ref.get() );
+					actual_request_msg_t * actual_request_ptr =
+							dynamic_cast< actual_request_msg_t * >(
+									message_ref.get() );
+					if( !actual_request_ptr )
+						SO_5_THROW_EXCEPTION(
+								rc_msg_service_request_bad_cast,
+								std::string( "unable cast msg_service_request "
+										"instance to appropriate type, "
+										"expected type is: " ) +
+								typeid(actual_request_msg_t).name() );
 
 					const event_data_t< MESSAGE > event_data(
-						dynamic_cast< MESSAGE * >( actual_request.m_param.get() ) );
+							dynamic_cast< MESSAGE * >(
+									actual_request_ptr->m_param.get() ) );
 
 					// All exceptions will be processed in service_handler_on_message.
 					result_setter_t< RESULT >().call_and_set(
-							actual_request.m_promise,
+							actual_request_ptr->m_promise,
 							cast_result,
 							pfn,
 							event_data );
