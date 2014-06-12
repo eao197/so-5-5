@@ -50,6 +50,15 @@ class named_local_mbox_t;
 class mbox_t;
 class agent_t;
 
+//
+// mbox_ref_t
+//
+//! Smart reference for the mbox_t.
+/*!
+ * \note Defined as typedef since v.5.2.0
+ */
+typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
+
 template< class RESULT >
 class service_invoke_proxy_t;
 
@@ -204,7 +213,8 @@ template< class RESULT >
 class service_invoke_proxy_t
 	{
 	public :
-		service_invoke_proxy_t( const mbox_t & mbox );
+		service_invoke_proxy_t( const mbox_ref_t & mbox );
+		service_invoke_proxy_t( mbox_ref_t && mbox );
 
 		//! Make asynchronous service request.
 		/*!
@@ -262,7 +272,7 @@ class service_invoke_proxy_t
 #endif
 
 	private :
-		const mbox_t & m_mbox;
+		const mbox_ref_t m_mbox;
 	};
 
 //
@@ -353,7 +363,8 @@ class SO_5_TYPE mbox_t
 		inline service_invoke_proxy_t< RESULT >
 		get_one()
 			{
-				return service_invoke_proxy_t< RESULT >( *this );
+				return service_invoke_proxy_t< RESULT >(
+						mbox_ref_t( this ) );
 			}
 
 		/*!
@@ -364,7 +375,7 @@ class SO_5_TYPE mbox_t
 		inline service_invoke_proxy_t< void >
 		run_one()
 			{
-				return service_invoke_proxy_t< void >( *this );
+				return service_invoke_proxy_t< void >( mbox_ref_t( this ) );
 			}
 
 		/*!
@@ -488,20 +499,18 @@ mbox_t::deliver_signal() const
 }
 
 //
-// mbox_ref_t
-//
-//! Smart reference for the mbox_t.
-/*!
- * \note Defined as typedef since v.5.2.0
- */
-typedef smart_atomic_reference_t< mbox_t > mbox_ref_t;
-
-//
 // service_invoke_proxy_t implementation.
 //
 template< class RESULT >
-service_invoke_proxy_t<RESULT>::service_invoke_proxy_t( const mbox_t & mbox )
+service_invoke_proxy_t<RESULT>::service_invoke_proxy_t(
+	const mbox_ref_t & mbox )
 	:	m_mbox( mbox )
+	{}
+
+template< class RESULT >
+service_invoke_proxy_t<RESULT>::service_invoke_proxy_t(
+	mbox_ref_t && mbox )
+	:	m_mbox( std::move(mbox) )
 	{}
 
 template< class RESULT >
@@ -517,7 +526,7 @@ service_invoke_proxy_t<RESULT>::async() const
 		message_ref_t ref(
 				new msg_service_request_t< RESULT, PARAM >(
 						std::move(promise) ) );
-		m_mbox.deliver_service_request(
+		m_mbox->deliver_service_request(
 				std::type_index( typeid(PARAM) ),
 				ref );
 
@@ -540,7 +549,7 @@ service_invoke_proxy_t<RESULT>::async(
 						std::move(promise),
 						msg_ref.template make_reference< message_t >() ) );
 
-		m_mbox.deliver_service_request(
+		m_mbox->deliver_service_request(
 				std::type_index( typeid(PARAM) ),
 				ref );
 
