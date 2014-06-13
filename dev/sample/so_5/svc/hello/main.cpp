@@ -70,13 +70,13 @@ class a_convert_service_t
 			}
 
 		std::string
-		svc_convert( const so_5::rt::event_data_t< msg_convert > & evt )
+		svc_convert( const msg_convert & msg )
 			{
-				std::cout << "svc_convert called: value=" << evt->m_value
+				std::cout << "svc_convert called: value=" << msg.m_value
 						<< std::endl;
 
 				std::ostringstream s;
-				s << evt->m_value;
+				s << msg.m_value;
 
 				return s.str();
 			}

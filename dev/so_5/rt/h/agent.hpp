@@ -102,6 +102,16 @@ class subscription_bind_t
 			//! Event handling method.
 			RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) );
 
+		//! Make subscription to the message.
+		/*!
+		 * Since v.5.3.0 could be used for event handlers and service handlers.
+		 */
+		template< class RESULT, class MESSAGE, class AGENT >
+		void
+		event(
+			//! Event handling method.
+			RESULT (AGENT::*pfn)( const MESSAGE & ) );
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t & m_agent;
@@ -119,6 +129,15 @@ class subscription_bind_t
 		 * \brief States of agents the event to be subscribed in.
 		 */
 		state_vector_t m_states;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Create subscription of event for all states.
+		 */
+		void
+		create_subscription_for_states(
+			const std::type_index & msg_type,
+			const event_handler_method_t & method ) const;
 };
 
 //
@@ -999,51 +1018,22 @@ subscription_bind_t::in(
 
 /*!
  * \since v.5.3.0
- * \brief Internal namespace for details of agent method invocation implementation.
+ * \brief Various helpers for event subscription.
  */
-namespace promise_result_setting_details
+namespace event_subscription_helpers
 {
 
-template< class RESULT >
-struct result_setter_t
-	{
-		template< class AGENT, class PARAM >
-		void
-		call_and_set(
-			std::promise< RESULT > & to,
-			AGENT * a,
-			RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ),
-			const event_data_t< PARAM > & evt )
-			{
-				to.set_value( (a->*pfn)( evt ) );
-			}
-	};
-
-template<>
-struct result_setter_t< void >
-	{
-		template< class AGENT, class PARAM >
-		void
-		call_and_set(
-			std::promise< void > & to,
-			AGENT * a,
-			void (AGENT::*pfn)( const event_data_t< PARAM > & ),
-			const event_data_t< PARAM > & evt )
-			{
-				(a->*pfn)( evt );
-				to.set_value();
-			}
-	};
-
-} /* namespace promise_result_setting_details */
-
-template< class RESULT, class MESSAGE, class AGENT >
-inline void
-subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+/*!
+ * \brief Get actual agent pointer.
+ *
+ * \throw exception_t if dynamic_cast fails.
+ */
+template< class AGENT >
+AGENT *
+get_actual_agent_pointer( agent_t & agent )
 {
 	// Agent must have right type.
-	AGENT * cast_result = dynamic_cast< AGENT * >( &m_agent );
+	AGENT * cast_result = dynamic_cast< AGENT * >( &agent );
 
 	// Was conversion successful?
 	if( nullptr == cast_result )
@@ -1055,6 +1045,111 @@ subscription_bind_t::event(
 				typeid(AGENT).name() );
 	}
 
+	return cast_result;
+}
+
+/*!
+ * \brief Get actual msg_service_request pointer.
+ *
+ * \throw exception_t if dynamic_cast fails.
+ */
+template< class RESULT, class MESSAGE >
+msg_service_request_t< RESULT, MESSAGE > *
+get_actual_service_request_pointer(
+	const message_ref_t & message_ref )
+{
+	typedef msg_service_request_t< RESULT, MESSAGE >
+			actual_request_msg_t;
+
+	auto actual_request_ptr = dynamic_cast< actual_request_msg_t * >(
+			message_ref.get() );
+
+	if( !actual_request_ptr )
+		SO_5_THROW_EXCEPTION(
+				rc_msg_service_request_bad_cast,
+				std::string( "unable cast msg_service_request "
+						"instance to appropriate type, "
+						"expected type is: " ) +
+				typeid(actual_request_msg_t).name() );
+
+	return actual_request_ptr;
+}
+
+} /* namespace event_subscription_helpers */
+
+/*!
+ * \since v.5.3.0
+ * \brief Internal namespace for details of agent method invocation implementation.
+ */
+namespace promise_result_setting_details
+{
+
+template< class RESULT >
+struct result_setter_t
+	{
+		template< class AGENT, class PARAM >
+		void
+		call_old_format_event_and_set_result(
+			std::promise< RESULT > & to,
+			AGENT * a,
+			RESULT (AGENT::*pfn)( const event_data_t< PARAM > & ),
+			const event_data_t< PARAM > & evt )
+			{
+				to.set_value( (a->*pfn)( evt ) );
+			}
+
+		template< class AGENT, class PARAM >
+		void
+		call_new_format_event_and_set_result(
+			std::promise< RESULT > & to,
+			AGENT * a,
+			RESULT (AGENT::*pfn)( const PARAM & ),
+			const PARAM & msg )
+			{
+				to.set_value( (a->*pfn)( msg ) );
+			}
+	};
+
+template<>
+struct result_setter_t< void >
+	{
+		template< class AGENT, class PARAM >
+		void
+		call_old_format_event_and_set_result(
+			std::promise< void > & to,
+			AGENT * a,
+			void (AGENT::*pfn)( const event_data_t< PARAM > & ),
+			const event_data_t< PARAM > & evt )
+			{
+				(a->*pfn)( evt );
+				to.set_value();
+			}
+
+		template< class AGENT, class PARAM >
+		void
+		call_new_format_event_and_set_result(
+			std::promise< void > & to,
+			AGENT * a,
+			void (AGENT::*pfn)( const PARAM & ),
+			const PARAM & msg )
+			{
+				(a->*pfn)( msg );
+				to.set_value();
+			}
+	};
+
+} /* namespace promise_result_setting_details */
+
+template< class RESULT, class MESSAGE, class AGENT >
+inline void
+subscription_bind_t::event(
+	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+{
+	using namespace event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
 			message_ref_t & message_ref)
@@ -1063,26 +1158,16 @@ subscription_bind_t::event(
 				{
 					using namespace promise_result_setting_details;
 
-					typedef msg_service_request_t< RESULT, MESSAGE >
-							actual_request_msg_t;
-
-					actual_request_msg_t * actual_request_ptr =
-							dynamic_cast< actual_request_msg_t * >(
-									message_ref.get() );
-					if( !actual_request_ptr )
-						SO_5_THROW_EXCEPTION(
-								rc_msg_service_request_bad_cast,
-								std::string( "unable cast msg_service_request "
-										"instance to appropriate type, "
-										"expected type is: " ) +
-								typeid(actual_request_msg_t).name() );
+					auto actual_request_ptr =
+							get_actual_service_request_pointer< RESULT, MESSAGE >(
+									message_ref );
 
 					const event_data_t< MESSAGE > event_data(
 							dynamic_cast< MESSAGE * >(
 									actual_request_ptr->m_param.get() ) );
 
 					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_and_set(
+					result_setter_t< RESULT >().call_old_format_event_and_set_result(
 							actual_request_ptr->m_promise,
 							cast_result,
 							pfn,
@@ -1097,17 +1182,70 @@ subscription_bind_t::event(
 				}
 		};
 
+	create_subscription_for_states( typeid( MESSAGE ), method );
+}
+
+template< class RESULT, class MESSAGE, class AGENT >
+inline void
+subscription_bind_t::event(
+	RESULT (AGENT::*pfn)( const MESSAGE & ) )
+{
+	using namespace event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+
+	auto method = [cast_result,pfn](
+			invocation_type_t invocation_type,
+			message_ref_t & message_ref)
+		{
+			if( invocation_type_t::service_request == invocation_type )
+				{
+					using namespace promise_result_setting_details;
+
+					auto actual_request_ptr =
+							get_actual_service_request_pointer< RESULT, MESSAGE >(
+									message_ref );
+
+					auto msg = dynamic_cast< MESSAGE * >(
+							actual_request_ptr->m_param.get() );
+					ensure_message_with_actual_data( msg );
+
+					// All exceptions will be processed in service_handler_on_message.
+					result_setter_t< RESULT >().call_new_format_event_and_set_result(
+							actual_request_ptr->m_promise,
+							cast_result,
+							pfn,
+							*msg );
+				}
+			else
+				{
+					auto msg = dynamic_cast< MESSAGE * >( message_ref.get() );
+					ensure_message_with_actual_data( msg );
+
+					(cast_result->*pfn)( *msg );
+				}
+		};
+
+	create_subscription_for_states( typeid( MESSAGE ), method );
+}
+
+inline void
+subscription_bind_t::create_subscription_for_states(
+	const std::type_index & msg_type,
+	const event_handler_method_t & method ) const
+{
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
 		m_agent.create_event_subscription(
-			typeid( MESSAGE ),
+			msg_type,
 			m_mbox_ref,
 			m_agent.so_default_state(),
 			method );
 	else
 		for( auto s : m_states )
 			m_agent.create_event_subscription(
-					typeid( MESSAGE ),
+					msg_type,
 					m_mbox_ref,
 					*s,
 					method );
