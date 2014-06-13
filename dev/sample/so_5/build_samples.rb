@@ -3,6 +3,7 @@ require 'mxx_ru/cpp'
 MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/hello_world/prj.rb" )
 	required_prj( "sample/so_5/hello_evt_handler/prj.rb" )
+	required_prj( "sample/so_5/hello_evt_lambda/prj.rb" )
 	required_prj( "sample/so_5/hello_all/prj.rb" )
 	required_prj( "sample/so_5/hello_delay/prj.rb" )
 	required_prj( "sample/so_5/hello_periodic/prj.rb" )

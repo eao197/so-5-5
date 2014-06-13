@@ -112,6 +112,20 @@ class subscription_bind_t
 			//! Event handling method.
 			RESULT (AGENT::*pfn)( const MESSAGE & ) );
 
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the message by lambda-function.
+		 *
+		 * Only lambda-function in the form:
+		 *
+		 * <tt>RESULT (const MESSAGE &)</tt>
+		 *
+		 * are supported.
+		 */
+		template< class LAMBDA >
+		void
+		event( LAMBDA lambda );
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t & m_agent;
@@ -129,6 +143,16 @@ class subscription_bind_t
 		 * \brief States of agents the event to be subscribed in.
 		 */
 		state_vector_t m_states;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the message by lambda-function.
+		 */
+		template< class L, class RESULT, class MESSAGE >
+		void
+		subscribe_lambda_as_event(
+			L l,
+			RESULT (L::*)(const MESSAGE &) const );
 
 		/*!
 		 * \since v.5.3.0
@@ -1108,6 +1132,16 @@ struct result_setter_t
 			{
 				to.set_value( (a->*pfn)( msg ) );
 			}
+
+		template< class LAMBDA, class PARAM >
+		void
+		call_lambda_and_set_result(
+			std::promise< RESULT > & to,
+			const LAMBDA & l,
+			const PARAM & msg )
+			{
+				to.set_value( l( msg ) );
+			}
 	};
 
 template<>
@@ -1134,6 +1168,17 @@ struct result_setter_t< void >
 			const PARAM & msg )
 			{
 				(a->*pfn)( msg );
+				to.set_value();
+			}
+
+		template< class LAMBDA, class PARAM >
+		void
+		call_lambda_and_set_result(
+			std::promise< void > & to,
+			const LAMBDA & l,
+			const PARAM & msg )
+			{
+				l( msg );
 				to.set_value();
 			}
 	};
@@ -1224,6 +1269,55 @@ subscription_bind_t::event(
 					ensure_message_with_actual_data( msg );
 
 					(cast_result->*pfn)( *msg );
+				}
+		};
+
+	create_subscription_for_states( typeid( MESSAGE ), method );
+}
+
+template< class LAMBDA >
+void
+subscription_bind_t::event( LAMBDA lambda )
+{
+	subscribe_lambda_as_event( lambda, &LAMBDA::operator() );
+}
+
+template< class L, class RESULT, class MESSAGE >
+void
+subscription_bind_t::subscribe_lambda_as_event(
+	L lambda,
+	RESULT (L::*)(const MESSAGE &) const )
+{
+	using namespace event_subscription_helpers;
+
+	auto method = [lambda](
+			invocation_type_t invocation_type,
+			message_ref_t & message_ref)
+		{
+			if( invocation_type_t::service_request == invocation_type )
+				{
+					using namespace promise_result_setting_details;
+
+					auto actual_request_ptr =
+							get_actual_service_request_pointer< RESULT, MESSAGE >(
+									message_ref );
+
+					auto msg = dynamic_cast< MESSAGE * >(
+							actual_request_ptr->m_param.get() );
+					ensure_message_with_actual_data( msg );
+
+					// All exceptions will be processed in service_handler_on_message.
+					result_setter_t< RESULT >().call_lambda_and_set_result(
+							actual_request_ptr->m_promise,
+							lambda,
+							*msg );
+				}
+			else
+				{
+					auto msg = dynamic_cast< MESSAGE * >( message_ref.get() );
+					ensure_message_with_actual_data( msg );
+
+					lambda( *msg );
 				}
 		};
 
