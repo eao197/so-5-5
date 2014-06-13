@@ -63,7 +63,7 @@ event_caller_block_t::call(
 void
 event_caller_block_t::insert(
 	const state_t & target_state,
-	event_handler_method_t && method )
+	const event_handler_method_t & method )
 {
 	auto it = try_find_handler( m_states_and_handlers, target_state );
 
@@ -72,7 +72,7 @@ event_caller_block_t::insert(
 				rc_evt_handler_already_provided,
 				"event handler for state is already provided" );
 
-	m_states_and_handlers.emplace_back( target_state, std::move(method) );
+	m_states_and_handlers.emplace_back( target_state, method );
 }
 
 bool

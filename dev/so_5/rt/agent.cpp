@@ -289,7 +289,7 @@ agent_t::create_event_subscription(
 	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref,
 	const state_t & target_state,
-	event_handler_method_t && method )
+	const event_handler_method_t & method )
 {
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
@@ -308,7 +308,7 @@ agent_t::create_event_subscription(
 				type_index,
 				mbox_proxy,
 				target_state,
-				std::move(method),
+				method,
 				subscr_key );
 	}
 	else
@@ -322,12 +322,12 @@ agent_t::create_and_register_event_caller_block(
 	const std::type_index & type_index,
 	mbox_subscription_management_proxy_t & mbox_proxy,
 	const state_t & target_state,
-	event_handler_method_t && method,
+	const event_handler_method_t & method,
 	const subscription_key_t & subscr_key )
 {
 	event_caller_block_ref_t caller_block(
 			new event_caller_block_t() );
-	caller_block->insert( target_state, std::move(method) );
+	caller_block->insert( target_state, method );
 
 	mbox_proxy.subscribe_event_handler(
 		type_index,

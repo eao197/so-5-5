@@ -10,8 +10,9 @@
 #if !defined( _SO_5__RT__AGENT_HPP_ )
 #define _SO_5__RT__AGENT_HPP_
 
-#include <memory>
 #include <map>
+#include <memory>
+#include <vector>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
@@ -106,8 +107,18 @@ class subscription_bind_t
 		agent_t & m_agent;
 		//! Mbox for messages to subscribe.
 		mbox_ref_t m_mbox_ref;
-		//! State for events.
-		const state_t * m_state;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Type of vector of states.
+		 */
+		typedef std::vector< const state_t * > state_vector_t;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief States of agents the event to be subscribed in.
+		 */
+		state_vector_t m_states;
 };
 
 //
@@ -827,7 +838,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			event_handler_method_t && method );
+			const event_handler_method_t & method );
 
 		/*!
 		 * \since v.5.2.0
@@ -842,7 +853,7 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			event_handler_method_t && method,
+			const event_handler_method_t & method,
 			//! Subscription key for that event.
 			const subscription_key_t & subscr_key );
 
@@ -967,7 +978,6 @@ subscription_bind_t::subscription_bind_t(
 	const mbox_ref_t & mbox_ref )
 	:	m_agent( agent )
 	,	m_mbox_ref( mbox_ref )
-	,	m_state( &m_agent.so_default_state() )
 {
 }
 
@@ -982,7 +992,7 @@ subscription_bind_t::in(
 			"agent doesn't own the state" );
 	}
 
-	m_state = &state;
+	m_states.push_back( &state );
 
 	return *this;
 }
@@ -1087,11 +1097,20 @@ subscription_bind_t::event(
 				}
 		};
 
-	m_agent.create_event_subscription(
-		typeid( MESSAGE ),
-		m_mbox_ref,
-		*m_state,
-		std::move(method) );
+	if( m_states.empty() )
+		// Agent should be subscribed only in default state.
+		m_agent.create_event_subscription(
+			typeid( MESSAGE ),
+			m_mbox_ref,
+			m_agent.so_default_state(),
+			method );
+	else
+		for( auto s : m_states )
+			m_agent.create_event_subscription(
+					typeid( MESSAGE ),
+					m_mbox_ref,
+					*s,
+					method );
 }
 
 } /* namespace rt */

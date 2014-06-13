@@ -2,6 +2,19 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__3_0 5.3.0 "Shota Rustaveli Peak"
+
+	Methods subscription_bind_t::in() could be chained. It allows to
+	write like this:
+\code
+virtual void
+so_define_agent()
+	{
+		so_subscribe( mbox ).in( st_one ).in( st_two ).in( st_tree )
+				.event( ... );
+	}
+\endcode
+
 \section so_5__2_3 5.2.3 "Mijirgi"
 
 	Methods so_5::rt::agent_t::so_subscribe(),
@@ -131,3 +144,4 @@
 
 	A first version of new generation of SObjectizer.
 */
+// vim:ft=cpp.doxygen

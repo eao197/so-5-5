@@ -91,7 +91,7 @@ class SO_5_TYPE event_caller_block_t
 		insert(
 			//! State in which event should be called.
 			const state_t & target_state,
-			event_handler_method_t && method );
+			const event_handler_method_t & method );
 
 		/*!
 		 * \since v.5.2.3
@@ -118,11 +118,11 @@ class SO_5_TYPE event_caller_block_t
 				const state_t * m_state;
 				event_handler_method_t m_method;
 
-				state_and_handler_t(
+					state_and_handler_t(
 					const state_t & state,
-					event_handler_method_t && method )
+					const event_handler_method_t & method )
 					:	m_state( &state )
-					,	m_method( std::move(method) )
+					,	m_method( method )
 					{}
 
 				state_and_handler_t(
