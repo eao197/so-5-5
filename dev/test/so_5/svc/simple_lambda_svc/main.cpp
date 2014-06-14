@@ -22,6 +22,8 @@ struct msg_convert : public so_5::rt::message_t
 			{}
 	};
 
+struct msg_get_status : public so_5::rt::signal_t {};
+
 class a_convert_service_t
 	:	public so_5::rt::agent_t
 	{
@@ -43,6 +45,13 @@ class a_convert_service_t
 									s << msg.m_value;
 
 									return s.str();
+								} );
+
+				so_subscribe( m_self_mbox )
+						.event( so_5::signal< msg_get_status >,
+								[]() -> std::string
+								{
+									return "ready";
 								} );
 			}
 
@@ -67,13 +76,8 @@ class a_shutdowner_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
-						.event( &a_shutdowner_t::svc_shutdown );
-			}
-
-		void
-		svc_shutdown( const so_5::rt::event_data_t< msg_shutdown > & evt )
-			{
-				so_environment().stop();
+						.event( so_5::signal< msg_shutdown >,
+								[this]() { so_environment().stop(); } );
 			}
 
 	private :
@@ -119,6 +123,10 @@ class a_client_t
 
 				compare_and_abort_if_missmatch( c2.get(), "2" );
 				compare_and_abort_if_missmatch( c1.get(), "1" );
+
+				compare_and_abort_if_missmatch(
+						svc_proxy.wait_forever().sync_get< msg_get_status >(),
+						"ready" );
 
 				m_svc_mbox->run_one().wait_forever().sync_get< msg_shutdown >();
 			}

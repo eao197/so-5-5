@@ -4,6 +4,16 @@
 
 \section so_5__3_0 5.3.0 "Shota Rustaveli Peak"
 
+	Event- and signal-handlers now could return value. It means that
+	event- and signal-handler now could be in form:
+\code
+RESULT evt_handler( const so_5::rt::event_handler_t<MSG> & );
+\endcode
+	or in form:
+\code
+void evt_handler( const so_5::rt::event_handler_t<MSG> & );
+\endcode
+
 	Methods subscription_bind_t::in() could be chained. It allows to
 	write like this:
 \code
@@ -12,6 +22,47 @@ so_define_agent()
 	{
 		so_subscribe( mbox ).in( st_one ).in( st_two ).in( st_tree )
 				.event( ... );
+	}
+\endcode
+
+	New format for event-handlers are supported now:
+\code
+RESULT evt_handler( const MESSAGE & msg );
+\endcode
+	The MESSAGE class should be derived from so_5::rt::message_t.
+	Event-handlers of that format are subscribed by old
+	so_subscribe().event() method chain.
+
+	New format for signal-handlers are supported now:
+\code
+RESULT evt_handler();
+\endcode
+	Those signal-handlers must be subscribed by new
+	so_subscribe().event() method chain:
+\code
+virtual void
+so_define_agent()
+	{
+		so_subscribe( mbox ).event(
+				so_5::signal< MESSAGE >,
+				&my_agent_t::evt_handler );
+	}
+\endcode
+	That means that one signal-handler could be subscribed to
+	several different signals.
+
+	Lambda functions now could be used as event- and signal-handlers:
+\code
+virtual void
+so_define_agent()
+	{
+		so_subscribe( mbox ).event(
+				[]( const msg_convert & m ) -> int
+					{ return std::atoi( m.m_what ) } );
+
+		so_subscribe( mbox ).event(
+				so_5::signal< msg_shutdown >,
+				[this]() { so_environment().stop(); } );
 	}
 \endcode
 

@@ -29,6 +29,41 @@
 namespace so_5
 {
 
+/*!
+ * \since v.5.3.0
+ * \brief A special class which will be used as return value for
+ * signal-indication helper.
+ *
+ * \tparam S type of signal.
+ */
+template< class S >
+struct signal_indicator_t {};
+
+/*!
+ * \since v.5.3.0
+ * \brief A special signal-indicator.
+ *
+ * Must be used as signal-indicator in so_5::rt::subscription_bind_t::event()
+ * methods:
+\code
+virtual void
+my_agent_t::so_define_agent() {
+	so_subscribe(mbox).event(
+			so_5::signal< get_status >,
+			&my_agent_t::evt_get_status );
+
+	so_subscribe(mbox).event(
+			so_5::signal< shutdown >,
+			[this]() { so_environment().stop(); } );
+}
+\endcode
+ *
+ * \tparam S type of signal.
+ */
+template< class S >
+signal_indicator_t< S >
+signal() { return signal_indicator_t< S >(); }
+
 namespace rt
 {
 
@@ -95,6 +130,9 @@ class subscription_bind_t
 		//! Make subscription to the message.
 		/*!
 		 * Since v.5.3.0 could be used for event handlers and service handlers.
+		 *
+		 * \note This method supports event-methods which receive
+		 * message or signal information via event_data_t object.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		void
@@ -105,12 +143,30 @@ class subscription_bind_t
 		//! Make subscription to the message.
 		/*!
 		 * Since v.5.3.0 could be used for event handlers and service handlers.
+		 *
+		 * \note This method supports event-methods for messages only.
+		 * Message object is passed to event-method directly, without
+		 * event_data_t wrapper.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		void
 		event(
 			//! Event handling method.
 			RESULT (AGENT::*pfn)( const MESSAGE & ) );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the signal.
+		 *
+		 * \note This method supports event-methods for signals only.
+		 */
+		template< class RESULT, class MESSAGE, class AGENT >
+		void
+		event(
+			//! Signal indicator.
+			signal_indicator_t< MESSAGE >(),
+			//! Event handling method.
+			RESULT (AGENT::*pfn)() );
 
 		/*!
 		 * \since v.5.3.0
@@ -121,10 +177,34 @@ class subscription_bind_t
 		 * <tt>RESULT (const MESSAGE &)</tt>
 		 *
 		 * are supported.
+		 *
+		 * \note This method supports event-lambdas for messages only.
+		 * Message object is passed to the lambda directly, without
+		 * event_data_t wrapper.
 		 */
 		template< class LAMBDA >
 		void
 		event( LAMBDA lambda );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the signal by lambda-function.
+		 *
+		 * Only lambda-function in the form:
+		 *
+		 * <tt>RESULT ()</tt>
+		 *
+		 * are supported.
+		 *
+		 * \note This method supports event-lambdas for signals only.
+		 */
+		template< class MESSAGE, class LAMBDA >
+		void
+		event(
+			//! Signal indicator.
+			signal_indicator_t< MESSAGE > indicator(),
+			//! Event handling lambda.
+			LAMBDA lambda );
 
 	private:
 		//! Agent to which we are subscribing.
@@ -153,6 +233,17 @@ class subscription_bind_t
 		subscribe_lambda_as_event(
 			L l,
 			RESULT (L::*)(const MESSAGE &) const );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the signal by lambda-function.
+		 */
+		template< class L, class RESULT, class MESSAGE >
+		void
+		subscribe_lambda_as_signal(
+			signal_indicator_t< MESSAGE > indicator(),
+			L l,
+			RESULT (L::*)() const );
 
 		/*!
 		 * \since v.5.3.0
@@ -1133,14 +1224,33 @@ struct result_setter_t
 				to.set_value( (a->*pfn)( msg ) );
 			}
 
+		template< class AGENT >
+		void
+		call_new_format_signal_and_set_result(
+			std::promise< RESULT > & to,
+			AGENT * a,
+			RESULT (AGENT::*pfn)() )
+			{
+				to.set_value( (a->*pfn)() );
+			}
+
 		template< class LAMBDA, class PARAM >
 		void
-		call_lambda_and_set_result(
+		call_event_lambda_and_set_result(
 			std::promise< RESULT > & to,
 			const LAMBDA & l,
 			const PARAM & msg )
 			{
 				to.set_value( l( msg ) );
+			}
+
+		template< class LAMBDA >
+		void
+		call_signal_lambda_and_set_result(
+			std::promise< RESULT > & to,
+			const LAMBDA & l )
+			{
+				to.set_value( l() );
 			}
 	};
 
@@ -1171,14 +1281,35 @@ struct result_setter_t< void >
 				to.set_value();
 			}
 
+		template< class AGENT >
+		void
+		call_new_format_signal_and_set_result(
+			std::promise< void > & to,
+			AGENT * a,
+			void (AGENT::*pfn)() )
+			{
+				(a->*pfn)();
+				to.set_value();
+			}
+
 		template< class LAMBDA, class PARAM >
 		void
-		call_lambda_and_set_result(
+		call_event_lambda_and_set_result(
 			std::promise< void > & to,
 			const LAMBDA & l,
 			const PARAM & msg )
 			{
 				l( msg );
+				to.set_value();
+			}
+
+		template< class LAMBDA >
+		void
+		call_signal_lambda_and_set_result(
+			std::promise< void > & to,
+			const LAMBDA & l )
+			{
+				l();
 				to.set_value();
 			}
 	};
@@ -1275,11 +1406,60 @@ subscription_bind_t::event(
 	create_subscription_for_states( typeid( MESSAGE ), method );
 }
 
+template< class RESULT, class MESSAGE, class AGENT >
+void
+subscription_bind_t::event(
+	signal_indicator_t< MESSAGE >(),
+	RESULT (AGENT::*pfn)() )
+{
+	ensure_signal< MESSAGE >();
+
+	using namespace event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+
+	auto method = [cast_result,pfn](
+			invocation_type_t invocation_type,
+			message_ref_t & message_ref)
+		{
+			if( invocation_type_t::service_request == invocation_type )
+				{
+					using namespace promise_result_setting_details;
+
+					auto actual_request_ptr =
+							get_actual_service_request_pointer< RESULT, MESSAGE >(
+									message_ref );
+
+					// All exceptions will be processed in service_handler_on_message.
+					result_setter_t< RESULT >().call_new_format_signal_and_set_result(
+							actual_request_ptr->m_promise,
+							cast_result,
+							pfn );
+				}
+			else
+				{
+					(cast_result->*pfn)();
+				}
+		};
+
+	create_subscription_for_states( typeid( MESSAGE ), method );
+}
+
 template< class LAMBDA >
 void
 subscription_bind_t::event( LAMBDA lambda )
 {
 	subscribe_lambda_as_event( lambda, &LAMBDA::operator() );
+}
+
+template< class MESSAGE, class LAMBDA >
+void
+subscription_bind_t::event(
+	signal_indicator_t< MESSAGE > indicator(),
+	LAMBDA lambda )
+{
+	subscribe_lambda_as_signal( indicator, lambda, &LAMBDA::operator() );
 }
 
 template< class L, class RESULT, class MESSAGE >
@@ -1307,7 +1487,7 @@ subscription_bind_t::subscribe_lambda_as_event(
 					ensure_message_with_actual_data( msg );
 
 					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_lambda_and_set_result(
+					result_setter_t< RESULT >().call_event_lambda_and_set_result(
 							actual_request_ptr->m_promise,
 							lambda,
 							*msg );
@@ -1318,6 +1498,43 @@ subscription_bind_t::subscribe_lambda_as_event(
 					ensure_message_with_actual_data( msg );
 
 					lambda( *msg );
+				}
+		};
+
+	create_subscription_for_states( typeid( MESSAGE ), method );
+}
+
+template< class L, class RESULT, class MESSAGE >
+void
+subscription_bind_t::subscribe_lambda_as_signal(
+	signal_indicator_t< MESSAGE > /*indicator*/(),
+	L lambda,
+	RESULT (L::*)() const )
+{
+	ensure_signal< MESSAGE >();
+
+	using namespace event_subscription_helpers;
+
+	auto method = [lambda](
+			invocation_type_t invocation_type,
+			message_ref_t & message_ref)
+		{
+			if( invocation_type_t::service_request == invocation_type )
+				{
+					using namespace promise_result_setting_details;
+
+					auto actual_request_ptr =
+							get_actual_service_request_pointer< RESULT, MESSAGE >(
+									message_ref );
+
+					// All exceptions will be processed in service_handler_on_message.
+					result_setter_t< RESULT >().call_signal_lambda_and_set_result(
+							actual_request_ptr->m_promise,
+							lambda );
+				}
+			else
+				{
+					lambda();
 				}
 		};
 

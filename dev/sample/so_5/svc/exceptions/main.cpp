@@ -36,24 +36,21 @@ class a_convert_service_t
 		so_define_agent()
 			{
 				so_subscribe( m_self_mbox )
-						.event( &a_convert_service_t::svc_convert );
-			}
+						.event( []( const msg_convert & msg ) -> int
+						{
+							std::istringstream s( msg.m_value );
+							int result;
+							s >> result;
+							if( s.fail() )
+								throw std::invalid_argument( "unable to convert to int: '" +
+										msg.m_value + "'" );
 
-		int
-		svc_convert( const so_5::rt::event_data_t< msg_convert > & evt )
-			{
-				std::istringstream s( evt->m_value );
-				int result;
-				s >> result;
-				if( s.fail() )
-					throw std::invalid_argument( "unable to convert to int: '" +
-							evt->m_value + "'" );
+							// A special case for timeout imitation.
+							if( 42 == result )
+								std::this_thread::sleep_for( std::chrono::milliseconds(150) );
 
-				// A special case for timeout imitation.
-				if( 42 == result )
-					std::this_thread::sleep_for( std::chrono::milliseconds(150) );
-
-				return result;
+							return result;
+						} );
 			}
 
 	private :

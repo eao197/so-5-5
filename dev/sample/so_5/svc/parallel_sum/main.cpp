@@ -49,13 +49,10 @@ class a_part_summator_t : public so_5::rt::agent_t
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( m_self_mbox ).event( &a_part_summator_t::evt_sum );
-			}
-
-		int
-		evt_sum( const so_5::rt::event_data_t< msg_sum_part > & evt )
-			{
-				return std::accumulate( evt->m_begin, evt->m_end, 0 );
+				so_subscribe( m_self_mbox ).event(
+						[]( const msg_sum_part & part ) {
+							return std::accumulate( part.m_begin, part.m_end, 0 );
+						} );
 			}
 
 	private :
@@ -96,13 +93,13 @@ class a_vector_summator_t : public so_5::rt::agent_t
 			}
 
 		int
-		evt_sum( const so_5::rt::event_data_t< msg_sum_vector > & evt )
+		evt_sum( const msg_sum_vector & evt )
 			{
-				auto m = evt->m_vector.begin() + evt->m_vector.size() / 2;
+				auto m = evt.m_vector.begin() + evt.m_vector.size() / 2;
 
-				return std::accumulate( evt->m_vector.begin(), m, 0 ) +
+				return std::accumulate( evt.m_vector.begin(), m, 0 ) +
 						m_part_summator_mbox->get_one< int >().wait_forever().sync_get(
-								new msg_sum_part( m, evt->m_vector.end() ) );
+								new msg_sum_part( m, evt.m_vector.end() ) );
 			}
 
 	private :
