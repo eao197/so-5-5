@@ -50,4 +50,15 @@
  * \example so_5/layer/main.cpp
  */
 
+/*!
+ * \example so_5/svc/hello/main.cpp
+ */
+
+/*!
+ * \example so_5/svc/exceptions/main.cpp
+ */
+
+/*!
+ * \example so_5/svc/parallel_sum/main.cpp
+ */
 // vim:ft=cpp.doxygen

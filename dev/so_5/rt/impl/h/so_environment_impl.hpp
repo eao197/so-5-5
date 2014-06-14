@@ -255,6 +255,13 @@ class so_environment_impl_t
 		so_environment_t &
 		query_public_so_environment();
 
+		/*!
+		 * \since v.5.3.0
+		 * \brief An exception reaction for the whole SO Environment.
+		 */
+		exception_reaction_t
+		exception_reaction() const;
+
 	private:
 		//! An utility for mboxes.
 		mbox_core_ref_t m_mbox_core;
@@ -273,6 +280,12 @@ class so_environment_impl_t
 
 		//! Timer.
 		so_5::timer_thread::timer_thread_unique_ptr_t m_timer_thread;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief An exception reaction for the whole SO Environment.
+		 */
+		const exception_reaction_t m_exception_reaction;
 
 		/*!
 		 * \since v.5.2.0

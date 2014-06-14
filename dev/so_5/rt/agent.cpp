@@ -105,7 +105,11 @@ agent_t::so_add_destroyable_listener(
 exception_reaction_t
 agent_t::so_exception_reaction() const
 {
-	return deregister_coop_on_exception;
+	if( m_agent_coop )
+		return m_agent_coop->exception_reaction();
+	else
+		// This is very strange case. So it would be better to abort.
+		return abort_on_exception;
 }
 
 void

@@ -66,6 +66,9 @@ so_define_agent()
 	}
 \endcode
 
+	Exception reaction for agents and agent cooperation could be
+	inhreited now. See \ref so_5_3_0__exception_reaction for details.
+
 \section so_5__2_3 5.2.3 "Mijirgi"
 
 	Methods so_5::rt::agent_t::so_subscribe(),

@@ -39,7 +39,8 @@ so_environment_impl_t::so_environment_impl_t(
 			&public_so_environment ),
 		m_public_so_environment( public_so_environment ),
 		m_timer_thread(
-			std::move( so_environment_params.m_timer_thread ) )
+			std::move( so_environment_params.m_timer_thread ) ),
+		m_exception_reaction( so_environment_params.exception_reaction() )
 {
 	if( 0 == m_timer_thread.get() )
 	{
@@ -142,6 +143,12 @@ so_environment_t &
 so_environment_impl_t::query_public_so_environment()
 {
 	return m_public_so_environment;
+}
+
+exception_reaction_t
+so_environment_impl_t::exception_reaction() const
+{
+	return m_exception_reaction;
 }
 
 void

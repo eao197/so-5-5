@@ -64,12 +64,6 @@ class a_service_t
 			{
 			}
 
-		virtual so_5::rt::exception_reaction_t
-		so_exception_reaction() const
-			{
-				return so_5::rt::abort_on_exception;
-			}
-
 		virtual void
 		so_define_agent()
 			{
@@ -114,12 +108,6 @@ class a_client_t
 			,	m_svc_mbox( svc_mbox )
 			,	m_param( param )
 			{}
-
-		virtual so_5::rt::exception_reaction_t
-		so_exception_reaction() const
-			{
-				return so_5::rt::abort_on_exception;
-			}
 
 		virtual void
 		so_evt_start()

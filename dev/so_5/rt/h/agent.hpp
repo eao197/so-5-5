@@ -101,7 +101,12 @@ enum exception_reaction_t
 	//! must be deregistered.
 	deregister_coop_on_exception = 3,
 	//! Exception should be ignored and agent should continue its work.
-	ignore_exception = 4
+	ignore_exception = 4,
+	/*!
+	 * \since v.5.3.0
+	 * \brief Exception reaction should be inherited from SO Environment.
+	 */
+	inherit_exception_reaction = 5
 };
 
 //
@@ -508,7 +513,9 @@ class SO_5_TYPE agent_t
 		 * caught by SObjectizer. Then SObjectizer will call this method
 		 * and perform some actions in dependence of return value.
 		 *
-		 * By default this method returns deregister_coop_on_exception.
+		 * \note Since v.5.3.0 default implementation calls
+		 * agent_coop_t::exception_reaction() for agent's cooperation
+		 * object.
 		 */
 		virtual exception_reaction_t
 		so_exception_reaction() const;

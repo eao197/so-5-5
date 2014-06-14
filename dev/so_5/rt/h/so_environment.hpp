@@ -216,6 +216,33 @@ class SO_5_TYPE so_environment_params_t
 		const so_layer_map_t &
 		so_layers_map() const;
 
+		/*!
+		 * \name Exception reaction flag management methods.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.3.0
+		 * \brief Get exception reaction flag value.
+		 */
+		inline exception_reaction_t
+		exception_reaction() const
+		{
+			return m_exception_reaction;
+		}
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Set exception reaction flag value.
+		 */
+		so_environment_params_t &
+		exception_reaction( exception_reaction_t value )
+		{
+			m_exception_reaction = value;
+			return *this;
+		}
+		/*!
+		 * \}
+		 */
 	private:
 		//! Add an additional layer.
 		/*!
@@ -256,6 +283,12 @@ class SO_5_TYPE so_environment_params_t
 
 		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Exception reaction flag for the whole SO Environment.
+		 */
+		exception_reaction_t m_exception_reaction;
 };
 
 //
@@ -847,6 +880,13 @@ class SO_5_TYPE so_environment_t
 			const std::exception & event_exception,
 			//! A cooperation to which agent is belong.
 			const std::string & coop_name );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief An exception reaction for the whole SO Environment.
+		 */
+		exception_reaction_t
+		exception_reaction() const;
 
 	private:
 		//! Schedule timer event.

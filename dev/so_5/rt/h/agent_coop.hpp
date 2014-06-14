@@ -476,6 +476,39 @@ class SO_5_TYPE agent_coop_t
 		 * \}
 		 */
 
+		/*!
+		 * \name Exception reaction methods.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.3.0
+		 * \brief Set exception reaction for that cooperation.
+		 *
+		 * This value will be used by agents and children cooperation if
+		 * they use inherit_exception_reaction value.
+		 */
+		void
+		set_exception_reaction(
+			exception_reaction_t value );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Get the current exception rection flag for that cooperation.
+		 *
+		 * It uses the following logic:
+		 * - if own's exception_reaction flag value differs from
+		 *   inherit_exception_reaction value than own's exception_reaction
+		 *   flag value returned;
+		 * - otherwise if there is a parent cooperation than parent coop's
+		 *   exception_reaction value returned;
+		 * - otherwise SO Environment's exception_reaction is returned.
+		 */
+		exception_reaction_t
+		exception_reaction() const;
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t
@@ -611,6 +644,16 @@ class SO_5_TYPE agent_coop_t
 		 * Receives actual value only in do_deregistration_specific_actions().
 		 */
 		coop_dereg_reason_t m_dereg_reason;
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief A reaction to non-handled exception.
+		 *
+		 * By default inherit_exception_reaction is used. It means that
+		 * actual exception reaction should be provided by parent coop
+		 * or by SO Environment.
+		 */
+		exception_reaction_t m_exception_reaction;
 
 		//! Add agent to cooperation.
 		/*!

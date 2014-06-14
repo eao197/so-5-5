@@ -2,6 +2,8 @@
 
 \page so_5_2_3__exception_reaction so-5.2.3: Reaction to unhandled exceptions
 
+\note There is an important change to that mechanism in v.5.3.0, see \ref so_5_3_0__exception_reaction.
+
 SObjectizer agents should provide no-throw guarantee: e.g. all exception should
 be caught and handled inside agent's event handlers. But if some exception is
 went out from event handler by some reason (by mistake for example) then

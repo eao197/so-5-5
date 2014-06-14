@@ -124,12 +124,6 @@ class a_client_t
 						get_one< std::string >().wait_forever() )
 			{}
 
-		virtual so_5::rt::exception_reaction_t
-		so_exception_reaction() const
-			{
-				return so_5::rt::abort_on_exception;
-			}
-
 		virtual void
 		so_evt_start()
 			{

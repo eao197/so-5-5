@@ -135,6 +135,7 @@ agent_coop_t::agent_coop_t(
 	,	m_reference_count( 0 )
 	,	m_parent_coop_ptr( nullptr )
 	,	m_registration_status( COOP_NOT_REGISTERED )
+	,	m_exception_reaction( inherit_exception_reaction )
 {
 }
 
@@ -202,6 +203,27 @@ agent_coop_t::add_dereg_notificator(
 	const coop_dereg_notificator_t & notificator )
 {
 	do_add_notificator_to( m_dereg_notificators, notificator );
+}
+
+void
+agent_coop_t::set_exception_reaction(
+	exception_reaction_t value )
+{
+	m_exception_reaction = value;
+}
+
+exception_reaction_t
+agent_coop_t::exception_reaction() const
+{
+	if( inherit_exception_reaction == m_exception_reaction )
+		{
+			if( m_parent_coop_ptr )
+				return m_parent_coop_ptr->exception_reaction();
+			else
+				return m_env.exception_reaction();
+		}
+
+	return m_exception_reaction;
 }
 
 void

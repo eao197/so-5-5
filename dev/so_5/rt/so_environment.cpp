@@ -17,11 +17,11 @@ namespace rt
 //
 
 so_environment_params_t::so_environment_params_t()
-	:
-		m_mbox_mutex_pool_size( 128 ),
-		m_agent_coop_mutex_pool_size( 32 ),
-		m_agent_event_queue_mutex_pool_size( 128 ),
-		m_event_exception_logger( create_std_event_exception_logger() )
+	:	m_mbox_mutex_pool_size( 128 )
+	,	m_agent_coop_mutex_pool_size( 32 )
+	,	m_agent_event_queue_mutex_pool_size( 128 )
+	,	m_event_exception_logger( create_std_event_exception_logger() )
+	,	m_exception_reaction( abort_on_exception )
 {
 }
 
@@ -36,6 +36,7 @@ so_environment_params_t::so_environment_params_t(
 	,	m_so_layers( std::move( other.m_so_layers ) )
 	,	m_coop_listener( std::move( other.m_coop_listener ) )
 	,	m_event_exception_logger( std::move( other.m_event_exception_logger ) )
+	,	m_exception_reaction( other.m_exception_reaction )
 {}
 
 so_environment_params_t::~so_environment_params_t()
@@ -64,6 +65,8 @@ so_environment_params_t::swap( so_environment_params_t & other )
 	m_so_layers.swap( other.m_so_layers );
 	m_coop_listener.swap( other.m_coop_listener );
 	m_event_exception_logger.swap( other.m_event_exception_logger );
+
+	std::swap( m_exception_reaction, other.m_exception_reaction );
 }
 
 so_environment_params_t &
@@ -340,6 +343,13 @@ so_environment_t::call_exception_logger(
 	m_so_environment_impl->call_exception_logger( event_exception, coop_name );
 }
 
+exception_reaction_t
+so_environment_t::exception_reaction() const
+{
+	return m_so_environment_impl->exception_reaction();
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */
+
