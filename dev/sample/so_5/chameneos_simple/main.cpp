@@ -289,11 +289,11 @@ main( int argc, char ** argv )
 {
 	try
 	{
-		const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
-
-		so_5::api::run_so_environment_with_parameter(
-				&init,
-				meetings,
+		so_5::api::run_so_environment(
+				[argc, argv]( so_5::rt::so_environment_t & env ) {
+					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
+					init( env, meetings );
+				},
 				std::move(
 						so_5::rt::so_environment_params_t()
 								.add_named_dispatcher(

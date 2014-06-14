@@ -69,6 +69,9 @@ so_define_agent()
 	Exception reaction for agents and agent cooperation could be
 	inhreited now. See \ref so_5_3_0__exception_reaction for details.
 
+	Several new forms of so_5::api::run_so_environment() added.
+	See \ref so_5_3_0__new_run_so_environment for details.
+
 \section so_5__2_3 5.2.3 "Mijirgi"
 
 	Methods so_5::rt::agent_t::so_subscribe(),

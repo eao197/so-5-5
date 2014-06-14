@@ -208,36 +208,30 @@ class a_runner_t : public so_5::rt::agent_t
 			}
 	};
 
-void
-init(
-	so_5::rt::so_environment_t & env,
-	std::size_t iterations )
-	{
-		auto coop = env.create_coop(
-				so_5::rt::nonempty_name_t( "test_coop" ),
-				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
-
-		coop->add_agent( new a_runner_t( env, iterations ) );
-
-		env.register_coop( std::move( coop ) );
-	}
-
 int
 main( int argc, char ** argv )
 	{
 		try
 			{
-				const std::size_t ITERATIONS = 2 == argc ?
-						static_cast< std::size_t >(std::atoi( argv[1] )) : 10u;
+				so_5::api::run_so_environment(
+						[argc, argv]( so_5::rt::so_environment_t & env ) {
+							const std::size_t ITERATIONS = 2 == argc ?
+									static_cast< std::size_t >(std::atoi( argv[1] )) :
+									10u;
+							auto coop = env.create_coop(
+									so_5::rt::nonempty_name_t( "test_coop" ),
+									so_5::disp::active_obj::create_disp_binder(
+											"active_obj" ) );
 
-				so_5::api::run_so_environment_with_parameter(
-						&init,
-						ITERATIONS,
-						std::move(
-								so_5::rt::so_environment_params_t()
-										.add_named_dispatcher(
-												"active_obj",
-												so_5::disp::active_obj::create_disp() ) ) );
+							coop->add_agent( new a_runner_t( env, ITERATIONS ) );
+
+							env.register_coop( std::move( coop ) );
+						},
+						[]( so_5::rt::so_environment_params_t & p ) {
+							p.add_named_dispatcher(
+								"active_obj",
+								so_5::disp::active_obj::create_disp() );
+						} );
 			}
 		catch( const std::exception & ex )
 			{

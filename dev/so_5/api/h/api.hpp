@@ -16,6 +16,8 @@
 #if !defined( _SO_5__API__API_HPP_ )
 #define _SO_5__API__API_HPP_
 
+#include <functional>
+
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/so_environment.hpp>
@@ -70,6 +72,21 @@ class so_quick_environment_t
 typedef void (*pfn_so_environment_init_t)(
 		so_5::rt::so_environment_t & );
 
+/*!
+ * \since v.5.3.0
+ * \brief Generic type for a simple SObjectizer-initialization function.
+ */
+typedef std::function< void(so_5::rt::so_environment_t &) >
+	generic_simple_init_t;
+
+/*!
+ * \since v.5.3.0
+ * \brief Generic type for a simple SO Environment paramenters tuning function.
+ */
+typedef std::function< void(so_5::rt::so_environment_params_t &) >
+	generic_simple_so_env_params_tuner_t;
+
+
 //! Launch a SObjectizer Environment with arguments.
 /*!
 Example:
@@ -105,13 +122,13 @@ main( int argc, char * argv[] )
 */
 inline void
 run_so_environment(
-	//! Pointer to the initialization routine.
-	pfn_so_environment_init_t init_func,
+	//! Initialization routine.
+	generic_simple_init_t init_routine,
 	//! Environment's parameters.
 	so_5::rt::so_environment_params_t && env_params )
 {
-	impl::so_quick_environment_t< decltype(init_func) > env(
-			init_func,
+	impl::so_quick_environment_t< generic_simple_init_t > env(
+			init_routine,
 			std::move(env_params) );
 
 	return env.run();
@@ -153,12 +170,64 @@ main( int argc, char * argv[] )
 */
 inline void
 run_so_environment(
-	//! Pointer to the initialization routine.
-	pfn_so_environment_init_t init_func )
+	//! Initialization routine.
+	generic_simple_init_t init_routine )
 {
 	run_so_environment(
-			init_func,
+			init_routine,
 			so_5::rt::so_environment_params_t() );
+}
+
+/*!
+ * \since v.5.3.0
+ *
+ * \brief  Launch a SObjectizer Environment with arguments.
+ *
+ * A lambda-functions could be used as for starting actions and as
+ * environment parameters tunning.
+
+Example:
+
+\code
+void
+init( so_5::rt::so_environment_t & env )
+{
+	auto coop = env.create_coop( "main_coop" );
+	coop->add_agent(
+		so_5::rt::agent_ref_t(
+			new a_main_t ) );
+
+	env.register_coop( std::move( coop ) );
+}
+
+...
+
+int
+main( int argc, char * argv[] )
+{
+	so_5::api::run_so_environment(
+		&init,
+		[](so_5::rt::so_environment_params_t & params ) {
+			params.mbox_mutex_pool_size( 16 )
+				.agent_coop_mutex_pool_size( 16 )
+				.agent_event_queue_mutex_pool_size( 16 );
+		} );
+
+	return 0;
+}
+\endcode
+*/
+inline void
+run_so_environment(
+	//! Initialization routine.
+	generic_simple_init_t init_routine,
+	//! Environment's parameters tuner.
+	generic_simple_so_env_params_tuner_t params_tuner )
+{
+	so_5::rt::so_environment_params_t params;
+	params_tuner( params );
+
+	run_so_environment( init_routine, std::move( params ) );
 }
 
 //! Launch a SObjectizer Environment with the parametrized 
