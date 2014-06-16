@@ -1,0 +1,146 @@
+/*!
+
+\page so_5_3_0__synchronous_interaction so-5.3.0: Synchronous interaction with agents
+
+There is a new major change introduced in v.5.3.0 -- a possibility to
+synchronous wait for result of message processing. An agent, called service
+client, could ask another agent (called service_handler) to do something by
+asynchronously sending message to service_handler and then synchronously
+waiting for result of that request.
+
+All parameters for service request must be defined as ordinal message or signal
+type:
+
+\code
+    // Message for service request with parameters.
+    struct msg_convert : public so_5::rt::message_t
+      {
+        // String to conversion to int.
+        std::string m_value;
+
+        msg_convert( const std::string & v ) : m_value( v ) {}
+      };
+
+    // Signal for service request without parameters.
+    struct msg_get_status : public so_5::rt::signal_t {}
+\endcode
+
+Service_handler is an ordinal agent which defines its service_request handling
+methods by traditional way. The only change with previous version is that event
+handlers could return values since v.5.3.0:
+ 
+\code
+    // service_handler event for msg_convert request.
+    int
+    a_my_service_t::evt_convert( const msg_convert & msg )
+      {
+        std::istringstream s( msg.m_value );
+        int result;
+        s >> result;
+        if( s.fail() )
+          throw std::invalid_argument(
+              "unable to convert to int: '" + msg.m_value + "'" );
+
+        return result;
+      }
+
+    // service_handler event for msg_get_status request.
+    std::string
+    a_my_service_t::evt_get_status()
+      {
+        return "Ready";
+      }
+\endcode
+
+Event handler methods are subscribed as usual:
+
+\code
+    class a_my_service_t : public so_5::rt::agent_t 
+      {
+      public :
+        virtual void
+        so_define_agent()
+          {
+            so_subscribe( mbox ).event( &a_my_service_t::evt_convert );
+
+            so_subscribe( mbox ).event( so_5::signal< msg_get_status >,
+                &a_my_service_t::evt_get_status );
+          }
+        ...
+      };
+\endcode
+
+All those mean that there is almost no differences for service_handler: it
+always works as ordinal agent. And all event handlers for that agent are
+invoked on agent’s working thread.
+
+All requests are delivered to service_handler’s agent as ordinal messages via
+agent’s event queue. The mechanism for event handler invocation for service
+requests is the same as for traditional asynchronous messages.
+
+To send service request it is necessary to invoke mbox’s get_one template
+method. It means that exactly one request of the specified type will be
+requested:
+
+\code
+    const so_5::rt::mbox_ref_t & mbox = ...; // Mbox representing service.
+    // The start part of service request initiation:
+    mbox->get_one< std::string >()... // other stuff will go here
+\endcode
+
+Then it is necessary to declare how the waiting of service request will be
+performed. There are the three variants.
+
+The first one, the most simple and the most dangerous, is wait service request
+result infinitely long:
+
+\code
+    // Initiate the service request and wait for result infinitely.
+    int v = mbox->get_one< int >().wait_forever().sync_get( new msg_convert( "42" ) );
+
+    // Invocation of service request by a signal.
+    std::string s = mbox->get_one< std::string >().wait_forever().sync_get< msg_get_status >();
+\endcode
+
+The second one, simple and one of the most safe, is wait service request
+result for the specified amount of time:
+
+\code
+    // Initiate the service request and wait for 300ms.
+    int v = mbox->get_one< int >()
+        .wait_for( std::chrono::milliseconds(300) )
+        .sync_get( new msg_convert( "42" ) );
+
+    // Invocation of service request by a signal and wait for 5s.
+    std::string s = mbox->get_one< std::string >()
+        .wait_for( std::chrono::seconds(5) )
+        .sync_get< msg_get_status >();
+\endcode
+
+The third one, the most complex and the most flexible, is receive std::future
+object associated with service request and then perform any operation user
+wish:
+
+\code
+    std::future< int > v = mbox->get_one< int >.async( new msg_convert( "42" ) );
+    std::future< std::string > s = mbox->get_one< std::string >.async< msg_get_status >();
+
+    // Do some useful stuff until conversion result get ready.
+    while( true )
+      {
+        ... // Do something here.
+        // Check the future status.
+        if( std::future_status::ready == v.wait_for( std::chrono::seconds(0) ) )
+          break;
+      }
+    // Conversion result is ready and could be obtained without waiting.
+    std::cout << "Conversion result: " << v.get() << std::endl;
+
+    // Wait for get_status request infinitely.
+    std::cout << "Service status: " << s.get() << std::endl;
+\endcode
+
+*/
+
+// vim:ft=cpp:ts=2:sts=2:expandtab:sw=2
+
