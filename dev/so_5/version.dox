@@ -13,6 +13,9 @@
 	Several new forms of so_5::api::run_so_environment() added.
 	See \ref so_5_3_0__new_run_so_environment for details.
 
+  Namespace so_5::chrono_helpers and the function so_5::chrono_helpers::to_ms()
+  added to simplify usage of C++11 std::chrono::duration values.
+
 \section so_5__2_3 5.2.3 "Mijirgi"
 
 	Methods so_5::rt::agent_t::so_subscribe(),

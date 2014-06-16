@@ -100,9 +100,9 @@ a_hello_t::so_evt_start()
 				std::move( msg ),
 				m_self_mbox,
 				// Delay for a second.
-				1 * 1000,
-				// Repeat every second.
-				1 * 1000 );
+				so_5::chrono_helpers::to_ms( std::chrono::seconds(1) ),
+				// Repeat every 1.25 of seconds.
+				so_5::chrono_helpers::to_ms( std::chrono::milliseconds(1250) ) );
 
 	// Sending a stop signal.
 	m_stop_timer_id =
@@ -110,7 +110,7 @@ a_hello_t::so_evt_start()
 			.schedule_timer< msg_stop_signal >(
 				m_self_mbox,
 				// Delay for two seconds.
-				2 * 1000,
+				so_5::chrono_helpers::to_ms( std::chrono::seconds(2) ),
 				// Not a periodic.
 				0 );
 }
@@ -136,7 +136,8 @@ a_hello_t::evt_hello_periodic(
 			so_environment()
 				.schedule_timer< msg_stop_signal >(
 					m_self_mbox,
-					2 * 1000,
+          // 1300ms but specified in microsecs just for demonstration.
+					so_5::chrono_helpers::to_ms( std::chrono::microseconds(1300000) ),
 					0 );
 	}
 }
