@@ -7,6 +7,9 @@
 	New formats and forms of event- and signal-handlers are supported.
 	See \ref so_5_3_0__new_event_handlers_formats for details.
 
+  A form of synchronous interaction with agents is introduced.
+  See \ref so_5_3_0__synchronous_interaction for details.
+
 	Exception reaction for agents and agent cooperation could be
 	inhreited now. See \ref so_5_3_0__exception_reaction for details.
 
