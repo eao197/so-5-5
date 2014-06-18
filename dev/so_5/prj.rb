@@ -65,6 +65,8 @@ MxxRu::Cpp::dll_target {
 
 			cpp_source( "so_environment_impl.cpp" )
 
+			cpp_source 'adhoc_agent_wrapper.cpp'
+
 			sources_root( "coop_dereg" ){
 				cpp_source( "coop_dereg_executor_thread.cpp" )
 				cpp_source( "dereg_demand_queue.cpp" )
