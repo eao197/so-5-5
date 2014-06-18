@@ -36,29 +36,6 @@ struct msg_sum_vector : public so_5::rt::message_t
 			{}
 	};
 
-class a_part_summator_t : public so_5::rt::agent_t
-	{
-	public :
-		a_part_summator_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
-			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( self_mbox )
-			{}
-
-		virtual void
-		so_define_agent()
-			{
-				so_subscribe( m_self_mbox ).event(
-						[]( const msg_sum_part & part ) {
-							return std::accumulate( part.m_begin, part.m_end, 0 );
-						} );
-			}
-
-	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-	};
-
 class a_vector_summator_t : public so_5::rt::agent_t
 	{
 	public :
@@ -79,15 +56,18 @@ class a_vector_summator_t : public so_5::rt::agent_t
 		virtual void
 		so_evt_start()
 			{
+				// Create a helper agent which will work in child cooperation.
 				auto coop = so_environment().create_coop(
 						so_coop_name() + "::part_summator",
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 				coop->set_parent_coop_name( so_coop_name() );
 
-				coop->add_agent(
-						new a_part_summator_t(
-								so_environment(),
-								m_part_summator_mbox ) );
+				coop->define_agent()
+					.event(
+						m_part_summator_mbox,
+						[]( const msg_sum_part & part ) {
+							return std::accumulate( part.m_begin, part.m_end, 0 );
+						} );
 
 				so_environment().register_coop( std::move( coop ) );
 			}

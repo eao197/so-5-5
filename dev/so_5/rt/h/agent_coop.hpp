@@ -567,6 +567,16 @@ class SO_5_TYPE agent_coop_t
 				return adhoc_agent_definition_proxy_t( agent );
 			}
 
+		/*!
+		 * \since v.5.3.0
+		 * \brief Access to SO Environment for which cooperation is bound.
+		 */
+		inline so_environment_t &
+		environment() const
+			{
+				return m_env;
+			}
+
 	private:
 		//! Information about agent and its dispatcher binding.
 		struct agent_with_disp_binder_t
