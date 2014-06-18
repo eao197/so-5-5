@@ -2,6 +2,7 @@ require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/hello_world/prj.rb" )
+	required_prj( "sample/so_5/hello_world_adhoc/prj.rb" )
 	required_prj( "sample/so_5/hello_evt_handler/prj.rb" )
 	required_prj( "sample/so_5/hello_evt_lambda/prj.rb" )
 	required_prj( "sample/so_5/hello_all/prj.rb" )
@@ -21,4 +22,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/svc/hello/prj.rb" )
 	required_prj( "sample/so_5/svc/parallel_sum/prj.rb" )
 	required_prj( "sample/so_5/svc/exceptions/prj.rb" )
+	required_prj( "sample/so_5/ping_pong/prj.rb" )
 }

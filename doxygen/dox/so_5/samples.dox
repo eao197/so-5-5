@@ -47,6 +47,10 @@
  */
 
 /*!
+ * \example so_5/hello_world_adhoc/main.cpp
+ */
+
+/*!
  * \example so_5/layer/main.cpp
  */
 
@@ -61,4 +65,9 @@
 /*!
  * \example so_5/svc/parallel_sum/main.cpp
  */
+
+/*!
+ * \example so_5/ping_pong/main.cpp
+ */
+
 // vim:ft=cpp.doxygen
