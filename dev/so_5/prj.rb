@@ -40,6 +40,8 @@ MxxRu::Cpp::dll_target {
 
 		cpp_source( "agent.cpp" )
 		cpp_source( "agent_state_listener.cpp" )
+		cpp_source 'adhoc_agent_wrapper.cpp'
+
 		cpp_source( "agent_coop.cpp" )
 		cpp_source( "agent_coop_notifications.cpp" )
 
@@ -64,8 +66,6 @@ MxxRu::Cpp::dll_target {
 			cpp_source( "state_listener_controller.cpp" )
 
 			cpp_source( "so_environment_impl.cpp" )
-
-			cpp_source 'adhoc_agent_wrapper.cpp'
 
 			sources_root( "coop_dereg" ){
 				cpp_source( "coop_dereg_executor_thread.cpp" )

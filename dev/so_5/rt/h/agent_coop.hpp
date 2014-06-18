@@ -20,6 +20,7 @@
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/adhoc_agent_wrapper.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
 
 namespace so_5
@@ -508,6 +509,63 @@ class SO_5_TYPE agent_coop_t
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Start definition of ad-hoc agent with default
+		 * dispatcher binding.
+		 *
+		 * Usage sample:
+		 \code
+		 coop->define_agent()
+		 		// Set initial agent action.
+				.on_start( []() { std::cout << "Hello!" << std::endl; }
+				// Set last agent action.
+				.on_finish( []() { std::cout << "Bye!" << std::endl; }
+				// Subscribe to message from a mbox.
+				.event( mbox, []() { ... } );
+				// Subscribe to signal from a mbox.
+				.event( mbox, so_5::signal< SIG >, []() { ... } );
+		 \endcode
+		 */
+		inline adhoc_agent_definition_proxy_t
+		define_agent()
+			{
+				auto agent = new adhoc_agent_wrapper_t( m_env );
+				this->add_agent( agent );
+
+				return adhoc_agent_definition_proxy_t( agent );
+			}
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Start definition of ad-hoc agent with the specific
+		 * dispatcher binder.
+		 *
+		 * Usage sample:
+		 \code
+		 coop->define_agent(
+		 		so_5::disp::active_obj::create_disp_binder( "active_obj" ) )
+		 		// Set initial agent action.
+				.on_start( []() { std::cout << "Hello!" << std::endl; }
+				// Set last agent action.
+				.on_finish( []() { std::cout << "Bye!" << std::endl; }
+				// Subscribe to message from a mbox.
+				.event( mbox, []() { ... } );
+				// Subscribe to signal from a mbox.
+				.event( mbox, so_5::signal< SIG >, []() { ... } );
+		 \endcode
+		 */
+		inline adhoc_agent_definition_proxy_t
+		define_agent(
+			//! A binder to the dispatcher.
+			disp_binder_unique_ptr_t binder )
+			{
+				auto agent = new adhoc_agent_wrapper_t( m_env );
+				this->add_agent( agent, std::move(binder) );
+
+				return adhoc_agent_definition_proxy_t( agent );
+			}
 
 	private:
 		//! Information about agent and its dispatcher binding.

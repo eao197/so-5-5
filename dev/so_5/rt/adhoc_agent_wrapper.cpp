@@ -8,15 +8,12 @@
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
  */
 
-#include <so_5/rt/impl/h/adhoc_agent_wrapper.hpp>
+#include <so_5/rt/h/adhoc_agent_wrapper.hpp>
 
 namespace so_5
 {
 
 namespace rt
-{
-
-namespace impl
 {
 
 adhoc_agent_wrapper_t::adhoc_agent_wrapper_t( so_environment_t & env )
@@ -65,8 +62,6 @@ adhoc_agent_wrapper_t::so_exception_reaction() const
 	{
 		return m_exception_reaction;
 	}
-
-} /* namespace impl */
 
 } /* namespace rt */
 
