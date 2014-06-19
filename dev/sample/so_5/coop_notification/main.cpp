@@ -64,10 +64,9 @@ class a_parent_t
 
 		void
 		evt_child_created(
-			const so_5::rt::event_data_t<
-					so_5::rt::msg_coop_registered > & evt )
+			const so_5::rt::msg_coop_registered & evt )
 		{
-			std::cout << "coop_reg: " << evt->m_coop_name << std::endl;
+			std::cout << "coop_reg: " << evt.m_coop_name << std::endl;
 
 			if( m_counter >= m_max_counter )
 				so_environment().stop();
@@ -77,11 +76,10 @@ class a_parent_t
 
 		void
 		evt_child_destroyed(
-			const so_5::rt::event_data_t<
-					so_5::rt::msg_coop_deregistered > & evt )
+			const so_5::rt::msg_coop_deregistered & evt )
 		{
-			std::cout << "coop_dereg: " << evt->m_coop_name
-				<< ", reason: " << evt->m_reason.reason() << std::endl;
+			std::cout << "coop_dereg: " << evt.m_coop_name
+				<< ", reason: " << evt.m_reason.reason() << std::endl;
 
 			++m_counter;
 			register_child_coop();
@@ -102,6 +100,8 @@ class a_parent_t
 					so_5::rt::make_coop_reg_notificator( m_self_mbox ) );
 			coop->add_dereg_notificator(
 					so_5::rt::make_coop_dereg_notificator( m_self_mbox ) );
+			coop->set_exception_reaction(
+					so_5::rt::deregister_coop_on_exception );
 
 			coop->add_agent(
 					new a_child_t(

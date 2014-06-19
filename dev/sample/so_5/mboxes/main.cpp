@@ -105,20 +105,17 @@ class my_agent_t
 		// Handle change state.
 		void
 		change_state_event_handler(
-			const so_5::rt::event_data_t< change_state_message > &
-				message );
+			const change_state_message & message );
 
 		// Handle my_message.
 		void
 		my_event_handler(
-			const so_5::rt::event_data_t< my_message > &
-				message );
+			const my_message & message );
 
 		// Handle my_another_message.
 		void
 		my_another_event_handler(
-			const so_5::rt::event_data_t< my_another_message > &
-				message );
+			const my_another_message & message );
 
 	private:
 		// Agent states.
@@ -192,11 +189,11 @@ my_agent_t::so_evt_start()
 
 void
 my_agent_t::change_state_event_handler(
-	const so_5::rt::event_data_t< change_state_message > & message )
+	const change_state_message & message )
 {
 	std::cout << "change_state_event_handler()" << std::endl;
 
-	if( DEFAULT_STATE == message->m_next_state )
+	if( DEFAULT_STATE == message.m_next_state )
 	{
 		so_change_state( so_default_state() );
 		std::cout << "\tswitch to default state and shutdown..." << std::endl;
@@ -204,7 +201,7 @@ my_agent_t::change_state_event_handler(
 	}
 	else
 	{
-		if( FIRST_STATE == message->m_next_state )
+		if( FIRST_STATE == message.m_next_state )
 		{
 			so_change_state( m_first_state );
 
@@ -219,7 +216,7 @@ my_agent_t::change_state_event_handler(
 			// Switch to second.
 			m_mbox->deliver_message( change_state_message::create( SECOND_STATE ) );
 		}
-		else if( SECOND_STATE == message->m_next_state )
+		else if( SECOND_STATE == message.m_next_state )
 		{
 			so_change_state( m_second_state );
 
@@ -241,25 +238,24 @@ my_agent_t::change_state_event_handler(
 
 void
 my_agent_t::my_event_handler(
-	const so_5::rt::event_data_t< my_message > & message )
+	const my_message & message )
 {
 	std::cout << "my_event_handler()" << std::endl;
 
 	std::cout
 		<< "\tcurrent state is " << so_current_state().query_name() << std::endl
-		<< "\tmessage.x = " << message->x << std::endl;
+		<< "\tmessage.x = " << message.x << std::endl;
 }
 
 void
 my_agent_t::my_another_event_handler(
-	const so_5::rt::event_data_t< my_another_message > &
-		message )
+	const my_another_message & message )
 {
 	std::cout << "my_another_event_handler()" << std::endl;
 
 	std::cout
 		<< "\tcurrent state is " << so_current_state().query_name() << std::endl
-		<< "\tmessage.s = " << message->s << std::endl;
+		<< "\tmessage.s = " << message.s << std::endl;
 }
 
 

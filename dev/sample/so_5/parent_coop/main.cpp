@@ -172,12 +172,13 @@ class a_parent_t
 		// Task result received from child-agent.
 		void
 		evt_task_result(
-			const so_5::rt::event_data_t< task_result_t > & task_result )
+			const task_result_t & task_result )
 		{
-			std::cout << "Parent: task result " << task_result->id() << " is received." << std::endl;
+			std::cout << "Parent: task result " << task_result.id()
+				<< " is received." << std::endl;
 
 			// We will start to do a next task.
-			start_child( task_result->id() + 1 );
+			start_child( task_result.id() + 1 );
 		}
 
 	private:

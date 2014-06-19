@@ -100,7 +100,9 @@ class a_parent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_self_mbox ).event( &a_parent_t::evt_child_finished );
+			so_subscribe( m_self_mbox ).event(
+					so_5::signal< msg_child_finished >,
+					&a_parent_t::evt_child_finished );
 		}
 
 		void
@@ -112,8 +114,7 @@ class a_parent_t
 		}
 
 		void
-		evt_child_finished(
-			const so_5::rt::event_data_t< msg_child_finished > & evt )
+		evt_child_finished()
 		{
 			m_logger.log( "child_finished notification received" );
 

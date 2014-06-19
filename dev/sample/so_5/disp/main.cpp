@@ -168,17 +168,18 @@ main( int, char ** argv )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "single_thread" ),
-						so_5::disp::one_thread::create_disp() )
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_group" ),
-						so_5::disp::active_group::create_disp() )
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_obj" ),
-						so_5::disp::active_obj::create_disp() ) ) );
+			[]( so_5::rt::so_environment_params_t & p )
+			{
+				p.add_named_dispatcher(
+					so_5::rt::nonempty_name_t( "single_thread" ),
+					so_5::disp::one_thread::create_disp() )
+				.add_named_dispatcher(
+					so_5::rt::nonempty_name_t( "active_group" ),
+					so_5::disp::active_group::create_disp() )
+				.add_named_dispatcher(
+					so_5::rt::nonempty_name_t( "active_obj" ),
+					so_5::disp::active_obj::create_disp() );
+			} );
 	}
 	catch( const std::exception & ex )
 	{
@@ -188,3 +189,4 @@ main( int, char ** argv )
 
 	return 0;
 }
+

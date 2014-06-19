@@ -14,34 +14,17 @@
 
 class msg_hello_svc : public so_5::rt::signal_t {};
 
-class a_hello_service_t
-	:	public so_5::rt::agent_t
+void
+define_hello_service(
+	so_5::rt::agent_coop_t & coop,
+	const so_5::rt::mbox_ref_t & self_mbox )
 	{
-	public :
-		a_hello_service_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
-			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( self_mbox )
-			{}
-
-		virtual void
-		so_define_agent()
-			{
-				so_subscribe( m_self_mbox )
-						.event( &a_hello_service_t::svc_hello );
-			}
-
-		std::string
-		svc_hello( const so_5::rt::event_data_t< msg_hello_svc > & evt )
-			{
+		coop.define_agent().event( self_mbox, so_5::signal< msg_hello_svc >,
+			[]() -> std::string {
 				std::cout << "svc_hello called" << std::endl;
 				return "Hello, World!";
-			}
-
-	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-	};
+			} );
+	}
 
 struct msg_convert : public so_5::rt::message_t
 	{
@@ -51,27 +34,13 @@ struct msg_convert : public so_5::rt::message_t
 			{}
 	};
 
-class a_convert_service_t
-	:	public so_5::rt::agent_t
+void
+define_convert_service(
+	so_5::rt::agent_coop_t & coop,
+	const so_5::rt::mbox_ref_t & self_mbox )
 	{
-	public :
-		a_convert_service_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
-			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( self_mbox )
-			{}
-
-		virtual void
-		so_define_agent()
-			{
-				so_subscribe( m_self_mbox )
-						.event( &a_convert_service_t::svc_convert );
-			}
-
-		std::string
-		svc_convert( const msg_convert & msg )
-			{
+		coop.define_agent().event( self_mbox,
+			[]( const msg_convert & msg ) -> std::string {
 				std::cout << "svc_convert called: value=" << msg.m_value
 						<< std::endl;
 
@@ -79,42 +48,23 @@ class a_convert_service_t
 				s << msg.m_value;
 
 				return s.str();
-			}
-
-	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-	};
+			} );
+	}
 
 struct msg_shutdown : public so_5::rt::signal_t {};
 
-class a_shutdowner_t
-	:	public so_5::rt::agent_t
+void
+define_shutdown_service(
+	so_5::rt::agent_coop_t & coop,
+	const so_5::rt::mbox_ref_t & self_mbox )
 	{
-	public :
-		a_shutdowner_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
-			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( self_mbox )
-			{}
-
-		virtual void
-		so_define_agent()
-			{
-				so_subscribe( m_self_mbox )
-						.event( &a_shutdowner_t::svc_shutdown );
-			}
-
-		void
-		svc_shutdown( const so_5::rt::event_data_t< msg_shutdown > & evt )
-			{
+		auto & env = coop.environment();
+		coop.define_agent().event( self_mbox, so_5::signal< msg_shutdown >,
+			[&env]() {
 				std::cout << "svc_shutdown called" << std::endl;
 
-				so_environment().stop();
-			}
-
-	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
+				env.stop();
+			} );
 	};
 
 class a_client_t
@@ -180,9 +130,10 @@ init(
 
 		auto svc_mbox = env.create_local_mbox();
 
-		coop->add_agent( new a_hello_service_t( env, svc_mbox ) );
-		coop->add_agent( new a_convert_service_t( env, svc_mbox ) );
-		coop->add_agent( new a_shutdowner_t( env, svc_mbox ) );
+		define_hello_service( *coop, svc_mbox );
+		define_convert_service( *coop, svc_mbox );
+		define_shutdown_service( *coop, svc_mbox );
+
 		coop->add_agent( new a_client_t( env, svc_mbox ) );
 
 		env.register_coop( std::move( coop ) );
@@ -195,11 +146,11 @@ main( int, char ** )
 			{
 				so_5::api::run_so_environment(
 					&init,
-					std::move(
-						so_5::rt::so_environment_params_t()
-							.add_named_dispatcher(
-								so_5::rt::nonempty_name_t( "active_obj" ),
-								so_5::disp::active_obj::create_disp() ) ) );
+					[]( so_5::rt::so_environment_params_t & p ) {
+						p.add_named_dispatcher(
+							so_5::rt::nonempty_name_t( "active_obj" ),
+							so_5::disp::active_obj::create_disp() );
+					} );
 			}
 		catch( const std::exception & ex )
 			{

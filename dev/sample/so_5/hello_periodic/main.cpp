@@ -52,13 +52,11 @@ class a_hello_t
 
 		// Hello message handler.
 		void
-		evt_hello_periodic(
-			const so_5::rt::event_data_t< msg_hello_periodic > & msg );
+		evt_hello_periodic( const msg_hello_periodic & msg );
 
 		// Stop message handler.
 		void
-		evt_stop_signal(
-			const so_5::rt::event_data_t< msg_stop_signal > & );
+		evt_stop_signal();
 
 	private:
 		// Agent's mbox.
@@ -80,7 +78,7 @@ a_hello_t::so_define_agent()
 		.event( &a_hello_t::evt_hello_periodic );
 
 	so_subscribe( m_self_mbox )
-		.event( &a_hello_t::evt_stop_signal );
+		.event( so_5::signal< msg_stop_signal >, &a_hello_t::evt_stop_signal );
 }
 
 void
@@ -116,12 +114,11 @@ a_hello_t::so_evt_start()
 }
 
 void
-a_hello_t::evt_hello_periodic(
-	const so_5::rt::event_data_t< msg_hello_periodic > & msg )
+a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) )
-		<< msg->m_message << std::endl;
+		<< msg.m_message << std::endl;
 
 	if( 5 == ++m_evt_count )
 	{
@@ -136,15 +133,14 @@ a_hello_t::evt_hello_periodic(
 			so_environment()
 				.schedule_timer< msg_stop_signal >(
 					m_self_mbox,
-          // 1300ms but specified in microsecs just for demonstration.
+					// 1300ms but specified in microsecs just for demonstration.
 					so_5::chrono_helpers::to_ms( std::chrono::microseconds(1300000) ),
 					0 );
 	}
 }
 
 void
-a_hello_t::evt_stop_signal(
-	const so_5::rt::event_data_t< msg_stop_signal > & )
+a_hello_t::evt_stop_signal()
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) )

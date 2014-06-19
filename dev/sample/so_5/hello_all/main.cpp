@@ -77,11 +77,11 @@ class a_hello_t
 
 		void
 		evt_hello_to_all(
-			const so_5::rt::event_data_t< msg_hello_to_all > & evt_data );
+			const msg_hello_to_all & evt_data );
 
 		void
 		evt_hello_to_you(
-			const so_5::rt::event_data_t< msg_hello_to_you > & evt_data );
+			const msg_hello_to_you & evt_data );
 
 	private:
 		// Agent name.
@@ -117,25 +117,25 @@ a_hello_t::so_evt_start()
 
 void
 a_hello_t::evt_hello_to_all(
-	const so_5::rt::event_data_t< msg_hello_to_all > & evt_data )
+	const msg_hello_to_all & evt_data )
 {
 	std::cout << m_agent_name << ".evt_hello_to_all: "
-		<< evt_data->m_sender << std::endl;
+		<< evt_data.m_sender << std::endl;
 
 	// If this agent is not the sender then reply should be sent.
-	if( m_agent_name != evt_data->m_sender )
+	if( m_agent_name != evt_data.m_sender )
 	{
-		so_5::rt::mbox_ref_t mbox = evt_data->m_mbox;
+		so_5::rt::mbox_ref_t mbox = evt_data.m_mbox;
 		mbox->deliver_message( new msg_hello_to_you( m_agent_name ) );
 	}
 }
 
 void
 a_hello_t::evt_hello_to_you(
-	const so_5::rt::event_data_t< msg_hello_to_you > & evt_data )
+	const msg_hello_to_you & evt_data )
 {
 	std::cout << m_agent_name << ".evt_hello_to_you: "
-		<< evt_data->m_sender << std::endl;
+		<< evt_data.m_sender << std::endl;
 }
 
 // The SObjectizer Environment initialization.

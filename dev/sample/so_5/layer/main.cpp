@@ -13,16 +13,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/rt/h/so_layer.hpp>
 
-class msg_shutdown
-	:
-		public so_5::rt::message_t
-{
-	public:
-		msg_shutdown()
-		{}
-		virtual ~msg_shutdown()
-		{}
-};
+class msg_shutdown : public so_5::rt::signal_t {};
 
 class msg_hello_to_all
 	:
@@ -84,10 +75,7 @@ class shutdowner_layer_t
 			m_shutdown_mbox = so_environment().create_local_mbox(
 				so_5::rt::nonempty_name_t( "shutdown_mbox" ) );
 
-			std::unique_ptr< msg_shutdown > msg( new msg_shutdown );
-
-			so_environment().single_timer(
-				std::move(msg),
+			so_environment().single_timer< msg_shutdown >(
 				m_shutdown_mbox,
 				3*1000 );
 		}
@@ -172,17 +160,16 @@ class a_hello_t
 		// A reaction to the common greeting.
 		void
 		evt_hello_to_all(
-			const so_5::rt::event_data_t< msg_hello_to_all > & evt_data );
+			const msg_hello_to_all & evt_data );
 
 		// A reaction to the personal greeting.
 		void
 		evt_hello_to_you(
-			const so_5::rt::event_data_t< msg_hello_to_you > & evt_data );
+			const msg_hello_to_you & evt_data );
 
 		// A reaction to the shutdown.
 		void
-		evt_shutdown(
-			const so_5::rt::event_data_t< msg_shutdown > & evt_data );
+		evt_shutdown();
 
 		// A shutdown message subscription.
 		// This method is a callback for the shutdowner_layer.
@@ -227,30 +214,29 @@ a_hello_t::so_evt_start()
 
 void
 a_hello_t::evt_hello_to_all(
-	const so_5::rt::event_data_t< msg_hello_to_all > & evt_data )
+	const msg_hello_to_all & evt_data )
 {
 	std::cout << m_agent_name << ".evt_hello_to_all: "
-		<< evt_data->m_sender << std::endl;
+		<< evt_data.m_sender << std::endl;
 
 	// If we are not the sender then send personal greeting back.
-	if( m_agent_name != evt_data->m_sender )
+	if( m_agent_name != evt_data.m_sender )
 	{
-		so_5::rt::mbox_ref_t mbox = evt_data->m_mbox;
+		so_5::rt::mbox_ref_t mbox = evt_data.m_mbox;
 		mbox->deliver_message( new msg_hello_to_you( m_agent_name ) );
 	}
 }
 
 void
 a_hello_t::evt_hello_to_you(
-	const so_5::rt::event_data_t< msg_hello_to_you > & evt_data )
+	const msg_hello_to_you & evt_data )
 {
 	std::cout << m_agent_name << ".evt_hello_to_you: "
-		<< evt_data->m_sender << std::endl;
+		<< evt_data.m_sender << std::endl;
 }
 
 void
-a_hello_t::evt_shutdown(
-	const so_5::rt::event_data_t< msg_shutdown > & evt_data )
+a_hello_t::evt_shutdown()
 {
 	std::cout << m_agent_name << ": preparing to shutdown\n";
 	so_environment().query_layer< shutdowner_layer_t >()->unsubscribe(
@@ -262,7 +248,7 @@ a_hello_t::subscribe( so_5::rt::mbox_ref_t & shutdown_mbox )
 {
 	std::cout << m_agent_name << ": subscription to shutdown\n";
 	so_subscribe( shutdown_mbox )
-		.event( &a_hello_t::evt_shutdown );
+		.event( so_5::signal< msg_shutdown >, &a_hello_t::evt_shutdown );
 }
 
 void
@@ -288,10 +274,11 @@ main( int, char ** )
 	{
 		so_5::api::run_so_environment(
 				&init,
-				std::move(
-					so_5::rt::so_environment_params_t().add_layer(
+				[]( so_5::rt::so_environment_params_t & p ) {
+					p.add_layer(
 							std::unique_ptr< shutdowner_layer_t >(
-									new shutdowner_layer_t() ) ) ) );
+									new shutdowner_layer_t() ) );
+				} );
 	}
 	catch( const std::exception & ex )
 	{

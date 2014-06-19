@@ -114,27 +114,27 @@ class a_meeting_place_t
 
 		void
 		evt_first_creature(
-			const so_5::rt::event_data_t< msg_meeting_request > & evt )
+			const msg_meeting_request & evt )
 			{
 				if( m_remaining_meetings )
 				{
 					so_change_state( st_one_creature_inside );
 
-					m_first_creature_mbox = evt->m_who;
-					m_first_creature_color = evt->m_color;
+					m_first_creature_mbox = evt.m_who;
+					m_first_creature_color = evt.m_color;
 				}
 				else
-					evt->m_who->deliver_signal< msg_shutdown_request >();
+					evt.m_who->deliver_signal< msg_shutdown_request >();
 			}
 
 		void
 		evt_second_creature(
-			const so_5::rt::event_data_t< msg_meeting_request > & evt )
+			const msg_meeting_request & evt )
 			{
-				evt->m_who->deliver_message(
+				evt.m_who->deliver_message(
 						new msg_meeting_result( m_first_creature_color ) );
 				m_first_creature_mbox->deliver_message(
-						new msg_meeting_result( evt->m_color ) );
+						new msg_meeting_result( evt.m_color ) );
 
 				--m_remaining_meetings;
 
@@ -143,9 +143,9 @@ class a_meeting_place_t
 
 		void
 		evt_shutdown_ack(
-			const so_5::rt::event_data_t< msg_shutdown_ack > & evt )
+			const msg_shutdown_ack & evt )
 			{
-				m_total_meetings += evt->m_creatures_met;
+				m_total_meetings += evt.m_creatures_met;
 				
 				if( 0 >= --m_creatures_alive )
 				{
@@ -191,7 +191,9 @@ class a_creature_t
 					.event( &a_creature_t::evt_meeting_result );
 
 				so_subscribe( m_self_mbox )
-					.event( &a_creature_t::evt_shutdown_request );
+					.event(
+							so_5::signal< msg_shutdown_request >,
+							&a_creature_t::evt_shutdown_request );
 			}
 
 		virtual void
@@ -203,9 +205,9 @@ class a_creature_t
 
 		void
 		evt_meeting_result(
-			const so_5::rt::event_data_t< msg_meeting_result > & evt )
+			const msg_meeting_result & evt )
 			{
-				m_color = complement( evt->m_color );
+				m_color = complement( evt.m_color );
 				m_meeting_counter++;
 
 				m_meeting_place_mbox->deliver_message(
@@ -213,8 +215,7 @@ class a_creature_t
 			}
 
 		void
-		evt_shutdown_request(
-			const so_5::rt::event_data_t< msg_shutdown_request > & )
+		evt_shutdown_request()
 			{
 				m_color = FADED;
 				std::cout << "Creatures met: " << m_meeting_counter << std::endl;
@@ -294,11 +295,11 @@ main( int argc, char ** argv )
 					const int meetings = 2 == argc ? std::atoi( argv[1] ) : 10;
 					init( env, meetings );
 				},
-				std::move(
-						so_5::rt::so_environment_params_t()
-								.add_named_dispatcher(
-										"active_obj",
-										so_5::disp::active_obj::create_disp() ) ) );
+				[]( so_5::rt::so_environment_params_t & p ) {
+					p.add_named_dispatcher(
+							"active_obj",
+							so_5::disp::active_obj::create_disp() );
+				} );
 	}
 	catch( const std::exception & ex )
 	{
