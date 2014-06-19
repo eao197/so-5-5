@@ -232,12 +232,37 @@ class subscription_bind_t
 		/*!
 		 * \since v.5.3.0
 		 * \brief Make subscription to the message by lambda-function.
+		 *
+		 * Used for normal form lambdas.
 		 */
 		template< class L, class RESULT, class MESSAGE >
 		void
-		subscribe_lambda_as_event(
+		subscribe_lambda_as_event_driver(
 			L l,
 			RESULT (L::*)(const MESSAGE &) const );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the message by lambda-function.
+		 *
+		 * Used for mutable form lambdas.
+		 */
+		template< class L, class RESULT, class MESSAGE >
+		void
+		subscribe_lambda_as_event_driver(
+			L l,
+			RESULT (L::*)(const MESSAGE &) );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the message by lambda-function.
+		 *
+		 * This is actual implementation of subscription which is called
+		 * by subscribe_lambda_as_event_driver().
+		 */
+		template< class L, class RESULT, class MESSAGE >
+		void
+		do_subscribe_lambda_as_event( L l );
 
 		/*!
 		 * \since v.5.3.0
@@ -245,10 +270,30 @@ class subscription_bind_t
 		 */
 		template< class L, class RESULT, class MESSAGE >
 		void
-		subscribe_lambda_as_signal(
+		subscribe_lambda_as_signal_driver(
 			signal_indicator_t< MESSAGE > indicator(),
 			L l,
 			RESULT (L::*)() const );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the signal by lambda-function.
+		 */
+		template< class L, class RESULT, class MESSAGE >
+		void
+		subscribe_lambda_as_signal_driver(
+			signal_indicator_t< MESSAGE > indicator(),
+			L l,
+			RESULT (L::*)() );
+
+		/*!
+		 * \since v.5.3.0
+		 * \brief Make subscription to the signal by lambda-function.
+		 */
+		template< class L, class RESULT, class MESSAGE >
+		void
+		do_subscribe_lambda_as_signal(
+			L l );
 
 		/*!
 		 * \since v.5.3.0
@@ -1206,6 +1251,47 @@ get_actual_service_request_pointer(
 namespace promise_result_setting_details
 {
 
+template< typename L >
+struct lambda_traits
+	: 	public lambda_traits< decltype(&L::operator()) >
+	{};
+
+template< class L, class R, class M >
+struct lambda_traits< R (L::*)(M) const >
+	{
+		static R call_with_arg( L l, M m )
+			{
+				return l(m);
+			}
+	};
+
+template< class L, class R, class M >
+struct lambda_traits< R (L::*)(M) >
+	{
+		static R call_with_arg( L l, M m )
+			{
+				return l(m);
+			}
+	};
+
+template< class L, class R >
+struct lambda_traits< R (L::*)() const >
+	{
+		static R call_without_arg( L l )
+			{
+				return l();
+			}
+	};
+
+template< class L, class R >
+struct lambda_traits< R (L::*)() >
+	{
+		static R call_without_arg( L l )
+			{
+				return l();
+			}
+	};
+
 template< class RESULT >
 struct result_setter_t
 	{
@@ -1245,19 +1331,19 @@ struct result_setter_t
 		void
 		call_event_lambda_and_set_result(
 			std::promise< RESULT > & to,
-			const LAMBDA & l,
+			LAMBDA l,
 			const PARAM & msg )
 			{
-				to.set_value( l( msg ) );
+				to.set_value( lambda_traits< LAMBDA >::call_with_arg( l, msg ) );
 			}
 
 		template< class LAMBDA >
 		void
 		call_signal_lambda_and_set_result(
 			std::promise< RESULT > & to,
-			const LAMBDA & l )
+			LAMBDA l )
 			{
-				to.set_value( l() );
+				to.set_value( lambda_traits< LAMBDA >::call_without_arg( l ) );
 			}
 	};
 
@@ -1303,10 +1389,10 @@ struct result_setter_t< void >
 		void
 		call_event_lambda_and_set_result(
 			std::promise< void > & to,
-			const LAMBDA & l,
+			LAMBDA l,
 			const PARAM & msg )
 			{
-				l( msg );
+				lambda_traits< LAMBDA >::call_with_arg( l, msg );
 				to.set_value();
 			}
 
@@ -1314,9 +1400,9 @@ struct result_setter_t< void >
 		void
 		call_signal_lambda_and_set_result(
 			std::promise< void > & to,
-			const LAMBDA & l )
+			LAMBDA l )
 			{
-				l();
+				lambda_traits< LAMBDA >::call_without_arg( l );
 				to.set_value();
 			}
 	};
@@ -1457,7 +1543,7 @@ template< class LAMBDA >
 void
 subscription_bind_t::event( LAMBDA lambda )
 {
-	subscribe_lambda_as_event( lambda, &LAMBDA::operator() );
+	subscribe_lambda_as_event_driver( lambda, &LAMBDA::operator() );
 }
 
 template< class MESSAGE, class LAMBDA >
@@ -1466,14 +1552,30 @@ subscription_bind_t::event(
 	signal_indicator_t< MESSAGE > indicator(),
 	LAMBDA lambda )
 {
-	subscribe_lambda_as_signal( indicator, lambda, &LAMBDA::operator() );
+	subscribe_lambda_as_signal_driver( indicator, lambda, &LAMBDA::operator() );
 }
 
 template< class L, class RESULT, class MESSAGE >
 void
-subscription_bind_t::subscribe_lambda_as_event(
+subscription_bind_t::subscribe_lambda_as_event_driver(
 	L lambda,
 	RESULT (L::*)(const MESSAGE &) const )
+{
+	this->do_subscribe_lambda_as_event< L, RESULT, MESSAGE >( lambda );
+}
+
+template< class L, class RESULT, class MESSAGE >
+void
+subscription_bind_t::subscribe_lambda_as_event_driver(
+	L lambda,
+	RESULT (L::*)(const MESSAGE &) )
+{
+	this->do_subscribe_lambda_as_event< L, RESULT, MESSAGE >( lambda );
+}
+
+template< class L, class RESULT, class MESSAGE >
+void
+subscription_bind_t::do_subscribe_lambda_as_event( L lambda )
 {
 	using namespace event_subscription_helpers;
 
@@ -1481,9 +1583,10 @@ subscription_bind_t::subscribe_lambda_as_event(
 			invocation_type_t invocation_type,
 			message_ref_t & message_ref)
 		{
+			using namespace promise_result_setting_details;
+
 			if( invocation_type_t::service_request == invocation_type )
 				{
-					using namespace promise_result_setting_details;
 
 					auto actual_request_ptr =
 							get_actual_service_request_pointer< RESULT, MESSAGE >(
@@ -1504,7 +1607,7 @@ subscription_bind_t::subscribe_lambda_as_event(
 					auto msg = dynamic_cast< MESSAGE * >( message_ref.get() );
 					ensure_message_with_actual_data( msg );
 
-					lambda( *msg );
+					lambda_traits< L >::call_with_arg( lambda, *msg );
 				}
 		};
 
@@ -1513,10 +1616,28 @@ subscription_bind_t::subscribe_lambda_as_event(
 
 template< class L, class RESULT, class MESSAGE >
 void
-subscription_bind_t::subscribe_lambda_as_signal(
+subscription_bind_t::subscribe_lambda_as_signal_driver(
 	signal_indicator_t< MESSAGE > /*indicator*/(),
 	L lambda,
 	RESULT (L::*)() const )
+{
+	do_subscribe_lambda_as_signal< L, RESULT, MESSAGE >( lambda );
+}
+
+template< class L, class RESULT, class MESSAGE >
+void
+subscription_bind_t::subscribe_lambda_as_signal_driver(
+	signal_indicator_t< MESSAGE > /*indicator*/(),
+	L lambda,
+	RESULT (L::*)() )
+{
+	do_subscribe_lambda_as_signal< L, RESULT, MESSAGE >( lambda );
+}
+
+template< class L, class RESULT, class MESSAGE >
+void
+subscription_bind_t::do_subscribe_lambda_as_signal(
+	L lambda )
 {
 	ensure_signal< MESSAGE >();
 
@@ -1526,10 +1647,10 @@ subscription_bind_t::subscribe_lambda_as_signal(
 			invocation_type_t invocation_type,
 			message_ref_t & message_ref)
 		{
+			using namespace promise_result_setting_details;
+
 			if( invocation_type_t::service_request == invocation_type )
 				{
-					using namespace promise_result_setting_details;
-
 					auto actual_request_ptr =
 							get_actual_service_request_pointer< RESULT, MESSAGE >(
 									message_ref );
@@ -1541,7 +1662,7 @@ subscription_bind_t::subscribe_lambda_as_signal(
 				}
 			else
 				{
-					lambda();
+					lambda_traits< L >::call_without_arg( lambda );
 				}
 		};
 
