@@ -114,7 +114,7 @@ run_sample(
 				auto mbox = env.create_local_mbox();
 
 				auto coop = env.create_coop( "ping_pong",
-					// Agents will be active of passive.
+					// Agents will be active or passive.
 					// It depends on sample arguments.
 					cfg.m_active_objects ?
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
