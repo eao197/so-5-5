@@ -10,7 +10,7 @@ client, could ask another agent (called service_handler) to do something by
 asynchronously sending message to service_handler and then synchronously
 waiting for result of that request.
 
-All parameters for service request must be defined as ordinal message or signal
+All parameters for service request must be defined as ordinary message or signal
 type:
 
 \code
@@ -27,7 +27,7 @@ type:
     struct msg_get_status : public so_5::rt::signal_t {}
 \endcode
 
-Service_handler is an ordinal agent which defines its service_request handling
+Service_handler is an ordinary agent which defines its service_request handling
 methods by traditional way. The only change with previous version is that event
 handlers could return values since v.5.3.0:
  
@@ -73,10 +73,10 @@ Event handler methods are subscribed as usual:
 \endcode
 
 All those mean that there is almost no differences for service_handler: it
-always works as ordinal agent. And all event handlers for that agent are
+always works as ordinary agent. And all event handlers for that agent are
 invoked on agent’s working thread.
 
-All requests are delivered to service_handler’s agent as ordinal messages via
+All requests are delivered to service_handler’s agent as ordinary messages via
 agent’s event queue. The mechanism for event handler invocation for service
 requests is the same as for traditional asynchronous messages.
 
@@ -193,8 +193,8 @@ exception which are went out from event handler will be propagated to service
 client.
 
 The dialing with non-handled application exception is the main difference
-between ordinal event-handling and service_request-handling. When agent lets
-the exception go out during ordinal event handler invocation then SObjectizer
+between ordinary event-handling and service_request-handling. When agent lets
+the exception go out during ordinary event handler invocation then SObjectizer
 calls agent’s so_exception_reaction() method and does appropriate actions. But
 when agent lets the exception go out during service_request handling then the
 exception is propagated to service client and so_exception_reaction() is not
@@ -244,7 +244,7 @@ There could be cases where service_handler returns void. For example:
       };
 \endcode
 
-That service could be called by ordinal get_one method chain:
+That service could be called by ordinary get_one method chain:
 
 \code
     // Returns when flushing is done.
