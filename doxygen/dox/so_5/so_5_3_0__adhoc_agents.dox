@@ -58,7 +58,7 @@ But another dispatcher binder could be specified as an argument for define_agent
 
 \subsection so_5_3_0__adhoc_agents__details__on_start_finish Specifying starting and finish ad-hoc agent actions
 
-Ordinal agents have so_evt_start() and so_evt_finish() methods which are called at the start and at the end of agent work. Similar behaviour could be specified to ad-hoc agents by on_start() and on_finish() methods chains:
+Ordinary agents have so_evt_start() and so_evt_finish() methods which are called at the start and at the end of agent work. Similar behaviour could be specified to ad-hoc agents by on_start() and on_finish() methods chains:
 
 \code
     auto coop = env.create_coop( "demo" );
@@ -76,7 +76,7 @@ Ordinal agents have so_evt_start() and so_evt_finish() methods which are called 
 
 \subsection so_5_3_0__adhoc_agents__details__exception_reaction Specifying exception reaction for ad-hoc agent
 
-Ordinal agents could reimplement so_exception_reaction() method to specify reaction to non-handled exceptions. Ad-hoc agents do not have that method. If ad-hoc agent should specify some reaction to non-handled exception this could be done by exception_reaction() method chain:
+Ordinary agents could reimplement so_exception_reaction() method to specify reaction to non-handled exceptions. Ad-hoc agents do not have that method. If ad-hoc agent should specify some reaction to non-handled exception this could be done by exception_reaction() method chain:
 
 \code
     coop->define_agent()
@@ -96,13 +96,13 @@ Ordinal agents could reimplement so_exception_reaction() method to specify react
 \endcode
 
 
-\section so_5_3_0__adhoc_agents__major_differences Major differences from ordinal agents
+\section so_5_3_0__adhoc_agents__major_differences Major differences from ordinary agents
 
-Ad-hoc agents have the following major differences from ordinal agents.
+Ad-hoc agents have the following major differences from ordinary agents.
 
 \subsection so_5_3_0__adhoc_agents__major_differences__no_so_env No access to SObjectizer Environment
 
-Ad-hoc agents have no access to so_environment. An ordinal agent could do:
+Ad-hoc agents have no access to so_environment. An ordinary agent could do:
 
 \code
     void a_some_agent_t::evt_shutdown_signal()
@@ -125,11 +125,11 @@ Ad-hoc agent should store reverence to so_enviroment as a capture variable:
 
 \subsection so_5_3_0__adhoc_agents__major_differences__no_states No states
 
-Ad-hoc agents cannot have states. Ordinal agents could define states by creating so_5::rt::state_t objects and then switching from one state to another. Ad-hoc agents have only one state which is hidden from the developer.
+Ad-hoc agents cannot have states. Ordinary agents could define states by creating so_5::rt::state_t objects and then switching from one state to another. Ad-hoc agents have only one state which is hidden from the developer.
 
 \subsection so_5_3_0__adhoc_agents__major_differences__no_coop No access to cooperation
 
-Ad-hoc agents have no access to the cooperation they belong. The ordinal agent could do:
+Ad-hoc agents have no access to the cooperation they belong. The ordinary agent could do:
 
 \code
     void a_some_agent_t::evt_some_event()
@@ -146,7 +146,7 @@ But ad-hoc agent cannot.
 Lambda functions which are used as event handlers for ad-hoc agents should have one of the following prototypes:
 
 \code
-    // For ordinal message handling.
+    // For ordinary message handling.
     Result (const Message & )
     // For signal handling.
     Result ()
