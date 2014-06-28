@@ -13,31 +13,25 @@
 #include <so_5/api/h/api.hpp>
 
 // Hello message.
-class msg_hello_periodic
-	:
-		public so_5::rt::message_t
+struct msg_hello_periodic : public so_5::rt::message_t
 {
-	public:
-		// Greeting.
-		std::string m_message;
+	// Greeting.
+	std::string m_message;
 };
 
 // Stop message.
 class msg_stop_signal : public so_5::rt::signal_t {};
 
 // An agent class definition.
-class a_hello_t
-	:
-		public so_5::rt::agent_t
+class a_hello_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_hello_t( so_5::rt::so_environment_t & env )
-			:
-				base_type_t( env ),
-				m_evt_count( 0 ),
-				m_self_mbox( so_environment().create_local_mbox() )
+			:	so_5::rt::agent_t( env )
+			,	m_evt_count( 0 )
+			,	m_self_mbox( so_environment().create_local_mbox() )
+			,	m_shutdowner_mbox(
+					so_environment().create_local_mbox( "shutdown" ) )
 		{}
 		virtual ~a_hello_t()
 		{}
@@ -54,13 +48,10 @@ class a_hello_t
 		void
 		evt_hello_periodic( const msg_hello_periodic & msg );
 
-		// Stop message handler.
-		void
-		evt_stop_signal();
-
 	private:
 		// Agent's mbox.
-		so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_ref_t m_self_mbox;
+		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
 
 		// Timer events' identifiers.
 		so_5::timer_thread::timer_id_ref_t m_hello_timer_id;
@@ -76,9 +67,6 @@ a_hello_t::so_define_agent()
 	// Message subscription.
 	so_subscribe( m_self_mbox )
 		.event( &a_hello_t::evt_hello_periodic );
-
-	so_subscribe( m_self_mbox )
-		.event( so_5::signal< msg_stop_signal >, &a_hello_t::evt_stop_signal );
 }
 
 void
@@ -94,7 +82,7 @@ a_hello_t::so_evt_start()
 	// Sending a greeting.
 	m_hello_timer_id =
 		so_environment()
-			.schedule_timer< msg_hello_periodic >(
+			.schedule_timer(
 				std::move( msg ),
 				m_self_mbox,
 				// Delay for a second.
@@ -106,7 +94,7 @@ a_hello_t::so_evt_start()
 	m_stop_timer_id =
 		so_environment()
 			.schedule_timer< msg_stop_signal >(
-				m_self_mbox,
+				m_shutdowner_mbox,
 				// Delay for two seconds.
 				so_5::chrono_helpers::to_ms( std::chrono::seconds(2) ),
 				// Not a periodic.
@@ -132,36 +120,52 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 		m_stop_timer_id =
 			so_environment()
 				.schedule_timer< msg_stop_signal >(
-					m_self_mbox,
+					m_shutdowner_mbox,
 					// 1300ms but specified in microsecs just for demonstration.
 					so_5::chrono_helpers::to_ms( std::chrono::microseconds(1300000) ),
 					0 );
 	}
 }
 
+// Creation of 'hello' cooperation.
 void
-a_hello_t::evt_stop_signal()
+create_hello_coop( so_5::rt::so_environment_t & env )
 {
-	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< "Stop SObjectizer..." << std::endl;
+	// Single agent can be registered as whole cooperation.
+	env.register_agent_as_coop( "hello", new a_hello_t( env ) );
+}
 
-	// Shutting down SObjectizer.
-	so_environment().stop();
+// Creation of 'shutdowner' cooperation.
+void
+create_shutdowner_coop( so_5::rt::so_environment_t & env )
+{
+	// Mbox for shutdowner agent.
+	auto mbox = env.create_local_mbox( "shutdown" );
+
+	// Cooperation for shutdowner.
+	auto coop = env.create_coop( "shutdowner" );
+	
+	// Shutdowner agent.
+	coop->define_agent()
+		.event( mbox, so_5::signal< msg_stop_signal >,
+			[&env, mbox]() {
+				time_t t = time( 0 );
+				std::cout << asctime( localtime( &t ) )
+					<< "Stop SObjectizer..." << std::endl;
+
+				// Shutting down SObjectizer.
+				env.stop();
+			} );
+
+	env.register_coop( std::move( coop ) );
 }
 
 // The SObjectizer Environment initialization.
 void
 init( so_5::rt::so_environment_t & env )
 {
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
-
-	// Adding agent to the cooperation.
-	coop->add_agent( new a_hello_t( env ) );
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
+	create_hello_coop( env );
+	create_shutdowner_coop( env );
 }
 
 int
