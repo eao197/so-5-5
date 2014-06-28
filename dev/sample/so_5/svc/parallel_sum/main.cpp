@@ -199,7 +199,7 @@ main( int argc, char ** argv )
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
 							auto coop = env.create_coop(
-									so_5::rt::nonempty_name_t( "test_coop" ),
+									"test_coop",
 									so_5::disp::active_obj::create_disp_binder(
 											"active_obj" ) );
 
