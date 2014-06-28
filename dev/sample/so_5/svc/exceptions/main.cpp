@@ -107,7 +107,7 @@ init(
 	so_5::rt::so_environment_t & env )
 	{
 		auto coop = env.create_coop(
-				so_5::rt::nonempty_name_t( "test_coop" ),
+				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 		auto svc_mbox = env.create_local_mbox();
@@ -125,11 +125,11 @@ main( int, char ** )
 			{
 				so_5::api::run_so_environment(
 					&init,
-					std::move(
-						so_5::rt::so_environment_params_t()
-							.add_named_dispatcher(
-								so_5::rt::nonempty_name_t( "active_obj" ),
-								so_5::disp::active_obj::create_disp() ) ) );
+					[]( so_5::rt::so_environment_params_t & p ) {
+						p.add_named_dispatcher(
+							"active_obj",
+							so_5::disp::active_obj::create_disp() );
+					} );
 			}
 		catch( const std::exception & ex )
 			{

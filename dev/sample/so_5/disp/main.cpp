@@ -92,8 +92,7 @@ void
 init( so_5::rt::so_environment_t & env )
 {
 	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "coop" ) );
+	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
 
 	// Adding agents which will work on the default dispatcher.
 	for( int i = 0; i < 4; ++i )
@@ -171,13 +170,13 @@ main( int, char ** argv )
 			[]( so_5::rt::so_environment_params_t & p )
 			{
 				p.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "single_thread" ),
+					"single_thread",
 					so_5::disp::one_thread::create_disp() )
 				.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_group" ),
+					"active_group",
 					so_5::disp::active_group::create_disp() )
 				.add_named_dispatcher(
-					so_5::rt::nonempty_name_t( "active_obj" ),
+					"active_obj",
 					so_5::disp::active_obj::create_disp() );
 			} );
 	}

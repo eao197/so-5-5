@@ -72,8 +72,7 @@ class shutdowner_layer_t
 		virtual void
 		start()
 		{
-			m_shutdown_mbox = so_environment().create_local_mbox(
-				so_5::rt::nonempty_name_t( "shutdown_mbox" ) );
+			m_shutdown_mbox = so_environment().create_local_mbox( "shutdown_mbox" );
 
 			so_environment().single_timer< msg_shutdown >(
 				m_shutdown_mbox,
@@ -143,8 +142,7 @@ class a_hello_t
 				base_type_t( env ),
 				m_agent_name( agent_name ),
 				m_self_mbox( so_environment().create_local_mbox() ),
-				m_common_mbox( so_environment().create_local_mbox(
-					so_5::rt::nonempty_name_t( "common_mbox" ) ) )
+				m_common_mbox( so_environment().create_local_mbox( "common_mbox" ) )
 		{}
 		virtual ~a_hello_t()
 		{}
@@ -255,8 +253,7 @@ void
 init( so_5::rt::so_environment_t & env )
 {
 	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "coop" ) );
+	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
 
 	// Adding agents to the cooperation.
 	coop->add_agent( new a_hello_t( env, "alpha" ) );

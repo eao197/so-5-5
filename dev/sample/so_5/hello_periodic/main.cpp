@@ -155,8 +155,7 @@ void
 init( so_5::rt::so_environment_t & env )
 {
 	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "coop" ) );
+	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
 
 	// Adding agent to the cooperation.
 	coop->add_agent( new a_hello_t( env ) );
