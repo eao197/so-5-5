@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
 
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
@@ -153,7 +152,7 @@ init( so_5::rt::so_environment_t & env )
 	env.register_coop( std::move( coop ) );
 
 	// Give some time to agents.
-	ACE_OS::sleep( ACE_Time_Value( 0, 200*1000 ) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
 	env.stop();
 }
 

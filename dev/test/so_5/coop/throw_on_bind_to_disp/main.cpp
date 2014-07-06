@@ -7,9 +7,10 @@
 #include <exception>
 #include <stdexcept>
 #include <cstdlib>
+#include <thread>
+#include <chrono>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
 
 #include <so_5/h/types.hpp>
 #include <so_5/rt/h/rt.hpp>
@@ -54,7 +55,7 @@ class a_ordinary_t
 					.event( &a_ordinary_t::some_handler );
 
 			// Give time to test message sender.
-			ACE_OS::sleep( ACE_Time_Value( 0, 10*1000 ) );
+			std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
 		}
 
 		virtual void

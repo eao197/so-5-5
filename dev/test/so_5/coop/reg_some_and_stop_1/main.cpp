@@ -7,8 +7,9 @@
 #include <iostream>
 #include <map>
 #include <exception>
+#include <thread>
+#include <chrono>
 
-#include <ace/Time_Value.h>
 #include <ace/OS.h>
 
 #include <so_5/rt/h/rt.hpp>
@@ -54,7 +55,7 @@ init( so_5::rt::so_environment_t & env )
 	reg_coop( "test_coop_5", env );
 	reg_coop( "test_coop_6", env );
 
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 
 	env.deregister_coop( "test_coop_1", so_5::rt::dereg_reason::normal );
 
@@ -62,7 +63,7 @@ init( so_5::rt::so_environment_t & env )
 
 	env.deregister_coop( "test_coop_3", so_5::rt::dereg_reason::normal );
 
-	ACE_OS::sleep( ACE_Time_Value( 0, 50*1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 
 	env.stop();
 }

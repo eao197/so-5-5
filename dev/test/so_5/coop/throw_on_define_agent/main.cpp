@@ -9,7 +9,6 @@
 #include <cstdlib>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
 
 #include <so_5/h/types.hpp>
 
@@ -48,7 +47,7 @@ class a_ordinary_t
 					.event( &a_ordinary_t::some_handler );
 
 			// Give some time to agent which sends messages.
-			ACE_OS::sleep( ACE_Time_Value( 0, 10*1000 ) );
+			std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
 		}
 
 		virtual void

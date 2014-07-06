@@ -13,7 +13,6 @@
 #include <stdexcept>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
 
 #include <so_5/h/types.hpp>
 
@@ -111,13 +110,13 @@ init( so_5::rt::so_environment_t & env )
 	reg_coop( "test_coop_6", test_mbox, env );
 
 	// Give time to subscription.
-	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Initiate message.
 	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
-	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	unsigned int x = test_agent_t::m_agent_count;
 	x -= test_agent_t::m_message_rec_cnt;
@@ -136,13 +135,13 @@ init( so_5::rt::so_environment_t & env )
 	test_agent_t::m_message_rec_cnt = 0;
 
 	// Give time to finish deregistration.
-	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Send another message.
 	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
-	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
+	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	x = test_agent_t::m_agent_count;
 	x -= test_agent_t::m_message_rec_cnt;

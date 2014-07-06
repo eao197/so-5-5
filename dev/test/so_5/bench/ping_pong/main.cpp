@@ -1,5 +1,6 @@
 #include <iostream>
 #include <set>
+#include <chrono>
 
 #include <cstdio>
 
@@ -8,14 +9,13 @@
 #include <ace/Log_Msg.h>
 #include <ace/OS.h>
 #include <ace/OS_main.h>
-#include <ace/Time_Value.h>
 
 #include <so_5/api/h/api.hpp>
 #include <so_5/rt/h/rt.hpp>
 
 #include <so_5/disp/active_obj/h/pub.hpp>
 
-#include <test/so_5/bench/time_value_msec_helper.hpp>
+using namespace std::chrono;
 
 struct	cfg_t
 {
@@ -93,8 +93,8 @@ try_parse_cmdline(
 
 struct	measure_result_t
 {
-	ACE_Time_Value	m_start_time;
-	ACE_Time_Value	m_finish_time;
+	steady_clock::time_point 	m_start_time;
+	steady_clock::time_point	m_finish_time;
 };
 
 struct msg_data : public so_5::rt::signal_t {};
@@ -128,7 +128,7 @@ class a_pinger_t
 		virtual void
 		so_evt_start()
 			{
-				m_measure_result.m_start_time = ACE_OS::gettimeofday();
+				m_measure_result.m_start_time = steady_clock::now();
 
 				send_ping();
 			}
@@ -142,7 +142,7 @@ class a_pinger_t
 					send_ping();
 				else
 					{
-						m_measure_result.m_finish_time = ACE_OS::gettimeofday();
+						m_measure_result.m_finish_time = steady_clock::now();
 						so_environment().stop();
 					}
 			}
@@ -210,8 +210,9 @@ show_result(
 	const cfg_t & cfg,
 	const measure_result_t & result )
 	{
-		double total_msec = milliseconds( result.m_finish_time ) -
-				milliseconds( result.m_start_time );
+		double total_msec =
+				duration_cast< milliseconds >( result.m_finish_time -
+						result.m_start_time ).count();
 
 		const unsigned int total_msg_count = cfg.m_request_count * 2;
 

@@ -15,7 +15,6 @@
 #include <time.h>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
 
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>

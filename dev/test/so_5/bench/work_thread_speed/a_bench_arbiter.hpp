@@ -8,8 +8,7 @@
 
 #include <vector>
 #include <set>
-
-#include <ace/Time_Value.h>
+#include <chrono>
 
 #include <so_5/rt/h/rt.hpp>
 
@@ -34,8 +33,6 @@ struct msg_bench_start
 	: public so_5::rt::signal_t
 {
 };
-
-
 
 // A benchmark arbiter class.
 class a_bench_arbiter_t
@@ -90,7 +87,7 @@ class a_bench_arbiter_t
 		const std::string m_cfg_file;
 
 		// Timestamp of start of benchmark.
-		ACE_Time_Value m_start_time;
+		std::chrono::steady_clock::time_point m_start_time;
 
 		std::vector< unsigned int > m_msg_bloks_size;
 

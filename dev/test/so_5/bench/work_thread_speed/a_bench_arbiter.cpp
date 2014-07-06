@@ -14,8 +14,6 @@
 
 #include <so_5/disp/active_group/h/pub.hpp>
 
-#include <test/so_5/bench/time_value_msec_helper.hpp>
-
 #include "a_bench_sender.hpp"
 #include "a_bench_receiver.hpp"
 #include "a_bench_arbiter.hpp"
@@ -103,7 +101,7 @@ a_bench_arbiter_t::so_evt_start()
 
 	m_recivers_in_work = m_recivers_total;
 	// Fixing time and...
-	m_start_time = ACE_OS::gettimeofday();
+	m_start_time = std::chrono::steady_clock::now();
 
 	// ...staring the benchmark.
 	m_self_mbox->deliver_signal< msg_bench_start >();
@@ -118,9 +116,11 @@ a_bench_arbiter_t::evt_on_bench_finish(
 
 	if( 0 == m_recivers_in_work )
 	{
+		using namespace std::chrono;
+
 		double work_time =
-			( milliseconds( ACE_OS::gettimeofday() ) -
-			milliseconds( m_start_time ) ) / 1000.0;
+			duration_cast< milliseconds >( steady_clock::now() -
+				m_start_time ).count() / 1000.0;
 
 		std::cout
 			<< "messages: " << m_total_message_count

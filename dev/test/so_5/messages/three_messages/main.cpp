@@ -7,7 +7,6 @@
 #include <stdexcept>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
 
 #include <so_5/h/types.hpp>
 
