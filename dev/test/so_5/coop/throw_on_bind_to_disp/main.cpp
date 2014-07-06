@@ -16,8 +16,8 @@
 #include <so_5/api/h/api.hpp>
 #include <so_5/disp/active_obj/h/pub.hpp>
 
-so_5::atomic_counter_t g_agents_count = 0;
-so_5::atomic_counter_t g_evt_count = 0;
+so_5::atomic_counter_t g_agents_count;
+so_5::atomic_counter_t g_evt_count;
 
 so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
@@ -195,14 +195,13 @@ main( int argc, char * argv[] )
 						"active_obj",
 						so_5::disp::active_obj::create_disp() ) ) );
 
-		if( 0 != g_agents_count.value() )
+		if( 0 != g_agents_count )
 		{
-			std::cerr << "g_agents_count: "
-				<< g_agents_count.value() << "\n";
+			std::cerr << "g_agents_count: " << g_agents_count << "\n";
 			throw std::runtime_error( "g_agents_count != 0" );
 		}
 
-		std::cout << "event handled: " << g_evt_count.value() << "\n";
+		std::cout << "event handled: " << g_evt_count << "\n";
 	}
 	catch( const std::exception & ex )
 	{

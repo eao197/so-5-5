@@ -132,11 +132,11 @@ agent_coop_t::agent_coop_t(
 	:	m_coop_name( name.query_name() )
 	,	m_coop_disp_binder( std::move(coop_disp_binder) )
 	,	m_env( env )
-	,	m_reference_count( 0 )
 	,	m_parent_coop_ptr( nullptr )
 	,	m_registration_status( COOP_NOT_REGISTERED )
 	,	m_exception_reaction( inherit_exception_reaction )
 {
+	m_reference_count = 0l;
 }
 
 const std::string &

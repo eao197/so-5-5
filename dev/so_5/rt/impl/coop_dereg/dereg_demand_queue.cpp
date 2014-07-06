@@ -4,6 +4,8 @@
 
 #include <so_5/rt/impl/coop_dereg/h/dereg_demand_queue.hpp>
 
+#include <ace/Guard_T.h>
+
 namespace so_5
 {
 

@@ -11,10 +11,10 @@
 #define _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_
 
 #include <deque>
+#include <atomic>
 
 #include <ace/Thread_Mutex.h>
 #include <ace/Condition_Thread_Mutex.h>
-#include <ace/Atomic_Op.h>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -275,7 +275,7 @@ class work_thread_t
 		/*!
 		 * Available values are: WORK_THREAD_STOP, WORK_THREAD_CONTINUE
 		 */
-		ACE_Atomic_Op< ACE_Thread_Mutex, long > m_continue_work;
+		std::atomic_long m_continue_work;
 
 		//! Thread identifier for this object.
 		/*!

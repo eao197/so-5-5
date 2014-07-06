@@ -65,8 +65,8 @@ class test_agent_t
 
 };
 
-so_5::atomic_counter_t test_agent_t::m_agent_count = 0;
-so_5::atomic_counter_t test_agent_t::m_message_rec_cnt = 0;
+so_5::atomic_counter_t test_agent_t::m_agent_count;
+so_5::atomic_counter_t test_agent_t::m_message_rec_cnt;
 
 void
 test_agent_t::so_define_agent()
@@ -119,8 +119,8 @@ init( so_5::rt::so_environment_t & env )
 	// Give time to process message.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
-	unsigned int x = test_agent_t::m_agent_count.value();
-	x -= test_agent_t::m_message_rec_cnt.value();
+	unsigned int x = test_agent_t::m_agent_count;
+	x -= test_agent_t::m_message_rec_cnt;
 	if( 0 != x )
 		throw std::runtime_error(
 			"check 1: test_agent_t::m_agent_count != "
@@ -144,8 +144,8 @@ init( so_5::rt::so_environment_t & env )
 	// Give time to process message.
 	ACE_OS::sleep( ACE_Time_Value( 0, 100*1000) );
 
-	x = test_agent_t::m_agent_count.value();
-	x -= test_agent_t::m_message_rec_cnt.value();
+	x = test_agent_t::m_agent_count;
+	x -= test_agent_t::m_message_rec_cnt;
 	if( 0 != x )
 		throw std::runtime_error(
 			"check 2: test_agent_t::m_agent_count != "

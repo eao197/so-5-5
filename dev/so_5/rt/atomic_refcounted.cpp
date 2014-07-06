@@ -11,9 +11,8 @@ namespace rt
 {
 
 atomic_refcounted_t::atomic_refcounted_t()
-	:
-		m_ref_counter( 0 )
 {
+	m_ref_counter = 0l;
 }
 
 atomic_refcounted_t::~atomic_refcounted_t()

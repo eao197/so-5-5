@@ -208,11 +208,11 @@ work_thread_t::body()
 
 	int result = demand_queue_t::no_demands;
 
-	while( m_continue_work.value() == WORK_THREAD_CONTINUE )
+	while( m_continue_work == WORK_THREAD_CONTINUE )
 	{
 		try
 		{
-			while( m_continue_work.value() == WORK_THREAD_CONTINUE )
+			while( m_continue_work == WORK_THREAD_CONTINUE )
 			{
 				// If the local queue is empty then we should try
 				// to get new demands.
