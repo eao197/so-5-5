@@ -6,9 +6,6 @@
 
 #include <cpp_util_2/h/lexcast.hpp>
 
-#include <ace/Guard_T.h>
-#include <ace/Thread_Manager.h>
-
 #include <so_5/h/log_err.hpp>
 
 #include <so_5/rt/h/agent.hpp>
@@ -169,18 +166,7 @@ work_thread_t::start()
 	m_queue.start_service();
 	m_continue_work = WORK_THREAD_CONTINUE;
 
-	if( -1 == ACE_Thread_Manager::instance()->spawn(
-			entry_point,
-			this,
-			THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED,
-			&m_tid ) )
-	{
-		SO_5_THROW_EXCEPTION(
-				rc_unexpected_error,
-				"work_thread_t::start(): call of "
-				"ACE_Thread_Manager::instance()->spawn() failed, last_error: " +
-				cpp_util_2::slexcast( ACE_OS::last_error() ) );
-	}
+	m_thread.reset( new std::thread( [this]() { body(); } ) );
 }
 
 void
@@ -193,7 +179,7 @@ work_thread_t::shutdown()
 void
 work_thread_t::wait()
 {
-	ACE_Thread_Manager::instance()->join( m_tid );
+	m_thread->join();
 
 	m_queue.clear();
 }
@@ -399,17 +385,6 @@ work_thread_t::serve_demands_block(
 
 		demands.pop_front();
 	}
-}
-
-ACE_THR_FUNC_RETURN
-work_thread_t::entry_point( void * self_object )
-{
-	work_thread_t * work_thread =
-		reinterpret_cast<work_thread_t *>( self_object );
-
-	work_thread->body();
-
-	return 0;
 }
 
 } /* namespace work_thread */

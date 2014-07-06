@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <mutex>
 
 #include <ace/OS.h>
 
@@ -100,7 +101,7 @@ class sequence_holder_t
 		void
 		add( const std::string & msg )
 		{
-			ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+			std::lock_guard< std::mutex > lock( m_lock );
 			m_seq.push_back( msg );
 		}
 
@@ -111,7 +112,7 @@ class sequence_holder_t
 		}
 
 	private :
-		ACE_Thread_Mutex m_lock;
+		std::mutex m_lock;
 
 		seq_t m_seq;
 };

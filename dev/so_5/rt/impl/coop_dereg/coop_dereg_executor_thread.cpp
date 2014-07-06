@@ -6,8 +6,6 @@
 
 #include <cpp_util_2/h/lexcast.hpp>
 
-#include <ace/Thread_Manager.h>
-
 #include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
 
 namespace so_5
@@ -40,18 +38,7 @@ coop_dereg_executor_thread_t::start()
 	// Queue must be informed.
 	m_dereg_demand_queue.start_service();
 
-	if( -1 == ACE_Thread_Manager::instance()->spawn(
-			entry_point,
-			this,
-			THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED,
-			&m_tid ) )
-	{
-		SO_5_THROW_EXCEPTION(
-				rc_unexpected_error,
-				"coop_dereg_executor_thread_t::start(): call of "
-				"ACE_Thread_Manager::instance()->spawn() failed, last_error: " +
-				cpp_util_2::slexcast( ACE_OS::last_error() ) );
-	}
+	m_thread.reset( new std::thread( [this]() { body(); } ) );
 }
 
 void
@@ -59,7 +46,7 @@ coop_dereg_executor_thread_t::finish()
 {
 	m_dereg_demand_queue.stop_service();
 
-	ACE_Thread_Manager::instance()->join( m_tid );
+	m_thread->join();
 }
 
 void
@@ -90,17 +77,6 @@ coop_dereg_executor_thread_t::body()
 			exec_final_coop_dereg );
 	}
 	while( !demands.empty() );
-}
-
-ACE_THR_FUNC_RETURN
-coop_dereg_executor_thread_t::entry_point( void * self_object )
-{
-	coop_dereg_executor_thread_t * coop_dereg_executor_thread =
-		reinterpret_cast<coop_dereg_executor_thread_t *>( self_object );
-
-	coop_dereg_executor_thread->body();
-
-	return 0;
 }
 
 } /* namespace coop_dereg */

@@ -14,6 +14,8 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
+#include <memory>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -253,10 +255,6 @@ class work_thread_t
 			//! Bunch of demands to be processed.
 			demand_container_t & executed_demands );
 
-		//! Thread entry point for the ACE_Thread_Manager.
-		static ACE_THR_FUNC_RETURN
-		entry_point( void * self_object );
-
 	private:
 		//! Demands queue.
 		demand_queue_t m_queue;
@@ -276,11 +274,8 @@ class work_thread_t
 		 */
 		std::atomic_long m_continue_work;
 
-		//! Thread identifier for this object.
-		/*!
-			\note m_tid has the actual value only after start().
-		*/
-		ACE_thread_t m_tid;
+		//! Actual working thread.
+		std::unique_ptr< std::thread > m_thread;
 
 		//! Owner of this working thread.
 		/*!

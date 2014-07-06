@@ -10,6 +10,9 @@
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__COOP_DEREG_EXECUTOR_THREAD_HPP_ )
 #define _SO_5__RT__IMPL__COOP_DEREG__COOP_DEREG_EXECUTOR_THREAD_HPP_
 
+#include <thread>
+#include <memory>
+
 #include <so_5/rt/impl/coop_dereg/h/dereg_demand_queue.hpp>
 
 #include <so_5/rt/h/agent_coop.hpp>
@@ -60,19 +63,12 @@ class coop_dereg_executor_thread_t
 		void
 		body();
 
-		//! Thread entry point for the ACE_Thread_Manager.
-		static ACE_THR_FUNC_RETURN
-		entry_point( void * self_object );
-
 	private:
 		//! Waiting queue.
 		dereg_demand_queue_t m_dereg_demand_queue;
 
-		//! This thread id.
-		/*!
-			\note m_tid has the actual value only after start().
-		*/
-		ACE_thread_t m_tid;
+		//! Actual thread object.
+		std::unique_ptr< std::thread > m_thread;
 };
 
 } /* namespace coop_dereg */

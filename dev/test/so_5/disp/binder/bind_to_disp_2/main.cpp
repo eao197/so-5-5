@@ -52,21 +52,21 @@ class test_agent_t
 		}
 
 	private:
-		static ACE_Thread_Mutex m_lock;
-		static std::set< ACE_thread_t > m_threads;
+		static std::mutex m_lock;
+		static std::set< std::thread::id > m_threads;
 		static bool m_test_ok;
 };
 
-ACE_Thread_Mutex test_agent_t::m_lock;
-std::set< ACE_thread_t > test_agent_t::m_threads;
+std::mutex test_agent_t::m_lock;
+std::set< std::thread::id > test_agent_t::m_threads;
 bool test_agent_t::m_test_ok = true;
 
 void
 test_agent_t::so_evt_start()
 {
-	ACE_thread_t tid = ACE_Thread_Manager::instance()->thr_self();
+	auto tid = std::this_thread::get_id();
 
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( m_threads.end() != m_threads.find( tid ) )
 		m_test_ok = false;
@@ -93,7 +93,7 @@ class test_agent_finisher_t
 		virtual void
 		so_evt_start()
 		{
-			ACE_OS::sleep( ACE_Time_Value( 0, 200*1000 ) );
+			std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
 			so_environment().stop();
 		}
 };
@@ -136,9 +136,6 @@ main( int argc, char * argv[] )
 
 		if( !test_agent_t::ok() )
 			throw std::runtime_error( "!test_agent_t::ok()" );
-
-		// Wait all threads to finish.
-		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
 	{

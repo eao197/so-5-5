@@ -12,8 +12,6 @@
 #include <iomanip>
 #include <time.h>
 
-#include <ace/Thread_Manager.h>
-
 #include <so_5/rt/h/rt.hpp>
 
 #include <so_5/disp/active_group/h/pub.hpp>
@@ -78,9 +76,6 @@ int main( int argc, char **argv )
 	{
 		so_environment_t env( cfg_file );
 		env.run();
-
-		// Wait for finish of all threads.
-		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
 	{
