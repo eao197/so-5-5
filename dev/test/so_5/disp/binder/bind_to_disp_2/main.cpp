@@ -10,9 +10,6 @@
 
 #include <ace/OS.h>
 #include <ace/Time_Value.h>
-#include <ace/Thread_Mutex.h>
-#include <ace/Thread_Manager.h>
-#include <ace/Guard_T.h>
 
 #include <so_5/h/types.hpp>
 

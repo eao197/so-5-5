@@ -8,8 +8,6 @@
 #include <memory>
 #include <map>
 
-#include <ace/Thread_Manager.h>
-
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
@@ -65,9 +63,6 @@ main( int argc, char * argv[] )
 				so_5::rt::so_environment_params_t()
 					.mbox_mutex_pool_size( 2 )
 					.agent_event_queue_mutex_pool_size( 2 ) ) );
-
-		// Wait all threads to finish.
-		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
 	{

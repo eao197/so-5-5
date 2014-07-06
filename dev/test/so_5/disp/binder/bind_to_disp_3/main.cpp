@@ -7,12 +7,10 @@
 #include <stdexcept>
 #include <memory>
 #include <map>
+#include <thread>
+#include <mutex>
 
 #include <ace/OS.h>
-#include <ace/Time_Value.h>
-#include <ace/Thread_Mutex.h>
-#include <ace/Thread_Manager.h>
-#include <ace/Guard_T.h>
 
 #include <so_5/h/types.hpp>
 
@@ -21,9 +19,7 @@
 
 #include <so_5/disp/active_group/h/pub.hpp>
 
-typedef std::map<
-		ACE_thread_t,
-		unsigned int >
+typedef std::map< std::thread::id, unsigned int >
 	threads_count_map_t;
 
 class test_agent_t
@@ -54,8 +50,7 @@ class test_agent_t
 		static bool
 		ok()
 		{
-			threads_count_map_t::const_iterator it =
-				m_threads.begin();
+			threads_count_map_t::const_iterator it = m_threads.begin();
 			for(; it != m_threads.end(); ++it )
 				if( agents_cout() != it->second )
 				{
@@ -68,20 +63,20 @@ class test_agent_t
 		}
 
 	private:
-		static ACE_Thread_Mutex m_lock;
+		static std::mutex m_lock;
 		static threads_count_map_t m_threads;
 		static bool m_test_ok;
 };
 
-ACE_Thread_Mutex test_agent_t::m_lock;
-std::map< ACE_thread_t, unsigned int > test_agent_t::m_threads;
+std::mutex test_agent_t::m_lock;
+std::map< std::thread::id, unsigned int > test_agent_t::m_threads;
 
 void
 test_agent_t::so_evt_start()
 {
-	ACE_thread_t tid = ACE_Thread_Manager::instance()->thr_self();
+	auto tid = std::this_thread::get_id();
 
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( m_threads.end() == m_threads.find( tid ) )
 		m_threads[ tid ] = 1;
@@ -107,7 +102,7 @@ class test_agent_finisher_t
 		virtual void
 		so_evt_start()
 		{
-			ACE_OS::sleep( ACE_Time_Value( 0, 200*1000 ) );
+			std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
 			so_environment().stop();
 		}
 };
@@ -163,9 +158,6 @@ main( int argc, char * argv[] )
 
 		if( !test_agent_t::ok() )
 			throw std::runtime_error( "!test_agent_t::ok()" );
-
-		// Wait all threads to finish.
-		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
 	{

@@ -8,8 +8,6 @@
 #include <memory>
 #include <map>
 
-#include <ace/Thread_Manager.h>
-
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
@@ -71,9 +69,6 @@ main( int argc, char * argv[] )
 					.add_named_dispatcher(
 						so_5::rt::nonempty_name_t( "active_obj" ),
 						so_5::disp::active_obj::create_disp() ) ) );
-
-		// Wait all threads to finish.
-		ACE_Thread_Manager::instance()->wait();
 	}
 	catch( const std::exception & ex )
 	{

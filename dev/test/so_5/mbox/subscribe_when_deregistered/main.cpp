@@ -5,10 +5,10 @@
 
 #include <iostream>
 #include <exception>
+#include <mutex>
+#include <condition_variable>
 
 #include <ace/OS.h>
-#include <ace/Thread_Mutex.h>
-#include <ace/Condition_Thread_Mutex.h>
 
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
@@ -87,11 +87,11 @@ test_agent_t::so_evt_finish()
 class stage_monitors_t
 {
 	private :
-		ACE_Thread_Mutex m_reg_mutex;
-		ACE_Condition< ACE_Thread_Mutex > m_reg_signal;
+		std::mutex m_reg_mutex;
+		std::condition_variable m_reg_signal;
 
-		ACE_Thread_Mutex m_dereg_mutex;
-		ACE_Condition< ACE_Thread_Mutex > m_dereg_signal;
+		std::mutex m_dereg_mutex;
+		std::condition_variable m_dereg_signal;
 
 		enum stage_t {
 			NOT_STARTED,
@@ -103,41 +103,39 @@ class stage_monitors_t
 
 	public :
 		stage_monitors_t()
-			:	m_reg_signal( m_reg_mutex )
-			,	m_dereg_signal( m_dereg_mutex )
-			,	m_stage( NOT_STARTED )
+			:	m_stage( NOT_STARTED )
 		{}
 
 		void
 		wait_for_registration()
 		{
-			ACE_Guard< ACE_Thread_Mutex > lock( m_reg_mutex );
+			std::unique_lock< std::mutex > lock( m_reg_mutex );
 			if( COOP_REGISTERED != m_stage )
-				m_reg_signal.wait();
+				m_reg_signal.wait( lock );
 		}
 
 		void
 		notify_about_registration()
 		{
-			ACE_Guard< ACE_Thread_Mutex > lock( m_reg_mutex );
+			std::unique_lock< std::mutex > lock( m_reg_mutex );
 			m_stage = COOP_REGISTERED;
-			m_reg_signal.signal();
+			m_reg_signal.notify_one();
 		}
 
 		void
 		wait_for_deregistration()
 		{
-			ACE_Guard< ACE_Thread_Mutex > lock( m_dereg_mutex );
+			std::unique_lock< std::mutex > lock( m_dereg_mutex );
 			if( COOP_DEREGISTERED != m_stage )
-				m_dereg_signal.wait();
+				m_dereg_signal.wait( lock );
 		}
 
 		void
 		notify_about_deregistration()
 		{
-			ACE_Guard< ACE_Thread_Mutex > lock( m_dereg_mutex );
+			std::unique_lock< std::mutex > lock( m_dereg_mutex );
 			m_stage = COOP_DEREGISTERED;
-			m_dereg_signal.signal();
+			m_dereg_signal.notify_one();
 		}
 };
 
