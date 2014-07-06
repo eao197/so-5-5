@@ -113,7 +113,7 @@ main( int argc, char ** argv )
 		{
 			std::cerr << "expected and actual message_counter value mismatch, "
 					"actual value: " << env.m_message_counter << std::endl;
-			ACE_OS::abort();
+			std::abort();
 		}
 
 		return 0;

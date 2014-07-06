@@ -250,7 +250,7 @@ work_thread_t::handle_exception(
 					 	"exception '%s' from cooperation '%s'" ),
 				 ex.what(),
 				 a_exception_producer.so_coop_name().c_str()) );
-		ACE_OS::abort();
+		std::abort();
 	}
 	else if( so_5::rt::shutdown_sobjectizer_on_exception == reaction )
 	{
@@ -296,7 +296,7 @@ work_thread_t::handle_exception(
 				 ex.what(),
 				 a_exception_producer.so_coop_name().c_str()) );
 
-		ACE_OS::abort();
+		std::abort();
 	}
 }
 
@@ -333,7 +333,7 @@ work_thread_t::log_unhandled_exception(
 				 ex_to_log.what(),
 				 a_exception_producer.so_coop_name().c_str()) );
 
-		ACE_OS::abort();
+		std::abort();
 	}
 }
 
@@ -355,7 +355,7 @@ work_thread_t::switch_agent_to_special_state_and_shutdown_sobjectizer(
 						"processing. Application will be aborted." ),
 				 x.what()) );
 
-		ACE_OS::abort();
+		std::abort();
 	}
 }
 
@@ -381,7 +381,7 @@ work_thread_t::switch_agent_to_special_state_and_deregister_coop(
 				 x.what(),
 				 coop_name.c_str()) );
 
-		ACE_OS::abort();
+		std::abort();
 	}
 }
 

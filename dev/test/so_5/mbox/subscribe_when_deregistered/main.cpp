@@ -50,7 +50,7 @@ class test_agent_t
 	handler ( const so_5::rt::event_data_t< msg > & ) \
 	{\
 		std::cerr << "Error: " #msg " handler called..." << std::endl; \
-		ACE_OS::abort(); \
+		std::abort(); \
 	}
 		ABORT_HANDLER( handler1, msg1 )
 		ABORT_HANDLER( handler2, msg2 )

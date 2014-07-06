@@ -255,7 +255,7 @@ deregistration_processor_t::initiate_abort_on_exception(
 					m_root_coop_name.c_str(),
 					x.what() ) );
 
-	ACE_OS::abort();
+	std::abort();
 }
 
 } /* namespace agent_core_details */

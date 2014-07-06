@@ -13,7 +13,7 @@
 
 #define PERROR_AND_ABORT__(file, line, condition_text) \
 	std::cerr << file << ":" << line << ": exception expected but not thrown: " << condition_text << std::endl; \
-	ACE_OS::abort();
+	std::abort();
 
 #define ENSURE_EXCEPTION(condition) \
 { \
@@ -70,7 +70,7 @@ class test_agent_t
 			const so_5::rt::event_data_t< msg_test > & )
 		{
 			std::cerr << "Error: evt_handler3 called..." << std::endl;
-			ACE_OS::abort();
+			std::abort();
 		}
 
 		void

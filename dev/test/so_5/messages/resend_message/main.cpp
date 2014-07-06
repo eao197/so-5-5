@@ -58,7 +58,7 @@ class controller_t
 						<< state_name( m_state ) << " expected state: "
 						<< state_name( expected_state );
 
-				ACE_OS::abort();
+				std::abort();
 			}
 		}
 
@@ -69,7 +69,7 @@ class controller_t
 			if( m_msg_ptr != ptr )
 			{
 				std::cerr << "message pointers mismatch!";
-				ACE_OS::abort();
+				std::abort();
 			}
 		}
 

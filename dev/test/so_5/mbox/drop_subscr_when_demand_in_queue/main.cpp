@@ -66,7 +66,7 @@ class a_test_t : public so_5::rt::agent_t
 		void
 		evt_two( const so_5::rt::event_data_t< msg_two > & )
 		{
-			ACE_OS::abort();
+			std::abort();
 		}
 
 		void

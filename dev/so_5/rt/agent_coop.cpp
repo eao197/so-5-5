@@ -359,7 +359,7 @@ agent_coop_t::start_all_agents()
 						m_coop_name.c_str(),
 						x.what() ) );
 
-		ACE_OS::abort();
+		std::abort();
 	}
 }
 
@@ -384,7 +384,7 @@ agent_coop_t::shutdown_all_agents()
 						m_coop_name.c_str(),
 						x.what() ) );
 
-		ACE_OS::abort();
+		std::abort();
 	}
 }
 
