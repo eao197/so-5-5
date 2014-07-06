@@ -10,8 +10,8 @@
 #if !defined( _SO_5__RT__IMPL__COOP_DEREG__DEREG_DEMAND_QUEUE_HPP_ )
 #define _SO_5__RT__IMPL__COOP_DEREG__DEREG_DEMAND_QUEUE_HPP_
 
-#include <ace/Thread_Mutex.h>
-#include <ace/Condition_Thread_Mutex.h>
+#include <mutex>
+#include <condition_variable>
 
 #include <so_5/rt/h/agent_coop.hpp>
 
@@ -76,10 +76,10 @@ class dereg_demand_queue_t
 		dereg_demand_container_t m_demands;
 
 		//! Object lock.
-		ACE_Thread_Mutex m_lock;
+		std::mutex m_lock;
 
 		//! Condition variable for waking up a sleeping thread.
-		ACE_Condition_Thread_Mutex m_not_empty;
+		std::condition_variable m_not_empty;
 
 		//! Working status.
 		/*!

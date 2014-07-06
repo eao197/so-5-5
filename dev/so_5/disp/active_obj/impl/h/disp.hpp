@@ -11,8 +11,7 @@
 #define _SO_5__DISP__ACTIVE_OBJ__IMPL__DISP_HPP_
 
 #include <map>
-
-#include <ace/Thread_Mutex.h>
+#include <mutex>
 
 #include <so_5/rt/h/disp.hpp>
 
@@ -92,7 +91,7 @@ class dispatcher_t
 		bool m_shutdown_started;
 
 		//! This object lock.
-		ACE_Thread_Mutex m_lock;
+		std::mutex m_lock;
 };
 
 } /* namespace impl */

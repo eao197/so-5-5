@@ -14,9 +14,8 @@
 #include <memory>
 #include <set>
 #include <string>
-
-#include <ace/Thread_Mutex.h>
-#include <ace/Condition_Thread_Mutex.h>
+#include <mutex>
+#include <condition_variable>
 
 #include <so_5/h/exception.hpp>
 
@@ -248,16 +247,16 @@ class agent_core_t
 		so_environment_t & m_so_environment;
 
 		//! Mutex pool for agent's event queues.
-		util::mutex_pool_t< ACE_Thread_Mutex > m_agent_queue_mutex_pool;
+		util::mutex_pool_t< std::mutex > m_agent_queue_mutex_pool;
 
 		//! Lock for operations on cooperations.
-		ACE_Thread_Mutex m_coop_operations_lock;
+		std::mutex m_coop_operations_lock;
 
 		//! Condition variable for the deregistration start indication.
-		ACE_Condition_Thread_Mutex m_deregistration_started_cond;
+		std::condition_variable m_deregistration_started_cond;
 
 		//! Condition variable for the deregistration finish indication.
-		ACE_Condition_Thread_Mutex m_deregistration_finished_cond;
+		std::condition_variable m_deregistration_finished_cond;
 
 		//! Indicator for all cooperation deregistration.
 		bool m_deregistration_started;

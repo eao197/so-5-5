@@ -10,7 +10,7 @@
 #if !defined( _SO_5__RT__IMPL__DISP_CORE_HPP_ )
 #define _SO_5__RT__IMPL__DISP_CORE_HPP_
 
-#include <ace/Thread_Mutex.h>
+#include <mutex>
 
 #include <so_5/h/ret_code.hpp>
 #include <so_5/rt/h/so_environment.hpp>
@@ -91,7 +91,7 @@ class disp_core_t
 		named_dispatcher_map_t m_named_dispatcher_map;
 
 		//! Exception logger object lock.
-		ACE_Thread_Mutex m_exception_logger_lock;
+		std::mutex m_exception_logger_lock;
 
 		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;

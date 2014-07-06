@@ -4,6 +4,7 @@
 
 #include <cstdlib>
 #include <algorithm>
+#include <mutex>
 
 #include <ace/Guard_T.h>
 
@@ -36,7 +37,7 @@ dispatcher_t::~dispatcher_t()
 void
 dispatcher_t::start()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 	m_shutdown_started = false;
 }
 
@@ -50,7 +51,7 @@ call_shutdown( AGENT_DISP & agent_disp )
 void
 dispatcher_t::shutdown()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	// Starting shutdown process.
 	// New groups will not be created. But old groups remain.
@@ -90,7 +91,7 @@ dispatcher_t::put_event_execution_request(
 so_5::rt::dispatcher_t &
 dispatcher_t::query_disp_for_group( const std::string & group_name )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( m_shutdown_started )
 		throw so_5::exception_t(
@@ -120,7 +121,7 @@ dispatcher_t::query_disp_for_group( const std::string & group_name )
 void
 dispatcher_t::release_disp_for_group( const std::string & group_name )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( !m_shutdown_started )
 	{

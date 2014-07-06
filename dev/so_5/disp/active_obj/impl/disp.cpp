@@ -36,7 +36,7 @@ dispatcher_t::~dispatcher_t()
 void
 dispatcher_t::start()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 	m_shutdown_started = false;
 }
 
@@ -50,7 +50,7 @@ call_shutdown( AGENT_DISP & agent_disp )
 void
 dispatcher_t::shutdown()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	// During the shutdown new threads will not be created.
 	m_shutdown_started = true;
@@ -89,7 +89,7 @@ dispatcher_t::put_event_execution_request(
 so_5::rt::dispatcher_t &
 dispatcher_t::create_disp_for_agent( const so_5::rt::agent_t & agent )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( m_shutdown_started )
 		throw so_5::exception_t(
@@ -113,7 +113,7 @@ dispatcher_t::create_disp_for_agent( const so_5::rt::agent_t & agent )
 void
 dispatcher_t::destroy_disp_for_agent( const so_5::rt::agent_t & agent )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( !m_shutdown_started )
 	{

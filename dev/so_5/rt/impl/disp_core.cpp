@@ -87,7 +87,7 @@ disp_core_t::install_exception_logger(
 {
 	if( nullptr != logger.get() )
 	{
-		ACE_Guard< ACE_Thread_Mutex > lock( m_exception_logger_lock );
+		std::lock_guard< std::mutex > lock( m_exception_logger_lock );
 
 		event_exception_logger_unique_ptr_t old_logger;
 		old_logger.swap( m_event_exception_logger );
@@ -102,7 +102,7 @@ disp_core_t::call_exception_logger(
 	const std::exception & event_exception,
 	const std::string & coop_name )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_exception_logger_lock );
+	std::lock_guard< std::mutex > lock( m_exception_logger_lock );
 
 	m_event_exception_logger->log_exception( event_exception, coop_name );
 }

@@ -31,8 +31,6 @@ namespace work_thread
 // demand_queue
 //
 demand_queue_t::demand_queue_t()
-	:
-		m_not_empty( m_lock )
 {
 }
 
@@ -46,7 +44,7 @@ demand_queue_t::push(
 	so_5::rt::agent_t * agent_ptr,
 	unsigned int event_cnt )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( m_in_service )
 	{
@@ -77,7 +75,7 @@ demand_queue_t::push(
 		{
 			// May be someone is waiting...
 			// It should be informed about new demands.
-			m_not_empty.signal();
+			m_not_empty.notify_one();
 		}
 	}
 }
@@ -86,7 +84,7 @@ int
 demand_queue_t::pop(
 	demand_container_t & demands )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::unique_lock< std::mutex > lock( m_lock );
 
 	while( true )
 	{
@@ -101,7 +99,7 @@ demand_queue_t::pop(
 		{
 			// Queue is empty. We should wait for a demand or
 			// a shutdown signal.
-			m_not_empty.wait();
+			m_not_empty.wait( lock );
 		}
 	}
 
@@ -111,7 +109,7 @@ demand_queue_t::pop(
 void
 demand_queue_t::start_service()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 
 	m_in_service = true;
 }
@@ -121,7 +119,7 @@ demand_queue_t::stop_service()
 {
 	bool is_someone_waiting_us = false;
 	{
-		ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+		std::lock_guard< std::mutex > lock( m_lock );
 
 		m_in_service = false;
 		// If the demands queue is empty then someone is waiting
@@ -131,13 +129,13 @@ demand_queue_t::stop_service()
 
 	// In case if someone is waiting.
 	if( is_someone_waiting_us )
-		m_not_empty.signal();
+		m_not_empty.notify_one();
 }
 
 void
 demand_queue_t::clear()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_lock );
+	std::lock_guard< std::mutex > lock( m_lock );
 	m_demands.clear();
 }
 

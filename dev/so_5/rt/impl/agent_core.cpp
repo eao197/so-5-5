@@ -116,7 +116,7 @@ deregistration_processor_t::process()
 void
 deregistration_processor_t::first_stage()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_core.m_coop_operations_lock );
+	std::lock_guard< std::mutex > lock( m_core.m_coop_operations_lock );
 
 	if( m_core.m_deregistered_coop.end() ==
 			m_core.m_deregistered_coop.find( m_root_coop_name ) )
@@ -267,8 +267,6 @@ agent_core_t::agent_core_t(
 	:
 		m_so_environment( so_environment ),
 		m_agent_queue_mutex_pool( agent_queue_mutex_pool_size ),
-		m_deregistration_started_cond( m_coop_operations_lock ),
-		m_deregistration_finished_cond( m_coop_operations_lock ),
 		m_deregistration_started( false ),
 		m_coop_listener( std::move( coop_listener ) )
 {
@@ -359,7 +357,7 @@ agent_core_t::register_coop(
 	try
 	{
 		// All the following actions should be taken under the lock.
-		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
+		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
 		// Name should be unique.
 		ensure_new_coop_name_unique( coop_ref->query_coop_name() );
@@ -414,7 +412,7 @@ agent_core_t::final_deregister_coop(
 
 	bool need_signal_dereg_finished;
 	{
-		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
+		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
 		notification_info = finaly_remove_cooperation_info( coop_name );
 
@@ -425,7 +423,7 @@ agent_core_t::final_deregister_coop(
 	}
 
 	if( need_signal_dereg_finished )
-		m_deregistration_finished_cond.signal();
+		m_deregistration_finished_cond.notify_one();
 
 	do_coop_dereg_notification_if_necessary(
 			coop_name,
@@ -437,7 +435,7 @@ agent_core_t::start_deregistration()
 {
 	bool signal_deregistration_started = false;
 	{
-		ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
+		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
 		if( !m_deregistration_started )
 		{
@@ -447,22 +445,22 @@ agent_core_t::start_deregistration()
 	}
 
 	if( signal_deregistration_started )
-		m_deregistration_started_cond.signal();
+		m_deregistration_started_cond.notify_one();
 }
 
 void
 agent_core_t::wait_for_start_deregistration()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
+	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
 	if( !m_deregistration_started )
-		m_deregistration_started_cond.wait();
+		m_deregistration_started_cond.wait( lock );
 }
 
 void
 agent_core_t::deregister_all_coop()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
+	std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
 	for( auto it = m_registered_coop.begin(), it_end = m_registered_coop.end();
 			it != it_end;
@@ -482,14 +480,14 @@ agent_core_t::deregister_all_coop()
 void
 agent_core_t::wait_all_coop_to_deregister()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_coop_operations_lock );
+	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
 	// Must wait for a signal is there are cooperations in
 	// the deregistration process.
 	if( !m_deregistered_coop.empty() )
 	{
 		// Wait for the deregistration finish.
-		m_deregistration_finished_cond.wait();
+		m_deregistration_finished_cond.wait( lock );
 	}
 }
 

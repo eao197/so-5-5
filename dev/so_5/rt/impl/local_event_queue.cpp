@@ -4,8 +4,6 @@
 
 #include <cstdlib>
 
-#include <ace/Guard_T.h>
-
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/impl/h/local_event_queue.hpp>
@@ -25,7 +23,7 @@ namespace impl
 //
 
 local_event_queue_t::local_event_queue_t(
-	util::mutex_pool_t< ACE_Thread_Mutex > & mutex_pool )
+	util::mutex_pool_t< std::mutex > & mutex_pool )
 	:
 		m_mutex_pool( mutex_pool ),
 		m_lock( m_mutex_pool.allocate_mutex() )

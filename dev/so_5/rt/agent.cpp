@@ -2,8 +2,6 @@
 	SObjectizer 5.
 */
 
-#include <ace/Guard_T.h>
-
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/so_environment.hpp>
@@ -218,7 +216,7 @@ agent_t::bind_to_disp(
 void
 agent_t::start_agent()
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
@@ -247,7 +245,7 @@ agent_t::shutdown_agent()
 	consumers_map_t subscriptions;
 	{
 		// Step #1. Must be done on locked object.
-		ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+		std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 		m_is_coop_deregistered = true;
 		m_event_consumers_map.swap( subscriptions );
@@ -260,7 +258,7 @@ agent_t::shutdown_agent()
 
 	{
 		// Step #3. Must be done on locked object.
-		ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+		std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 		// A final event handler should be added.
 		m_local_event_queue->push(
@@ -298,7 +296,7 @@ agent_t::create_event_subscription(
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 	if( m_is_coop_deregistered )
 		return;
@@ -380,7 +378,7 @@ agent_t::do_drop_subscription(
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
@@ -408,7 +406,7 @@ agent_t::do_drop_subscription_for_all_states(
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
@@ -428,7 +426,7 @@ agent_t::push_event(
 	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 	// Event can be added only if the agent is not deregistered yet.
 	if( !m_is_coop_deregistered )
@@ -448,7 +446,7 @@ agent_t::push_service_request(
 	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
-	ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 	// Event can be added only if the agent is not deregistered yet.
 	if( !m_is_coop_deregistered )
@@ -468,7 +466,7 @@ agent_t::exec_next_event()
 {
 	impl::event_item_t event_item;
 	{
-		ACE_Guard< ACE_Thread_Mutex > lock( m_local_event_queue->lock() );
+		std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
 
 		m_local_event_queue->pop( event_item );
 	}

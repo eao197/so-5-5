@@ -12,9 +12,8 @@
 
 #include <deque>
 #include <atomic>
-
-#include <ace/Thread_Mutex.h>
-#include <ace/Condition_Thread_Mutex.h>
+#include <mutex>
+#include <condition_variable>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -127,8 +126,8 @@ class demand_queue_t
 
 		//! \name Objects for the thread safety.
 		//! \{
-		ACE_Thread_Mutex m_lock;
-		ACE_Condition_Thread_Mutex m_not_empty;
+		std::mutex m_lock;
+		std::condition_variable m_not_empty;
 		//! \}
 
 		//! Service flag.

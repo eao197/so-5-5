@@ -12,8 +12,7 @@
 
 #include <deque>
 #include <memory>
-
-#include <ace/Thread_Mutex.h>
+#include <mutex>
 
 #include <so_5/util/h/mutex_pool.hpp>
 
@@ -79,7 +78,7 @@ class local_event_queue_t
 	public:
 		//! Constructor.
 		explicit local_event_queue_t(
-			util::mutex_pool_t< ACE_Thread_Mutex > & mutex_pool );
+			util::mutex_pool_t< std::mutex > & mutex_pool );
 		~local_event_queue_t();
 
 		//! Get the first event from the queue.
@@ -92,7 +91,7 @@ class local_event_queue_t
 			const event_item_t & evt );
 
 		//! Get object lock.
-		inline ACE_Thread_Mutex &
+		inline std::mutex &
 		lock();
 
 		//! Current queue size.
@@ -111,13 +110,13 @@ class local_event_queue_t
 		/*!
 		 * This reference is necessary to return the mutex back.
 		 */
-		util::mutex_pool_t< ACE_Thread_Mutex > & m_mutex_pool;
+		util::mutex_pool_t< std::mutex > & m_mutex_pool;
 
 		//! Reference to the object lock.
 		/*!
 		 * This lock is obtained from \a m_mutex_pool.
 		 */
-		ACE_Thread_Mutex & m_lock;
+		std::mutex & m_lock;
 
 		//! Typedef for queue underlying container type.
 		typedef std::deque< event_item_t > events_queue_t;
@@ -141,7 +140,7 @@ local_event_queue_t::push(
 	m_events_queue.push_back( evt );
 }
 
-inline ACE_Thread_Mutex &
+inline std::mutex &
 local_event_queue_t::lock()
 {
 	return m_lock;

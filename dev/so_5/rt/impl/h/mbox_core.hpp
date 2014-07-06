@@ -15,8 +15,8 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <mutex>
 
-#include <ace/Thread_Mutex.h>
 #include <ace/RW_Thread_Mutex.h>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>

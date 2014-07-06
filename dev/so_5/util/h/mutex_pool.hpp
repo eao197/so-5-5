@@ -11,9 +11,7 @@
 #define _SO_5__UTIL__MUTEX_POOL_HPP_
 
 #include <vector>
-
-#include <ace/Thread_Mutex.h>
-#include <ace/Guard_T.h>
+#include <mutex>
 
 namespace so_5
 {
@@ -46,7 +44,7 @@ class mutex_pool_t
 		MUTEX &
 		allocate_mutex()
 		{
-			ACE_Guard< ACE_Thread_Mutex > lock( m_mutex_lock );
+			std::lock_guard< std::mutex > lock( m_mutex_lock );
 
 			size_t min_index = std::min_element(
 				m_mutex_pool_charge.begin(),
@@ -70,7 +68,7 @@ class mutex_pool_t
 			if( &m >= m_mutex_pool &&
 				&m < m_mutex_pool + m_mutex_pool_size )
 			{
-				ACE_Guard< ACE_Thread_Mutex > lock( m_mutex_lock );
+				std::lock_guard< std::mutex > lock( m_mutex_lock );
 				const size_t mutex_index =  &m - m_mutex_pool;
 
 				--m_mutex_pool_charge[ mutex_index ];
@@ -82,7 +80,7 @@ class mutex_pool_t
 
 	private:
 		//! Object look.
-		ACE_Thread_Mutex m_mutex_lock;
+		std::mutex m_mutex_lock;
 
 		//! Mutex pool size.
 		const size_t m_mutex_pool_size;
