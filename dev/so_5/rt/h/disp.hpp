@@ -17,8 +17,6 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
-#include <so_5/rt/h/agent_ref_fwd.hpp>
-
 namespace so_5
 {
 
@@ -76,14 +74,6 @@ class SO_5_TYPE dispatcher_t
 		 */
 		virtual void
 		wait() = 0;
-
-		//! Schedule execution of agent events.
-		virtual void
-		put_event_execution_request(
-			//! Events of this agent should be executed.
-			agent_t * agent_ptr,
-			//! Count of events for this agent.
-			unsigned int event_count ) = 0;
 };
 
 //! Typedef of the dispatcher autopointer.

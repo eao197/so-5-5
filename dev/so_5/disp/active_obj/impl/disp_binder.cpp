@@ -51,19 +51,17 @@ disp_binder_t::bind_agent(
 					"\", expected active_obj disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::dispatcher_t & disp_for_agent =
-			disp->create_disp_for_agent( *agent_ref );
+		so_5::rt::event_queue_t & queue_for_agent =
+			disp->create_thread_for_agent( *agent_ref );
 
 		try
 		{
-			so_5::rt::agent_t::call_bind_to_disp(
-				*agent_ref,
-				disp_for_agent );
+			agent_ref->so_set_actual_event_queue( queue_for_agent );
 		}
 		catch( ... )
 		{
 			// Dispatcher for the agent should be removed.
-			disp->destroy_disp_for_agent( *agent_ref );
+			disp->destroy_thread_for_agent( *agent_ref );
 			throw;
 		}
 	}
@@ -89,7 +87,7 @@ disp_binder_t::unbind_agent(
 		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 
-		disp.destroy_disp_for_agent( *agent_ref );
+		disp.destroy_thread_for_agent( *agent_ref );
 	}
 }
 

@@ -259,8 +259,6 @@ agent_coop_t::do_registration_specific_actions(
 
 	bind_agents_to_disp();
 
-	start_all_agents();
-
 	m_parent_coop_ptr = parent_coop;
 	if( m_parent_coop_ptr )
 		// Parent coop should known about existence of that coop.
@@ -335,31 +333,6 @@ agent_coop_t::unbind_agents_from_disp(
 		--it;
 		it->m_binder->unbind_agent(
 			m_env.so_environment_impl(), it->m_agent_ref );
-	}
-}
-
-void
-agent_coop_t::start_all_agents()
-{
-	try
-	{
-		for( auto it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
-		{
-			it->m_agent_ref->start_agent();
-		}
-	}
-	catch( const std::exception & x )
-	{
-		ACE_ERROR(
-				(LM_EMERGENCY,
-				 SO_5_LOG_FMT(
-					 	"Exception during starting cooperation agents. "
-						"Work cannot be continued. Cooperation: '%s'. "
-						"Exception: %s" ),
-						m_coop_name.c_str(),
-						x.what() ) );
-
-		std::abort();
 	}
 }
 

@@ -49,22 +49,21 @@ disp_binder_t::bind_agent(
 
 		if( nullptr == disp )
 			throw so_5::exception_t(
-				"disp type mismatch for disp \"" + m_disp_name + "\", expected active_group disp",
+				"disp type mismatch for disp \"" + m_disp_name +
+				"\", expected active_group disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::dispatcher_t & disp_for_agent =
-			disp->query_disp_for_group( m_group_name );
+		so_5::rt::event_queue_t & queue_for_agent =
+			disp->query_thread_for_group( m_group_name );
 
 		try
 		{
-			so_5::rt::agent_t::call_bind_to_disp(
-				*agent_ref,
-				disp_for_agent );
+			agent_ref->so_set_actual_event_queue( queue_for_agent );
 		}
 		catch( ... )
 		{
 			// Dispatcher for the agent should be removed.
-			disp->release_disp_for_group( m_group_name );
+			disp->release_thread_for_group( m_group_name );
 			throw;
 		}
 	}
@@ -90,7 +89,7 @@ disp_binder_t::unbind_agent(
 		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 
-		disp.release_disp_for_group( m_group_name );
+		disp.release_thread_for_group( m_group_name );
 	}
 }
 

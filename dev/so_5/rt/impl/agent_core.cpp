@@ -296,15 +296,6 @@ agent_core_t::finish()
 	m_coop_dereg_executor.finish();
 }
 
-local_event_queue_unique_ptr_t
-agent_core_t::create_local_queue()
-{
-	local_event_queue_unique_ptr_t local_event_queue(
-		new local_event_queue_t( m_agent_queue_mutex_pool ) );
-
-	return local_event_queue;
-}
-
 namespace
 {
 	/*!

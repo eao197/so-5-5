@@ -38,8 +38,10 @@ demand_queue_t::~demand_queue_t()
 
 void
 demand_queue_t::push(
-	so_5::rt::agent_t * agent_ptr,
-	unsigned int event_cnt )
+	so_5::rt::agent_t * receiver,
+	const so_5::rt::event_caller_block_ref_t & event_caller_block,
+	const so_5::rt::message_ref_t & message_ref,
+	so_5::rt::demand_handler_pfn_t demand_handler )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
 
@@ -47,26 +49,11 @@ demand_queue_t::push(
 	{
 		const bool demands_empty_before_service = m_demands.empty();
 
-		// Assume that the new demand should be added to the queue.
-		bool create_new_demand_needed = true;
-
-		// Is queue was not empty...
-		if( !demands_empty_before_service )
-		{
-			// ...and the last demand in the queue is for the same agent...
-			demand_t & dmnd = m_demands.back();
-			if( agent_ptr == dmnd.m_agent_ptr )
-			{
-				// ... then only the demand counter should be incremented.
-				dmnd.m_event_cnt += event_cnt;
-				create_new_demand_needed = false;
-			}
-		}
-
-		if( create_new_demand_needed )
-		{
-			m_demands.push_back( demand_t( agent_ptr, event_cnt ) );
-		}
+		m_demands.emplace_back( 
+				receiver,
+				event_caller_block,
+				message_ref,
+				demand_handler );
 
 		if( demands_empty_before_service )
 		{
@@ -152,15 +139,6 @@ work_thread_t::~work_thread_t()
 }
 
 void
-work_thread_t::put_event_execution_request(
-	so_5::rt::agent_t * agent_ptr,
-	unsigned int event_count )
-{
-	// Demands queue should serve this call.
-	m_queue.push( agent_ptr, event_count );
-}
-
-void
 work_thread_t::start()
 {
 	m_queue.start_service();
@@ -182,6 +160,12 @@ work_thread_t::wait()
 	m_thread->join();
 
 	m_queue.clear();
+}
+
+so_5::rt::event_queue_t &
+work_thread_t::event_queue()
+{
+	return m_queue;
 }
 
 void
@@ -211,7 +195,7 @@ work_thread_t::body()
 		catch( const std::exception & x )
 		{
 			if( !demands.empty() )
-				handle_exception( x, *(demands.front().m_agent_ptr) );
+				handle_exception( x, *(demands.front().m_receiver) );
 			else
 				handle_exception_on_empty_demands_queue( x );
 		}
@@ -377,11 +361,10 @@ work_thread_t::serve_demands_block(
 	{
 		demand_t & demand = demands.front();
 
-		while( demand.m_event_cnt-- )
-		{
-			so_5::rt::agent_t::call_next_event(
-				*demand.m_agent_ptr );
-		}
+		(*demand.m_demand_handler)(
+				demand.m_message_ref,
+				demand.m_event_caller_block.get(),
+				demand.m_receiver );
 
 		demands.pop_front();
 	}

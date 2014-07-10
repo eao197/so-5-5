@@ -42,7 +42,6 @@ class dispatcher_t
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
-
 		virtual void
 		start();
 
@@ -51,12 +50,14 @@ class dispatcher_t
 
 		virtual void
 		wait();
-
-		virtual void
-		put_event_execution_request(
-			so_5::rt::agent_t * agent_ptr,
-			unsigned int event_count );
 		//! \}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get an event_queue for agent.
+		 */
+		so_5::rt::event_queue_t &
+		get_event_queue_for_agent();
 
 	private:
 		//! Working thread for the dispatcher.

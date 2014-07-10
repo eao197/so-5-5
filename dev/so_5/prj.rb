@@ -36,6 +36,8 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "mbox.cpp" )
 
 		cpp_source( "event_caller_block.cpp" )
+		cpp_source( "event_queue.cpp" )
+		cpp_source( "temporary_event_queue.cpp" )
 		cpp_source( "event_exception_logger.cpp" )
 
 		cpp_source( "agent.cpp" )
@@ -61,8 +63,6 @@ MxxRu::Cpp::dll_target {
 			cpp_source( "agent_core.cpp" )
 			cpp_source( "disp_core.cpp" )
 			cpp_source( "layer_core.cpp" )
-			cpp_source( "local_event_queue.cpp" )
-			cpp_source( "void_dispatcher.cpp" )
 			cpp_source( "state_listener_controller.cpp" )
 
 			cpp_source( "so_environment_impl.cpp" )

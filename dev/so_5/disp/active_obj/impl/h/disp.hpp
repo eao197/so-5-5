@@ -14,6 +14,9 @@
 #include <mutex>
 
 #include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/h/event_queue.hpp>
+
+#include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
 namespace so_5 {
 
@@ -60,32 +63,25 @@ class dispatcher_t
 		virtual void
 		wait();
 
-		/*!
-		 * \attention Shall not be called directly for this dispatcher.
-		 */
-		virtual void
-		put_event_execution_request(
-			so_5::rt::agent_t * agent_ptr,
-			unsigned int event_count );
 		//! \}
 
 		//! Creates a new thread for the agent specified.
-		so_5::rt::dispatcher_t &
-		create_disp_for_agent( const so_5::rt::agent_t & agent );
+		so_5::rt::event_queue_t &
+		create_thread_for_agent( const so_5::rt::agent_t & agent );
 
 		//! Destroys the thread for the agent specified.
 		void
-		destroy_disp_for_agent( const so_5::rt::agent_t & agent );
+		destroy_thread_for_agent( const so_5::rt::agent_t & agent );
 
 	private:
-		//! Typedef for mapping from agents for their single thread dispatchers.
+		//! Typedef for mapping from agents to their working threads.
 		typedef std::map<
 				const so_5::rt::agent_t *,
-				so_5::rt::dispatcher_ref_t >
-			agent_disp_map_t;
+				so_5::disp::reuse::work_thread::work_thread_shptr_t >
+			agent_thread_map_t;
 
 		//! A map from agents to single thread dispatchers.
-		agent_disp_map_t m_agent_disp;
+		agent_thread_map_t m_agent_threads;
 
 		//! Shutdown flag.
 		bool m_shutdown_started;

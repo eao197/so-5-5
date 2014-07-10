@@ -25,8 +25,6 @@
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/coop_listener.hpp>
 
-#include <so_5/rt/impl/h/local_event_queue.hpp>
-
 #include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
 
 namespace so_5
@@ -126,10 +124,6 @@ class agent_core_t
 		 */
 		void
 		finish();
-
-		//! Create a local event queue for an agent.
-		local_event_queue_unique_ptr_t
-		create_local_queue();
 
 		//! Register cooperation.
 		void

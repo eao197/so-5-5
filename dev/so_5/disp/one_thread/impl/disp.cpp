@@ -44,14 +44,10 @@ dispatcher_t::wait()
 	m_work_thread.wait();
 }
 
-void
-dispatcher_t::put_event_execution_request(
-	so_5::rt::agent_t * agent_ptr,
-	unsigned int event_count )
+so_5::rt::event_queue_t &
+dispatcher_t::get_event_queue_for_agent()
 {
-	m_work_thread.put_event_execution_request(
-		agent_ptr,
-		event_count );
+	return m_work_thread.event_queue();
 }
 
 } /* namespace impl */
