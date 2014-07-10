@@ -38,12 +38,12 @@ class disp_binder_t
 
 		virtual void
 		bind_agent(
-			so_5::rt::impl::so_environment_impl_t & env,
+			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 		virtual void
 		unbind_agent(
-			so_5::rt::impl::so_environment_impl_t & env,
+			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:

@@ -2,6 +2,17 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__4_0 5.4.0 "Katyn-Tau"
+
+	A new mechanism for event queues are implemented.
+
+	Prototypes of methods of so_5::rt::disp_binder_t are changed:
+	now they are received reference to so_5::rt::so_environment_t.
+
+	There is no more local event queue for agents.
+	Method so_5::rt::so_environment_params_t::agent_event_queue_mutex_pool_size()
+	is obsolete and marked as deprecated.
+
 \section so_5__3_0 5.3.0 "Shota Rustaveli Peak"
 
 	New formats and forms of event- and signal-handlers are supported.

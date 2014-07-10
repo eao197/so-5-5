@@ -118,6 +118,8 @@ class SO_5_TYPE so_environment_params_t
 		 * SObjectizer Environment uses pool of mutexes to do that.
 		 *
 		 * This method allows change the default mutex pool size.
+		 *
+		 * \deprecated Obsolete in 5.4.0.
 		 */
 		so_environment_params_t &
 		agent_event_queue_mutex_pool_size(
@@ -202,11 +204,14 @@ class SO_5_TYPE so_environment_params_t
 		mbox_mutex_pool_size() const;
 
 		/*!
-		 * \deprecated Obsolete in v.5.2.3
+		 * \deprecated Obsolete in v.5.2.3.
 		 */
 		unsigned int
 		agent_coop_mutex_pool_size() const;
 
+		/*!
+		 * \deprecated Obsolete in 5.4.0.
+		 */
 		unsigned int
 		agent_event_queue_mutex_pool_size() const;
 
@@ -267,6 +272,9 @@ class SO_5_TYPE so_environment_params_t
 		unsigned int m_agent_coop_mutex_pool_size;
 
 		//! Pool size of mutexes to be used with agent local queues.
+		/*!
+		 * \deprecated Obsolete in 5.4.0.
+		 */
 		unsigned int m_agent_event_queue_mutex_pool_size;
 
 		//! Named dispatchers.

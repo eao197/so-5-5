@@ -312,8 +312,7 @@ agent_coop_t::bind_agents_to_disp()
 	{
 		for( it = it_begin; it != it_end; ++it )
 		{
-			it->m_binder->bind_agent(
-				m_env.so_environment_impl(), it->m_agent_ref );
+			it->m_binder->bind_agent( m_env, it->m_agent_ref );
 		}
 	}
 	catch( const std::exception & ex )
@@ -331,8 +330,7 @@ agent_coop_t::unbind_agents_from_disp(
 	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
 	{
 		--it;
-		it->m_binder->unbind_agent(
-			m_env.so_environment_impl(), it->m_agent_ref );
+		it->m_binder->unbind_agent( m_env, it->m_agent_ref );
 	}
 }
 

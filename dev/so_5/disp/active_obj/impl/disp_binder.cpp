@@ -33,7 +33,7 @@ disp_binder_t::~disp_binder_t()
 
 void
 disp_binder_t::bind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
@@ -75,7 +75,7 @@ disp_binder_t::bind_agent(
 
 void
 disp_binder_t::unbind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
