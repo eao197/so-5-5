@@ -221,7 +221,7 @@ agent_t::shutdown_agent()
 	// Subscriptions should be destroyed.
 	destroy_all_subscriptions( subscriptions );
 
-	m_event_queue.load( std::memory_order_relaxed )->push(
+	m_event_queue.load( std::memory_order_acquire )->push(
 			this,
 			event_caller_block_ref_t(),
 			message_ref_t(),
@@ -382,7 +382,7 @@ agent_t::push_event(
 	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
-	m_event_queue.load( std::memory_order_relaxed )->push(
+	m_event_queue.load( std::memory_order_acquire )->push(
 			this,
 			event_caller_block,
 			message,
@@ -394,7 +394,7 @@ agent_t::push_service_request(
 	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
-	m_event_queue.load( std::memory_order_relaxed )->push(
+	m_event_queue.load( std::memory_order_acquire )->push(
 			this,
 			event_caller_block,
 			message,
