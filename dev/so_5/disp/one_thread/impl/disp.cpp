@@ -44,10 +44,10 @@ dispatcher_t::wait()
 	m_work_thread.wait();
 }
 
-so_5::rt::event_queue_t &
-dispatcher_t::get_event_queue_for_agent()
+std::pair< std::thread::id, so_5::rt::event_queue_t * >
+dispatcher_t::get_agent_binding()
 {
-	return m_work_thread.event_queue();
+	return m_work_thread.get_agent_binding();
 }
 
 } /* namespace impl */

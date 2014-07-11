@@ -66,7 +66,7 @@ class dispatcher_t
 		 * If there already is a thread for \a group_name then the
 		 * counter of working agents for it is incremented.
 		 */
-		so_5::rt::event_queue_t &
+		std::pair< std::thread::id, so_5::rt::event_queue_t * >
 		query_thread_for_group( const std::string & group_name );
 
 		/*!

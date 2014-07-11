@@ -297,7 +297,7 @@ agent_coop_t::define_all_agents()
 
 	for(; it != it_end; ++it )
 	{
-		it->m_agent_ref->define_agent();
+		it->m_agent_ref->so_initiate_agent_definition();
 	}
 }
 

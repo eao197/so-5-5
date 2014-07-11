@@ -77,7 +77,7 @@ dispatcher_t::wait()
 		call_wait< agent_thread_map_t::value_type > );
 }
 
-so_5::rt::event_queue_t &
+std::pair< std::thread::id, so_5::rt::event_queue_t * >
 dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
@@ -99,7 +99,7 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 	thread->start();
 	m_agent_threads[ &agent ] = thread;
 
-	return thread->event_queue();
+	return thread->get_agent_binding();
 }
 
 void

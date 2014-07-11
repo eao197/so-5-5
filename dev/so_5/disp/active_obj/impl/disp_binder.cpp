@@ -51,12 +51,11 @@ disp_binder_t::bind_agent(
 					"\", expected active_obj disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::event_queue_t & queue_for_agent =
-			disp->create_thread_for_agent( *agent_ref );
+		auto ctx = disp->create_thread_for_agent( *agent_ref );
 
 		try
 		{
-			agent_ref->so_set_actual_event_queue( queue_for_agent );
+			agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
 		}
 		catch( ... )
 		{

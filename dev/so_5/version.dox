@@ -4,6 +4,10 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	A working thread identifier is now stored for every agent and controlled by
+	some operations (like changing agent's state and managing agent's
+	subscriptions).
+
 	A new mechanism for event queues are implemented.
 
 	Prototypes of methods of so_5::rt::disp_binder_t are changed:

@@ -53,12 +53,11 @@ disp_binder_t::bind_agent(
 				"\", expected active_group disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::event_queue_t & queue_for_agent =
-			disp->query_thread_for_group( m_group_name );
+		auto ctx = disp->query_thread_for_group( m_group_name );
 
 		try
 		{
-			agent_ref->so_set_actual_event_queue( queue_for_agent );
+			agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
 		}
 		catch( ... )
 		{

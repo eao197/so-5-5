@@ -67,8 +67,8 @@ disp_binder_t::make_agent_binding(
 						"\", expected one_thread disp",
 				rc_disp_type_mismatch );
 
-		agent_ref->so_set_actual_event_queue(
-				d->get_event_queue_for_agent() );
+		auto ctx = d->get_agent_binding();
+		agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
 	}
 	else
 	{
@@ -85,3 +85,4 @@ disp_binder_t::make_agent_binding(
 } /* namespace disp */
 
 } /* namespace so_5 */
+

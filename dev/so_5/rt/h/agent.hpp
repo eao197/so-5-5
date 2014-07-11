@@ -305,6 +305,20 @@ class subscription_bind_t
 	The pointer to \c MESSAGE can be a nullptr. It happens in case when 
 	the message has no actual data and servers just a signal about something.
 
+	Since v.5.3.0 there is also support for two additional forms of
+	event handlers:
+	\code
+		void
+		evt_handler( const MESSAGE & msg );
+	\endcode
+	This form is used for ordinary messages with some data inside.
+
+	This form is used only for signals (messages without actual data):
+	\code
+		void
+		evt_handler();
+	\endcode
+
 	A subscription to the message is performed by the method so_subscribe().
 	This method returns an instance of the so_5::rt::subscription_bind_t which
 	does all actual actions of the subscription process. This instance already
@@ -330,6 +344,27 @@ class subscription_bind_t
 	  are controlled by a programmer, not by SObjectizer;
 	- so_add_destroyable_listener() is for listeners whose lifetime
 	  must be controlled by agent itself.
+
+	<b>Working thread identification</b>
+
+	Since v.5.4.0 some operations for agent are enabled only on agent's
+	working thread. They are:
+	- subscription management operations (creation or dropping);
+	- changing agent's state.
+
+	Working thread for an agent is defined as follows:
+	- before invocation of so_define_agent() the working thread is a
+	  thread on which agent is created (id of that thread is detected in
+	  agent's constructor);
+	- during cooperation registration the working thread is a thread on
+	  which so_environment::register_coop() is working;
+	- after successful agent registration the working thread for it is
+	  specified by the dispatcher.
+
+	\note Some dispatchers could provide several working threads for
+	an agent. In such case there would not be working thread id. And
+	operations like changing agent state or creation of subscription
+	would be prohibited after agent registration.
 */
 class SO_5_TYPE agent_t
 	:
@@ -669,6 +704,19 @@ class SO_5_TYPE agent_t
 		 * \name Agent initialization methods.
 		 * \{
 		 */
+		/*!
+		 * \since v.5.4.0
+		 * \brief A correct initiation of so_define_agent method call.
+		 *
+		 * Before the actual so_define_agent() method it is necessary
+		 * to temporary set working thread id. And then drop this id
+		 * to non-actual value after so_define_agent() return.
+		 *
+		 * Because of that this method must be called during cooperation
+		 * registration procedure instead of direct call of so_define_agent().
+		 */
+		void
+		so_initiate_agent_definition();
 
 		//! Hook on define agent for SObjectizer.
 		/*!
@@ -792,7 +840,11 @@ class SO_5_TYPE agent_t
 		 * This is an actual start of agent's work in SObjectizer.
 		 */
 		void
-		so_set_actual_event_queue( event_queue_t & queue );
+		so_bind_to_dispatcher(
+			//! Working thread for an agent.
+			std::thread::id working_thread_id,
+			//! Actual event queue for an agent.
+			event_queue_t & queue );
 
 	private:
 		//! Default agent state.
@@ -859,6 +911,15 @@ class SO_5_TYPE agent_t
 		 */
 		temporary_event_queue_t m_tmp_event_queue;
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief Working thread id.
+		 *
+		 * Some actions like managing subscriptions and changing states
+		 * are enabled only on working thread id.
+		 */
+		std::thread::id m_working_thread_id;
+
 		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;
 
@@ -899,14 +960,6 @@ class SO_5_TYPE agent_t
 		void
 		bind_to_environment(
 			impl::so_environment_impl_t & env_impl );
-
-		//! Agent definition driver.
-		/*!
-		 * Method calls so_define_agent() and then stores an agent
-		 * definition flag.
-		 */
-		void
-		define_agent();
 
 		//! Agent shutdown deriver.
 		/*!
@@ -1056,6 +1109,14 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Enables operation only if it is performed on agent's
+		 * working thread.
+		 */
+		void
+		ensure_operation_is_on_working_thread() const;
 };
 
 //

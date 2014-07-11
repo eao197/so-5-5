@@ -76,7 +76,7 @@ dispatcher_t::wait()
 		call_wait< active_group_map_t::value_type > );
 }
 
-so_5::rt::event_queue_t &
+std::pair< std::thread::id, so_5::rt::event_queue_t * >
 dispatcher_t::query_thread_for_group( const std::string & group_name )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
@@ -92,7 +92,7 @@ dispatcher_t::query_thread_for_group( const std::string & group_name )
 	if( m_groups.end() != it )
 	{
 		++(it->second.m_user_agent);
-		return it->second.m_thread->event_queue();
+		return it->second.m_thread->get_agent_binding();
 	}
 
 	// New thread should be created.
@@ -106,7 +106,7 @@ dispatcher_t::query_thread_for_group( const std::string & group_name )
 					group_name,
 					thread_with_refcounter_t( thread, 1 ) ) );
 
-	return thread->event_queue();
+	return thread->get_agent_binding();
 }
 
 void

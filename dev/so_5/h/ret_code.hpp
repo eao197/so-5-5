@@ -45,6 +45,12 @@ const int rc_agent_has_no_cooperation = 14;
 //! It is impossible to make a cast to that type.
 const int rc_agent_incompatible_type_conversion = 15;
 
+/*!
+ * \since v.5.4.0
+ * \brief An attempt to perform an operation which is enabled only
+ * on agent's working thread.
+ */
+const int rc_operation_enabled_only_on_agent_working_thread = 16;
 //! \}
 
 //! \name Error codes for cooperations of agents.

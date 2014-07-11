@@ -168,6 +168,18 @@ work_thread_t::event_queue()
 	return m_queue;
 }
 
+std::thread::id
+work_thread_t::thread_id()
+{
+	return m_thread->get_id();
+}
+
+std::pair< std::thread::id, so_5::rt::event_queue_t * >
+work_thread_t::get_agent_binding()
+{
+	return std::make_pair( thread_id(), &event_queue() );
+}
+
 void
 work_thread_t::body()
 {

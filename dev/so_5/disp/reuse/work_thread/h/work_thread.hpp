@@ -10,12 +10,13 @@
 #if !defined( _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_ )
 #define _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_
 
-#include <deque>
 #include <atomic>
-#include <mutex>
 #include <condition_variable>
-#include <thread>
+#include <deque>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include <utility>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/rt/h/event_queue.hpp>
@@ -185,6 +186,22 @@ class work_thread_t
 		 */
 		so_5::rt::event_queue_t &
 		event_queue();
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get the working thread ID.
+		 *
+		 * \attention This method must be called only on running thread.
+		 */
+		std::thread::id
+		thread_id();
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get a binding information for an agent.
+		 */
+		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		get_agent_binding();
 
 	protected:
 		//! Main working thread body.

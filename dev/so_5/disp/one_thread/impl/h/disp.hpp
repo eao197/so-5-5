@@ -13,6 +13,8 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
+#include <utility>
+
 namespace so_5
 {
 
@@ -54,10 +56,10 @@ class dispatcher_t
 
 		/*!
 		 * \since v.5.4.0
-		 * \brief Get an event_queue for agent.
+		 * \brief Get a binding information for an agent.
 		 */
-		so_5::rt::event_queue_t &
-		get_event_queue_for_agent();
+		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		get_agent_binding();
 
 	private:
 		//! Working thread for the dispatcher.

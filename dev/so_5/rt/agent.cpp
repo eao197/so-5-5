@@ -22,16 +22,18 @@ namespace rt
 
 agent_t::agent_t(
 	so_environment_t & env )
-	:
-		m_default_state( self_ptr() ),
-		m_current_state_ptr( &m_default_state ),
-		m_awaiting_deregistration_state( self_ptr() ),
-		m_was_defined( false ),
-		m_state_listener_controller( new impl::state_listener_controller_t ),
-		m_so_environment_impl( 0 ),
-		m_tmp_event_queue( m_mutex ),
-		m_agent_coop( 0 ),
-		m_is_coop_deregistered( false )
+	:	m_default_state( self_ptr() )
+	,	m_current_state_ptr( &m_default_state )
+	,	m_awaiting_deregistration_state( self_ptr() )
+	,	m_was_defined( false )
+	,	m_state_listener_controller( new impl::state_listener_controller_t )
+	,	m_so_environment_impl( 0 )
+	,	m_tmp_event_queue( m_mutex )
+		// It is necessary to enable agent subscription in the
+		// constructor of derived class.
+	,	m_working_thread_id( std::this_thread::get_id() )
+	,	m_agent_coop( 0 )
+	,	m_is_coop_deregistered( false )
 {
 	m_event_queue = &m_tmp_event_queue;
 
@@ -115,6 +117,8 @@ void
 agent_t::so_change_state(
 	const state_t & new_state )
 {
+	ensure_operation_is_on_working_thread();
+
 	if( new_state.is_target( this ) )
 	{
 		m_current_state_ptr = &new_state;
@@ -132,6 +136,30 @@ agent_t::so_change_state(
 }
 
 void
+agent_t::so_initiate_agent_definition()
+{
+	struct working_thread_id_sentinel
+		{
+			std::thread::id & m_id;
+
+			working_thread_id_sentinel( std::thread::id & id_var )
+				:	m_id( id_var )
+				{
+					m_id = std::this_thread::get_id();
+				}
+			~working_thread_id_sentinel()
+				{
+					m_id = std::thread::id();
+				}
+		}
+	sentinel( m_working_thread_id );
+
+	so_define_agent();
+
+	m_was_defined = true;
+}
+
+void
 agent_t::so_define_agent()
 {
 	// Default implementation do nothing.
@@ -143,13 +171,6 @@ agent_t::so_was_defined() const
 	return m_was_defined;
 }
 
-void
-agent_t::define_agent()
-{
-	so_define_agent();
-	m_was_defined = true;
-}
-
 so_environment_t &
 agent_t::so_environment()
 {
@@ -157,11 +178,15 @@ agent_t::so_environment()
 }
 
 void
-agent_t::so_set_actual_event_queue( event_queue_t & queue )
+agent_t::so_bind_to_dispatcher(
+	std::thread::id working_thread_id,
+	event_queue_t & queue )
 {
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
+
+	m_working_thread_id = working_thread_id;
 
 	m_tmp_event_queue.switch_to_actual_queue(
 			queue,
@@ -249,6 +274,8 @@ agent_t::create_event_subscription(
 	const state_t & target_state,
 	const event_handler_method_t & method )
 {
+	ensure_operation_is_on_working_thread();
+
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
@@ -331,6 +358,8 @@ agent_t::do_drop_subscription(
 	const mbox_ref_t & mbox_ref,
 	const state_t & target_state )
 {
+	ensure_operation_is_on_working_thread();
+
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
@@ -359,6 +388,8 @@ agent_t::do_drop_subscription_for_all_states(
 	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref )
 {
+	ensure_operation_is_on_working_thread();
+
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
@@ -456,6 +487,15 @@ agent_t::service_request_handler_on_message(
 					*(dynamic_cast< msg_service_request_base_t * >( msg.get() ));
 			svc_request.set_exception( std::current_exception() );
 		}
+}
+
+void
+agent_t::ensure_operation_is_on_working_thread() const
+{
+	if( std::this_thread::get_id() != m_working_thread_id )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_operation_enabled_only_on_agent_working_thread,
+				"operation is enabled only on agent's working thread" );
 }
 
 } /* namespace rt */
