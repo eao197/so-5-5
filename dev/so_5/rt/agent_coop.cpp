@@ -259,8 +259,6 @@ agent_coop_t::do_registration_specific_actions(
 
 	bind_agents_to_disp();
 
-	start_all_agents();
-
 	m_parent_coop_ptr = parent_coop;
 	if( m_parent_coop_ptr )
 		// Parent coop should known about existence of that coop.
@@ -299,7 +297,7 @@ agent_coop_t::define_all_agents()
 
 	for(; it != it_end; ++it )
 	{
-		it->m_agent_ref->define_agent();
+		it->m_agent_ref->so_initiate_agent_definition();
 	}
 }
 
@@ -314,8 +312,7 @@ agent_coop_t::bind_agents_to_disp()
 	{
 		for( it = it_begin; it != it_end; ++it )
 		{
-			it->m_binder->bind_agent(
-				m_env.so_environment_impl(), it->m_agent_ref );
+			it->m_binder->bind_agent( m_env, it->m_agent_ref );
 		}
 	}
 	catch( const std::exception & ex )
@@ -333,33 +330,7 @@ agent_coop_t::unbind_agents_from_disp(
 	for( auto it_begin = m_agent_array.begin(); it != it_begin; )
 	{
 		--it;
-		it->m_binder->unbind_agent(
-			m_env.so_environment_impl(), it->m_agent_ref );
-	}
-}
-
-void
-agent_coop_t::start_all_agents()
-{
-	try
-	{
-		for( auto it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
-		{
-			it->m_agent_ref->start_agent();
-		}
-	}
-	catch( const std::exception & x )
-	{
-		ACE_ERROR(
-				(LM_EMERGENCY,
-				 SO_5_LOG_FMT(
-					 	"Exception during starting cooperation agents. "
-						"Work cannot be continued. Cooperation: '%s'. "
-						"Exception: %s" ),
-						m_coop_name.c_str(),
-						x.what() ) );
-
-		std::abort();
+		it->m_binder->unbind_agent( m_env, it->m_agent_ref );
 	}
 }
 

@@ -26,6 +26,7 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
+#include <so_5/rt/h/temporary_event_queue.hpp>
 
 namespace so_5
 {
@@ -304,6 +305,20 @@ class subscription_bind_t
 	The pointer to \c MESSAGE can be a nullptr. It happens in case when 
 	the message has no actual data and servers just a signal about something.
 
+	Since v.5.3.0 there is also support for two additional forms of
+	event handlers:
+	\code
+		void
+		evt_handler( const MESSAGE & msg );
+	\endcode
+	This form is used for ordinary messages with some data inside.
+
+	This form is used only for signals (messages without actual data):
+	\code
+		void
+		evt_handler();
+	\endcode
+
 	A subscription to the message is performed by the method so_subscribe().
 	This method returns an instance of the so_5::rt::subscription_bind_t which
 	does all actual actions of the subscription process. This instance already
@@ -329,6 +344,27 @@ class subscription_bind_t
 	  are controlled by a programmer, not by SObjectizer;
 	- so_add_destroyable_listener() is for listeners whose lifetime
 	  must be controlled by agent itself.
+
+	<b>Working thread identification</b>
+
+	Since v.5.4.0 some operations for agent are enabled only on agent's
+	working thread. They are:
+	- subscription management operations (creation or dropping);
+	- changing agent's state.
+
+	Working thread for an agent is defined as follows:
+	- before invocation of so_define_agent() the working thread is a
+	  thread on which agent is created (id of that thread is detected in
+	  agent's constructor);
+	- during cooperation registration the working thread is a thread on
+	  which so_environment::register_coop() is working;
+	- after successful agent registration the working thread for it is
+	  specified by the dispatcher.
+
+	\note Some dispatchers could provide several working threads for
+	an agent. In such case there would not be working thread id. And
+	operations like changing agent state or creation of subscription
+	would be prohibited after agent registration.
 */
 class SO_5_TYPE agent_t
 	:
@@ -535,28 +571,6 @@ class SO_5_TYPE agent_t
 			agent.push_service_request( event_handler_caller, message );
 		}
 
-		//! Run the event handler for the next event.
-		/*!
-			This method is used by a dispatcher/working thread for
-			the event handler execution.
-		*/
-		static inline void
-		call_next_event(
-			//! Agent which event will be executed.
-			agent_t & agent )
-		{
-			agent.exec_next_event();
-		}
-
-		//! Bind agent to the dispatcher.
-		static inline void
-		call_bind_to_disp(
-			agent_t & agent,
-			dispatcher_t & disp )
-		{
-			agent.bind_to_disp( disp );
-		}
-
 	protected:
 		/*!
 		 * \name Methods for working with the agent state.
@@ -690,6 +704,19 @@ class SO_5_TYPE agent_t
 		 * \name Agent initialization methods.
 		 * \{
 		 */
+		/*!
+		 * \since v.5.4.0
+		 * \brief A correct initiation of so_define_agent method call.
+		 *
+		 * Before the actual so_define_agent() method it is necessary
+		 * to temporary set working thread id. And then drop this id
+		 * to non-actual value after so_define_agent() return.
+		 *
+		 * Because of that this method must be called during cooperation
+		 * registration procedure instead of direct call of so_define_agent().
+		 */
+		void
+		so_initiate_agent_definition();
 
 		//! Hook on define agent for SObjectizer.
 		/*!
@@ -806,6 +833,19 @@ class SO_5_TYPE agent_t
 		so_environment_t &
 		so_environment();
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief Binding agent to the dispatcher.
+		 *
+		 * This is an actual start of agent's work in SObjectizer.
+		 */
+		void
+		so_bind_to_dispatcher(
+			//! Working thread for an agent.
+			std::thread::id working_thread_id,
+			//! Actual event queue for an agent.
+			event_queue_t & queue );
+
 	private:
 		//! Default agent state.
 		const state_t m_default_state;
@@ -821,6 +861,12 @@ class SO_5_TYPE agent_t
 		 * out from event handler.
 		 */
 		const state_t m_awaiting_deregistration_state;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief A mutex for protecting that agent.
+		 */
+		std::mutex m_mutex;
 
 		//! Agent definition flag.
 		/*!
@@ -844,23 +890,35 @@ class SO_5_TYPE agent_t
 		//! Map from subscriptions to event handlers.
 		consumers_map_t m_event_consumers_map;
 
-		//! Local events queue.
-		std::unique_ptr< impl::local_event_queue_t >
-			m_local_event_queue;
-
 		//! SObjectizer Environment for which the agent is belong.
 		impl::so_environment_impl_t * m_so_environment_impl;
 
-		//! Dispatcher of this agent.
 		/*!
-		 * By default this pointer points to a special stub.
-		 * This stub do nothing but allows safely call the method for
-		 * events scheduling.
+		 * \since v.5.4.0
+		 * \brief Event queue.
 		 *
-		 * This pointer received the actual value after binding
-		 * agent to the real dispatcher.
+		 * This pointer receives value only after binding to the dispatcher.
+		 *
+		 * While this pointer is referred the \a m_tmp_event_queue.
 		 */
-		dispatcher_t * m_dispatcher;
+		std::atomic< event_queue_t * > m_event_queue;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Temporary event queue.
+		 *
+		 * This queue is used while agent is not bound to the dispatcher.
+		 */
+		temporary_event_queue_t m_tmp_event_queue;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Working thread id.
+		 *
+		 * Some actions like managing subscriptions and changing states
+		 * are enabled only on working thread id.
+		 */
+		std::thread::id m_working_thread_id;
 
 		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;
@@ -902,35 +960,6 @@ class SO_5_TYPE agent_t
 		void
 		bind_to_environment(
 			impl::so_environment_impl_t & env_impl );
-
-		//! Bind agent to the dispatcher.
-		/*!
-		 * Method initializes the internal dispatcher poiner.
-		 */
-		void
-		bind_to_disp(
-			dispatcher_t & disp );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Start agent work.
-		 *
-		 * This method is called after all registration specific actions.
-		 *
-		 * Method checks the local event queue. If the queue is not empty then
-		 * method tells to dispatcher to schedule the agent 
-		 * for the event processing.
-		 */
-		void
-		start_agent();
-
-		//! Agent definition driver.
-		/*!
-		 * Method calls so_define_agent() and then stores an agent
-		 * definition flag.
-		 */
-		void
-		define_agent();
 
 		//! Agent shutdown deriver.
 		/*!
@@ -1033,18 +1062,10 @@ class SO_5_TYPE agent_t
 			const event_caller_block_ref_t & event_handler_caller,
 			//! Event message.
 			const message_ref_t & message );
-
-		//! Execute the next event.
-		/*!
-		 * \attention Must be called only on working thread context.
-		 *
-		 * \pre The local event queue must be not empty.
-		 */
-		void
-		exec_next_event();
 		/*!
 		 * \}
 		 */
+
 		/*!
 		 * \name Demand handlers.
 		 * \{
@@ -1088,6 +1109,14 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Enables operation only if it is performed on agent's
+		 * working thread.
+		 */
+		void
+		ensure_operation_is_on_working_thread() const;
 };
 
 //

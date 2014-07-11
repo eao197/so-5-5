@@ -41,13 +41,13 @@ class disp_binder_t
 		//! Bind agent to a dispatcher.
 		virtual void
 		bind_agent(
-			so_5::rt::impl::so_environment_impl_t & env,
+			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 		//! Unbind agent from the dispatcher.
 		virtual void
 		unbind_agent(
-			so_5::rt::impl::so_environment_impl_t & env,
+			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:

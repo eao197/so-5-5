@@ -8,8 +8,6 @@
 #include <so_5/rt/h/event_caller_block.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
-#include <so_5/rt/impl/h/local_event_queue.hpp>
-#include <so_5/rt/impl/h/void_dispatcher.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 
 namespace so_5
@@ -18,34 +16,27 @@ namespace so_5
 namespace rt
 {
 
-namespace /* ananymous */
-{
-
-/*!
- * A stub for the initial value of the so_5::rt::agent_t::m_dispatcher.
- */
-impl::void_dispatcher_t g_void_dispatcher;
-
-}/* ananymous namespace */
-
 //
 // agent_t
 //
 
 agent_t::agent_t(
 	so_environment_t & env )
-	:
-		m_default_state( self_ptr() ),
-		m_current_state_ptr( &m_default_state ),
-		m_awaiting_deregistration_state( self_ptr() ),
-		m_was_defined( false ),
-		m_state_listener_controller(
-			new impl::state_listener_controller_t ),
-		m_so_environment_impl( 0 ),
-		m_dispatcher( &g_void_dispatcher ),
-		m_agent_coop( 0 ),
-		m_is_coop_deregistered( false )
+	:	m_default_state( self_ptr() )
+	,	m_current_state_ptr( &m_default_state )
+	,	m_awaiting_deregistration_state( self_ptr() )
+	,	m_was_defined( false )
+	,	m_state_listener_controller( new impl::state_listener_controller_t )
+	,	m_so_environment_impl( 0 )
+	,	m_tmp_event_queue( m_mutex )
+		// It is necessary to enable agent subscription in the
+		// constructor of derived class.
+	,	m_working_thread_id( std::this_thread::get_id() )
+	,	m_agent_coop( 0 )
+	,	m_is_coop_deregistered( false )
 {
+	m_event_queue = &m_tmp_event_queue;
+
 	// Bind to the environment should be done.
 	bind_to_environment( env.so_environment_impl() );
 }
@@ -126,6 +117,8 @@ void
 agent_t::so_change_state(
 	const state_t & new_state )
 {
+	ensure_operation_is_on_working_thread();
+
 	if( new_state.is_target( this ) )
 	{
 		m_current_state_ptr = &new_state;
@@ -143,6 +136,30 @@ agent_t::so_change_state(
 }
 
 void
+agent_t::so_initiate_agent_definition()
+{
+	struct working_thread_id_sentinel
+		{
+			std::thread::id & m_id;
+
+			working_thread_id_sentinel( std::thread::id & id_var )
+				:	m_id( id_var )
+				{
+					m_id = std::this_thread::get_id();
+				}
+			~working_thread_id_sentinel()
+				{
+					m_id = std::thread::id();
+				}
+		}
+	sentinel( m_working_thread_id );
+
+	so_define_agent();
+
+	m_was_defined = true;
+}
+
+void
 agent_t::so_define_agent()
 {
 	// Default implementation do nothing.
@@ -154,17 +171,29 @@ agent_t::so_was_defined() const
 	return m_was_defined;
 }
 
-void
-agent_t::define_agent()
-{
-	so_define_agent();
-	m_was_defined = true;
-}
-
 so_environment_t &
 agent_t::so_environment()
 {
 	return m_so_environment_impl->query_public_so_environment();
+}
+
+void
+agent_t::so_bind_to_dispatcher(
+	std::thread::id working_thread_id,
+	event_queue_t & queue )
+{
+	// Cooperation usage counter should be incremented.
+	// It will be decremented during final agent event execution.
+	agent_coop_t::increment_usage_count( *m_agent_coop );
+
+	m_working_thread_id = working_thread_id;
+
+	m_tmp_event_queue.switch_to_actual_queue(
+			queue,
+			this,
+			&agent_t::demand_handler_on_start );
+
+	m_event_queue.store( &queue );
 }
 
 agent_ref_t
@@ -187,45 +216,6 @@ agent_t::bind_to_environment(
 	impl::so_environment_impl_t & env_impl )
 {
 	m_so_environment_impl = &env_impl;
-	m_local_event_queue = m_so_environment_impl->create_local_queue();
-
-	// A staring event should be placed at begining of the queue.
-	m_local_event_queue->push(
-		impl::event_item_t(
-			nullptr,
-			message_ref_t(),
-			&agent_t::demand_handler_on_start ) );
-}
-
-void
-agent_t::bind_to_disp(
-	dispatcher_t & disp )
-{
-	// A pointer to the stub should be in the m_dispatcher.
-	// If it is not true then agent is already bound to the dispatcher.
-	if( m_dispatcher != &g_void_dispatcher )
-	{
-		throw exception_t(
-			"agent is already bind to dispatcher",
-			rc_agent_is_already_bind_to_disp );
-	}
-
-	m_dispatcher = &disp;
-}
-
-void
-agent_t::start_agent()
-{
-	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
-
-	// Cooperation usage counter should be incremented.
-	// It will be decremented during final agent event execution.
-	agent_coop_t::increment_usage_count( *m_agent_coop );
-
-	// Dispatcher should be informed about events in the local queue.
-	m_dispatcher->put_event_execution_request(
-		this,
-		m_local_event_queue->size() );
 }
 
 void
@@ -240,12 +230,12 @@ agent_t::shutdown_agent()
 	// removed on unlocked object to avoid deadlocks on mbox operations (see for
 	// example: https://sourceforge.net/p/sobjectizer/bugs/10/).
 	//
-	// 3. Lock object and send the last demand to the agent.
+	// 3. Send the last demand to the agent.
 
 	consumers_map_t subscriptions;
 	{
 		// Step #1. Must be done on locked object.
-		std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
+		std::lock_guard< std::mutex > lock( m_mutex );
 
 		m_is_coop_deregistered = true;
 		m_event_consumers_map.swap( subscriptions );
@@ -256,20 +246,11 @@ agent_t::shutdown_agent()
 	// Subscriptions should be destroyed.
 	destroy_all_subscriptions( subscriptions );
 
-	{
-		// Step #3. Must be done on locked object.
-		std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
-
-		// A final event handler should be added.
-		m_local_event_queue->push(
-			impl::event_item_t(
-				nullptr,
-				message_ref_t(),
-				&agent_t::demand_handler_on_finish ) );
-
-		// Dispatcher should be informed about this event.
-		m_dispatcher->put_event_execution_request( this, 1 );
-	}
+	m_event_queue.load( std::memory_order_acquire )->push(
+			this,
+			event_caller_block_ref_t(),
+			message_ref_t(),
+			&agent_t::demand_handler_on_finish );
 }
 
 //! Make textual representation of the subscription key.
@@ -293,10 +274,15 @@ agent_t::create_event_subscription(
 	const state_t & target_state,
 	const event_handler_method_t & method )
 {
+	ensure_operation_is_on_working_thread();
+
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
+
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
 
 	if( m_is_coop_deregistered )
 		return;
@@ -375,10 +361,15 @@ agent_t::do_drop_subscription(
 	const mbox_ref_t & mbox_ref,
 	const state_t & target_state )
 {
+	ensure_operation_is_on_working_thread();
+
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
+
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
@@ -403,10 +394,15 @@ agent_t::do_drop_subscription_for_all_states(
 	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref )
 {
+	ensure_operation_is_on_working_thread();
+
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
+
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
@@ -426,19 +422,11 @@ agent_t::push_event(
 	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
-	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
-
-	// Event can be added only if the agent is not deregistered yet.
-	if( !m_is_coop_deregistered )
-	{
-		m_local_event_queue->push(
-			impl::event_item_t(
-				event_caller_block,
-				message,
-				&agent_t::demand_handler_on_message ) );
-
-		m_dispatcher->put_event_execution_request( this, 1 );
-	}
+	m_event_queue.load( std::memory_order_acquire )->push(
+			this,
+			event_caller_block,
+			message,
+			&agent_t::demand_handler_on_message );
 }
 
 void
@@ -446,35 +434,11 @@ agent_t::push_service_request(
 	const event_caller_block_ref_t & event_caller_block,
 	const message_ref_t & message )
 {
-	std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
-
-	// Event can be added only if the agent is not deregistered yet.
-	if( !m_is_coop_deregistered )
-	{
-		m_local_event_queue->push(
-			impl::event_item_t(
-				event_caller_block,
-				message,
-				&agent_t::service_request_handler_on_message ) );
-
-		m_dispatcher->put_event_execution_request( this, 1 );
-	}
-}
-
-void
-agent_t::exec_next_event()
-{
-	impl::event_item_t event_item;
-	{
-		std::lock_guard< std::mutex > lock( m_local_event_queue->lock() );
-
-		m_local_event_queue->pop( event_item );
-	}
-
-	(*event_item.m_demand_handler)(
-			event_item.m_message_ref,
-			event_item.m_event_caller_block.get(),
-			this );
+	m_event_queue.load( std::memory_order_acquire )->push(
+			this,
+			event_caller_block,
+			message,
+			&agent_t::service_request_handler_on_message );
 }
 
 void
@@ -532,6 +496,15 @@ agent_t::service_request_handler_on_message(
 					*(dynamic_cast< msg_service_request_base_t * >( msg.get() ));
 			svc_request.set_exception( std::current_exception() );
 		}
+}
+
+void
+agent_t::ensure_operation_is_on_working_thread() const
+{
+	if( std::this_thread::get_id() != m_working_thread_id )
+		SO_5_THROW_EXCEPTION(
+				so_5::rc_operation_enabled_only_on_agent_working_thread,
+				"operation is enabled only on agent's working thread" );
 }
 
 } /* namespace rt */

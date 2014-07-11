@@ -10,15 +10,16 @@
 #if !defined( _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_ )
 #define _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_
 
-#include <deque>
 #include <atomic>
-#include <mutex>
 #include <condition_variable>
-#include <thread>
+#include <deque>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include <utility>
 
 #include <so_5/h/declspec.hpp>
-#include <so_5/rt/h/agent.hpp>
+#include <so_5/rt/h/event_queue.hpp>
 
 namespace so_5
 {
@@ -39,28 +40,28 @@ namespace work_thread
 //! Element of queue of demands to process agent events.
 struct demand_t
 {
-	//! Agent which events will be dispatched.
-	so_5::rt::agent_t * m_agent_ptr;
-
-	//! Count of events to dispatch.
-	unsigned int m_event_cnt;
-
-	demand_t()
-		:	m_agent_ptr( nullptr )
-		,	m_event_cnt( 0 )
-	{}
+	//! Receiver of demand.
+	so_5::rt::agent_t * m_receiver;
+	//! Event handler.
+	so_5::rt::event_caller_block_ref_t m_event_caller_block;
+	//! Event incident.
+	so_5::rt::message_ref_t m_message_ref;
+	//! Demand handler.
+	so_5::rt::demand_handler_pfn_t m_demand_handler;
 
 	demand_t(
-		//! Agent which events will be dispatched.
-		so_5::rt::agent_t * agent_ptr,
-		//! Count of events to dispatch.
-		unsigned int event_cnt )
-		:	m_agent_ptr( agent_ptr )
-		,	m_event_cnt( event_cnt )
-	{}
+		so_5::rt::agent_t * receiver,
+		so_5::rt::event_caller_block_ref_t event_caller_block,
+		so_5::rt::message_ref_t message_ref,
+		so_5::rt::demand_handler_pfn_t demand_handler )
+		:	m_receiver( receiver )
+		,	m_event_caller_block( std::move( event_caller_block ) )
+		,	m_message_ref( std::move( message_ref ) )
+		,	m_demand_handler( demand_handler )
+		{}
 };
 
-//! Typedef for demands of the queue container.
+//! Typedef for demand's container.
 typedef std::deque< demand_t > demand_container_t;
 
 //
@@ -74,20 +75,25 @@ typedef std::deque< demand_t > demand_container_t;
 	demand_queue_t is thread safe and is intended to be used by 
 	several concurrent threads.
 */
-class demand_queue_t
+class demand_queue_t : public so_5::rt::event_queue_t
 {
 	public:
 		demand_queue_t();
 		~demand_queue_t();
 
-		//! Put demand into the queue.
-		void
+		/*!
+		 * \name Implementation of event_queue interface.
+		 * \{
+		 */
+		virtual void
 		push(
-			//! Agent which events will be dispatched.
-			so_5::rt::agent_t * agent_ptr,
-			//! Count of events to dispatch.
-			unsigned int event_cnt );
-
+			so_5::rt::agent_t * receiver,
+			const so_5::rt::event_caller_block_ref_t & event_caller_block,
+			const so_5::rt::message_ref_t & message_ref,
+			so_5::rt::demand_handler_pfn_t demand_handler );
+		/*!
+		 * \}
+		 */
 		enum
 		{
 			//! Demand has been extracted.
@@ -158,22 +164,6 @@ class work_thread_t
 
 		~work_thread_t();
 
-		//! Shedule event(s) for the agent.
-		/*!
-		 * \note In most cases event_count is equal to 1.
-		 * The only case when \a event_count can be greater than 1 is 
-		 * when disp_binder switches from the void-dispatcher to the 
-		 * real-dispatcher.
-		 * \see g_void_dispatcher.
-		 * \see agent_t::bind_to_disp().
-		*/
-		void
-		put_event_execution_request(
-			//! Events will be sheduled to this agent.
-			so_5::rt::agent_t * agent_ptr,
-			//! Count of events to be scheduled.
-			unsigned int event_count );
-
 		//! Start the working thread.
 		void
 		start();
@@ -189,6 +179,29 @@ class work_thread_t
 		 */
 		void
 		wait();
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get the underlying event_queue object.
+		 */
+		so_5::rt::event_queue_t &
+		event_queue();
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get the working thread ID.
+		 *
+		 * \attention This method must be called only on running thread.
+		 */
+		std::thread::id
+		thread_id();
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get a binding information for an agent.
+		 */
+		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		get_agent_binding();
 
 	protected:
 		//! Main working thread body.
@@ -284,6 +297,12 @@ class work_thread_t
 		 */
 		rt::dispatcher_t & m_disp;
 };
+
+/*!
+ * \since v.5.4.0
+ * \brief Shared pointer for work_thread.
+ */
+typedef std::shared_ptr< work_thread_t > work_thread_shptr_t;
 
 } /* namespace work_thread */
 

@@ -33,27 +33,42 @@ disp_binder_t::~disp_binder_t()
 
 void
 disp_binder_t::bind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
-	so_5::rt::dispatcher_ref_t disp_ref =
-		env.query_named_dispatcher( m_disp_name );
+	if( m_disp_name.empty() )
+		make_agent_binding( &( env.query_default_dispatcher() ), agent_ref );
+	else
+		make_agent_binding( 
+			env.query_named_dispatcher( m_disp_name ).get(), agent_ref );
+}
 
+void
+disp_binder_t::unbind_agent(
+	so_5::rt::so_environment_t & env,
+	so_5::rt::agent_ref_t & agent_ref )
+{
+}
+
+void
+disp_binder_t::make_agent_binding(
+	so_5::rt::dispatcher_t * disp,
+	so_5::rt::agent_ref_t & agent_ref )
+{
 	// If the dispatcher is found then the object should be bound to it.
-	if( disp_ref.get() )
+	if( disp )
 	{
 		// It should be exactly our dispatcher.
-		dispatcher_t * disp = dynamic_cast< dispatcher_t * >( disp_ref.get() );
+		dispatcher_t * d = dynamic_cast< dispatcher_t * >( disp );
 
-		if( nullptr == disp )
+		if( nullptr == d )
 			throw so_5::exception_t(
 				"disp type mismatch for disp \"" + m_disp_name +
 						"\", expected one_thread disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::agent_t::call_bind_to_disp(
-			*agent_ref,
-			*disp );
+		auto ctx = d->get_agent_binding();
+		agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
 	}
 	else
 	{
@@ -63,13 +78,6 @@ disp_binder_t::bind_agent(
 	}
 }
 
-void
-disp_binder_t::unbind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
-	so_5::rt::agent_ref_t & agent_ref )
-{
-}
-
 } /* namespace impl */
 
 } /* namespace one_thread */
@@ -77,3 +85,4 @@ disp_binder_t::unbind_agent(
 } /* namespace disp */
 
 } /* namespace so_5 */
+

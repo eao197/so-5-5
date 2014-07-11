@@ -35,7 +35,7 @@ disp_binder_t::~disp_binder_t()
 
 void
 disp_binder_t::bind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
@@ -49,22 +49,20 @@ disp_binder_t::bind_agent(
 
 		if( nullptr == disp )
 			throw so_5::exception_t(
-				"disp type mismatch for disp \"" + m_disp_name + "\", expected active_group disp",
+				"disp type mismatch for disp \"" + m_disp_name +
+				"\", expected active_group disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::dispatcher_t & disp_for_agent =
-			disp->query_disp_for_group( m_group_name );
+		auto ctx = disp->query_thread_for_group( m_group_name );
 
 		try
 		{
-			so_5::rt::agent_t::call_bind_to_disp(
-				*agent_ref,
-				disp_for_agent );
+			agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
 		}
 		catch( ... )
 		{
 			// Dispatcher for the agent should be removed.
-			disp->release_disp_for_group( m_group_name );
+			disp->release_thread_for_group( m_group_name );
 			throw;
 		}
 	}
@@ -78,7 +76,7 @@ disp_binder_t::bind_agent(
 
 void
 disp_binder_t::unbind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
@@ -90,7 +88,7 @@ disp_binder_t::unbind_agent(
 		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 
-		disp.release_disp_for_group( m_group_name );
+		disp.release_thread_for_group( m_group_name );
 	}
 }
 

@@ -52,7 +52,7 @@ class SO_5_TYPE disp_binder_t
 		bind_agent(
 			//! SObjectizer Environment where agent/cooperation/dispatcher
 			//! are working.
-			impl::so_environment_impl_t & env,
+			so_environment_t & env,
 			//! Agent to be bound.
 			agent_ref_t & agent_ref ) = 0;
 
@@ -61,7 +61,7 @@ class SO_5_TYPE disp_binder_t
 		unbind_agent(
 			//! SObjectizer Environment where agent/cooperation/dispatcher
 			//! are working.
-			impl::so_environment_impl_t & env,
+			so_environment_t & env,
 			//! Agent to be bound.
 			agent_ref_t & agent_ref ) = 0;
 };

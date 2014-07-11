@@ -33,7 +33,7 @@ disp_binder_t::~disp_binder_t()
 
 void
 disp_binder_t::bind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
@@ -51,19 +51,16 @@ disp_binder_t::bind_agent(
 					"\", expected active_obj disp",
 				rc_disp_type_mismatch );
 
-		so_5::rt::dispatcher_t & disp_for_agent =
-			disp->create_disp_for_agent( *agent_ref );
+		auto ctx = disp->create_thread_for_agent( *agent_ref );
 
 		try
 		{
-			so_5::rt::agent_t::call_bind_to_disp(
-				*agent_ref,
-				disp_for_agent );
+			agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
 		}
 		catch( ... )
 		{
 			// Dispatcher for the agent should be removed.
-			disp->destroy_disp_for_agent( *agent_ref );
+			disp->destroy_thread_for_agent( *agent_ref );
 			throw;
 		}
 	}
@@ -77,7 +74,7 @@ disp_binder_t::bind_agent(
 
 void
 disp_binder_t::unbind_agent(
-	so_5::rt::impl::so_environment_impl_t & env,
+	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t & agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
@@ -89,7 +86,7 @@ disp_binder_t::unbind_agent(
 		// was successfully passed earlier.
 		dispatcher_t & disp = dynamic_cast< dispatcher_t & >( *disp_ref );
 
-		disp.destroy_disp_for_agent( *agent_ref );
+		disp.destroy_thread_for_agent( *agent_ref );
 	}
 }
 

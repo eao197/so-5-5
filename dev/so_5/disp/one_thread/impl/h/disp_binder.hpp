@@ -40,17 +40,29 @@ class disp_binder_t
 
 		virtual void
 		bind_agent(
-			so_5::rt::impl::so_environment_impl_t & env,
+			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 		virtual void
 		unbind_agent(
-			so_5::rt::impl::so_environment_impl_t & env,
+			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t & agent_ref );
 
 	private:
 		//! Name of the dispatcher to be bound to.
+		/*!
+		 * Empty name means usage of default dispatcher.
+		 */
 		const std::string m_disp_name;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Make binding to the dispatcher specified.
+		 */
+		void
+		make_agent_binding(
+			so_5::rt::dispatcher_t * disp,
+			so_5::rt::agent_ref_t & agent_ref );
 };
 
 } /* namespace impl */

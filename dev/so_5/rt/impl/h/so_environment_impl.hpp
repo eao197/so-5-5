@@ -82,13 +82,6 @@ class so_environment_impl_t
 		 * \}
 		 */
 
-		//! Create a local agent event queue.
-		inline local_event_queue_unique_ptr_t
-		create_local_queue()
-		{
-			return m_agent_core.create_local_queue();
-		}
-
 		/*!
 		 * \name Methods for work with dispatchers.
 		 * \{

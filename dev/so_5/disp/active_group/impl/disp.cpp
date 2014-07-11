@@ -6,13 +6,10 @@
 #include <algorithm>
 #include <mutex>
 
-#include <ace/Guard_T.h>
-
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/exception.hpp>
 
 #include <so_5/disp/active_group/impl/h/disp.hpp>
-#include <so_5/disp/one_thread/impl/h/disp.hpp>
 
 namespace so_5
 {
@@ -41,11 +38,11 @@ dispatcher_t::start()
 	m_shutdown_started = false;
 }
 
-template< class AGENT_DISP >
+template< class T >
 void
-call_shutdown( AGENT_DISP & agent_disp )
+call_shutdown( T & v )
 {
-	agent_disp.second.m_disp_ref->shutdown();
+	v.second.m_thread->shutdown();
 }
 
 void
@@ -58,38 +55,29 @@ dispatcher_t::shutdown()
 	m_shutdown_started = true;
 
 	std::for_each(
-		m_group_disp.begin(),
-		m_group_disp.end(),
-		call_shutdown< active_group_disp_map_t::value_type > );
+		m_groups.begin(),
+		m_groups.end(),
+		call_shutdown< active_group_map_t::value_type > );
 }
 
-template< class AGENT_DISP >
+template< class T >
 void
-call_wait( AGENT_DISP & agent_disp )
+call_wait( T & v )
 {
-	agent_disp.second.m_disp_ref->wait();
+	v.second.m_thread->wait();
 }
 
 void
 dispatcher_t::wait()
 {
 	std::for_each(
-		m_group_disp.begin(),
-		m_group_disp.end(),
-		call_wait< active_group_disp_map_t::value_type > );
+		m_groups.begin(),
+		m_groups.end(),
+		call_wait< active_group_map_t::value_type > );
 }
 
-void
-dispatcher_t::put_event_execution_request(
-	so_5::rt::agent_t *,
-	unsigned int event_count )
-{
-	// This method shall not be called!
-	std::abort();
-}
-
-so_5::rt::dispatcher_t &
-dispatcher_t::query_disp_for_group( const std::string & group_name )
+std::pair< std::thread::id, so_5::rt::event_queue_t * >
+dispatcher_t::query_thread_for_group( const std::string & group_name )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
 
@@ -98,41 +86,43 @@ dispatcher_t::query_disp_for_group( const std::string & group_name )
 			"shutdown was initiated",
 			rc_disp_create_failed );
 
-	active_group_disp_map_t::iterator it =
-		m_group_disp.find( group_name );
+	auto it = m_groups.find( group_name );
 
-	// If there is a dispatcher for an active group it should be returned.
-	if( m_group_disp.end() != it )
+	// If there is a thread for an active group it should be returned.
+	if( m_groups.end() != it )
 	{
 		++(it->second.m_user_agent);
-		return *(it->second.m_disp_ref);
+		return it->second.m_thread->get_agent_binding();
 	}
 
-	// New dispatcher should be created.
-	so_5::rt::dispatcher_ref_t disp(
-		new so_5::disp::one_thread::impl::dispatcher_t );
+	// New thread should be created.
+	using namespace so_5::disp::reuse::work_thread;
 
-	disp->start();
-	m_group_disp[ group_name ] = disp_with_ref_t( disp, 1 );
+	work_thread_shptr_t thread( new work_thread_t( *this ) );
+	thread->start();
 
-	return *disp;
+	m_groups.insert(
+			active_group_map_t::value_type(
+					group_name,
+					thread_with_refcounter_t( thread, 1 ) ) );
+
+	return thread->get_agent_binding();
 }
 
 void
-dispatcher_t::release_disp_for_group( const std::string & group_name )
+dispatcher_t::release_thread_for_group( const std::string & group_name )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( !m_shutdown_started )
 	{
-		active_group_disp_map_t::iterator it = m_group_disp.find( group_name );
+		auto it = m_groups.find( group_name );
 
-		if( m_group_disp.end() != it &&
-			0 == --(it->second.m_user_agent) )
+		if( m_groups.end() != it && 0 == --(it->second.m_user_agent) )
 		{
-			it->second.m_disp_ref->shutdown();
-			it->second.m_disp_ref->wait();
-			m_group_disp.erase( it );
+			it->second.m_thread->shutdown();
+			it->second.m_thread->wait();
+			m_groups.erase( it );
 		}
 	}
 }

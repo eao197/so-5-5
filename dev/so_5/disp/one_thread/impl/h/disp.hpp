@@ -13,6 +13,8 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
+#include <utility>
+
 namespace so_5
 {
 
@@ -42,7 +44,6 @@ class dispatcher_t
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
-
 		virtual void
 		start();
 
@@ -51,12 +52,14 @@ class dispatcher_t
 
 		virtual void
 		wait();
-
-		virtual void
-		put_event_execution_request(
-			so_5::rt::agent_t * agent_ptr,
-			unsigned int event_count );
 		//! \}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get a binding information for an agent.
+		 */
+		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		get_agent_binding();
 
 	private:
 		//! Working thread for the dispatcher.

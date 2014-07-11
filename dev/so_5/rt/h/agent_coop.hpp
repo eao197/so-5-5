@@ -789,15 +789,6 @@ class SO_5_TYPE agent_coop_t
 
 		/*!
 		 * \since v.5.2.3
-		 * \brief Start all agents as the final part of cooperation registration.
-		 *
-		 * An exception from agent_t::start_agent() leads to call to abort().
-		 */
-		void
-		start_all_agents();
-
-		/*!
-		 * \since v.5.2.3
 		 * \brief Shutdown all agents as a part of cooperation deregistration.
 		 *
 		 * An exception from agent_t::shutdown_agent() leads to call to abort().

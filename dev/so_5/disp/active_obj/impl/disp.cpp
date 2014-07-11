@@ -40,11 +40,11 @@ dispatcher_t::start()
 	m_shutdown_started = false;
 }
 
-template< class AGENT_DISP >
+template< class T >
 void
-call_shutdown( AGENT_DISP & agent_disp )
+call_shutdown( T & agent_thread )
 {
-	agent_disp.second->shutdown();
+	agent_thread.second->shutdown();
 }
 
 void
@@ -56,38 +56,29 @@ dispatcher_t::shutdown()
 	m_shutdown_started = true;
 
 	std::for_each(
-		m_agent_disp.begin(),
-		m_agent_disp.end(),
-		call_shutdown< agent_disp_map_t::value_type > );
+		m_agent_threads.begin(),
+		m_agent_threads.end(),
+		call_shutdown< agent_thread_map_t::value_type > );
 }
 
-template< class AGENT_DISP >
+template< class T >
 void
-call_wait( AGENT_DISP & agent_disp )
+call_wait( T & agent_thread )
 {
-	agent_disp.second->wait();
+	agent_thread.second->wait();
 }
 
 void
 dispatcher_t::wait()
 {
 	std::for_each(
-		m_agent_disp.begin(),
-		m_agent_disp.end(),
-		call_wait< agent_disp_map_t::value_type > );
+		m_agent_threads.begin(),
+		m_agent_threads.end(),
+		call_wait< agent_thread_map_t::value_type > );
 }
 
-void
-dispatcher_t::put_event_execution_request(
-	so_5::rt::agent_t *,
-	unsigned int event_count )
-{
-	// This method shall not be called!
-	std::abort();
-}
-
-so_5::rt::dispatcher_t &
-dispatcher_t::create_disp_for_agent( const so_5::rt::agent_t & agent )
+std::pair< std::thread::id, so_5::rt::event_queue_t * >
+dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
 
@@ -96,34 +87,35 @@ dispatcher_t::create_disp_for_agent( const so_5::rt::agent_t & agent )
 			"shutdown was initiated",
 			rc_disp_create_failed );
 
-	if( m_agent_disp.end() != m_agent_disp.find( &agent ) )
+	if( m_agent_threads.end() != m_agent_threads.find( &agent ) )
 		throw so_5::exception_t(
-			"create dispatcher failed",
+			"thread for the agent is already exists",
 			rc_disp_create_failed );
 
-	so_5::rt::dispatcher_ref_t disp(
-		new so_5::disp::one_thread::impl::dispatcher_t );
+	using namespace so_5::disp::reuse::work_thread;
 
-	disp->start();
-	m_agent_disp[ &agent ] = disp;
+	work_thread_shptr_t thread( new work_thread_t( *this ) );
 
-	return *disp;
+	thread->start();
+	m_agent_threads[ &agent ] = thread;
+
+	return thread->get_agent_binding();
 }
 
 void
-dispatcher_t::destroy_disp_for_agent( const so_5::rt::agent_t & agent )
+dispatcher_t::destroy_thread_for_agent( const so_5::rt::agent_t & agent )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( !m_shutdown_started )
 	{
-		agent_disp_map_t::iterator it = m_agent_disp.find( &agent );
+		auto it = m_agent_threads.find( &agent );
 
-		if( m_agent_disp.end() != it )
+		if( m_agent_threads.end() != it )
 		{
 			it->second->shutdown();
 			it->second->wait();
-			m_agent_disp.erase( it );
+			m_agent_threads.erase( it );
 		}
 	}
 }
