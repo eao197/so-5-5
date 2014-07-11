@@ -279,7 +279,10 @@ agent_t::create_event_subscription(
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	std::lock_guard< std::mutex > lock( m_mutex );
+
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
 
 	if( m_is_coop_deregistered )
 		return;
@@ -363,7 +366,10 @@ agent_t::do_drop_subscription(
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	std::lock_guard< std::mutex > lock( m_mutex );
+
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
@@ -393,7 +399,10 @@ agent_t::do_drop_subscription_for_all_states(
 	subscription_key_t subscr_key( type_index, mbox_ref );
 
 	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-	std::lock_guard< std::mutex > lock( m_mutex );
+
+	// Since v.5.4.0 there is no need for locking agent's mutex
+	// because this operation can be performed only on agent's
+	// working thread.
 
 	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
 
