@@ -46,7 +46,7 @@ class a_child_t : public so_5::rt::agent_t
 			try
 			{
 				m_parent_mbox->run_one()
-						.wait_for( std::chrono::milliseconds( 0 ) )
+						.wait_for( std::chrono::milliseconds( 100 ) )
 						.sync_get< msg_initiate_dereg >();
 
 				throw std::runtime_error( "timeout expected" );
@@ -55,7 +55,7 @@ class a_child_t : public so_5::rt::agent_t
 			{
 				if( so_5::rc_svc_result_not_received_yet != x.error_code() )
 				{
-					std::cerr << "timeout expiration excpected, but "
+					std::cerr << "timeout expiration expected, but "
 							"the actual error_code: "
 							<< x.error_code() << std::endl;
 					std::abort();

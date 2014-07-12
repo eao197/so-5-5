@@ -44,6 +44,10 @@ agent_t::agent_t(
 
 agent_t::~agent_t()
 {
+	// Sometimes it is possible that agent is destroyed without
+	// correct deregistration from SO Environment.
+	if( !m_subscriptions.empty() )
+		destroy_all_subscriptions( m_subscriptions );
 }
 
 void
