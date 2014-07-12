@@ -747,7 +747,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note Doesn't throw if there is no such subscription.
 		 */
-		template< class AGENT, class MESSAGE >
+		template< class MESSAGE >
 		inline void
 		so_drop_subscription(
 			const mbox_ref_t & mbox,
