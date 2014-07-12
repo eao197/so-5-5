@@ -5,7 +5,6 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/so_environment.hpp>
-#include <so_5/rt/h/event_caller_block.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
@@ -232,13 +231,13 @@ agent_t::shutdown_agent()
 	//
 	// 3. Send the last demand to the agent.
 
-	consumers_map_t subscriptions;
+	subscription_map_t subscriptions;
 	{
 		// Step #1. Must be done on locked object.
 		std::lock_guard< std::mutex > lock( m_mutex );
 
 		m_is_coop_deregistered = true;
-		m_event_consumers_map.swap( subscriptions );
+		m_subscriptions.swap( subscriptions );
 	}
 
 	// Step #2. Must be done on unlocked object.
@@ -247,110 +246,96 @@ agent_t::shutdown_agent()
 	destroy_all_subscriptions( subscriptions );
 
 	m_event_queue.load( std::memory_order_acquire )->push(
-			this,
-			event_caller_block_ref_t(),
-			message_ref_t(),
-			&agent_t::demand_handler_on_finish );
+			execution_demand_t(
+					this,
+					0,
+					typeid(void),
+					message_ref_t(),
+					&agent_t::demand_handler_on_finish ) );
 }
 
-//! Make textual representation of the subscription key.
-template< class PAIR >
-inline std::string
-subscription_key_string( const PAIR & sk )
+namespace
 {
-	const std::string msg_type =
-		sk.first.query_type_info().name();
+	template< class S >
+	bool is_known_mbox_msg_pair(
+		S & s,
+		typename S::iterator it )
+	{
+		if( it != s.begin() )
+		{
+			typename S::iterator prev = it;
+			++prev;
+			if( it->first.is_same_mbox_msg_pair( prev->first ) )
+				return true;
+		}
 
-	std::string str = "message type: " +
-		msg_type + "; mbox: " + sk.second->query_name();
+		typename S::iterator next = it;
+		++next;
+		if( next != s.end() )
+			return it->first.is_same_mbox_msg_pair( next->first );
 
-	return str;
-}
+		return false;
+	}
+
+} /* namespace anonymous */
 
 void
 agent_t::create_event_subscription(
-	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref,
+	std::type_index type_index,
 	const state_t & target_state,
 	const event_handler_method_t & method )
 {
-	ensure_operation_is_on_working_thread();
-
-	subscription_key_t subscr_key( type_index, mbox_ref );
-
-	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
 
+	ensure_operation_is_on_working_thread();
+
 	if( m_is_coop_deregistered )
 		return;
 
-	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
+	auto insertion_result = m_subscriptions.emplace(
+			subscription_key_t( mbox_ref->id(), type_index, target_state ),
+			subscription_data_t( mbox_ref, method ) );
 
-	// If subscription is not found then it should be created.
-	if( m_event_consumers_map.end() == it )
-	{
-		create_and_register_event_caller_block(
-				type_index,
-				mbox_proxy,
-				target_state,
-				method,
-				subscr_key );
-	}
-	else
-	{
-		it->second->insert( target_state, std::move(method) );
-	}
-}
+	if( !insertion_result.second )
+		SO_5_THROW_EXCEPTION(
+			rc_evt_handler_already_provided,
+			"agent is already subscribed to message" );
 
-void
-agent_t::create_and_register_event_caller_block(
-	const std::type_index & type_index,
-	mbox_subscription_management_proxy_t & mbox_proxy,
-	const state_t & target_state,
-	const event_handler_method_t & method,
-	const subscription_key_t & subscr_key )
-{
-	event_caller_block_ref_t caller_block(
-			new event_caller_block_t() );
-	caller_block->insert( target_state, method );
-
-	mbox_proxy.subscribe_event_handler(
-		type_index,
-		this,
-		caller_block.get() );
-
-	// If we won't add event into event_consumers_map then
-	// event must be removed from mbox.
-	try
+	auto mbox_msg_known = is_known_mbox_msg_pair(
+			m_subscriptions, insertion_result.first );
+	if( !mbox_msg_known )
 	{
-		m_event_consumers_map.insert(
-			consumers_map_t::value_type(
-				subscr_key,
-				caller_block ) );
-	}
-	catch( ... )
-	{
-		mbox_proxy.unsubscribe_event_handlers( type_index, this );
-		throw;
+		// Mbox must create subscription.
+		try
+		{
+			mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
+			mbox_proxy.subscribe_event_handler( type_index, this );
+		}
+		catch( ... )
+		{
+			// Rollback agent's subscription.
+			m_subscriptions.erase( insertion_result.first );
+			throw;
+		}
 	}
 }
 
 void
 agent_t::destroy_all_subscriptions(
-	consumers_map_t & subscriptions )
+	subscription_map_t & subscriptions )
 {
-	consumers_map_t::iterator it = subscriptions.begin();
-	consumers_map_t::iterator it_end = subscriptions.end();
+	auto it = subscriptions.begin();
+	auto it_end = subscriptions.end();
 
 	for(; it != it_end; ++it )
 	{
-		mbox_subscription_management_proxy_t mbox_proxy( it->first.second );
+		mbox_subscription_management_proxy_t mbox_proxy( it->second.m_mbox );
 
 		mbox_proxy.unsubscribe_event_handlers(
-			it->first.first,
+			it->first.m_msg_type,
 			this );
 	}
 }
@@ -363,28 +348,25 @@ agent_t::do_drop_subscription(
 {
 	ensure_operation_is_on_working_thread();
 
-	subscription_key_t subscr_key( type_index, mbox_ref );
-
-	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
+	auto it = m_subscriptions.find(
+			subscription_key_t( mbox_ref->id(), type_index, target_state ) );
 
-	if( m_event_consumers_map.end() != it )
+	if( m_subscriptions.end() != it )
 	{
-		it->second->remove_caller_for_state( target_state );
+		bool mbox_msg_known = is_known_mbox_msg_pair( m_subscriptions, it );
 
-		if( it->second->empty() )
+		m_subscriptions.erase( it );
+
+		if( !mbox_msg_known )
 		{
+			mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
 			mbox_proxy.unsubscribe_event_handlers(
-				it->first.first,
+				type_index,
 				this );
-
-			// There is no more interest in that subscription key.
-			m_event_consumers_map.erase( it );
 		}
 	}
 }
@@ -394,97 +376,96 @@ agent_t::do_drop_subscription_for_all_states(
 	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref )
 {
-	ensure_operation_is_on_working_thread();
-
-	subscription_key_t subscr_key( type_index, mbox_ref );
-
-	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
+	ensure_operation_is_on_working_thread();
 
-	if( m_event_consumers_map.end() != it )
+	subscription_key_t key( mbox_ref->id(), type_index );
+
+	auto it = m_subscriptions.lower_bound( key );
+	if( it != m_subscriptions.end() )
 	{
-		mbox_proxy.unsubscribe_event_handlers(
-			it->first.first,
-			this );
+		while( key.is_same_mbox_msg_pair( it->first ) )
+			m_subscriptions.erase( it++ );
 
-		// There is no more interest in that subscription key.
-		m_event_consumers_map.erase( it );
+		mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
+		mbox_proxy.unsubscribe_event_handlers( type_index, this );
 	}
 }
 
 void
 agent_t::push_event(
-	const event_caller_block_ref_t & event_caller_block,
+	mbox_id_t mbox_id,
+	std::type_index msg_type,
 	const message_ref_t & message )
 {
 	m_event_queue.load( std::memory_order_acquire )->push(
-			this,
-			event_caller_block,
-			message,
-			&agent_t::demand_handler_on_message );
+			execution_demand_t(
+				this,
+				mbox_id,
+				msg_type,
+				message,
+				&agent_t::demand_handler_on_message ) );
 }
 
 void
 agent_t::push_service_request(
-	const event_caller_block_ref_t & event_caller_block,
+	mbox_id_t mbox_id,
+	std::type_index msg_type,
 	const message_ref_t & message )
 {
 	m_event_queue.load( std::memory_order_acquire )->push(
-			this,
-			event_caller_block,
-			message,
-			&agent_t::service_request_handler_on_message );
+			execution_demand_t(
+					this,
+					mbox_id,
+					msg_type,
+					message,
+					&agent_t::service_request_handler_on_message ) );
 }
 
 void
-agent_t::demand_handler_on_start(
-	message_ref_t &,
-	const event_caller_block_t *,
-	agent_t * agent )
+agent_t::demand_handler_on_start( execution_demand_t & d )
 {
-	agent->so_evt_start();
+	d.m_receiver->so_evt_start();
 }
 
 void
-agent_t::demand_handler_on_finish(
-	message_ref_t &,
-	const event_caller_block_t *,
-	agent_t * agent )
+agent_t::demand_handler_on_finish( execution_demand_t & d )
 {
-	agent->so_evt_finish();
+	d.m_receiver->so_evt_finish();
 	// Cooperation should receive notification about agent deregistration.
-	agent_coop_t::decrement_usage_count( *(agent->m_agent_coop) );
+	agent_coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
 void
-agent_t::demand_handler_on_message(
-	message_ref_t & msg,
-	const event_caller_block_t * event_handler,
-	agent_t * agent )
+agent_t::demand_handler_on_message( execution_demand_t & d )
 {
-	event_handler->call(
-			agent->so_current_state(),
-			invocation_type_t::event,
-			msg );
+	auto it = d.m_receiver->m_subscriptions.find(
+			subscription_key_t(
+					d.m_mbox_id,
+					d.m_msg_type, 
+					d.m_receiver->so_current_state() ) );
+	if( it != d.m_receiver->m_subscriptions.end() )
+		it->second.m_method( invocation_type_t::event, d.m_message_ref );
 }
 
 void
-agent_t::service_request_handler_on_message(
-	message_ref_t & msg,
-	const event_caller_block_t * event_handler,
-	agent_t * agent )
+agent_t::service_request_handler_on_message( execution_demand_t & d )
 {
 	try
 		{
-			if( !event_handler->call(
-					agent->so_current_state(),
-					invocation_type_t::service_request,
-					msg ) )
+			auto it = d.m_receiver->m_subscriptions.find(
+					subscription_key_t(
+							d.m_mbox_id,
+							d.m_msg_type, 
+							d.m_receiver->so_current_state() ) );
+			if( it != d.m_receiver->m_subscriptions.end() )
+				it->second.m_method(
+						invocation_type_t::service_request,
+						d.m_message_ref );
+			else
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,
 						"service request handler is not found for "
@@ -493,7 +474,8 @@ agent_t::service_request_handler_on_message(
 	catch( ... )
 		{
 			auto & svc_request =
-					*(dynamic_cast< msg_service_request_base_t * >( msg.get() ));
+					*(dynamic_cast< msg_service_request_base_t * >(
+							d.m_message_ref.get() ));
 			svc_request.set_exception( std::current_exception() );
 		}
 }

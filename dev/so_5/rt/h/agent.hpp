@@ -24,7 +24,6 @@
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/event_caller_block.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
 
@@ -552,10 +551,11 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
-			const event_caller_block_ref_t & event_handler_caller,
+			mbox_id_t mbox_id,
+			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_event( event_handler_caller, message );
+			agent.push_event( mbox_id, msg_type, message );
 		}
 
 		/*!
@@ -565,10 +565,11 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_service_request(
 			agent_t & agent,
-			const event_caller_block_ref_t & event_handler_caller,
+			mbox_id_t mbox_id,
+			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_service_request( event_handler_caller, message );
+			agent.push_service_request( mbox_id, msg_type, message );
 		}
 
 	protected:
@@ -878,17 +879,102 @@ class SO_5_TYPE agent_t
 		std::unique_ptr< impl::state_listener_controller_t >
 			m_state_listener_controller;
 
-		//! Typedef for subscription key.
-		typedef std::pair< std::type_index, mbox_ref_t > subscription_key_t;
+		//! Subscription key type.
+		struct subscription_key_t
+		{
+			//! Unique ID of mbox.
+			mbox_id_t m_mbox_id;
+			//! Message type.
+			std::type_index m_msg_type;
+			//! State of agent.
+			const state_t * m_state;
+
+			//! Default constructor.
+			subscription_key_t()
+				:	m_state( nullptr )
+				,	m_msg_type( typeid(void) )
+				{}
+
+			//! Constructor for the case when it is necessary to
+			//! find all keys with (mbox_id, msg_type) prefix.
+			subscription_key_t(
+				mbox_id_t mbox_id,
+				std::type_index msg_type )
+				:	m_mbox_id( mbox_id )
+				,	m_msg_type( msg_type )
+				,	m_state( nullptr )
+				{}
+
+			//! Initializing constructor.
+			subscription_key_t(
+				mbox_id_t mbox_id,
+				std::type_index msg_type,
+				const state_t & state )
+				:	m_mbox_id( mbox_id )
+				,	m_msg_type( msg_type )
+				,	m_state( &state )
+				{}
+
+			bool
+			operator<( const subscription_key_t & o ) const
+				{
+					if( m_mbox_id < o.m_mbox_id )
+						return true;
+					else if( m_mbox_id == o.m_mbox_id )
+						{
+							if( m_msg_type < o.m_msg_type )
+								return true;
+							else if( m_msg_type == o.m_msg_type )
+								return m_state < o.m_state;
+						}
+
+					return false;
+				}
+
+			bool
+			is_same_mbox_msg_pair( const subscription_key_t & o ) const
+				{
+					return m_mbox_id == o.m_mbox_id &&
+							m_msg_type == o.m_msg_type;
+				}
+		};
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Subscription data.
+		 */
+		struct subscription_data_t
+		{
+			//! Reference to mbox.
+			/*!
+			 * This reference is necessary for some unsubscription operations
+			 * (for example in destroy_all_subscriptions method).
+			 */
+			mbox_ref_t m_mbox;
+			//! Event handler method.
+			event_handler_method_t m_method;
+
+			//! Initializing constructor.
+			subscription_data_t(
+				mbox_ref_t mbox,
+				event_handler_method_t method )
+				:	m_mbox( std::move( mbox ) )
+				,	m_method( std::move( method ) )
+				{}
+		};
 
 		//! Typedef for the map from subscriptions to event handlers.
-		typedef std::map<
-				subscription_key_t,
-				event_caller_block_ref_t >
-			consumers_map_t;
+		/*!
+		 * \since v.5.4.0
+		 */
+		typedef std::map< subscription_key_t, subscription_data_t >
+			subscription_map_t;
 
 		//! Map from subscriptions to event handlers.
-		consumers_map_t m_event_consumers_map;
+		/*!
+		 * \since v.5.4.0
+		 */
+		subscription_map_t m_subscriptions;
 
 		//! SObjectizer Environment for which the agent is belong.
 		impl::so_environment_impl_t * m_so_environment_impl;
@@ -981,10 +1067,10 @@ class SO_5_TYPE agent_t
 		//! Create binding between agent and mbox.
 		void
 		create_event_subscription(
-			//! Message type.
-			const std::type_index & type_index,
 			//! Message's mbox.
 			const mbox_ref_t & mbox_ref,
+			//! Message type.
+			std::type_index type_index,
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
@@ -1010,7 +1096,7 @@ class SO_5_TYPE agent_t
 		//! Destroy all agent subscriptions.
 		void
 		destroy_all_subscriptions(
-			consumers_map_t & subscriptions );
+			subscription_map_t & subscriptions );
 
 		/*!
 		 * \since v.5.2.3
@@ -1044,22 +1130,26 @@ class SO_5_TYPE agent_t
 		 * \{
 		 */
 
-		//! Push event into the local event queue.
+		//! Push event into the event queue.
 		void
 		push_event(
-			//! Event handler caller for an event.
-			const event_caller_block_ref_t & event_handler_caller,
+			//! ID of mbox for this event.
+			mbox_id_t mbox_id,
+			//! Message type for event.
+			std::type_index msg_type,
 			//! Event message.
 			const message_ref_t & message );
 
 		/*!
 		 * \since v.5.3.0
-		 * \brief Push service request to local event queue.
+		 * \brief Push service request to event queue.
 		 */
 		void
 		push_service_request(
-			//! Event handler caller for an event.
-			const event_caller_block_ref_t & event_handler_caller,
+			//! ID of mbox for this event.
+			mbox_id_t mbox_id,
+			//! Message type for event.
+			std::type_index msg_type,
 			//! Event message.
 			const message_ref_t & message );
 		/*!
@@ -1075,37 +1165,25 @@ class SO_5_TYPE agent_t
 		 * \brief Calls so_evt_start method for agent.
 		 */
 		static void
-		demand_handler_on_start(
-			message_ref_t &,
-			const event_caller_block_t *,
-			agent_t * agent );
+		demand_handler_on_start( execution_demand_t & d );
 		/*!
 		 * \since v.5.2.0
 		 * \brief Calls so_evt_finish method for agent.
 		 */
 		static void
-		demand_handler_on_finish(
-			message_ref_t &,
-			const event_caller_block_t *,
-			agent_t * agent );
+		demand_handler_on_finish( execution_demand_t & d );
 		/*!
 		 * \since v.5.2.0
 		 * \brief Calls event handler for message.
 		 */
 		static void
-		demand_handler_on_message(
-			message_ref_t & msg,
-			const event_caller_block_t * event_handler,
-			agent_t * );
+		demand_handler_on_message( execution_demand_t & d );
 		/*!
 		 * \since v.5.3.0
 		 * \brief Calls request handler for message.
 		 */
 		static void
-		service_request_handler_on_message(
-			message_ref_t & msg,
-			const event_caller_block_t * event_handler,
-			agent_t * );
+		service_request_handler_on_message( execution_demand_t & d );
 		/*!
 		 * \}
 		 */
@@ -1609,15 +1687,15 @@ subscription_bind_t::create_subscription_for_states(
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
 		m_agent.create_event_subscription(
-			msg_type,
 			m_mbox_ref,
+			msg_type,
 			m_agent.so_default_state(),
 			method );
 	else
 		for( auto s : m_states )
 			m_agent.create_event_subscription(
-					msg_type,
 					m_mbox_ref,
+					msg_type,
 					*s,
 					method );
 }

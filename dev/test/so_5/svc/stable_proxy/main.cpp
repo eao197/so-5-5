@@ -39,6 +39,12 @@ class test_mbox_t : public so_5::rt::mbox_t
 					}
 			}
 
+		virtual so_5::mbox_id_t
+		id() const
+			{
+				return m_actual_mbox->id();
+			}
+
 		virtual void
 		deliver_service_request(
 			const std::type_index & type_index,
@@ -62,8 +68,7 @@ class test_mbox_t : public so_5::rt::mbox_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			so_5::rt::agent_t * subscriber,
-			const so_5::rt::event_caller_block_ref_t & event_caller )
+			so_5::rt::agent_t * subscriber )
 			{
 				// DO NOTHING FOR THAT TEST
 			}

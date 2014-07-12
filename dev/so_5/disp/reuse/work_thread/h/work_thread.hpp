@@ -33,36 +33,8 @@ namespace reuse
 namespace work_thread
 {
 
-//
-// demand_t
-//
-
-//! Element of queue of demands to process agent events.
-struct demand_t
-{
-	//! Receiver of demand.
-	so_5::rt::agent_t * m_receiver;
-	//! Event handler.
-	so_5::rt::event_caller_block_ref_t m_event_caller_block;
-	//! Event incident.
-	so_5::rt::message_ref_t m_message_ref;
-	//! Demand handler.
-	so_5::rt::demand_handler_pfn_t m_demand_handler;
-
-	demand_t(
-		so_5::rt::agent_t * receiver,
-		so_5::rt::event_caller_block_ref_t event_caller_block,
-		so_5::rt::message_ref_t message_ref,
-		so_5::rt::demand_handler_pfn_t demand_handler )
-		:	m_receiver( receiver )
-		,	m_event_caller_block( std::move( event_caller_block ) )
-		,	m_message_ref( std::move( message_ref ) )
-		,	m_demand_handler( demand_handler )
-		{}
-};
-
 //! Typedef for demand's container.
-typedef std::deque< demand_t > demand_container_t;
+typedef std::deque< so_5::rt::execution_demand_t > demand_container_t;
 
 //
 // demand_queue_t
@@ -87,10 +59,7 @@ class demand_queue_t : public so_5::rt::event_queue_t
 		 */
 		virtual void
 		push(
-			so_5::rt::agent_t * receiver,
-			const so_5::rt::event_caller_block_ref_t & event_caller_block,
-			const so_5::rt::message_ref_t & message_ref,
-			so_5::rt::demand_handler_pfn_t demand_handler );
+			so_5::rt::execution_demand_t demand );
 		/*!
 		 * \}
 		 */

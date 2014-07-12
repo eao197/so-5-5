@@ -10,7 +10,7 @@
 #if !defined( _SO_5__RT__IMPL__LOCAL_MBOX_HPP_ )
 #define _SO_5__RT__IMPL__LOCAL_MBOX_HPP_
 
-#include <map>
+#include <set>
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
@@ -40,14 +40,22 @@ class local_mbox_t
 		friend class impl::mbox_core_t;
 
 		explicit local_mbox_t(
-			impl::mbox_core_t & mbox_core );
+			impl::mbox_core_t & mbox_core,
+			mbox_id_t id );
 
 		local_mbox_t(
 			impl::mbox_core_t & mbox_core,
+			mbox_id_t id,
 			ACE_RW_Thread_Mutex & lock );
 
 	public:
 		virtual ~local_mbox_t();
+
+		virtual mbox_id_t
+		id() const
+			{
+				return m_id;
+			}
 
 		virtual void
 		deliver_service_request(
@@ -69,9 +77,7 @@ class local_mbox_t
 			//! Message type.
 			const std::type_index & type_wrapper,
 			//! Agent-subcriber.
-			agent_t * subscriber,
-			//! The first event caller for this message.
-			const event_caller_block_ref_t & event_caller );
+			agent_t * subscriber );
 
 		//! Remove all subscription for the specified message.
 		/*!
@@ -102,21 +108,21 @@ class local_mbox_t
 		//! Implementation data.
 		impl::mbox_core_ref_t m_mbox_core;
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief ID of this mbox.
+		 */
+		const mbox_id_t m_id;
+
 		//! Object lock.
 		ACE_RW_Thread_Mutex & m_lock;
 
-		//! Typedef for map of subscribers to caller blocks.
-		typedef std::map<
-					agent_t *,
-					event_caller_block_ref_t >
-				subscribers_to_msg_map_t;
-
-		//! Typedef for map from type_index to callers blocks.
-		typedef std::map< std::type_index, subscribers_to_msg_map_t >
-				subscribers_to_mbox_map_t;
+		//! Typedef for set of subscribers.
+		typedef std::set< std::pair< std::type_index, agent_t * > >
+				subscribers_set_t;
 
 		//! Map of subscribers to messages.
-		subscribers_to_mbox_map_t m_subscribers;
+		subscribers_set_t m_subscribers;
 };
 
 } /* namespace impl */

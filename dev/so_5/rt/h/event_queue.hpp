@@ -11,7 +11,7 @@
 #if !defined( _SO_5__RT__EVENT_QUEUE_HPP_ )
 #define _SO_5__RT__EVENT_QUEUE_HPP_
 
-#include <so_5/rt/h/event_caller_block.hpp>
+#include <so_5/rt/h/execution_demand.hpp>
 
 namespace so_5
 {
@@ -30,15 +30,7 @@ class SO_5_TYPE event_queue_t
 
 		//! Enqueue new event to the queue.
 		virtual void
-		push(
-			//! Receiver of event.
-			agent_t * receiver,
-			//! Handler for event.
-			const event_caller_block_ref_t & event_caller_block,
-			//! Event incident.
-			const message_ref_t & message_ref,
-			//! Demand handler.
-			demand_handler_pfn_t demand_handler ) = 0;
+		push( execution_demand_t demand ) = 0;
 	};
 
 } /* namespace rt */

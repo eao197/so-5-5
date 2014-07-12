@@ -27,8 +27,8 @@ namespace impl
 
 mbox_core_t::mbox_core_t(
 	unsigned int mutex_pool_size )
-	:
-		m_mbox_mutex_pool( mutex_pool_size )
+	:	m_mbox_mutex_pool( mutex_pool_size )
+	,	m_mbox_id_counter( 1 )
 {
 }
 
@@ -40,7 +40,7 @@ mbox_core_t::~mbox_core_t()
 mbox_ref_t
 mbox_core_t::create_local_mbox()
 {
-	mbox_ref_t mbox_ref( new local_mbox_t( *this ) );
+	mbox_ref_t mbox_ref( new local_mbox_t( *this, ++m_mbox_id_counter ) );
 
 	return mbox_ref;
 }
@@ -52,7 +52,8 @@ mbox_core_t::create_local_mbox(
 	return create_named_mbox(
 			mbox_name,
 			[this]() -> mbox_ref_t {
-				return mbox_ref_t( new local_mbox_t( *this ) );
+				return mbox_ref_t(
+					new local_mbox_t( *this, ++m_mbox_id_counter ) );
 			} );
 }
 
@@ -63,6 +64,7 @@ mbox_core_t::create_local_mbox(
 	mbox_ref_t mbox_ref(
 		new local_mbox_t(
 			*this,
+			++m_mbox_id_counter,
 			*lock_ptr.release() ) );
 
 	return mbox_ref;
@@ -77,7 +79,10 @@ mbox_core_t::create_local_mbox(
 			mbox_name,
 			[this, &lock_ptr]() -> mbox_ref_t {
 				return mbox_ref_t(
-					new local_mbox_t( *this, *(lock_ptr.release()) ) );
+					new local_mbox_t(
+						*this,
+						++m_mbox_id_counter,
+						*(lock_ptr.release()) ) );
 			} );
 }
 

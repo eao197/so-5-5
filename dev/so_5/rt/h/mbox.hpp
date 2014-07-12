@@ -26,7 +26,6 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
-#include <so_5/rt/h/event_caller_block.hpp>
 
 namespace so_5
 {
@@ -318,6 +317,13 @@ class SO_5_TYPE mbox_t
 		mbox_t();
 		virtual ~mbox_t();
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief Unique ID of this mbox.
+		 */
+		virtual mbox_id_t
+		id() const = 0;
+
 		//! Deliver message.
 		/*!
 		 * \since v.5.2.2
@@ -415,9 +421,7 @@ class SO_5_TYPE mbox_t
 			//! Message type.
 			const std::type_index & type_index,
 			//! Agent-subcriber.
-			agent_t * subscriber,
-			//! The very first message handler.
-			const event_caller_block_ref_t & event_caller ) = 0;
+			agent_t * subscriber ) = 0;
 
 		//! Remove all message handlers.
 		virtual void
@@ -446,13 +450,6 @@ class SO_5_TYPE mbox_t
 		 */
 		virtual void
 		read_write_lock_release() = 0;
-
-		//! Get data for the object comparision.
-		/*!
-		 * Default implementation returns this pointer.
-		*/
-		virtual const mbox_t *
-		cmp_ordinal() const;
 };
 
 template< class MESSAGE >
@@ -783,14 +780,11 @@ class mbox_subscription_management_proxy_t
 			//! Message type.
 			const std::type_index & type_index,
 			//! Agent-subcriber.
-			agent_t * subscriber,
-			//! The very first message handler.
-			const event_caller_block_ref_t & event_caller )
+			agent_t * subscriber )
 		{
 			m_mbox->subscribe_event_handler(
 					type_index,
-					subscriber,
-					event_caller );
+					subscriber );
 		}
 
 		//! Remove all message handlers.

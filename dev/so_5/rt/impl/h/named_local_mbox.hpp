@@ -51,6 +51,9 @@ class named_local_mbox_t
 	public:
 		virtual ~named_local_mbox_t();
 
+		virtual mbox_id_t
+		id() const;
+
 		virtual void
 		deliver_service_request(
 			const std::type_index & type_index,
@@ -63,8 +66,7 @@ class named_local_mbox_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			agent_t * subscriber,
-			const event_caller_block_ref_t & event_caller );
+			agent_t * subscriber );
 
 		virtual void
 		unsubscribe_event_handlers(
@@ -83,10 +85,6 @@ class named_local_mbox_t
 
 		virtual void
 		read_write_lock_release();
-
-		//! Get data for a comparision.
-		virtual const mbox_t *
-		cmp_ordinal() const;
 
 	private:
 		//! Mbox name.

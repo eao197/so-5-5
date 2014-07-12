@@ -38,10 +38,7 @@ demand_queue_t::~demand_queue_t()
 
 void
 demand_queue_t::push(
-	so_5::rt::agent_t * receiver,
-	const so_5::rt::event_caller_block_ref_t & event_caller_block,
-	const so_5::rt::message_ref_t & message_ref,
-	so_5::rt::demand_handler_pfn_t demand_handler )
+	so_5::rt::execution_demand_t demand )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
 
@@ -49,11 +46,7 @@ demand_queue_t::push(
 	{
 		const bool demands_empty_before_service = m_demands.empty();
 
-		m_demands.emplace_back( 
-				receiver,
-				event_caller_block,
-				message_ref,
-				demand_handler );
+		m_demands.push_back( std::move( demand ) );
 
 		if( demands_empty_before_service )
 		{
@@ -371,12 +364,9 @@ work_thread_t::serve_demands_block(
 {
 	while( !demands.empty() )
 	{
-		demand_t & demand = demands.front();
+		auto & demand = demands.front();
 
-		(*demand.m_demand_handler)(
-				demand.m_message_ref,
-				demand.m_event_caller_block.get(),
-				demand.m_receiver );
+		(*demand.m_demand_handler)( demand );
 
 		demands.pop_front();
 	}

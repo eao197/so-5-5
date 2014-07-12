@@ -24,19 +24,21 @@ namespace impl
 //
 
 local_mbox_t::local_mbox_t(
-	impl::mbox_core_t & mbox_core )
-	:
-		m_mbox_core( &mbox_core ),
-		m_lock( m_mbox_core->allocate_mutex() )
+	impl::mbox_core_t & mbox_core,
+	mbox_id_t id )
+	:	m_mbox_core( &mbox_core )
+	,	m_id( id )
+	,	m_lock( m_mbox_core->allocate_mutex() )
 {
 }
 
 local_mbox_t::local_mbox_t(
 	impl::mbox_core_t & mbox_core,
+	mbox_id_t id,
 	ACE_RW_Thread_Mutex & lock )
-	:
-		m_mbox_core( &mbox_core ),
-		m_lock( lock )
+	:	m_mbox_core( &mbox_core )
+	,	m_id( id )
+	,	m_lock( lock )
 {
 }
 
@@ -48,12 +50,11 @@ local_mbox_t::~local_mbox_t()
 void
 local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
-	agent_t * subscriber,
-	const event_caller_block_ref_t & event_caller )
+	agent_t * subscriber )
 {
 	// Since v.5.2.3.4 there is no locking inside the method!
 
-	m_subscribers[ type_wrapper ][ subscriber ] = event_caller;
+	m_subscribers.emplace( type_wrapper, subscriber );
 }
 
 void
@@ -63,13 +64,8 @@ local_mbox_t::unsubscribe_event_handlers(
 {
 	// Since v.5.2.3.4 there is no locking inside the method!
 
-	auto it = m_subscribers.find( type_wrapper );
-	if( it != m_subscribers.end() )
-	{
-		it->second.erase( subscriber );
-		if( it->second.empty() )
-			m_subscribers.erase( it );
-	}
+	m_subscribers.erase(
+			subscribers_set_t::value_type( type_wrapper, subscriber ) );
 }
 
 void
@@ -79,11 +75,14 @@ local_mbox_t::deliver_message(
 {
 	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-	auto it = m_subscribers.find( type_wrapper );
-	if( it != m_subscribers.end() )
+	auto it = m_subscribers.lower_bound(
+			subscribers_set_t::value_type( type_wrapper, 0 ) );
+
+	while( it != m_subscribers.end() && it->first == type_wrapper )
 	{
-		for( auto s = it->second.begin(), e = it->second.end(); s != e; ++s )
-			agent_t::call_push_event( *(s->first), s->second, message_ref );
+		agent_t::call_push_event(
+				*(it->second), m_id, type_wrapper, message_ref );
+		++it;
 	}
 }
 
@@ -116,30 +115,23 @@ local_mbox_t::deliver_service_request(
 		{
 			ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
 
-			auto it = m_subscribers.find( type_index );
-			if( it != m_subscribers.end() )
-			{
-				auto f = it->second.begin();
-				if( f == it->second.end() )
-					SO_5_THROW_EXCEPTION(
-							so_5::rc_no_svc_handlers,
-							"no service handlers [ACTUAL SUBSCRIBERS MAP EMPTY!]" );
-
-				auto s = ++(it->second.begin());
-				if( s != it->second.end() )
-					SO_5_THROW_EXCEPTION(
-							so_5::rc_more_than_one_svc_handler,
-							"more than one service handler found" );
-
-				agent_t::call_push_service_request(
-						*(f->first),
-						f->second,
-						svc_request_ref );
-			}
-			else
+			auto it = m_subscribers.lower_bound(
+					subscribers_set_t::value_type( type_index, 0 ) );
+			
+			if( it == m_subscribers.end() )
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_no_svc_handlers,
 						"no service handlers (no subscribers for message)" );
+
+			auto next = it;
+			++next;
+			if( next != m_subscribers.end() && next->first == type_index )
+				SO_5_THROW_EXCEPTION(
+						so_5::rc_more_than_one_svc_handler,
+						"more than one service handler found" );
+
+				agent_t::call_push_service_request(
+						*(it->second), m_id, type_index, svc_request_ref );
 		}
 	catch( ... )
 		{

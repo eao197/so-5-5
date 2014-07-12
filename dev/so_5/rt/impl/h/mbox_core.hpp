@@ -161,6 +161,12 @@ class mbox_core_t
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
 
 		/*!
+		 * \since v.5.4.0
+		 * \brief A counter for mbox ID generation.
+		 */
+		std::atomic< mbox_id_t > m_mbox_id_counter;
+
+		/*!
 		 * \since v.5.2.0
 		 * \brief Low-level implementation of named mbox creation.
 		 */

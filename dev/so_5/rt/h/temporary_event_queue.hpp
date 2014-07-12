@@ -42,11 +42,7 @@ class SO_5_TYPE temporary_event_queue_t : public event_queue_t
 		 * \{
 		 */
 		virtual void
-		push(
-			agent_t * receiver,
-			const event_caller_block_ref_t & event_caller_block,
-			const message_ref_t & message_ref,
-			demand_handler_pfn_t demand_handler );
+		push( execution_demand_t demand );
 		/*!
 		 * \}
 		 */
