@@ -23,9 +23,12 @@ struct	cfg_t
 
 	bool	m_active_objects;
 
+	bool	m_direct_mboxes;
+
 	cfg_t()
 		:	m_request_count( 1000 )
 		,	m_active_objects( false )
+		,	m_direct_mboxes( false )
 		{}
 };
 
@@ -42,17 +45,22 @@ try_parse_cmdline(
 					"\noptions:\n"
 					"-a, --active-objects agents should be active objects\n"
 					"-r, --requests       count of requests to send\n"
+					"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 					<< std::endl;
 
 			ACE_ERROR_RETURN(
 				( LM_ERROR, ACE_TEXT( "No arguments supplied\n" ) ), -1 );
 		}
 
-	ACE_Get_Opt opt( argc, argv, ":ar:" );
+	ACE_Get_Opt opt( argc, argv, ":adr:" );
 	if( -1 == opt.long_option(
 			"active-objects", 'a', ACE_Get_Opt::NO_ARG ) )
 		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
 						"Unable to set long option 'active-objects'\n" )), -1 );
+	if( -1 == opt.long_option(
+			"direct-mboxes", 'd', ACE_Get_Opt::NO_ARG ) )
+		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
+						"Unable to set long option 'direct-mboxes'\n" )), -1 );
 	if( -1 == opt.long_option(
 			"requests", 'r', ACE_Get_Opt::ARG_REQUIRED ) )
 		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
@@ -67,6 +75,10 @@ try_parse_cmdline(
 				{
 				case 'a' :
 					tmp_cfg.m_active_objects = true;
+				break;
+
+				case 'd' :
+					tmp_cfg.m_direct_mboxes = true;
 				break;
 
 				case 'r' :
@@ -107,17 +119,25 @@ class a_pinger_t
 	public :
 		a_pinger_t(
 			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox,
-			const so_5::rt::mbox_ref_t & ponger_mbox,
 			const cfg_t & cfg,
 			measure_result_t & measure_result )
 			:	base_type_t( env )
-			,	m_self_mbox( self_mbox )
-			,	m_ponger_mbox( ponger_mbox )
 			,	m_cfg( cfg )
 			,	m_measure_result( measure_result )
 			,	m_requests_sent( 0 )
 			{}
+
+		void
+		set_self_mbox( const so_5::rt::mbox_ref_t & mbox )
+			{
+				m_self_mbox = mbox;
+			}
+
+		void
+		set_ponger_mbox( const so_5::rt::mbox_ref_t & mbox )
+			{
+				m_ponger_mbox = mbox;
+			}
 
 		virtual void
 		so_define_agent()
@@ -148,8 +168,9 @@ class a_pinger_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-		const so_5::rt::mbox_ref_t m_ponger_mbox;
+		so_5::rt::mbox_ref_t m_self_mbox;
+		so_5::rt::mbox_ref_t m_ponger_mbox;
+
 		const cfg_t m_cfg;
 		measure_result_t & m_measure_result;
 
@@ -169,13 +190,21 @@ class a_ponger_t
 	
 	public :
 		a_ponger_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox,
-			const so_5::rt::mbox_ref_t & pinger_mbox )
+			so_5::rt::so_environment_t & env )
 			:	base_type_t( env )
-			,	m_self_mbox( self_mbox )
-			,	m_pinger_mbox( pinger_mbox )
 			{}
+
+		void
+		set_self_mbox( const so_5::rt::mbox_ref_t & mbox )
+			{
+				m_self_mbox = mbox;
+			}
+
+		void
+		set_pinger_mbox( const so_5::rt::mbox_ref_t & mbox )
+			{
+				m_pinger_mbox = mbox;
+			}
 
 		virtual void
 		so_define_agent()
@@ -191,8 +220,8 @@ class a_ponger_t
 			}
 
 	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
-		const so_5::rt::mbox_ref_t m_pinger_mbox;
+		so_5::rt::mbox_ref_t m_self_mbox;
+		so_5::rt::mbox_ref_t m_pinger_mbox;
 	};
 
 void
@@ -201,6 +230,7 @@ show_cfg(
 	{
 		std::cout << "Configuration: "
 			<< "active objects: " << ( cfg.m_active_objects ? "yes" : "no" )
+			<< ", direct mboxes: " << ( cfg.m_direct_mboxes ? "yes" : "no" )
 			<< ", requests: " << cfg.m_request_count
 			<< std::endl;
 	}
@@ -237,27 +267,28 @@ class test_env_t
 		void
 		init( so_5::rt::so_environment_t & env )
 			{
-				const so_5::rt::mbox_ref_t pinger_mbox = env.create_local_mbox();
-				const so_5::rt::mbox_ref_t ponger_mbox = env.create_local_mbox();
-
 				auto binder = ( m_cfg.m_active_objects ?
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) :
 						so_5::rt::create_default_disp_binder() );
 
 				auto coop = env.create_coop( "test", std::move(binder) );
 
-				coop->add_agent(
-						new a_pinger_t(
-								env, 
-								pinger_mbox,
-								ponger_mbox,
-								m_cfg,
-								m_result ) );
-				coop->add_agent(
-						new a_ponger_t(
-								env, 
-								ponger_mbox,
-								pinger_mbox ) );
+				auto a_pinger = new a_pinger_t( env, m_cfg, m_result );
+				auto a_ponger = new a_ponger_t( env );
+
+				auto pinger_mbox = m_cfg.m_direct_mboxes ?
+						env.create_mpsc_mbox( a_pinger ) : env.create_local_mbox();
+				auto ponger_mbox = m_cfg.m_direct_mboxes ?
+						env.create_mpsc_mbox( a_ponger ) : env.create_local_mbox();
+
+				a_pinger->set_self_mbox( pinger_mbox );
+				a_pinger->set_ponger_mbox( ponger_mbox );
+
+				a_ponger->set_self_mbox( ponger_mbox );
+				a_ponger->set_pinger_mbox( pinger_mbox );
+
+				coop->add_agent( a_pinger );
+				coop->add_agent( a_ponger );
 
 				env.register_coop( std::move( coop ) );
 			}
