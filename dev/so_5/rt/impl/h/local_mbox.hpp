@@ -62,15 +62,6 @@ class local_mbox_t
 			const std::type_index & type_index,
 			const message_ref_t & svc_request_ref ) const;
 
-//FIXME: It should return something like <anonymous:MEMORY_ADDRESS>
-//instead of empty string.
-		/*!
-		 * \return Empty string.
-		 */
-		virtual const std::string &
-		query_name() const;
-
-	protected:
 		//! Subscribe the first event handler to a mbox's message.
 		virtual void
 		subscribe_event_handler(
@@ -80,29 +71,28 @@ class local_mbox_t
 			agent_t * subscriber );
 
 		//! Remove all subscription for the specified message.
-		/*!
-		 * This method is called during agent deregistration when
-		 * all agent subscriptions should be removed.
-		 */
 		virtual void
 		unsubscribe_event_handlers(
 			//! Message type.
 			const std::type_index & type_wrapper,
 			//! Agent-subscriber.
 			agent_t * subscriber );
-		//! \}
+
+//FIXME: It should return something like <anonymous:MEMORY_ADDRESS>
+//instead of empty string.
+		/*!
+		 * \return Empty string.
+		 */
+		virtual const std::string &
+		query_name() const;
+
+	protected:
 
 		//! Deliver message for all subscribers.
 		void
 		deliver_message(
 			const std::type_index & type_wrapper,
 			const message_ref_t & message_ref ) const;
-
-		virtual void
-		read_write_lock_acquire();
-
-		virtual void
-		read_write_lock_release();
 
 	private:
 		//! Implementation data.

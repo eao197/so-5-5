@@ -55,16 +55,6 @@ class test_mbox_t : public so_5::rt::mbox_t
 						svc_request_ref );
 			}
 
-		virtual const std::string &
-		query_name() const { return m_actual_mbox->query_name(); }
-
-		static so_5::rt::mbox_ref_t
-		create( so_5::rt::so_environment_t & env )
-			{
-				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
-			}
-
-	protected:
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
@@ -81,22 +71,21 @@ class test_mbox_t : public so_5::rt::mbox_t
 				// DO NOTHING FOR THAT TEST
 			}
 
+		virtual const std::string &
+		query_name() const { return m_actual_mbox->query_name(); }
+
+		static so_5::rt::mbox_ref_t
+		create( so_5::rt::so_environment_t & env )
+			{
+				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
+			}
+
+	protected:
+
 		virtual void
 		deliver_message(
 			const std::type_index & type_index,
 			const so_5::rt::message_ref_t & message_ref ) const
-			{
-				// DO NOTHING FOR THAT TEST
-			}
-
-		virtual void
-		read_write_lock_acquire()
-			{
-				// DO NOTHING FOR THAT TEST
-			}
-
-		virtual void
-		read_write_lock_release()
 			{
 				// DO NOTHING FOR THAT TEST
 			}
@@ -191,11 +180,11 @@ main( int, char ** )
 			{
 				so_5::api::run_so_environment(
 					&init,
-					std::move(
-						so_5::rt::so_environment_params_t()
-							.add_named_dispatcher(
-								so_5::rt::nonempty_name_t( "active_obj" ),
-								so_5::disp::active_obj::create_disp() ) ) );
+					[]( so_5::rt::so_environment_params_t & p ) {
+						p.add_named_dispatcher(
+							so_5::rt::nonempty_name_t( "active_obj" ),
+							so_5::disp::active_obj::create_disp() );
+					} );
 			}
 		catch( const std::exception & ex )
 			{

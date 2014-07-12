@@ -311,8 +311,7 @@ agent_t::create_event_subscription(
 		// Mbox must create subscription.
 		try
 		{
-			mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-			mbox_proxy.subscribe_event_handler( type_index, this );
+			mbox_ref->subscribe_event_handler( type_index, this );
 		}
 		catch( ... )
 		{
@@ -332,9 +331,7 @@ agent_t::destroy_all_subscriptions(
 
 	for(; it != it_end; ++it )
 	{
-		mbox_subscription_management_proxy_t mbox_proxy( it->second.m_mbox );
-
-		mbox_proxy.unsubscribe_event_handlers(
+		it->second.m_mbox->unsubscribe_event_handlers(
 			it->first.m_msg_type,
 			this );
 	}
@@ -363,8 +360,7 @@ agent_t::do_drop_subscription(
 
 		if( !mbox_msg_known )
 		{
-			mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-			mbox_proxy.unsubscribe_event_handlers(
+			mbox_ref->unsubscribe_event_handlers(
 				type_index,
 				this );
 		}
@@ -390,8 +386,7 @@ agent_t::do_drop_subscription_for_all_states(
 		while( key.is_same_mbox_msg_pair( it->first ) )
 			m_subscriptions.erase( it++ );
 
-		mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-		mbox_proxy.unsubscribe_event_handlers( type_index, this );
+		mbox_ref->unsubscribe_event_handlers( type_index, this );
 	}
 }
 

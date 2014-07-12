@@ -307,8 +307,6 @@ class SO_5_TYPE mbox_t
 
 		friend class smart_atomic_reference_t< mbox_t >;
 
-		friend class mbox_subscription_management_proxy_t;
-
 		mbox_t( const mbox_t & );
 		void
 		operator = ( const mbox_t & );
@@ -395,6 +393,22 @@ class SO_5_TYPE mbox_t
 			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
 			const message_ref_t & svc_request_ref ) const = 0;
 
+		//! Add the message handler.
+		virtual void
+		subscribe_event_handler(
+			//! Message type.
+			const std::type_index & type_index,
+			//! Agent-subcriber.
+			agent_t * subscriber ) = 0;
+
+		//! Remove all message handlers.
+		virtual void
+		unsubscribe_event_handlers(
+			//! Message type.
+			const std::type_index & type_index,
+			//! Agent-subcriber.
+			agent_t * subscriber ) = 0;
+
 		//! Get the mbox name.
 		virtual const std::string &
 		query_name() const = 0;
@@ -411,45 +425,11 @@ class SO_5_TYPE mbox_t
 		 */
 
 	protected:
-		//! Add the message handler.
-		/*!
-		 * This method is called when the agent is subscribing to the message
-		 * at the first time.
-		 */
-		virtual void
-		subscribe_event_handler(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber ) = 0;
-
-		//! Remove all message handlers.
-		virtual void
-		unsubscribe_event_handlers(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber ) = 0;
-
 		//! Deliver message for all subscribers.
 		virtual void
 		deliver_message(
 			const std::type_index & type_index,
 			const message_ref_t & message_ref ) const = 0;
-
-		/*!
-		 * \since v.5.2.3.4
-		 * \brief Lock mbox in read-write mode.
-		 */
-		virtual void
-		read_write_lock_acquire() = 0;
-
-		/*!
-		 * \since v.5.2.3.4
-		 * \brief Release mbox's read-write lock.
-		 */
-		virtual void
-		read_write_lock_release() = 0;
 };
 
 template< class MESSAGE >
@@ -750,58 +730,6 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 		return this->sync_get( std::move( msg ) );
 	}
 #endif
-
-/*!
- * \since v.5.2.3.4
- * \brief A special interface to perform subscription management.
- *
- * Mbox should be locked in read-write mode before making any
- * changes to subscriptions. This interface provides an approach
- * to do that without possibility to make some error with object
- * locking/unlocking.
- */
-class mbox_subscription_management_proxy_t
-{
-	public :
-		inline mbox_subscription_management_proxy_t(
-			const mbox_ref_t & mbox )
-			:	m_mbox( mbox )
-		{
-			m_mbox->read_write_lock_acquire();
-		}
-		inline ~mbox_subscription_management_proxy_t()
-		{
-			m_mbox->read_write_lock_release();
-		}
-
-		//! Add the message handler.
-		inline void
-		subscribe_event_handler(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber )
-		{
-			m_mbox->subscribe_event_handler(
-					type_index,
-					subscriber );
-		}
-
-		//! Remove all message handlers.
-		inline void
-		unsubscribe_event_handlers(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber )
-		{
-			m_mbox->unsubscribe_event_handlers( type_index, subscriber );
-		}
-
-	private :
-		//! Mbox to work with.
-		const mbox_ref_t m_mbox;
-};
 
 } /* namespace rt */
 

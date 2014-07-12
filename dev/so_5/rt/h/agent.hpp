@@ -1076,23 +1076,6 @@ class SO_5_TYPE agent_t
 			//! Event handler caller.
 			const event_handler_method_t & method );
 
-		/*!
-		 * \since v.5.2.0
-		 * \brief Create and register event caller block for new subcription.
-		 */
-		void
-		create_and_register_event_caller_block(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Message's mbox.
-			mbox_subscription_management_proxy_t & mbox_proxy,
-			//! State for event.
-			const state_t & target_state,
-			//! Event handler caller.
-			const event_handler_method_t & method,
-			//! Subscription key for that event.
-			const subscription_key_t & subscr_key );
-
 		//! Destroy all agent subscriptions.
 		void
 		destroy_all_subscriptions(
