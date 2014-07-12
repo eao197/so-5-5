@@ -14,6 +14,10 @@ struct msg_one : public so_5::rt::signal_t {};
 struct msg_two : public so_5::rt::signal_t {};
 struct msg_three : public so_5::rt::signal_t {};
 
+struct msg_four : public so_5::rt::message_t {};
+
+struct msg_five : public so_5::rt::signal_t {};
+
 class a_test_t : public so_5::rt::agent_t
 {
 		typedef so_5::rt::agent_t base_type_t;
@@ -39,6 +43,10 @@ class a_test_t : public so_5::rt::agent_t
 				.event( &a_test_t::evt_default_two );
 			so_subscribe( m_mbox )
 				.event( &a_test_t::evt_default_three );
+			so_subscribe( m_mbox )
+				.event( &a_test_t::evt_default_four );
+			so_subscribe( m_mbox )
+				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
 
 			so_subscribe( m_mbox ).in( st_1 )
 				.event( &a_test_t::evt_st_1_one );
@@ -46,6 +54,10 @@ class a_test_t : public so_5::rt::agent_t
 				.event( &a_test_t::evt_st_1_two );
 			so_subscribe( m_mbox ).in( st_1 )
 				.event( &a_test_t::evt_st_1_three );
+			so_subscribe( m_mbox ).in( st_1 )
+				.event( &a_test_t::evt_default_four );
+			so_subscribe( m_mbox ).in( st_1 )
+				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
 
 			so_subscribe( m_mbox ).in( st_2 )
 				.event( &a_test_t::evt_st_2_one );
@@ -53,6 +65,8 @@ class a_test_t : public so_5::rt::agent_t
 				.event( &a_test_t::evt_st_2_two );
 			so_subscribe( m_mbox ).in( st_2 )
 				.event( &a_test_t::evt_st_2_three );
+			so_subscribe( m_mbox ).in( st_2 )
+				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
 		}
 
 		void
@@ -60,6 +74,8 @@ class a_test_t : public so_5::rt::agent_t
 		{
 			m_mbox->deliver_signal< msg_one >();
 			m_mbox->deliver_signal< msg_two >();
+			m_mbox->deliver_message( new msg_four() );
+			m_mbox->deliver_signal< msg_five >();
 		}
 
 		void
@@ -88,6 +104,28 @@ class a_test_t : public so_5::rt::agent_t
 
 			m_mbox->deliver_signal< msg_one >();
 			m_mbox->deliver_signal< msg_two >();
+		}
+
+		void
+		evt_default_four( const msg_four & )
+		{
+			m_sequence += "d4:";
+
+			m_mbox->deliver_message( new msg_four() );
+
+			so_drop_subscription( m_mbox, &a_test_t::evt_default_four );
+			so_drop_subscription( m_mbox, st_1, &a_test_t::evt_default_four );
+		}
+
+		void
+		evt_five()
+		{
+			m_sequence += "d5:";
+
+			m_mbox->deliver_signal< msg_five >();
+
+			so_drop_subscription_for_all_states( m_mbox,
+					so_5::signal< msg_five > );
 		}
 
 		void
@@ -120,6 +158,12 @@ class a_test_t : public so_5::rt::agent_t
 			m_mbox->deliver_signal< msg_one >();
 			m_mbox->deliver_signal< msg_two >();
 			m_mbox->deliver_signal< msg_three >();
+		}
+
+		void
+		evt_st_1_four( const msg_four & )
+		{
+			m_sequence += "1_d4:";
 		}
 
 		void
@@ -165,7 +209,7 @@ class test_env_t
 		check_result() const
 		{
 			const std::string expected =
-					"d1:d2:d3:1_d1:1_d2:1_d3:2_d2:2_d3:";
+					"d1:d2:d4:d5:d3:1_d1:1_d2:1_d3:2_d2:2_d3:";
 
 			if( m_sequence != expected )
 				throw std::runtime_error( "Wrong message sequence: actial: " +

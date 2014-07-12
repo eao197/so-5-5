@@ -665,6 +665,43 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
+		 * \since v.5.4.0
+		 * \brief Drop subscription for the state specified.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_ref_t & mbox,
+			const state_t & target_state,
+			void (AGENT::*pfn)( const MESSAGE & ) )
+		{
+			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Drop subscription for the state specified.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_ref_t & mbox,
+			const state_t & target_state,
+			signal_indicator_t< MESSAGE >() )
+		{
+			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+		}
+
+		/*!
 		 * \since v.5.2.3
 		 * \brief Drop subscription for the default agent state.
 		 *
@@ -680,6 +717,41 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_ref_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+		{
+			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Drop subscription for the default agent state.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_ref_t & mbox,
+			void (AGENT::*pfn)( const MESSAGE & ) )
+		{
+			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Drop subscription for the default agent state.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_ref_t & mbox,
+			signal_indicator_t< MESSAGE >() )
 		{
 			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
 		}
@@ -701,6 +773,43 @@ class SO_5_TYPE agent_t
 		so_drop_subscription_for_all_states(
 			const mbox_ref_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+		{
+			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Drop subscription for all states.
+		 *
+		 * \note Doesn't throw if there is no any subscription for
+		 * that mbox and message type.
+		 *
+		 * \note Subscription is removed even if agent was subscribed
+		 * for this message type with different method pointer.
+		 * The pointer to event routine is necessary only to
+		 * detect MSG type.
+		 */
+		template< class AGENT, class MESSAGE >
+		inline void
+		so_drop_subscription_for_all_states(
+			const mbox_ref_t & mbox,
+			void (AGENT::*pfn)( const MESSAGE & ) )
+		{
+			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Drop subscription for all states.
+		 *
+		 * \note Doesn't throw if there is no any subscription for
+		 * that mbox and message type.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription_for_all_states(
+			const mbox_ref_t & mbox,
+			signal_indicator_t< MESSAGE >() )
 		{
 			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
 		}
