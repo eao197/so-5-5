@@ -58,6 +58,7 @@ MxxRu::Cpp::dll_target {
 		sources_root( "impl" ) {
 			cpp_source( "local_mbox.cpp" )
 			cpp_source( "named_local_mbox.cpp" )
+			cpp_source( "mpsc_mbox.cpp" )
 			cpp_source( "mbox_core.cpp" )
 			cpp_source( "agent_core.cpp" )
 			cpp_source( "disp_core.cpp" )

@@ -463,6 +463,15 @@ class SO_5_TYPE so_environment_t
 			const nonempty_name_t & mbox_name,
 			//! A dedicated mutex for the mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Create a multi-producer/single-consumer mbox.
+		 */
+		mbox_ref_t
+		create_mpsc_mbox(
+			//! The only consumer for the messages.
+			agent_t * single_consumer );
 		/*!
 		 * \}
 		 */

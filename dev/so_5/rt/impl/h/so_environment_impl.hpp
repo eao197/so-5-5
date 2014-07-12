@@ -78,6 +78,14 @@ class so_environment_impl_t
 		{
 			return m_mbox_core->create_local_mbox( std::move( lock_ptr ) );
 		}
+
+		inline mbox_ref_t
+		create_mpsc_mbox(
+			//! The only consumer for the messages.
+			agent_t * single_consumer )
+		{
+			return m_mbox_core->create_mpsc_mbox( single_consumer );
+		}
 		/*!
 		 * \}
 		 */

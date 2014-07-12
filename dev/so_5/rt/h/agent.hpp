@@ -413,8 +413,17 @@ class SO_5_TYPE agent_t
 			};
 			\endcode
 		*/
-		const agent_t *
-		self_ptr() const;
+		inline const agent_t *
+		self_ptr() const
+		{
+			return this;
+		}
+
+		inline agent_t *
+		self_ptr()
+		{
+			return this;
+		}
 
 		//! Hook on agent start inside SObjectizer.
 		/*!

@@ -10,6 +10,7 @@
 
 #include <so_5/rt/impl/h/local_mbox.hpp>
 #include <so_5/rt/impl/h/named_local_mbox.hpp>
+#include <so_5/rt/impl/h/mpsc_mbox.hpp>
 #include <so_5/rt/impl/h/mbox_core.hpp>
 
 namespace so_5
@@ -84,6 +85,14 @@ mbox_core_t::create_local_mbox(
 						++m_mbox_id_counter,
 						*(lock_ptr.release()) ) );
 			} );
+}
+
+mbox_ref_t
+mbox_core_t::create_mpsc_mbox(
+	agent_t * single_consumer )
+{
+	return mbox_ref_t(
+			new mpsc_mbox_t( ++m_mbox_id_counter, single_consumer ) );
 }
 
 void

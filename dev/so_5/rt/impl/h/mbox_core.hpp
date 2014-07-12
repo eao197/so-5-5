@@ -103,6 +103,15 @@ class mbox_core_t
 			//! A mutex for mbox.
 			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief Create anonymous mpsc_mbox.
+		 */
+		mbox_ref_t
+		create_mpsc_mbox(
+			//! The only consumer for messages.
+			agent_t * single_consumer );
+
 		//! Remove a reference to the named mbox.
 		/*!
 		 * If it was a last reference to named mbox the mbox destroyed.

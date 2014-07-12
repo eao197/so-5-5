@@ -9,6 +9,8 @@
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 
+#include <sstream>
+
 namespace so_5
 {
 
@@ -42,12 +44,6 @@ agent_t::agent_t(
 
 agent_t::~agent_t()
 {
-}
-
-const agent_t *
-agent_t::self_ptr() const
-{
-	return this;
 }
 
 void
@@ -277,6 +273,20 @@ namespace
 		return false;
 	}
 
+	std::string
+	make_subscription_description(
+		const mbox_ref_t & mbox_ref,
+		std::type_index msg_type,
+		const state_t & state )
+	{
+		std::ostringstream s;
+		s << "(mbox:'" << mbox_ref->query_name()
+			<< "', msg_type:'" << msg_type.name() << "', state:'"
+			<< state.query_name() << "')";
+
+		return s.str();
+	}
+
 } /* namespace anonymous */
 
 void
@@ -302,7 +312,8 @@ agent_t::create_event_subscription(
 	if( !insertion_result.second )
 		SO_5_THROW_EXCEPTION(
 			rc_evt_handler_already_provided,
-			"agent is already subscribed to message" );
+			"agent is already subscribed to message, " +
+			make_subscription_description( mbox_ref, type_index, target_state ) );
 
 	auto mbox_msg_known = is_known_mbox_msg_pair(
 			m_subscriptions, insertion_result.first );
