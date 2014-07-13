@@ -29,14 +29,19 @@ agent_t::agent_t(
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_so_environment_impl( 0 )
+	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
+	,	m_direct_mbox(
+			env.so_environment_impl().create_mpsc_mbox(
+				self_ptr(),
+				m_event_queue_proxy ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
 	,	m_working_thread_id( std::this_thread::get_id() )
 	,	m_agent_coop( 0 )
 	,	m_is_coop_deregistered( false )
 {
-	m_event_queue = &m_tmp_event_queue;
+	m_event_queue_proxy->switch_to( m_tmp_event_queue );
 
 	// Bind to the environment should be done.
 	bind_to_environment( env.so_environment_impl() );
@@ -48,6 +53,8 @@ agent_t::~agent_t()
 	// correct deregistration from SO Environment.
 	if( !m_subscriptions.empty() )
 		destroy_all_subscriptions( m_subscriptions );
+
+	m_event_queue_proxy->shutdown();
 }
 
 void
@@ -104,6 +111,12 @@ void
 agent_t::so_switch_to_awaiting_deregistration_state()
 {
 	so_change_state( m_awaiting_deregistration_state );
+}
+
+const mbox_ref_t &
+agent_t::so_direct_mbox() const
+{
+	return m_direct_mbox;
 }
 
 const state_t &
@@ -188,11 +201,10 @@ agent_t::so_bind_to_dispatcher(
 	m_working_thread_id = working_thread_id;
 
 	m_tmp_event_queue.switch_to_actual_queue(
+			*m_event_queue_proxy,
 			queue,
 			this,
 			&agent_t::demand_handler_on_start );
-
-	m_event_queue.store( &queue );
 }
 
 agent_ref_t
@@ -245,13 +257,19 @@ agent_t::shutdown_agent()
 	// Subscriptions should be destroyed.
 	destroy_all_subscriptions( subscriptions );
 
-	m_event_queue.load( std::memory_order_acquire )->push(
-			execution_demand_t(
-					this,
-					0,
-					typeid(void),
-					message_ref_t(),
-					&agent_t::demand_handler_on_finish ) );
+	// Step #3. We must shutdown proxy object. And only then
+	// the last demand will be sent to the agent.
+	auto q = m_event_queue_proxy->shutdown();
+	if( q )
+		q->push(
+				execution_demand_t(
+						this,
+						0,
+						typeid(void),
+						message_ref_t(),
+						&agent_t::demand_handler_on_finish ) );
+//FIXME: may be it is necessary to call std::abort() in the
+//case when q == nullptr?
 }
 
 namespace
@@ -411,7 +429,7 @@ agent_t::push_event(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	m_event_queue.load( std::memory_order_acquire )->push(
+	m_event_queue_proxy->push(
 			execution_demand_t(
 				this,
 				mbox_id,
@@ -426,7 +444,7 @@ agent_t::push_service_request(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	m_event_queue.load( std::memory_order_acquire )->push(
+	m_event_queue_proxy->push(
 			execution_demand_t(
 					this,
 					mbox_id,

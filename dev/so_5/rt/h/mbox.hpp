@@ -382,6 +382,15 @@ class SO_5_TYPE mbox_t
 				return service_invoke_proxy_t< void >( mbox_ref_t( this ) );
 			}
 
+		//! Deliver message for all subscribers.
+		/*!
+		 * \note This method is public since v.5.4.0.
+		 */
+		virtual void
+		deliver_message(
+			const std::type_index & type_index,
+			const message_ref_t & message_ref ) const = 0;
+
 		/*!
 		 * \since v.5.3.0.
 		 * \brief Deliver service request.
@@ -423,13 +432,6 @@ class SO_5_TYPE mbox_t
 		/*!
 		 * \}
 		 */
-
-	protected:
-		//! Deliver message for all subscribers.
-		virtual void
-		deliver_message(
-			const std::type_index & type_index,
-			const message_ref_t & message_ref ) const = 0;
 };
 
 template< class MESSAGE >

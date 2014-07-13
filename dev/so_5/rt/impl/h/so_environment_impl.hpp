@@ -82,9 +82,13 @@ class so_environment_impl_t
 		inline mbox_ref_t
 		create_mpsc_mbox(
 			//! The only consumer for the messages.
-			agent_t * single_consumer )
+			agent_t * single_consumer,
+			//! Event queue proxy for the consumer.
+			event_queue_proxy_ref_t event_queue )
 		{
-			return m_mbox_core->create_mpsc_mbox( single_consumer );
+			return m_mbox_core->create_mpsc_mbox(
+					single_consumer,
+					std::move( event_queue ) );
 		}
 		/*!
 		 * \}

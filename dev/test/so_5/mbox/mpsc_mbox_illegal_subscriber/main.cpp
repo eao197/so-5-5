@@ -21,20 +21,13 @@ class a_first_t : public so_5::rt::agent_t
 		a_first_t(
 			so_5::rt::so_environment_t & env )
 			:	so_5::rt::agent_t( env )
-			,	m_mbox( env.create_mpsc_mbox( self_ptr() ) )
 		{
-		}
-
-		const so_5::rt::mbox_ref_t &
-		mbox() const
-		{
-			return m_mbox;
 		}
 
 		void
 		so_define_agent()
 		{
-			so_subscribe( m_mbox ).event( &a_first_t::evt_one );
+			so_subscribe( so_direct_mbox() ).event( &a_first_t::evt_one );
 		}
 
 		void
@@ -46,9 +39,6 @@ class a_first_t : public so_5::rt::agent_t
 		void
 		evt_one( const so_5::rt::event_data_t< msg_one > & )
 		{}
-
-	private :
-		const so_5::rt::mbox_ref_t m_mbox;
 };
 
 class a_second_t : public so_5::rt::agent_t
@@ -97,7 +87,7 @@ main( int argc, char * argv[] )
 				auto a_first = new a_first_t( env );
 				coop->add_agent( a_first );
 
-				coop->add_agent( new a_second_t( env, a_first->mbox() ) );
+				coop->add_agent( new a_second_t( env, a_first->so_direct_mbox() ) );
 
 				env.register_coop( std::move( coop ) );
 			} );

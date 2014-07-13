@@ -225,13 +225,6 @@ so_environment_t::create_local_mbox(
 		std::move( lock_ptr ) );
 }
 
-mbox_ref_t
-so_environment_t::create_mpsc_mbox(
-	agent_t * single_consumer )
-{
-	return m_so_environment_impl->create_mpsc_mbox( single_consumer );
-}
-
 dispatcher_t &
 so_environment_t::query_default_dispatcher()
 {

@@ -80,8 +80,7 @@ class test_mbox_t : public so_5::rt::mbox_t
 			const std::type_index & type_index,
 			const so_5::rt::message_ref_t & message_ref ) const
 			{
-//FIXME: This method must be public!
-//				m_actual_mbox->deliver_message( type_index, message_ref );
+				m_actual_mbox->deliver_message( type_index, message_ref );
 			}
 	};
 

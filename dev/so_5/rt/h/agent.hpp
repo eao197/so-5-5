@@ -77,6 +77,8 @@ class message_consumer_link_t;
 class so_environment_impl_t;
 class state_listener_controller_t;
 
+class mpsc_mbox_t;
+
 } /* namespace impl */
 
 class state_t;
@@ -373,6 +375,8 @@ class SO_5_TYPE agent_t
 		friend class smart_atomic_reference_t< agent_t >;
 		friend class agent_coop_t;
 
+		friend class so_5::rt::impl::mpsc_mbox_t;
+
 	public:
 		//! Constructor.
 		/*!
@@ -580,6 +584,13 @@ class SO_5_TYPE agent_t
 		{
 			agent.push_service_request( mbox_id, msg_type, message );
 		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Get the agent's direct mbox.
+		 */
+		const mbox_ref_t &
+		so_direct_mbox() const;
 
 	protected:
 		/*!
@@ -1099,13 +1110,16 @@ class SO_5_TYPE agent_t
 
 		/*!
 		 * \since v.5.4.0
-		 * \brief Event queue.
+		 * \brief Event queue proxy.
 		 *
-		 * This pointer receives value only after binding to the dispatcher.
+		 * After creation of agent it is pointed to m_tmp_event_queue.
 		 *
-		 * While this pointer is referred the \a m_tmp_event_queue.
+		 * After binding to the dispatcher is it pointed to the actual
+		 * event queue.
+		 *
+		 * After shutdown it is closed.
 		 */
-		std::atomic< event_queue_t * > m_event_queue;
+		event_queue_proxy_ref_t m_event_queue_proxy;
 
 		/*!
 		 * \since v.5.4.0
@@ -1114,6 +1128,12 @@ class SO_5_TYPE agent_t
 		 * This queue is used while agent is not bound to the dispatcher.
 		 */
 		temporary_event_queue_t m_tmp_event_queue;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief A direct mbox for the agent.
+		 */
+		const mbox_ref_t m_direct_mbox;
 
 		/*!
 		 * \since v.5.4.0

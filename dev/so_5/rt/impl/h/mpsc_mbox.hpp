@@ -15,6 +15,7 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/event_queue_proxy.hpp>
 
 namespace so_5
 {
@@ -38,7 +39,8 @@ class mpsc_mbox_t : public mbox_t
 	public:
 		explicit mpsc_mbox_t(
 			mbox_id_t id,
-			agent_t * single_consumer );
+			agent_t * single_consumer,
+			event_queue_proxy_ref_t event_queue );
 
 		virtual ~mpsc_mbox_t();
 
@@ -47,6 +49,11 @@ class mpsc_mbox_t : public mbox_t
 			{
 				return m_id;
 			}
+
+		void
+		deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message_ref ) const;
 
 		virtual void
 		deliver_service_request(
@@ -71,12 +78,6 @@ class mpsc_mbox_t : public mbox_t
 		virtual const std::string &
 		query_name() const;
 
-	protected:
-		void
-		deliver_message(
-			const std::type_index & msg_type,
-			const message_ref_t & message_ref ) const;
-
 	private:
 		/*!
 		 * \brief ID of this mbox.
@@ -85,6 +86,9 @@ class mpsc_mbox_t : public mbox_t
 
 		//! The only consumer of this mbox's messages.
 		agent_t * m_single_consumer;
+
+		//! Event queue for the single consumer.
+		event_queue_proxy_ref_t m_event_queue;
 };
 
 } /* namespace impl */

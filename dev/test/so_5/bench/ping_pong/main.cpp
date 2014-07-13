@@ -277,9 +277,9 @@ class test_env_t
 				auto a_ponger = new a_ponger_t( env );
 
 				auto pinger_mbox = m_cfg.m_direct_mboxes ?
-						env.create_mpsc_mbox( a_pinger ) : env.create_local_mbox();
+						a_pinger->so_direct_mbox() : env.create_local_mbox();
 				auto ponger_mbox = m_cfg.m_direct_mboxes ?
-						env.create_mpsc_mbox( a_ponger ) : env.create_local_mbox();
+						a_ponger->so_direct_mbox() : env.create_local_mbox();
 
 				a_pinger->set_self_mbox( pinger_mbox );
 				a_pinger->set_ponger_mbox( ponger_mbox );

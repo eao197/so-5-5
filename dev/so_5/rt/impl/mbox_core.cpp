@@ -89,10 +89,14 @@ mbox_core_t::create_local_mbox(
 
 mbox_ref_t
 mbox_core_t::create_mpsc_mbox(
-	agent_t * single_consumer )
+	agent_t * single_consumer,
+	event_queue_proxy_ref_t event_queue )
 {
 	return mbox_ref_t(
-			new mpsc_mbox_t( ++m_mbox_id_counter, single_consumer ) );
+			new mpsc_mbox_t(
+					++m_mbox_id_counter,
+					single_consumer,
+					std::move( event_queue ) ) );
 }
 
 void

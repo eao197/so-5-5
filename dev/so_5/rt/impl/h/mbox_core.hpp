@@ -26,7 +26,7 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/event_queue_proxy.hpp>
 
 namespace so_5
 {
@@ -110,7 +110,9 @@ class mbox_core_t
 		mbox_ref_t
 		create_mpsc_mbox(
 			//! The only consumer for messages.
-			agent_t * single_consumer );
+			agent_t * single_consumer,
+			//! Event queue proxy for the consumer.
+			event_queue_proxy_ref_t event_queue );
 
 		//! Remove a reference to the named mbox.
 		/*!

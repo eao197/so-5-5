@@ -23,9 +23,11 @@ namespace impl
 
 mpsc_mbox_t::mpsc_mbox_t(
 	mbox_id_t id,
-	agent_t * single_consumer )
+	agent_t * single_consumer,
+	event_queue_proxy_ref_t event_queue )
 	:	m_id( id )
 	,	m_single_consumer( single_consumer )
+	,	m_event_queue( std::move( event_queue ) )
 {
 }
 
@@ -57,8 +59,13 @@ mpsc_mbox_t::deliver_message(
 	const std::type_index & msg_type,
 	const message_ref_t & message_ref ) const
 {
-	agent_t::call_push_event(
-			*m_single_consumer, m_id, msg_type, message_ref );
+	m_event_queue->push(
+			execution_demand_t(
+					m_single_consumer,
+					m_id,
+					msg_type,
+					message_ref,
+					&agent_t::demand_handler_on_message ) );
 }
 
 void
@@ -66,8 +73,13 @@ mpsc_mbox_t::deliver_service_request(
 	const std::type_index & msg_type,
 	const message_ref_t & svc_request_ref ) const
 {
-	agent_t::call_push_service_request(
-			*m_single_consumer, m_id, msg_type, svc_request_ref );
+	m_event_queue->push(
+			execution_demand_t(
+					m_single_consumer,
+					m_id,
+					msg_type,
+					svc_request_ref,
+					&agent_t::service_request_handler_on_message ) );
 }
 
 const std::string g_mbox_empty_name;

@@ -54,6 +54,11 @@ class named_local_mbox_t
 		virtual mbox_id_t
 		id() const;
 
+		void
+		deliver_message(
+			const std::type_index & type_wrapper,
+			const message_ref_t & message_ref ) const;
+
 		virtual void
 		deliver_service_request(
 			const std::type_index & type_index,
@@ -71,14 +76,6 @@ class named_local_mbox_t
 
 		virtual const std::string &
 		query_name() const;
-
-	protected:
-
-		//! Deliver message to all consumers.
-		void
-		deliver_message(
-			const std::type_index & type_wrapper,
-			const message_ref_t & message_ref ) const;
 
 	private:
 		//! Mbox name.

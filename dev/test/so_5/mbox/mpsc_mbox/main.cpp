@@ -27,24 +27,17 @@ class a_test_t : public so_5::rt::agent_t
 			std::string & sequence )
 			:	base_type_t( env )
 			,	m_sequence( sequence )
-			,	m_mbox( env.create_mpsc_mbox( self_ptr() ) )
 		{
-		}
-
-		const so_5::rt::mbox_ref_t &
-		mbox() const
-		{
-			return m_mbox;
 		}
 
 		void
 		so_define_agent()
 		{
-			so_subscribe( m_mbox )
+			so_subscribe( so_direct_mbox() )
 				.event( &a_test_t::evt_one );
-			so_subscribe( m_mbox )
+			so_subscribe( so_direct_mbox() )
 				.event( &a_test_t::evt_three );
-			so_subscribe( m_mbox )
+			so_subscribe( so_direct_mbox() )
 				.event( &a_test_t::evt_four );
 		}
 
@@ -65,9 +58,9 @@ class a_test_t : public so_5::rt::agent_t
 		{
 			m_sequence += "e3:";
 
-			so_drop_subscription( m_mbox, &a_test_t::evt_one );
+			so_drop_subscription( so_direct_mbox(), &a_test_t::evt_one );
 
-			so_subscribe( m_mbox ).event( &a_test_t::evt_two );
+			so_subscribe( so_direct_mbox() ).event( &a_test_t::evt_two );
 		}
 
 		void
@@ -80,8 +73,6 @@ class a_test_t : public so_5::rt::agent_t
 
 	private :
 		std::string & m_sequence;
-
-		const so_5::rt::mbox_ref_t m_mbox;
 };
 
 int
@@ -98,7 +89,7 @@ main( int argc, char * argv[] )
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 				auto a_test = new a_test_t( env, sequence );
-				const so_5::rt::mbox_ref_t mbox = a_test->mbox();
+				const so_5::rt::mbox_ref_t mbox = a_test->so_direct_mbox();
 
 				coop->add_agent( a_test );
 
