@@ -4,8 +4,6 @@
 
 #include <algorithm>
 
-#include <ace/Guard_T.h>
-
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/impl/h/local_mbox.hpp>
@@ -26,10 +24,8 @@ namespace impl
 // mbox_core_t
 //
 
-mbox_core_t::mbox_core_t(
-	unsigned int mutex_pool_size )
-	:	m_mbox_mutex_pool( mutex_pool_size )
-	,	m_mbox_id_counter( 1 )
+mbox_core_t::mbox_core_t()
+	:	m_mbox_id_counter( 1 )
 {
 }
 
@@ -41,7 +37,7 @@ mbox_core_t::~mbox_core_t()
 mbox_ref_t
 mbox_core_t::create_local_mbox()
 {
-	mbox_ref_t mbox_ref( new local_mbox_t( *this, ++m_mbox_id_counter ) );
+	mbox_ref_t mbox_ref( new local_mbox_t( ++m_mbox_id_counter ) );
 
 	return mbox_ref;
 }
@@ -54,36 +50,7 @@ mbox_core_t::create_local_mbox(
 			mbox_name,
 			[this]() -> mbox_ref_t {
 				return mbox_ref_t(
-					new local_mbox_t( *this, ++m_mbox_id_counter ) );
-			} );
-}
-
-mbox_ref_t
-mbox_core_t::create_local_mbox(
-	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
-{
-	mbox_ref_t mbox_ref(
-		new local_mbox_t(
-			*this,
-			++m_mbox_id_counter,
-			*lock_ptr.release() ) );
-
-	return mbox_ref;
-}
-
-mbox_ref_t
-mbox_core_t::create_local_mbox(
-	const nonempty_name_t & mbox_name,
-	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
-{
-	return create_named_mbox(
-			mbox_name,
-			[this, &lock_ptr]() -> mbox_ref_t {
-				return mbox_ref_t(
-					new local_mbox_t(
-						*this,
-						++m_mbox_id_counter,
-						*(lock_ptr.release()) ) );
+					new local_mbox_t( ++m_mbox_id_counter ) );
 			} );
 }
 
@@ -103,7 +70,7 @@ void
 mbox_core_t::destroy_mbox(
 	const std::string & name )
 {
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_dictionary_lock );
+	std::lock_guard< std::mutex > lock( m_dictionary_lock );
 
 	named_mboxes_dictionary_t::iterator it =
 		m_named_mboxes_dictionary.find( name );
@@ -116,30 +83,13 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
-ACE_RW_Thread_Mutex &
-mbox_core_t::allocate_mutex()
-{
-	return m_mbox_mutex_pool.allocate_mutex();
-}
-
-void
-mbox_core_t::deallocate_mutex( ACE_RW_Thread_Mutex & m )
-{
-	if( !m_mbox_mutex_pool.deallocate_mutex( m ) )
-	{
-		// Mutex is not from a pool. Assume that it was created by user
-		// and should be deleted.
-		delete &m;
-	}
-}
-
 mbox_ref_t
 mbox_core_t::create_named_mbox(
 	const nonempty_name_t & nonempty_name,
 	const std::function< mbox_ref_t() > & factory )
 {
 	const std::string & name = nonempty_name.query_name();
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_dictionary_lock );
+	std::lock_guard< std::mutex > lock( m_dictionary_lock );
 
 	named_mboxes_dictionary_t::iterator it =
 		m_named_mboxes_dictionary.find( name );

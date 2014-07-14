@@ -4,8 +4,7 @@
 
 #include <algorithm>
 #include <sstream>
-
-#include <ace/Guard_T.h>
+#include <mutex>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -25,27 +24,13 @@ namespace impl
 //
 
 local_mbox_t::local_mbox_t(
-	impl::mbox_core_t & mbox_core,
 	mbox_id_t id )
-	:	m_mbox_core( &mbox_core )
-	,	m_id( id )
-	,	m_lock( m_mbox_core->allocate_mutex() )
-{
-}
-
-local_mbox_t::local_mbox_t(
-	impl::mbox_core_t & mbox_core,
-	mbox_id_t id,
-	ACE_RW_Thread_Mutex & lock )
-	:	m_mbox_core( &mbox_core )
-	,	m_id( id )
-	,	m_lock( lock )
+	:	m_id( id )
 {
 }
 
 local_mbox_t::~local_mbox_t()
 {
-	m_mbox_core->deallocate_mutex( m_lock );
 }
 
 void
@@ -53,7 +38,7 @@ local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
 	agent_t * subscriber )
 {
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 	m_subscribers.emplace( type_wrapper, subscriber );
 }
@@ -63,7 +48,7 @@ local_mbox_t::unsubscribe_event_handlers(
 	const std::type_index & type_wrapper,
 	agent_t * subscriber )
 {
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 	m_subscribers.erase(
 			subscribers_set_t::value_type( type_wrapper, subscriber ) );
@@ -74,7 +59,7 @@ local_mbox_t::deliver_message(
 	const std::type_index & type_wrapper,
 	const message_ref_t & message_ref ) const
 {
-	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+	read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
 	auto it = m_subscribers.lower_bound(
 			subscribers_set_t::value_type( type_wrapper, 0 ) );
@@ -98,7 +83,7 @@ local_mbox_t::deliver_service_request(
 
 	try
 		{
-			ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+			read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
 			auto it = m_subscribers.lower_bound(
 					subscribers_set_t::value_type( type_index, 0 ) );

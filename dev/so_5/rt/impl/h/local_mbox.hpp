@@ -15,9 +15,9 @@
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
+#include <so_5/h/spinlocks.hpp>
 
-#include <so_5/rt/impl/h/mbox_core.hpp>
+#include <so_5/rt/h/mbox.hpp>
 
 namespace so_5
 {
@@ -33,22 +33,10 @@ namespace impl
 //
 
 //! A class for representing a local anonymous mbox.
-class local_mbox_t
-	:
-		public mbox_t
+class local_mbox_t : public mbox_t
 {
-		friend class impl::mbox_core_t;
-
-		explicit local_mbox_t(
-			impl::mbox_core_t & mbox_core,
-			mbox_id_t id );
-
-		local_mbox_t(
-			impl::mbox_core_t & mbox_core,
-			mbox_id_t id,
-			ACE_RW_Thread_Mutex & lock );
-
 	public:
+		local_mbox_t( mbox_id_t id );
 		virtual ~local_mbox_t();
 
 		virtual mbox_id_t
@@ -88,9 +76,6 @@ class local_mbox_t
 		query_name() const;
 
 	private:
-		//! Implementation data.
-		impl::mbox_core_ref_t m_mbox_core;
-
 		/*!
 		 * \since v.5.4.0
 		 * \brief ID of this mbox.
@@ -98,7 +83,7 @@ class local_mbox_t
 		const mbox_id_t m_id;
 
 		//! Object lock.
-		ACE_RW_Thread_Mutex & m_lock;
+		mutable default_rw_spinlock_t m_lock;
 
 		//! Typedef for set of subscribers.
 		typedef std::set< std::pair< std::type_index, agent_t * > >

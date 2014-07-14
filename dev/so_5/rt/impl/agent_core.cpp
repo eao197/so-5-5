@@ -262,11 +262,9 @@ deregistration_processor_t::initiate_abort_on_exception(
 
 agent_core_t::agent_core_t(
 	so_environment_t & so_environment,
-	unsigned int agent_queue_mutex_pool_size,
 	coop_listener_unique_ptr_t coop_listener )
 	:
 		m_so_environment( so_environment ),
-		m_agent_queue_mutex_pool( agent_queue_mutex_pool_size ),
 		m_deregistration_started( false ),
 		m_coop_listener( std::move( coop_listener ) )
 {
