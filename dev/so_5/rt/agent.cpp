@@ -201,10 +201,30 @@ agent_t::so_bind_to_dispatcher(
 	m_working_thread_id = working_thread_id;
 
 	m_tmp_event_queue.switch_to_actual_queue(
-			*m_event_queue_proxy,
 			queue,
 			this,
 			&agent_t::demand_handler_on_start );
+
+	// Proxy must be switched on unblocked agent.
+	// Otherwise there could be a deadlock when direct mbox is used.
+	// Scenario:
+	//
+	// T1:
+	//  - is trying to send message to the agent;
+	//  - event_queue_proxy spinlock is locked in 'reader' mode;
+	//  - tmp_queue.push is called;
+	//  - tmp_queue.push is trying to acquire agent's mutex;
+	// T2:
+	//  - is trying to bind agent to the dispatcher;
+	//  - tmp_queue.switch_to_actual_queue is called;
+	//  - agent's mutex is acquired;
+	//  - an attempt to switch proxy to actual queue is performed;
+	//  - is trying to acquire proxy's spinlock if 'writer' mode.
+	//
+	// Becuase of that m_event_queue_proxy->switch_to is now called
+	// outside of m_tmp_event_queue.switch_to_actual_queue().
+	//
+	m_event_queue_proxy->switch_to( queue );
 }
 
 agent_ref_t

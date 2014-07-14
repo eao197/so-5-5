@@ -26,6 +26,7 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
+#include <so_5/rt/h/event_queue_proxy.hpp>
 
 namespace so_5
 {

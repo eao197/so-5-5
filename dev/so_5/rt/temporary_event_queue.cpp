@@ -58,7 +58,6 @@ temporary_event_queue_t::push( execution_demand_t demand )
 
 void
 temporary_event_queue_t::switch_to_actual_queue(
-	event_queue_proxy_t & proxy_to_switch,
 	event_queue_t & actual_queue,
 	agent_t * agent,
 	demand_handler_pfn_t start_demand_handler )
@@ -87,7 +86,6 @@ temporary_event_queue_t::switch_to_actual_queue(
 						}
 
 				m_actual_queue = &actual_queue;
-				proxy_to_switch.switch_to( actual_queue );
 			}
 		catch( const std::exception & x )
 			{

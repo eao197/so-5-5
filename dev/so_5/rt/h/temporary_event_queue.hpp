@@ -15,7 +15,6 @@
 #include <memory>
 
 #include <so_5/rt/h/event_queue.hpp>
-#include <so_5/rt/h/event_queue_proxy.hpp>
 
 namespace so_5
 {
@@ -57,9 +56,6 @@ class SO_5_TYPE temporary_event_queue_t : public event_queue_t
 		 */
 		void
 		switch_to_actual_queue(
-			//! A proxy which must be switched to actual event queue
-			//! after transferring all waiting demands.
-			event_queue_proxy_t & proxy_to_switch,
 			//! Actual queue.
 			event_queue_t & actual_queue,
 			//! Agent for which that queue is set.
