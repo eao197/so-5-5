@@ -40,7 +40,7 @@ void
 demand_queue_t::push(
 	so_5::rt::execution_demand_t demand )
 {
-	std::lock_guard< std::mutex > lock( m_lock );
+	combined_queue_lock_guard_t guard( m_lock );
 
 	if( m_in_service )
 	{
@@ -52,7 +52,7 @@ demand_queue_t::push(
 		{
 			// May be someone is waiting...
 			// It should be informed about new demands.
-			m_not_empty.notify_one();
+			guard.notify_one();
 		}
 	}
 }
@@ -61,8 +61,7 @@ int
 demand_queue_t::pop(
 	demand_container_t & demands )
 {
-	std::unique_lock< std::mutex > lock( m_lock );
-
+	combined_queue_unique_lock_t lock( m_lock );
 	while( true )
 	{
 		if( m_in_service && !m_demands.empty() )
@@ -76,7 +75,7 @@ demand_queue_t::pop(
 		{
 			// Queue is empty. We should wait for a demand or
 			// a shutdown signal.
-			m_not_empty.wait( lock );
+			lock.wait_for_notify();
 		}
 	}
 
@@ -86,7 +85,7 @@ demand_queue_t::pop(
 void
 demand_queue_t::start_service()
 {
-	std::lock_guard< std::mutex > lock( m_lock );
+	combined_queue_lock_guard_t lock( m_lock );
 
 	m_in_service = true;
 }
@@ -94,25 +93,20 @@ demand_queue_t::start_service()
 void
 demand_queue_t::stop_service()
 {
-	bool is_someone_waiting_us = false;
-	{
-		std::lock_guard< std::mutex > lock( m_lock );
+	combined_queue_lock_guard_t lock( m_lock );
 
-		m_in_service = false;
-		// If the demands queue is empty then someone is waiting
-		// for new demands inside pop().
-		is_someone_waiting_us = m_demands.empty();
-	}
-
-	// In case if someone is waiting.
-	if( is_someone_waiting_us )
-		m_not_empty.notify_one();
+	m_in_service = false;
+	// If the demands queue is empty then someone is waiting
+	// for new demands inside pop().
+	if( m_demands.empty() )
+		lock.notify_one();
 }
 
 void
 demand_queue_t::clear()
 {
-	std::lock_guard< std::mutex > lock( m_lock );
+	combined_queue_lock_guard_t lock( m_lock );
+
 	m_demands.clear();
 }
 
