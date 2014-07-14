@@ -4,6 +4,15 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	A new type of mbox is introduced: this is multi-producer/single-consumer
+	mbox. That mbox is belonging to the agent. A reference to that
+	mbox can be obtained only by agent_t::so_direct_mbox() method.
+	Anyone can send messages/signals to such mbox, but only the owner
+	can be subscribed to messages from such mbox.
+
+	Format of so_5::rt::mbox_t::query_name() is changed. Now the std::string
+	object is returned, not the const reference as in previous versions.
+
 	A working thread identifier is now stored for every agent and controlled by
 	some operations (like changing agent's state and managing agent's
 	subscriptions).

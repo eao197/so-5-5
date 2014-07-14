@@ -83,12 +83,8 @@ class local_mbox_t
 			//! Agent-subscriber.
 			agent_t * subscriber );
 
-//FIXME: It should return something like <anonymous:MEMORY_ADDRESS>
-//instead of empty string.
-		/*!
-		 * \return Empty string.
-		 */
-		virtual const std::string &
+		//! Name of the mbox.
+		virtual std::string
 		query_name() const;
 
 	private:

@@ -74,7 +74,7 @@ class named_local_mbox_t
 			const std::type_index & type_wrapper,
 			agent_t * subscriber );
 
-		virtual const std::string &
+		virtual std::string
 		query_name() const;
 
 	private:

@@ -3,6 +3,7 @@
 */
 
 #include <algorithm>
+#include <sstream>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -82,12 +83,14 @@ mpsc_mbox_t::deliver_service_request(
 					&agent_t::service_request_handler_on_message ) );
 }
 
-const std::string g_mbox_empty_name;
-
-const std::string &
+std::string
 mpsc_mbox_t::query_name() const
 {
-	return g_mbox_empty_name;
+	std::ostringstream s;
+	s << "<mbox:type=MPSC:id=" << m_id << ":consumer=" << m_single_consumer
+			<< ">";
+
+	return s.str();
 }
 
 } /* namespace impl */

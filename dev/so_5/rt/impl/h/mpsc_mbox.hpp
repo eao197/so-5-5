@@ -70,12 +70,7 @@ class mpsc_mbox_t : public mbox_t
 			const std::type_index & msg_type,
 			agent_t * subscriber );
 
-//FIXME: It should return something like <mpsc:ID>
-//instead of empty string.
-		/*!
-		 * \return Empty string.
-		 */
-		virtual const std::string &
+		virtual std::string
 		query_name() const;
 
 	private:

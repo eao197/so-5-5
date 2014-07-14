@@ -46,6 +46,14 @@ class test_mbox_t : public so_5::rt::mbox_t
 			}
 
 		virtual void
+		deliver_message(
+			const std::type_index & type_index,
+			const so_5::rt::message_ref_t & message_ref ) const
+			{
+				// DO NOTHING FOR THAT TEST
+			}
+
+		virtual void
 		deliver_service_request(
 			const std::type_index & type_index,
 			const so_5::rt::message_ref_t & svc_request_ref ) const
@@ -71,23 +79,13 @@ class test_mbox_t : public so_5::rt::mbox_t
 				// DO NOTHING FOR THAT TEST
 			}
 
-		virtual const std::string &
+		virtual std::string
 		query_name() const { return m_actual_mbox->query_name(); }
 
 		static so_5::rt::mbox_ref_t
 		create( so_5::rt::so_environment_t & env )
 			{
 				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
-			}
-
-	protected:
-
-		virtual void
-		deliver_message(
-			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & message_ref ) const
-			{
-				// DO NOTHING FOR THAT TEST
 			}
 	};
 

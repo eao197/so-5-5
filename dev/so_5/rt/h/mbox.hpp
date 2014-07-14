@@ -419,7 +419,7 @@ class SO_5_TYPE mbox_t
 			agent_t * subscriber ) = 0;
 
 		//! Get the mbox name.
-		virtual const std::string &
+		virtual std::string
 		query_name() const = 0;
 
 		/*!

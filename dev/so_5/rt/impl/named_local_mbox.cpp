@@ -75,7 +75,7 @@ named_local_mbox_t::deliver_service_request(
 	m_mbox->deliver_service_request( type_index, svc_request_ref );
 }
 
-const std::string &
+std::string
 named_local_mbox_t::query_name() const
 {
 	return m_name;

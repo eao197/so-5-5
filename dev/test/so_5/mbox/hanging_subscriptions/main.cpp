@@ -37,6 +37,14 @@ class test_mbox_t : public so_5::rt::mbox_t
 			}
 
 		virtual void
+		deliver_message(
+			const std::type_index & type_index,
+			const so_5::rt::message_ref_t & message_ref ) const
+			{
+				m_actual_mbox->deliver_message( type_index, message_ref );
+			}
+
+		virtual void
 		deliver_service_request(
 			const std::type_index & type_index,
 			const so_5::rt::message_ref_t & svc_request_ref ) const
@@ -64,23 +72,13 @@ class test_mbox_t : public so_5::rt::mbox_t
 				m_actual_mbox->unsubscribe_event_handlers( type_index, subscriber );
 			}
 
-		virtual const std::string &
+		virtual std::string
 		query_name() const { return m_actual_mbox->query_name(); }
 
 		static so_5::rt::mbox_ref_t
 		create( so_5::rt::so_environment_t & env )
 			{
 				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
-			}
-
-	protected:
-
-		virtual void
-		deliver_message(
-			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & message_ref ) const
-			{
-				m_actual_mbox->deliver_message( type_index, message_ref );
 			}
 	};
 

@@ -3,6 +3,7 @@
 */
 
 #include <algorithm>
+#include <sstream>
 
 #include <ace/Guard_T.h>
 
@@ -123,12 +124,13 @@ local_mbox_t::deliver_service_request(
 		}
 }
 
-const std::string g_mbox_empty_name;
-
-const std::string &
+std::string
 local_mbox_t::query_name() const
 {
-	return g_mbox_empty_name;
+	std::ostringstream s;
+	s << "<mbox:type=MPMC:id=" << m_id << ">";
+
+	return s.str();
 }
 
 } /* namespace impl */
