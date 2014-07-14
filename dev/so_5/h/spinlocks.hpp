@@ -36,22 +36,6 @@ class yield_backoff_t
 	};
 
 //
-// empty_backoff_t
-//
-/*!
- * \since v.5.4.0
- * \brief A implementation of backoff object with no operations inside.
- */
-class empty_backoff_t
-	{
-	public :
-		inline void
-		operator()()
-			{
-			}
-	};
-
-//
 // spinlock_t
 //
 /*!
@@ -99,7 +83,7 @@ class spinlock_t
 //
 // default_spinlock_t
 //
-typedef spinlock_t< empty_backoff_t > default_spinlock_t;
+typedef spinlock_t< yield_backoff_t > default_spinlock_t;
 
 //
 // rw_spinlock_t
@@ -124,19 +108,6 @@ class rw_spinlock_t
 
 		static const std::uint_fast32_t writter_bit = 0x80000000u;
 
-		inline std::uint_fast32_t
-		inc_only_readers( std::uint_fast32_t v )
-			{
-				return (v & ~writter_bit) + 1;
-			}
-
-		inline std::uint_fast32_t
-		dec_readers( std::uint_fast32_t v )
-			{
-				auto w = v & writter_bit;
-				return ((v & ~writter_bit) - 1) | w;
-			}
-
 	public :
 		rw_spinlock_t()
 			{
@@ -155,12 +126,14 @@ class rw_spinlock_t
 				BACKOFF backoff;
 
 				std::uint_fast32_t expected =
-					m_counters.load( std::memory_order_relaxed );
+					m_counters.load( std::memory_order_acquire );
 				std::uint_fast32_t desired;
 
 				while( true )
 					{
-						desired = inc_only_readers( expected );
+						expected &= ~writter_bit;
+						desired = expected + 1;
+
 						if( m_counters.compare_exchange_weak(
 								expected, desired,
 								std::memory_order_release,
@@ -178,12 +151,13 @@ class rw_spinlock_t
 				BACKOFF backoff;
 
 				std::uint_fast32_t expected =
-					m_counters.load( std::memory_order_relaxed );
+					m_counters.load( std::memory_order_acquire );
 				std::uint_fast32_t desired;
 
 				while( true )
 					{
-						desired = dec_readers( expected );
+						desired = expected - 1; 
+
 						if( m_counters.compare_exchange_weak(
 								expected, desired,
 								std::memory_order_release,
@@ -207,6 +181,7 @@ class rw_spinlock_t
 					{
 						expected = 0;
 						desired = writter_bit;
+
 						if( m_counters.compare_exchange_weak(
 								expected, desired,
 								std::memory_order_release,
@@ -225,7 +200,7 @@ class rw_spinlock_t
 			}
 	};
 
-typedef rw_spinlock_t< empty_backoff_t > default_rw_spinlock_t;
+typedef rw_spinlock_t< yield_backoff_t > default_rw_spinlock_t;
 
 //
 // read_lock_guard_t
