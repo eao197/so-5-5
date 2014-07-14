@@ -33,7 +33,7 @@ class a_child_t : public so_5::rt::agent_t
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( self_mbox )
 			,	m_parent_mbox( parent_mbox )
-			,	m_check_signal_received( false )
+			,	m_so_evt_finish_passed( false )
 		{}
 
 		virtual void
@@ -68,24 +68,22 @@ class a_child_t : public so_5::rt::agent_t
 		virtual void
 		so_evt_finish()
 		{
-			if( !m_check_signal_received )
-			{
-				std::cerr << "so_evt_finish before check_signal" << std::endl;
-				std::abort();
-			}
+			m_so_evt_finish_passed = true;
 		}
 
 		virtual void
 		evt_check_signal()
 		{
-			m_check_signal_received = true;
+			if( m_so_evt_finish_passed )
+				throw std::runtime_error(
+						"evt_check_signal after so_evt_finish" );
 		}
 
 	private :
 		const so_5::rt::mbox_ref_t m_mbox;
 		const so_5::rt::mbox_ref_t m_parent_mbox;
 
-		bool m_check_signal_received;
+		bool m_so_evt_finish_passed;
 };
 
 class a_parent_t : public so_5::rt::agent_t
