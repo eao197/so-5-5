@@ -80,7 +80,7 @@ class spinlock_t
 		lock()
 			{
 				BACKOFF backoff;
-				while( !m_flag.test_and_set( std::memory_order_acquire ) )
+				while( m_flag.test_and_set( std::memory_order_acquire ) )
 					backoff();
 			}
 
