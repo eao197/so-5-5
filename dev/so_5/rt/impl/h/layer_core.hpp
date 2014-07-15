@@ -12,8 +12,7 @@
 
 #include <vector>
 #include <typeindex>
-
-#include <ace/RW_Thread_Mutex.h>
+#include <mutex>
 
 #include <so_5/h/exception.hpp>
 
@@ -134,7 +133,7 @@ class layer_core_t
 		so_layer_list_t m_default_layers;
 
 		//! Object lock for the extra layers data.
-		mutable ACE_RW_Thread_Mutex m_extra_layers_lock;
+		mutable std::mutex m_extra_layers_lock;
 
 		//! Extra layers.
 		so_layer_list_t m_extra_layers;

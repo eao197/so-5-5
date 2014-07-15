@@ -93,44 +93,40 @@ timer_id_t
 timer_thread_t::schedule_act(
 	timer_act_unique_ptr_t timer_act )
 {
-	ACE_GUARD_RETURN( ACE_SYNCH_RECURSIVE_MUTEX, lock, mutex(), -1 );
+	ACE_Guard< ACE_SYNCH_RECURSIVE_MUTEX > lock( mutex() );
 
 	// Absolute time in the future should be used.
 	ACE_Time_Value future_time( ACE_OS::gettimeofday() +
 			millisec_to_time_value( timer_act->query_delay() ) );
 
-	timer_id_t msg_id = m_timer_queue->schedule(
+	auto msg_id = m_timer_queue->schedule(
 			m_event_handler.get(),
 			timer_act.get(),
 			future_time,
 			millisec_to_time_value( timer_act->query_period() ) );
 
-	if( -1 != msg_id )
-	{
-		// Timer event was successfully registered.
-		// Information about it should be stored.
-
-		timer_keys_t timer_keys( ++m_self_id_counter, msg_id );
-
-		m_scheduled_act_to_id.insert(
-			scheduled_act_to_id_map_t::value_type(
-				timer_act.get(),
-				timer_keys ) );
-
-		m_timer_id_to_ace_id.insert(
-			timer_id_to_ace_id_map_t::value_type(
-				timer_keys.m_timer_id,
-				timer_keys.m_ace_id ) );
-
-		timer_act.release();
-		return timer_keys.m_timer_id;
-	}
-	else
+	if( -1 == msg_id )
 		throw exception_t(
 			"unable to schedule delayed or periodic event",
 			rc_unable_to_schedule_timer_act );
 
-	return -1;
+	// Timer event was successfully registered.
+	// Information about it should be stored.
+
+	timer_keys_t timer_keys( ++m_self_id_counter, msg_id );
+
+	m_scheduled_act_to_id.insert(
+		scheduled_act_to_id_map_t::value_type(
+			timer_act.get(),
+			timer_keys ) );
+
+	m_timer_id_to_ace_id.insert(
+		timer_id_to_ace_id_map_t::value_type(
+			timer_keys.m_timer_id,
+			timer_keys.m_ace_id ) );
+
+	timer_act.release();
+	return timer_keys.m_timer_id;
 }
 
 void

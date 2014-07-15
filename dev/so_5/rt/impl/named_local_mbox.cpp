@@ -4,8 +4,6 @@
 
 #include <algorithm>
 
-#include <ace/Guard_T.h>
-
 #include <so_5/rt/impl/h/named_local_mbox.hpp>
 
 namespace so_5

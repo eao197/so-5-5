@@ -14,9 +14,6 @@
 #include <map>
 #include <typeindex>
 
-#include <ace/Refcounted_Auto_Ptr.h>
-#include <ace/Null_Mutex.h>
-
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 

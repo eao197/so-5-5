@@ -3,6 +3,7 @@
 */
 
 #include <iostream>
+#include <cstdlib>
 
 #include <cpp_util_2/h/lexcast.hpp>
 

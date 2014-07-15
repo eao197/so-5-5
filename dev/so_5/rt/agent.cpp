@@ -10,6 +10,7 @@
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 
 #include <sstream>
+#include <cstdlib>
 
 namespace so_5
 {

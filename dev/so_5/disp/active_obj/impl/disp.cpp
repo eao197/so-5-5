@@ -5,8 +5,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <ace/Guard_T.h>
-
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/exception.hpp>
 

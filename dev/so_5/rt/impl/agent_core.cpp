@@ -1,13 +1,14 @@
 /*
 	SObjectizer 5.
 */
+#include <so_5/rt/impl/h/agent_core.hpp>
 
-#include <ace/Guard_T.h>
+#include <cstdlib>
+#include <algorithm>
 
 #include <so_5/h/log_err.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
-#include <so_5/rt/impl/h/agent_core.hpp>
 
 namespace so_5
 {

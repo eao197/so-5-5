@@ -16,8 +16,6 @@
 #include <typeindex>
 #include <utility>
 
-#include <ace/RW_Thread_Mutex.h>
-
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/compiler_features.hpp>
 
@@ -29,11 +27,6 @@
 
 namespace so_5
 {
-
-namespace timer_thread
-{
-	class timer_act_t;
-}
 
 namespace rt
 {
@@ -302,9 +295,6 @@ class SO_5_TYPE mbox_t
 	:
 		private atomic_refcounted_t
 {
-		friend class impl::named_local_mbox_t;
-		friend class so_5::timer_thread::timer_act_t;
-
 		friend class smart_atomic_reference_t< mbox_t >;
 
 		mbox_t( const mbox_t & );
