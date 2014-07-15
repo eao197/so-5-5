@@ -3,6 +3,8 @@ require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target {
 
+	required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
+
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 
 	required_prj( "test/so_5/bench/work_thread_speed/prj.rb" )
