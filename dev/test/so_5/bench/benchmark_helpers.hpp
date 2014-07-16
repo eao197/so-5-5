@@ -40,7 +40,7 @@ class benchmarker_t
 				std::cout << title << ": " << events
 						<< ", total_time: " << duration << "s"
 						<< ", price: " << price << "s"
-						<< ", throughtput: " << throughtput << " msg/s"
+						<< ", throughtput: " << throughtput << " " << title << "/s"
 						<< std::endl;
 			}
 
