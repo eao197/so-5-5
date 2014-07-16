@@ -4,11 +4,14 @@
 #include <iostream>
 #include <iterator>
 #include <numeric>
+#include <chrono>
 
 #include <ace/OS.h>
 
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
+
+#include <test/so_5/bench/benchmark_helpers.hpp>
 
 struct msg_tick : public so_5::rt::signal_t {};
 
@@ -32,6 +35,7 @@ class a_test_t
 			,	st_9( self_ptr(), "9" )
 			,	m_self_mbox( env.create_local_mbox() )
 			,	m_tick_count( tick_count )
+			,	m_messages_received( 0 )
 			{
 				m_states.push_back( &st_0 );
 				m_states.push_back( &st_1 );
@@ -66,6 +70,8 @@ class a_test_t
 		virtual void
 		so_evt_start()
 			{
+				m_benchmarker.start();
+
 				so_change_state( st_0 );
 
 				m_self_mbox->deliver_signal< msg_tick >();
@@ -75,6 +81,7 @@ class a_test_t
 		evt_tick(
 			const so_5::rt::event_data_t< msg_tick > & )
 			{
+				++m_messages_received;
 				++m_it_current_state;
 				if( m_it_current_state == m_states.end() )
 				{
@@ -88,7 +95,13 @@ class a_test_t
 					m_self_mbox->deliver_signal< msg_tick >();
 				}
 				else
+				{
+					m_benchmarker.finish_and_show_stats(
+							m_messages_received,
+							"messages" );
+
 					so_environment().stop();
+				}
 			}
 
 	private :
@@ -106,9 +119,12 @@ class a_test_t
 		const so_5::rt::mbox_ref_t m_self_mbox;
 
 		int m_tick_count;
+		std::uint_fast64_t m_messages_received;
 
 		std::vector< const so_5::rt::state_t * > m_states;
 		std::vector< const so_5::rt::state_t * >::iterator m_it_current_state;
+
+		benchmarker_t m_benchmarker;
 	};
 
 void
