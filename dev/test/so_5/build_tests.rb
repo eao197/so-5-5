@@ -3,7 +3,9 @@ require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target {
 
-	required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
+	if 'cygwin' != toolset.tag( 'gcc_port', 'NOTGCC' )
+		required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
+	end
 
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 
