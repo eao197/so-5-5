@@ -119,6 +119,10 @@ main( int argc, char ** argv )
 					env.register_agent_as_coop( "test",
 							new a_test_t( env, states, tick_count ) );
 				} );
+
+			tick_count /= 2;
+			if( tick_count < 10 )
+				tick_count = 10;
 		}
 	}
 	catch( const std::exception & ex )
