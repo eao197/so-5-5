@@ -22,7 +22,8 @@ MxxRu::Cpp::dll_target {
 	end
 
 	# ./
-	cpp_source( "exception.cpp" )
+	cpp_source 'exception.cpp'
+	cpp_source 'current_thread_id.cpp'
 
 	# Run-time.
 	sources_root( "rt" ) {

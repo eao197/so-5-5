@@ -17,6 +17,7 @@
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
+#include <so_5/h/current_thread_id.hpp>
 
 #include <so_5/h/exception.hpp>
 
@@ -973,7 +974,7 @@ class SO_5_TYPE agent_t
 		void
 		so_bind_to_dispatcher(
 			//! Working thread for an agent.
-			std::thread::id working_thread_id,
+			so_5::current_thread_id_t working_thread_id,
 			//! Actual event queue for an agent.
 			event_queue_t & queue );
 
@@ -1143,7 +1144,7 @@ class SO_5_TYPE agent_t
 		 * Some actions like managing subscriptions and changing states
 		 * are enabled only on working thread id.
 		 */
-		std::thread::id m_working_thread_id;
+		so_5::current_thread_id_t m_working_thread_id;
 
 		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;
@@ -1316,7 +1317,8 @@ class SO_5_TYPE agent_t
 		 * working thread.
 		 */
 		void
-		ensure_operation_is_on_working_thread() const;
+		ensure_operation_is_on_working_thread(
+			const char * operation_name ) const;
 };
 
 //

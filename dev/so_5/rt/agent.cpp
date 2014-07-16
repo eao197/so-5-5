@@ -38,7 +38,7 @@ agent_t::agent_t(
 				m_event_queue_proxy ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
-	,	m_working_thread_id( std::this_thread::get_id() )
+	,	m_working_thread_id( so_5::query_current_thread_id() )
 	,	m_agent_coop( 0 )
 	,	m_is_coop_deregistered( false )
 {
@@ -130,7 +130,7 @@ void
 agent_t::so_change_state(
 	const state_t & new_state )
 {
-	ensure_operation_is_on_working_thread();
+	ensure_operation_is_on_working_thread( "so_change_state" );
 
 	if( new_state.is_target( this ) )
 	{
@@ -153,16 +153,16 @@ agent_t::so_initiate_agent_definition()
 {
 	struct working_thread_id_sentinel
 		{
-			std::thread::id & m_id;
+			so_5::current_thread_id_t & m_id;
 
-			working_thread_id_sentinel( std::thread::id & id_var )
+			working_thread_id_sentinel( so_5::current_thread_id_t & id_var )
 				:	m_id( id_var )
 				{
-					m_id = std::this_thread::get_id();
+					m_id = so_5::query_current_thread_id();
 				}
 			~working_thread_id_sentinel()
 				{
-					m_id = std::thread::id();
+					m_id = so_5::current_thread_id_t();
 				}
 		}
 	sentinel( m_working_thread_id );
@@ -192,7 +192,7 @@ agent_t::so_environment()
 
 void
 agent_t::so_bind_to_dispatcher(
-	std::thread::id working_thread_id,
+	so_5::current_thread_id_t working_thread_id,
 	event_queue_t & queue )
 {
 	// Cooperation usage counter should be incremented.
@@ -343,7 +343,7 @@ agent_t::create_event_subscription(
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	ensure_operation_is_on_working_thread();
+	ensure_operation_is_on_working_thread( "create_event_subscription" );
 
 	if( m_is_coop_deregistered )
 		return;
@@ -397,7 +397,7 @@ agent_t::do_drop_subscription(
 	const mbox_ref_t & mbox_ref,
 	const state_t & target_state )
 {
-	ensure_operation_is_on_working_thread();
+	ensure_operation_is_on_working_thread( "do_drop_subscription" );
 
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
@@ -430,7 +430,8 @@ agent_t::do_drop_subscription_for_all_states(
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	ensure_operation_is_on_working_thread();
+	ensure_operation_is_on_working_thread(
+			"do_drop_subscription_for_all_states" );
 
 	subscription_key_t key( mbox_ref->id(), type_index );
 
@@ -530,12 +531,22 @@ agent_t::service_request_handler_on_message( execution_demand_t & d )
 }
 
 void
-agent_t::ensure_operation_is_on_working_thread() const
+agent_t::ensure_operation_is_on_working_thread(
+	const char * operation_name ) const
 {
-	if( std::this_thread::get_id() != m_working_thread_id )
+	if( so_5::query_current_thread_id() != m_working_thread_id )
+	{
+		std::ostringstream s;
+
+		s << operation_name
+			<< ": operation is enabled only on agent's working thread; "
+			<< "working_thread_id: " << m_working_thread_id
+			<< ", current_thread_id: " << so_5::query_current_thread_id();
+
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_operation_enabled_only_on_agent_working_thread,
-				"operation is enabled only on agent's working thread" );
+				s.str() );
+	}
 }
 
 } /* namespace rt */

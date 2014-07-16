@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <mutex>
+#include <condition_variable>
 
 #include <cpp_util_2/h/lexcast.hpp>
 
@@ -126,13 +128,63 @@ work_thread_t::~work_thread_t()
 {
 }
 
+namespace
+{
+	//! A special helper class to ensure that thread actually started.
+	/*!
+	 * It is necessary in 5.4.0 because the working thread id could
+	 * be detected only inside thread body.
+	 */
+	class child_thread_started_signal_t
+		{
+		public :
+			child_thread_started_signal_t()
+				:	m_lock( m_mutex )
+				{}
+
+			void
+			wait()
+				{
+					m_condition.wait( m_lock );
+				}
+
+			void
+			signal()
+				{
+					std::lock_guard< std::mutex > l( m_mutex );
+					m_condition.notify_one();
+				}
+
+		private :
+			std::mutex m_mutex;
+			std::condition_variable m_condition;
+
+			std::unique_lock< std::mutex > m_lock;
+		};
+
+} /* anonymous */
+
 void
 work_thread_t::start()
 {
 	m_queue.start_service();
 	m_continue_work = WORK_THREAD_CONTINUE;
 
-	m_thread.reset( new std::thread( [this]() { body(); } ) );
+	child_thread_started_signal_t start_signal;
+
+	m_thread.reset(
+			new std::thread(
+					[this, &start_signal]()
+					{
+						m_thread_id = query_current_thread_id();
+						start_signal.signal();
+
+						// Note: start_signal can be invalid since this point!
+
+						body();
+					} ) );
+
+	start_signal.wait();
 }
 
 void
@@ -156,13 +208,13 @@ work_thread_t::event_queue()
 	return m_queue;
 }
 
-std::thread::id
+so_5::current_thread_id_t
 work_thread_t::thread_id()
 {
-	return m_thread->get_id();
+	return m_thread_id;
 }
 
-std::pair< std::thread::id, so_5::rt::event_queue_t * >
+std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
 work_thread_t::get_agent_binding()
 {
 	return std::make_pair( thread_id(), &event_queue() );

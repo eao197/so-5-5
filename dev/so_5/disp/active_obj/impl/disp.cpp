@@ -75,7 +75,7 @@ dispatcher_t::wait()
 		call_wait< agent_thread_map_t::value_type > );
 }
 
-std::pair< std::thread::id, so_5::rt::event_queue_t * >
+std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
 dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 {
 	std::lock_guard< std::mutex > lock( m_lock );

@@ -58,7 +58,7 @@ class dispatcher_t
 		 * \since v.5.4.0
 		 * \brief Get a binding information for an agent.
 		 */
-		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
 		get_agent_binding();
 
 	private:

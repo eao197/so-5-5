@@ -19,6 +19,8 @@
 #include <utility>
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/current_thread_id.hpp>
+
 #include <so_5/rt/h/event_queue.hpp>
 
 #include <so_5/h/spinlocks.hpp>
@@ -356,14 +358,14 @@ class work_thread_t
 		 *
 		 * \attention This method must be called only on running thread.
 		 */
-		std::thread::id
+		so_5::current_thread_id_t
 		thread_id();
 
 		/*!
 		 * \since v.5.4.0
 		 * \brief Get a binding information for an agent.
 		 */
-		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
 		get_agent_binding();
 
 	protected:
@@ -452,6 +454,14 @@ class work_thread_t
 
 		//! Actual working thread.
 		std::unique_ptr< std::thread > m_thread;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief ID of working thread.
+		 *
+		 * \attention Receive the value only after start of thread body.
+		 */
+		so_5::current_thread_id_t m_thread_id;
 
 		//! Owner of this working thread.
 		/*!
