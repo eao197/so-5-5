@@ -93,12 +93,9 @@ typedef spinlock_t< yield_backoff_t > default_spinlock_t;
  * \brief A simple multi-readers/single-writer spinlock
  * (analog of std::shared_mutex).
  *
- * This implemetation in based on cds::RWSpinRPrefT class from
- * libcds library (http://libcds.sourceforge.net/).
- *
- * The original code of cds::RWSpinRPrefT can be found in
- * Svn repository:
- * https://sourceforge.net/p/libcds/code/986/tree/tags/Release_1.5.0/cds/lock/rwlock.h
+ * This implementation is based on Dmitry Vyukov implementation
+ * from LLVM code base:
+ * http://llvm.org/viewvc/llvm-project/compiler-rt/trunk/lib/tsan/rtl/tsan_mutex.cc?revision=210345&view=markup
  */
 template< class BACKOFF >
 class rw_spinlock_t
@@ -106,18 +103,18 @@ class rw_spinlock_t
 	private :
 		std::atomic_uint_fast32_t m_counters;
 
-		static const std::uint_fast32_t writter_bit = 0x80000000u;
+		static const std::uint_fast32_t unlocked = 0;
+		static const std::uint_fast32_t write_lock = 1;
+		static const std::uint_fast32_t read_lock = 2;
 
 	public :
 		rw_spinlock_t()
 			{
-				m_counters.store( 0, std::memory_order_release );
+				m_counters.store( unlocked, std::memory_order_release );
 			}
 		rw_spinlock_t( const rw_spinlock_t & ) = delete;
-		rw_spinlock_t( rw_spinlock_t && ) = delete;
 
 		rw_spinlock_t & operator=( const rw_spinlock_t & ) = delete;
-		rw_spinlock_t & operator=( rw_spinlock_t && ) = delete;
 
 		//! Lock object in shared mode.
 		inline void
@@ -125,22 +122,14 @@ class rw_spinlock_t
 			{
 				BACKOFF backoff;
 
-				std::uint_fast32_t expected =
-					m_counters.load( std::memory_order_acquire );
-				std::uint_fast32_t desired;
-
-				while( true )
+				std::uint_fast32_t previous = m_counters.fetch_add(
+						read_lock,
+						std::memory_order_acquire );
+				while( previous & write_lock )
 					{
-						expected &= ~writter_bit;
-						desired = expected + 1;
-
-						if( m_counters.compare_exchange_weak(
-								expected, desired,
-								std::memory_order_release,
-								std::memory_order_relaxed ) )
-							break;
-
 						backoff();
+
+						previous = m_counters.load( std::memory_order_acquire );
 					}
 			}
 
@@ -148,45 +137,36 @@ class rw_spinlock_t
 		inline void
 		unlock_shared()
 			{
-				BACKOFF backoff;
-
-				std::uint_fast32_t expected =
-					m_counters.load( std::memory_order_acquire );
-				std::uint_fast32_t desired;
-
-				while( true )
-					{
-						desired = expected - 1; 
-
-						if( m_counters.compare_exchange_weak(
-								expected, desired,
-								std::memory_order_release,
-								std::memory_order_relaxed ) )
-							break;
-
-						backoff();
-					}
+				m_counters.fetch_sub( read_lock, std::memory_order_acquire );
 			}
 
 		//! Lock object in exclusive mode.
 		inline void
 		lock()
 			{
-				BACKOFF backoff;
+				std::uint_fast32_t expected = unlocked;
+				const std::uint_fast32_t desired = write_lock;
 
-				std::uint_fast32_t expected;
-				std::uint_fast32_t desired;
+				if( m_counters.compare_exchange_strong(
+						expected, desired,
+						std::memory_order_acquire,
+						std::memory_order_relaxed ) )
+					return;
+
+				BACKOFF backoff;
 
 				while( true )
 					{
-						expected = 0;
-						desired = writter_bit;
+						if( unlocked == m_counters.load( std::memory_order_relaxed ) )
+						{
+							expected = unlocked;
 
-						if( m_counters.compare_exchange_weak(
-								expected, desired,
-								std::memory_order_release,
-								std::memory_order_relaxed ) )
-							break;
+							if( m_counters.compare_exchange_weak(
+									expected, desired,
+									std::memory_order_acquire,
+									std::memory_order_relaxed ) )
+								break;
+						}
 
 						backoff();
 					}
@@ -196,7 +176,7 @@ class rw_spinlock_t
 		inline void
 		unlock()
 			{
-				m_counters.store( 0, std::memory_order_release );
+				m_counters.fetch_sub( write_lock, std::memory_order_release );
 			}
 	};
 
