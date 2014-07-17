@@ -40,7 +40,29 @@ local_mbox_t::subscribe_event_handler(
 {
 	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
-	m_subscribers.emplace( type_wrapper, subscriber );
+	auto it = m_subscribers.find( type_wrapper );
+	if( it == m_subscribers.end() )
+	{
+		// There isn't such message type yet.
+		agent_container_t container;
+		container.push_back( subscriber );
+
+		m_subscribers.emplace( type_wrapper, std::move( container ) );
+	}
+	else
+	{
+		auto & agents = it->second;
+
+		auto pos = std::lower_bound( agents.begin(), agents.end(), subscriber );
+		if( pos != agents.end() )
+		{
+			// This is subscriber or appopriate place for it.
+			if( *pos != subscriber )
+				agents.insert( pos, subscriber );
+		}
+		else
+			agents.emplace_back( subscriber );
+	}
 }
 
 void
@@ -50,8 +72,18 @@ local_mbox_t::unsubscribe_event_handlers(
 {
 	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
-	m_subscribers.erase(
-			subscribers_set_t::value_type( type_wrapper, subscriber ) );
+	auto it = m_subscribers.find( type_wrapper );
+	if( it != m_subscribers.end() )
+	{
+		auto & agents = it->second;
+
+		auto pos = std::lower_bound( agents.begin(), agents.end(), subscriber );
+		if( pos != agents.end() && *pos == subscriber )
+			agents.erase( pos );
+
+		if( agents.empty() )
+			m_subscribers.erase( it );
+	}
 }
 
 void
@@ -61,15 +93,11 @@ local_mbox_t::deliver_message(
 {
 	read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
-	auto it = m_subscribers.lower_bound(
-			subscribers_set_t::value_type( type_wrapper, 0 ) );
-
-	while( it != m_subscribers.end() && it->first == type_wrapper )
-	{
-		agent_t::call_push_event(
-				*(it->second), m_id, type_wrapper, message_ref );
-		++it;
-	}
+	auto it = m_subscribers.find( type_wrapper );
+	if( it != m_subscribers.end() )
+		for( auto a : it->second )
+			agent_t::call_push_event(
+				*a, m_id, type_wrapper, message_ref );
 }
 
 void
@@ -85,23 +113,20 @@ local_mbox_t::deliver_service_request(
 		{
 			read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
-			auto it = m_subscribers.lower_bound(
-					subscribers_set_t::value_type( type_index, 0 ) );
-			
+			auto it = m_subscribers.find( type_index );
+
 			if( it == m_subscribers.end() )
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_no_svc_handlers,
 						"no service handlers (no subscribers for message)" );
 
-			auto next = it;
-			++next;
-			if( next != m_subscribers.end() && next->first == type_index )
+			if( 1 != it->second.size() )
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_more_than_one_svc_handler,
 						"more than one service handler found" );
 
-				agent_t::call_push_service_request(
-						*(it->second), m_id, type_index, svc_request_ref );
+			agent_t::call_push_service_request(
+					*(it->second.front()), m_id, type_index, svc_request_ref );
 		}
 	catch( ... )
 		{

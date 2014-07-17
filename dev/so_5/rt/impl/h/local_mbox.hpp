@@ -10,7 +10,8 @@
 #if !defined( _SO_5__RT__IMPL__LOCAL_MBOX_HPP_ )
 #define _SO_5__RT__IMPL__LOCAL_MBOX_HPP_
 
-#include <set>
+#include <map>
+#include <vector>
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
@@ -85,12 +86,21 @@ class local_mbox_t : public mbox_t
 		//! Object lock.
 		mutable default_rw_spinlock_t m_lock;
 
-		//! Typedef for set of subscribers.
-		typedef std::set< std::pair< std::type_index, agent_t * > >
-				subscribers_set_t;
+		/*!
+		 * \since v.5.4.0
+		 * \brief Type of container with subscribers to one message type.
+		 */
+		typedef std::vector< agent_t * > agent_container_t;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Map from message type to subscribers.
+		 */
+		typedef std::map< std::type_index, agent_container_t >
+				messages_table_t;
 
 		//! Map of subscribers to messages.
-		subscribers_set_t m_subscribers;
+		messages_table_t m_subscribers;
 };
 
 } /* namespace impl */
