@@ -54,7 +54,7 @@ arg_to_value( const char * arg )
 		std::size_t r;
 		ss >> r;
 
-		if( !ss )
+		if( !ss || !ss.eof() )
 			throw std::runtime_error(
 					std::string( "unable to parse value: " ) + arg );
 
