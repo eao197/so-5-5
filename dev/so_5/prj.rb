@@ -57,6 +57,8 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "coop_listener.cpp" )
 
 		sources_root( "impl" ) {
+			cpp_source 'subscription_storage.cpp'
+
 			cpp_source( "local_mbox.cpp" )
 			cpp_source( "named_local_mbox.cpp" )
 			cpp_source( "mpsc_mbox.cpp" )

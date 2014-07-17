@@ -81,6 +81,8 @@ class state_listener_controller_t;
 
 class mpsc_mbox_t;
 
+class subscription_storage_t;
+
 } /* namespace impl */
 
 class state_t;
@@ -1010,102 +1012,11 @@ class SO_5_TYPE agent_t
 		std::unique_ptr< impl::state_listener_controller_t >
 			m_state_listener_controller;
 
-		//! Subscription key type.
-		struct subscription_key_t
-		{
-			//! Unique ID of mbox.
-			mbox_id_t m_mbox_id;
-			//! Message type.
-			std::type_index m_msg_type;
-			//! State of agent.
-			const state_t * m_state;
-
-			//! Default constructor.
-			subscription_key_t()
-				:	m_state( nullptr )
-				,	m_msg_type( typeid(void) )
-				{}
-
-			//! Constructor for the case when it is necessary to
-			//! find all keys with (mbox_id, msg_type) prefix.
-			subscription_key_t(
-				mbox_id_t mbox_id,
-				std::type_index msg_type )
-				:	m_mbox_id( mbox_id )
-				,	m_msg_type( msg_type )
-				,	m_state( nullptr )
-				{}
-
-			//! Initializing constructor.
-			subscription_key_t(
-				mbox_id_t mbox_id,
-				std::type_index msg_type,
-				const state_t & state )
-				:	m_mbox_id( mbox_id )
-				,	m_msg_type( msg_type )
-				,	m_state( &state )
-				{}
-
-			bool
-			operator<( const subscription_key_t & o ) const
-				{
-					if( m_mbox_id < o.m_mbox_id )
-						return true;
-					else if( m_mbox_id == o.m_mbox_id )
-						{
-							if( m_msg_type < o.m_msg_type )
-								return true;
-							else if( m_msg_type == o.m_msg_type )
-								return m_state < o.m_state;
-						}
-
-					return false;
-				}
-
-			bool
-			is_same_mbox_msg_pair( const subscription_key_t & o ) const
-				{
-					return m_mbox_id == o.m_mbox_id &&
-							m_msg_type == o.m_msg_type;
-				}
-		};
-
 		/*!
 		 * \since v.5.4.0
-		 * \brief Subscription data.
+		 * \brief All agent's subscriptions.
 		 */
-		struct subscription_data_t
-		{
-			//! Reference to mbox.
-			/*!
-			 * This reference is necessary for some unsubscription operations
-			 * (for example in destroy_all_subscriptions method).
-			 */
-			mbox_ref_t m_mbox;
-			//! Event handler method.
-			event_handler_method_t m_method;
-
-			//! Initializing constructor.
-			subscription_data_t(
-				mbox_ref_t mbox,
-				event_handler_method_t method )
-				:	m_mbox( std::move( mbox ) )
-				,	m_method( std::move( method ) )
-				{}
-		};
-
-		//! Typedef for the map from subscriptions to event handlers.
-		/*!
-		 * \since v.5.4.0
-		 */
-		typedef std::map< subscription_key_t, subscription_data_t >
-			subscription_map_t;
-
-		//! Map from subscriptions to event handlers.
-		/*!
-		 * \since v.5.4.0
-		 */
-		subscription_map_t m_subscriptions;
+		std::unique_ptr< impl::subscription_storage_t > m_subscriptions;
 
 		//! SObjectizer Environment for which the agent is belong.
 		impl::so_environment_impl_t * m_so_environment_impl;
@@ -1215,11 +1126,6 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			//! Event handler caller.
 			const event_handler_method_t & method );
-
-		//! Destroy all agent subscriptions.
-		void
-		destroy_all_subscriptions(
-			subscription_map_t & subscriptions );
 
 		/*!
 		 * \since v.5.2.3

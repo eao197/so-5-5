@@ -399,26 +399,35 @@ class a_starter_stopper_t
 			{
 				std::cout << "creating child coop..." << std::endl;
 
-				m_mboxes.reserve( m_cfg.m_mboxes );
-				for( std::size_t i = 0; i != m_cfg.m_mboxes; ++i )
-					m_mboxes.emplace_back( so_environment().create_local_mbox() );
+				{
+					duration_meter_t meter( "creating mboxes" );
+					m_mboxes.reserve( m_cfg.m_mboxes );
+					for( std::size_t i = 0; i != m_cfg.m_mboxes; ++i )
+						m_mboxes.emplace_back( so_environment().create_local_mbox() );
+				}
 
 				auto coop = so_environment().create_coop( "child" );
 				coop->set_parent_coop_name( so_coop_name() );
 				
-				m_workers.reserve( m_cfg.m_agents );
-				for( std::size_t i = 0; i != m_cfg.m_agents; ++i )
-					{
-						m_workers.push_back( new a_worker_t( so_environment() ) );
-						coop->add_agent( m_workers.back() );
-					}
+				{
+					duration_meter_t meter( "creating workers" );
+					m_workers.reserve( m_cfg.m_agents );
+					for( std::size_t i = 0; i != m_cfg.m_agents; ++i )
+						{
+							m_workers.push_back( new a_worker_t( so_environment() ) );
+							coop->add_agent( m_workers.back() );
+						}
+				}
 
-				for( std::size_t i = 0; i != m_cfg.m_msg_types; ++i )
-					{
-						std::unique_ptr< so_5::rt::agent_t > sender(
-								m_sender_factories[i]() );
-						coop->add_agent( std::move( sender ) );
-					}
+				{
+					duration_meter_t meter( "creating senders and subscribe workers" );
+					for( std::size_t i = 0; i != m_cfg.m_msg_types; ++i )
+						{
+							std::unique_ptr< so_5::rt::agent_t > sender(
+									m_sender_factories[i]() );
+							coop->add_agent( std::move( sender ) );
+						}
+				}
 
 				so_environment().register_coop( std::move( coop ) );
 

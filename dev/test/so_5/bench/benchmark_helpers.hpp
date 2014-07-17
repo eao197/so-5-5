@@ -10,6 +10,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <string>
 
 //! A helper for fixing starting and finishing time points and
 //! calculate events processing time and events throughtput.
@@ -46,5 +47,39 @@ class benchmarker_t
 
 	private :
 		std::chrono::high_resolution_clock::time_point m_start;
+	};
+
+//! A helper for showing duration between constructor and destructor calls.
+/*!
+ * Usage example:
+\code
+{
+	duration_meter_t meter( "creating some objects" );
+	... // Some code here
+} // Duration of the code above will be shown here.
+\endcode
+*/
+class duration_meter_t
+	{
+	public :
+		duration_meter_t( std::string name )
+			:	m_name( std::move( name ) )
+			,	m_start( std::chrono::high_resolution_clock::now() )
+			{}
+
+		~duration_meter_t()
+			{
+				auto finish = std::chrono::high_resolution_clock::now();
+
+				std::cout.precision( 10 );
+				std::cout << m_name << ": "
+					<< std::chrono::duration_cast< std::chrono::milliseconds >(
+							finish - m_start ).count() / 1000.0 << "s"
+					<< std::endl;
+			}
+
+	private :
+		const std::string m_name;
+		const std::chrono::high_resolution_clock::time_point m_start;
 	};
 

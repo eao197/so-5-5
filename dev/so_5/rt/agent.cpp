@@ -8,6 +8,7 @@
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
+#include <so_5/rt/impl/h/subscription_storage.hpp>
 
 #include <sstream>
 #include <cstdlib>
@@ -29,6 +30,7 @@ agent_t::agent_t(
 	,	m_awaiting_deregistration_state( self_ptr() )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
+	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
 	,	m_so_environment_impl( 0 )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
@@ -52,8 +54,7 @@ agent_t::~agent_t()
 {
 	// Sometimes it is possible that agent is destroyed without
 	// correct deregistration from SO Environment.
-	if( !m_subscriptions.empty() )
-		destroy_all_subscriptions( m_subscriptions );
+	m_subscriptions.reset();
 
 	m_event_queue_proxy->shutdown();
 }
@@ -264,7 +265,8 @@ agent_t::shutdown_agent()
 	//
 	// 3. Send the last demand to the agent.
 
-	subscription_map_t subscriptions;
+	std::unique_ptr< impl::subscription_storage_t > subscriptions(
+			new impl::subscription_storage_t( self_ptr() ) );
 	{
 		// Step #1. Must be done on locked object.
 		std::lock_guard< std::mutex > lock( m_mutex );
@@ -276,7 +278,7 @@ agent_t::shutdown_agent()
 	// Step #2. Must be done on unlocked object.
 	
 	// Subscriptions should be destroyed.
-	destroy_all_subscriptions( subscriptions );
+	subscriptions.reset();
 
 	// Step #3. We must shutdown proxy object. And only then
 	// the last demand will be sent to the agent.
@@ -348,47 +350,8 @@ agent_t::create_event_subscription(
 	if( m_is_coop_deregistered )
 		return;
 
-	auto insertion_result = m_subscriptions.emplace(
-			subscription_key_t( mbox_ref->id(), type_index, target_state ),
-			subscription_data_t( mbox_ref, method ) );
-
-	if( !insertion_result.second )
-		SO_5_THROW_EXCEPTION(
-			rc_evt_handler_already_provided,
-			"agent is already subscribed to message, " +
-			make_subscription_description( mbox_ref, type_index, target_state ) );
-
-	auto mbox_msg_known = is_known_mbox_msg_pair(
-			m_subscriptions, insertion_result.first );
-	if( !mbox_msg_known )
-	{
-		// Mbox must create subscription.
-		try
-		{
-			mbox_ref->subscribe_event_handler( type_index, this );
-		}
-		catch( ... )
-		{
-			// Rollback agent's subscription.
-			m_subscriptions.erase( insertion_result.first );
-			throw;
-		}
-	}
-}
-
-void
-agent_t::destroy_all_subscriptions(
-	subscription_map_t & subscriptions )
-{
-	auto it = subscriptions.begin();
-	auto it_end = subscriptions.end();
-
-	for(; it != it_end; ++it )
-	{
-		it->second.m_mbox->unsubscribe_event_handlers(
-			it->first.m_msg_type,
-			this );
-	}
+	m_subscriptions->create_event_subscription(
+			mbox_ref, type_index, target_state, method );
 }
 
 void
@@ -403,22 +366,7 @@ agent_t::do_drop_subscription(
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	auto it = m_subscriptions.find(
-			subscription_key_t( mbox_ref->id(), type_index, target_state ) );
-
-	if( m_subscriptions.end() != it )
-	{
-		bool mbox_msg_known = is_known_mbox_msg_pair( m_subscriptions, it );
-
-		m_subscriptions.erase( it );
-
-		if( !mbox_msg_known )
-		{
-			mbox_ref->unsubscribe_event_handlers(
-				type_index,
-				this );
-		}
-	}
+	m_subscriptions->drop_subscription( type_index, mbox_ref, target_state );
 }
 
 void
@@ -433,16 +381,7 @@ agent_t::do_drop_subscription_for_all_states(
 	ensure_operation_is_on_working_thread(
 			"do_drop_subscription_for_all_states" );
 
-	subscription_key_t key( mbox_ref->id(), type_index );
-
-	auto it = m_subscriptions.lower_bound( key );
-	if( it != m_subscriptions.end() )
-	{
-		while( key.is_same_mbox_msg_pair( it->first ) )
-			m_subscriptions.erase( it++ );
-
-		mbox_ref->unsubscribe_event_handlers( type_index, this );
-	}
+	m_subscriptions->drop_subscription_for_all_states( type_index, mbox_ref );
 }
 
 void
@@ -492,13 +431,12 @@ agent_t::demand_handler_on_finish( execution_demand_t & d )
 void
 agent_t::demand_handler_on_message( execution_demand_t & d )
 {
-	auto it = d.m_receiver->m_subscriptions.find(
-			subscription_key_t(
-					d.m_mbox_id,
-					d.m_msg_type, 
-					d.m_receiver->so_current_state() ) );
-	if( it != d.m_receiver->m_subscriptions.end() )
-		it->second.m_method( invocation_type_t::event, d.m_message_ref );
+	auto handler = d.m_receiver->m_subscriptions->find_handler(
+			d.m_mbox_id,
+			d.m_msg_type, 
+			d.m_receiver->so_current_state() );
+	if( handler )
+		(*handler)( invocation_type_t::event, d.m_message_ref );
 }
 
 void
@@ -506,15 +444,12 @@ agent_t::service_request_handler_on_message( execution_demand_t & d )
 {
 	try
 		{
-			auto it = d.m_receiver->m_subscriptions.find(
-					subscription_key_t(
-							d.m_mbox_id,
-							d.m_msg_type, 
-							d.m_receiver->so_current_state() ) );
-			if( it != d.m_receiver->m_subscriptions.end() )
-				it->second.m_method(
-						invocation_type_t::service_request,
-						d.m_message_ref );
+			auto handler = d.m_receiver->m_subscriptions->find_handler(
+					d.m_mbox_id,
+					d.m_msg_type, 
+					d.m_receiver->so_current_state() );
+			if( handler )
+				(*handler)( invocation_type_t::service_request, d.m_message_ref );
 			else
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,
