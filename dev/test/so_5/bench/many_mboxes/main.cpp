@@ -7,8 +7,11 @@
 #include <numeric>
 #include <chrono>
 #include <functional>
+#include <sstream>
+#include <cstdlib>
 
 #include <ace/OS.h>
+#include <ace/Get_Opt.h>
 
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
@@ -41,6 +44,97 @@ struct cfg_t
 			{}
 	};
 
+std::size_t
+arg_to_value( const char * arg )
+	{
+		std::stringstream ss;
+		ss << arg;
+		ss.seekg(0);
+
+		std::size_t r;
+		ss >> r;
+
+		if( !ss )
+			throw std::runtime_error(
+					std::string( "unable to parse value: " ) + arg );
+
+		return r;
+	}
+
+cfg_t
+try_parse_cmdline(
+	int argc,
+	char ** argv )
+{
+	ACE_Get_Opt opt( argc, argv, ":m:a:t:i:h" );
+	if( -1 == opt.long_option(
+			"mboxes", 'm', ACE_Get_Opt::ARG_REQUIRED ) )
+		throw std::runtime_error( "Unable to set long option 'mboxes'"  );
+	if( -1 == opt.long_option(
+			"agents", 'a', ACE_Get_Opt::ARG_REQUIRED ) )
+		throw std::runtime_error( "Unable to set long option 'agents'" );
+	if( -1 == opt.long_option(
+			"types", 't', ACE_Get_Opt::ARG_REQUIRED ) )
+		throw std::runtime_error( "Unable to set long option 'types'"  );
+	if( -1 == opt.long_option(
+			"iterations", 'i', ACE_Get_Opt::ARG_REQUIRED ) )
+		throw std::runtime_error( "Unable to set long option 'iterations'" );
+	if( -1 == opt.long_option(
+			"help", 'h', ACE_Get_Opt::NO_ARG ) )
+		throw std::runtime_error( "Unable to set long option 'iterations'" );
+
+	cfg_t tmp_cfg;
+
+	int o;
+	while( EOF != ( o = opt() ) )
+		{
+			switch( o )
+				{
+				case 'h' :
+					std::cout << "usage:\n"
+							"_test.bench.so_5.many_mboxes <options>\n"
+							"\noptions:\n"
+							"-m, --mboxes      count of mboxes\n"
+							"-a, --agents      count of agents\n"
+							"-t, --types       count of message types\n"
+							"-i, --iterations  count of iterations for every message type\n"
+							"-h, --help        show this description\n"
+							<< std::endl;
+					std::exit(1);
+				break;
+
+				case 'm' :
+					tmp_cfg.m_mboxes = arg_to_value( opt.opt_arg() );
+				break;
+
+				case 'a' :
+					tmp_cfg.m_agents = arg_to_value( opt.opt_arg() );
+				break;
+
+				case 't' :
+					tmp_cfg.m_msg_types = arg_to_value( opt.opt_arg() );
+				break;
+
+				case 'i' :
+					tmp_cfg.m_iterations = arg_to_value( opt.opt_arg() );
+				break;
+
+				case ':' :
+					{
+						std::ostringstream ss;
+						ss << "-" << opt.opt_opt() << " requires an argument";
+						throw std::runtime_error( ss.str() );
+					}
+				}
+		}
+
+	if( opt.opt_ind() < argc )
+		throw std::runtime_error(
+				std::string( "unknown argument: " ) + argv[ opt.opt_ind() ] );
+
+	return tmp_cfg;
+}
+
 #define DECLARE_SIGNAL_TYPE(I) \
 	struct msg_signal_##I : public so_5::rt::signal_t {}
 
@@ -48,6 +142,34 @@ DECLARE_SIGNAL_TYPE(0);
 DECLARE_SIGNAL_TYPE(1);
 DECLARE_SIGNAL_TYPE(2);
 DECLARE_SIGNAL_TYPE(3);
+DECLARE_SIGNAL_TYPE(4);
+DECLARE_SIGNAL_TYPE(5);
+DECLARE_SIGNAL_TYPE(6);
+DECLARE_SIGNAL_TYPE(7);
+DECLARE_SIGNAL_TYPE(8);
+DECLARE_SIGNAL_TYPE(9);
+DECLARE_SIGNAL_TYPE(10);
+DECLARE_SIGNAL_TYPE(11);
+DECLARE_SIGNAL_TYPE(12);
+DECLARE_SIGNAL_TYPE(13);
+DECLARE_SIGNAL_TYPE(14);
+DECLARE_SIGNAL_TYPE(15);
+DECLARE_SIGNAL_TYPE(16);
+DECLARE_SIGNAL_TYPE(17);
+DECLARE_SIGNAL_TYPE(18);
+DECLARE_SIGNAL_TYPE(19);
+DECLARE_SIGNAL_TYPE(20);
+DECLARE_SIGNAL_TYPE(21);
+DECLARE_SIGNAL_TYPE(22);
+DECLARE_SIGNAL_TYPE(23);
+DECLARE_SIGNAL_TYPE(24);
+DECLARE_SIGNAL_TYPE(25);
+DECLARE_SIGNAL_TYPE(26);
+DECLARE_SIGNAL_TYPE(27);
+DECLARE_SIGNAL_TYPE(28);
+DECLARE_SIGNAL_TYPE(29);
+DECLARE_SIGNAL_TYPE(30);
+DECLARE_SIGNAL_TYPE(31);
 
 #undef DECLARE_SIGNAL_TYPE
 
@@ -160,6 +282,8 @@ class a_starter_stopper_t
 				create_sender_factories();
 			}
 
+		static const std::size_t max_msg_types = 32;
+
 		virtual void
 		so_define_agent()
 			{
@@ -238,6 +362,34 @@ class a_starter_stopper_t
 				MAKE_SENDER_FACTORY(1);
 				MAKE_SENDER_FACTORY(2);
 				MAKE_SENDER_FACTORY(3);
+				MAKE_SENDER_FACTORY(4);
+				MAKE_SENDER_FACTORY(5);
+				MAKE_SENDER_FACTORY(6);
+				MAKE_SENDER_FACTORY(7);
+				MAKE_SENDER_FACTORY(8);
+				MAKE_SENDER_FACTORY(9);
+				MAKE_SENDER_FACTORY(10);
+				MAKE_SENDER_FACTORY(11);
+				MAKE_SENDER_FACTORY(12);
+				MAKE_SENDER_FACTORY(13);
+				MAKE_SENDER_FACTORY(14);
+				MAKE_SENDER_FACTORY(15);
+				MAKE_SENDER_FACTORY(16);
+				MAKE_SENDER_FACTORY(17);
+				MAKE_SENDER_FACTORY(18);
+				MAKE_SENDER_FACTORY(19);
+				MAKE_SENDER_FACTORY(20);
+				MAKE_SENDER_FACTORY(21);
+				MAKE_SENDER_FACTORY(22);
+				MAKE_SENDER_FACTORY(23);
+				MAKE_SENDER_FACTORY(24);
+				MAKE_SENDER_FACTORY(25);
+				MAKE_SENDER_FACTORY(26);
+				MAKE_SENDER_FACTORY(27);
+				MAKE_SENDER_FACTORY(28);
+				MAKE_SENDER_FACTORY(29);
+				MAKE_SENDER_FACTORY(30);
+				MAKE_SENDER_FACTORY(31);
 
 #undef MAKE_SENDER_FACTORY
 			}
@@ -279,7 +431,17 @@ main( int argc, char ** argv )
 {
 	try
 	{
-		cfg_t cfg;
+		cfg_t cfg = try_parse_cmdline( argc, argv );
+		if( cfg.m_msg_types > a_starter_stopper_t::max_msg_types )
+			{
+				std::ostringstream ss;
+				ss << "too many msg_types specified: "
+					<< cfg.m_msg_types
+					<< ", max avaliable msg_types: "
+					<< a_starter_stopper_t::max_msg_types;
+
+				throw std::logic_error( ss.str() );
+			}
 
 		so_5::api::run_so_environment(
 			[cfg]( so_5::rt::so_environment_t & env )
