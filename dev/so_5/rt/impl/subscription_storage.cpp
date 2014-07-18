@@ -33,7 +33,7 @@ namespace
 		if( it != s.begin() )
 		{
 			typename S::iterator prev = it;
-			++prev;
+			--prev;
 			if( it->first.is_same_mbox_msg_pair( prev->first ) )
 				return true;
 		}
@@ -183,12 +183,34 @@ subscription_storage_t::find_handler(
 	}
 
 void
+subscription_storage_t::debug_dump( std::ostream & to ) const
+	{
+		for( const auto & v : m_map )
+			std::cout << "{" << v.first.m_mbox_id << ", "
+					<< v.first.m_msg_type.name() << ", "
+					<< v.first.m_state->query_name() << "}"
+					<< std::endl;
+	}
+
+void
 subscription_storage_t::destroy_all_subscriptions()
 	{
-		for( auto & i : m_map )
-			i.second->unsubscribe_event_handlers(
-				i.first.m_msg_type,
-				m_owner );
+		{
+			const map_t::value_type * previous = nullptr;
+			for( auto & i : m_map )
+			{
+				// Optimisation: for several consequtive keys with
+				// the same (mbox, msg_type) pair it is necessary to
+				// call unsubscribe_event_handlers only once.
+				if( !previous ||
+						!previous->first.is_same_mbox_msg_pair( i.first ) )
+					i.second->unsubscribe_event_handlers(
+						i.first.m_msg_type,
+						m_owner );
+
+				previous = &i;
+			}
+		}
 
 		hash_table_t tmp_hash_table;
 		m_hash_table.swap( tmp_hash_table );

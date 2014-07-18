@@ -979,20 +979,8 @@ class SO_5_TYPE agent_t
 			event_queue_t & queue );
 
 	private:
-		//! Default agent state.
-		const state_t m_default_state;
-
 		//! Current agent state.
 		const state_t * m_current_state_ptr;
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief A special state for awaiting deregistration.
-		 *
-		 * Agent is switched to that state when it let an exception to go
-		 * out from event handler.
-		 */
-		const state_t m_awaiting_deregistration_state;
 
 		/*!
 		 * \since v.5.4.0

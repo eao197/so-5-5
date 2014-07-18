@@ -29,8 +29,8 @@ class a_test_t : public so_5::rt::agent_t
 			:	base_type_t( env )
 			,	m_sequence( sequence )
 			,	m_mbox( env.create_local_mbox() )
-			,	st_1( self_ptr() )
-			,	st_2( self_ptr() )
+			,	st_1( self_ptr(), "st_1" )
+			,	st_2( self_ptr(), "st_2" )
 		{
 		}
 

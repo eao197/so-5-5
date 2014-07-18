@@ -12,6 +12,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <ostream>
 
 #include <so_5/h/types.hpp>
 
@@ -207,6 +208,9 @@ class subscription_storage_t
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
 			const state_t & current_state ) const;
+
+		void
+		debug_dump( std::ostream & to ) const;
 
 	private :
 		agent_t * m_owner;

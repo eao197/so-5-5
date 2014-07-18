@@ -29,7 +29,6 @@ MxxRu::Cpp::dll_target {
 	sources_root( "rt" ) {
 
 		cpp_source( "atomic_refcounted.cpp" )
-		cpp_source( "state.cpp" )
 		cpp_source( "nonempty_name.cpp" )
 
 		cpp_source( "message.cpp" )

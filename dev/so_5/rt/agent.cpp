@@ -52,15 +52,88 @@ struct working_thread_id_sentinel_t
 
 } /* namespace anonymous */
 
+// NOTE: Implementation of state_t is moved to that file in v.5.4.0.
+
+//
+// state_t
+//
+
+state_t::state_t(
+	const agent_t * agent )
+	:
+		m_target_agent( agent )
+{
+}
+
+state_t::state_t(
+	const agent_t * agent,
+	std::string state_name )
+	:
+		m_target_agent( agent ),
+		m_state_name( std::move(state_name) )
+{
+}
+
+state_t::~state_t()
+{
+}
+
+bool
+state_t::operator == ( const state_t & state ) const
+{
+	return &state == this;
+}
+
+const std::string &
+state_t::query_name() const
+{
+	return m_state_name;
+}
+
+namespace {
+
+/*!
+ * \since v.5.4.0
+ * \brief A special object for the default state for all agents.
+ *
+ * It is not necessary to have this object in every agents.
+ * They can use pointer to the common global constant object.
+ */
+const state_t default_agent_state( nullptr, "<DEFAULT_STATE>" );
+
+/*!
+ * \since v.5.4.0
+ * \brief A special object for the state in which agent is awaiting
+ * for deregistration after unhandled exception.
+ *
+ * Like \a default_agent_state this object can be shared between
+ * all agents.
+ */
+const state_t awaiting_deregistration_state(
+		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
+
+} /* namespace anonymous */
+
+bool
+state_t::is_target( const agent_t * agent ) const
+{
+	if( m_target_agent )
+		return m_target_agent == agent;
+	else if( this == &default_agent_state )
+		return true;
+	else if( this == &awaiting_deregistration_state )
+		return true;
+	else
+		return false;
+}
+
 //
 // agent_t
 //
 
 agent_t::agent_t(
 	so_environment_t & env )
-	:	m_default_state( self_ptr() )
-	,	m_current_state_ptr( &m_default_state )
-	,	m_awaiting_deregistration_state( self_ptr() )
+	:	m_current_state_ptr( &default_agent_state )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
@@ -145,7 +218,7 @@ agent_t::so_exception_reaction() const
 void
 agent_t::so_switch_to_awaiting_deregistration_state()
 {
-	so_change_state( m_awaiting_deregistration_state );
+	so_change_state( awaiting_deregistration_state );
 }
 
 const mbox_ref_t &
@@ -157,7 +230,7 @@ agent_t::so_direct_mbox() const
 const state_t &
 agent_t::so_default_state() const
 {
-	return m_default_state;
+	return default_agent_state;
 }
 
 void

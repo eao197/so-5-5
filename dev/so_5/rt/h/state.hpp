@@ -40,7 +40,7 @@ class SO_5_TYPE state_t
 			const agent_t * agent );
 		state_t(
 			const agent_t * agent,
-			const std::string & state_name );
+			std::string state_name );
 		virtual ~state_t();
 
 		bool
