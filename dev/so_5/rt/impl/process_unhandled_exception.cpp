@@ -128,15 +128,33 @@ log_unhandled_exception(
 //
 void
 process_unhandled_exception(
+	current_thread_id_t working_thread_id,
 	const std::exception & ex,
 	so_5::rt::agent_t & a_exception_producer )
 	{
 		log_unhandled_exception( ex, a_exception_producer );
 
-//FIXME: there must be handling of special case for
-//checking working_thread_id and exception_reaction.
-
 		auto reaction = a_exception_producer.so_exception_reaction();
+		if( working_thread_id == null_current_thread_id() &&
+				so_5::rt::ignore_exception != reaction &&
+				so_5::rt::abort_on_exception != reaction )
+		{
+			ACE_ERROR(
+					(LM_EMERGENCY,
+					 SO_5_LOG_FMT( "Illegal exception_reaction code "
+						 	"for the multithreadded agent: %d. "
+							"The only allowed exception_reaction for "
+							"such kind of agents are ignore_exception or "
+							"abort_on_exception. "
+							"Application will be aborted. "
+							"Unhandled exception '%s' from cooperation '%s'" ),
+					 static_cast< int >(reaction),
+					 ex.what(),
+					 a_exception_producer.so_coop_name().c_str()) );
+
+			std::abort();
+		}
+
 		if( so_5::rt::abort_on_exception == reaction )
 		{
 			ACE_ERROR(

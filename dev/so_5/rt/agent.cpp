@@ -447,7 +447,8 @@ agent_t::demand_handler_on_start(
 	}
 	catch( const std::exception & x )
 	{
-		impl::process_unhandled_exception( x, *(d.m_receiver) );
+		impl::process_unhandled_exception(
+				working_thread_id, x, *(d.m_receiver) );
 	}
 }
 
@@ -466,7 +467,8 @@ agent_t::demand_handler_on_finish(
 	}
 	catch( const std::exception & x )
 	{
-		impl::process_unhandled_exception( x, *(d.m_receiver) );
+		impl::process_unhandled_exception(
+				working_thread_id, x, *(d.m_receiver) );
 	}
 
 	// Cooperation should receive notification about agent deregistration.
@@ -493,7 +495,8 @@ agent_t::demand_handler_on_message(
 	}
 	catch( const std::exception & x )
 	{
-		impl::process_unhandled_exception( x, *(d.m_receiver) );
+		impl::process_unhandled_exception(
+				working_thread_id, x, *(d.m_receiver) );
 	}
 }
 
