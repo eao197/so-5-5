@@ -86,13 +86,11 @@ class a_meeting_place_t
 	public :
 		a_meeting_place_t(
 			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox,
 			int creatures,
 			int meetings )
 			:	so_5::rt::agent_t( env )
 			,	st_empty( self_ptr(), "st_empty" )
 			,	st_one_creature_inside( self_ptr(), "st_one_creature_inside" )
-			,	m_self_mbox( self_mbox )
 			,	m_creatures_alive( creatures )	
 			,	m_remaining_meetings( meetings )
 			,	m_total_meetings( 0 )
@@ -103,12 +101,12 @@ class a_meeting_place_t
 			{
 				so_change_state( st_empty );
 
-				so_subscribe( m_self_mbox ).in( st_empty )
+				so_subscribe( so_direct_mbox() ).in( st_empty )
 					.event( &a_meeting_place_t::evt_first_creature );
-				so_subscribe( m_self_mbox ).in( st_one_creature_inside )
+				so_subscribe( so_direct_mbox() ).in( st_one_creature_inside )
 					.event( &a_meeting_place_t::evt_second_creature );
 
-				so_subscribe( m_self_mbox ).in( st_empty )
+				so_subscribe( so_direct_mbox() ).in( st_empty )
 					.event( &a_meeting_place_t::evt_shutdown_ack );
 			}
 
@@ -159,8 +157,6 @@ class a_meeting_place_t
 		so_5::rt::state_t st_empty;
 		so_5::rt::state_t st_one_creature_inside;
 
-		const so_5::rt::mbox_ref_t m_self_mbox;
-
 		int m_creatures_alive;
 		int m_remaining_meetings;
 		int m_total_meetings;
@@ -179,7 +175,6 @@ class a_creature_t
 			color_t color )
 			:	so_5::rt::agent_t( env )
 			,	m_meeting_place_mbox( meeting_place_mbox )
-			,	m_self_mbox( env.create_local_mbox() )
 			,	m_meeting_counter( 0 )
 			,	m_color( color )
 			{}
@@ -187,10 +182,10 @@ class a_creature_t
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( m_self_mbox )
+				so_subscribe( so_direct_mbox() )
 					.event( &a_creature_t::evt_meeting_result );
 
-				so_subscribe( m_self_mbox )
+				so_subscribe( so_direct_mbox() )
 					.event(
 							so_5::signal< msg_shutdown_request >,
 							&a_creature_t::evt_shutdown_request );
@@ -200,7 +195,7 @@ class a_creature_t
 		so_evt_start()
 			{
 				m_meeting_place_mbox->deliver_message(
-						new msg_meeting_request( m_self_mbox, m_color ) );
+						new msg_meeting_request( so_direct_mbox(), m_color ) );
 			}
 
 		void
@@ -211,7 +206,7 @@ class a_creature_t
 				m_meeting_counter++;
 
 				m_meeting_place_mbox->deliver_message(
-						new msg_meeting_request( m_self_mbox, m_color ) );
+						new msg_meeting_request( so_direct_mbox(), m_color ) );
 			}
 
 		void
@@ -226,7 +221,6 @@ class a_creature_t
 
 	private :
 		const so_5::rt::mbox_ref_t m_meeting_place_mbox;
-		const so_5::rt::mbox_ref_t m_self_mbox;
 
 		int m_meeting_counter;
 
@@ -260,16 +254,13 @@ init(
 		color_t creature_colors[ CREATURE_COUNT ] =
 			{ BLUE, RED, YELLOW, BLUE };
 
-		auto meeting_place_mbox = env.create_local_mbox();
-
 		auto coop = env.create_coop( "chameneos",
 				so_5::disp::active_obj::create_disp_binder(
 						"active_obj" ) );
 
-		coop->add_agent(
+		auto a_meeting_place = coop->add_agent(
 				new a_meeting_place_t(
 						env,
-						meeting_place_mbox,
 						CREATURE_COUNT,
 						meetings ) );
 		
@@ -278,7 +269,7 @@ init(
 				coop->add_agent(
 						new a_creature_t(
 								env,
-								meeting_place_mbox,
+								a_meeting_place->so_direct_mbox(),
 								creature_colors[ i ] ) );
 			}
 

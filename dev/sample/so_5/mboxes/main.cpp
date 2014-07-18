@@ -121,9 +121,6 @@ class my_agent_t
 		// Agent states.
 		const so_5::rt::state_t m_first_state;
 		const so_5::rt::state_t m_second_state;
-
-		// Agent mbox.
-		so_5::rt::mbox_ref_t m_mbox;
 };
 
 my_agent_t::my_agent_t(
@@ -131,8 +128,7 @@ my_agent_t::my_agent_t(
 	:
 		base_type_t( env ),
 		m_first_state( self_ptr(), "state_1" ),
-		m_second_state( self_ptr(), "state_2" ),
-		m_mbox( env.create_local_mbox() )
+		m_second_state( self_ptr(), "state_2" )
 {
 }
 
@@ -141,20 +137,20 @@ my_agent_t::so_define_agent()
 {
 	std::cout << "so_define_agent()" << std::endl;
 
-	so_subscribe( m_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_first_state )
 		.event( &my_agent_t::change_state_event_handler );
-	so_subscribe( m_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_second_state )
 		.event( &my_agent_t::change_state_event_handler );
-	so_subscribe( m_mbox )
+	so_subscribe( so_direct_mbox() )
 		.event( &my_agent_t::change_state_event_handler );
 
 	std::cout << "\tsubscribe my_event_handler in "
 		<< m_first_state.query_name()
 		<< std::endl;
 
-	so_subscribe( m_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_first_state )
 		.event( &my_agent_t::my_event_handler );
 
@@ -162,7 +158,7 @@ my_agent_t::so_define_agent()
 		<< m_first_state.query_name()
 		<< std::endl;
 
-	so_subscribe( m_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_first_state )
 		.event( &my_agent_t::my_another_event_handler );
 
@@ -170,7 +166,7 @@ my_agent_t::so_define_agent()
 		<< m_second_state.query_name()
 		<< std::endl;
 
-	so_subscribe( m_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_second_state )
 		.event( &my_agent_t::my_event_handler );
 }
@@ -184,7 +180,7 @@ my_agent_t::so_evt_start()
 	// Send siries of messages.
 
 	// Switch to first state and handle messages.
-	m_mbox->deliver_message( change_state_message::create( FIRST_STATE ) );
+	so_direct_mbox()->deliver_message( change_state_message::create( FIRST_STATE ) );
 }
 
 void
@@ -208,13 +204,13 @@ my_agent_t::change_state_event_handler(
 			std::cout << "\tswitch to " << so_current_state().query_name()
 				<< std::endl;
 
-			m_mbox->deliver_message( my_message::create( 42 ) );
-			m_mbox->deliver_message( my_another_message::create( "SObjectizer" ) );
+			so_direct_mbox()->deliver_message( my_message::create( 42 ) );
+			so_direct_mbox()->deliver_message( my_another_message::create( "SObjectizer" ) );
 
 			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to second.
-			m_mbox->deliver_message( change_state_message::create( SECOND_STATE ) );
+			so_direct_mbox()->deliver_message( change_state_message::create( SECOND_STATE ) );
 		}
 		else if( SECOND_STATE == message.m_next_state )
 		{
@@ -224,14 +220,14 @@ my_agent_t::change_state_event_handler(
 				<< so_current_state().query_name()
 				<< std::endl;
 
-			m_mbox->deliver_message( my_message::create( -42 ) );
+			so_direct_mbox()->deliver_message( my_message::create( -42 ) );
 			// Message should not be received.
-			m_mbox->deliver_message( my_another_message::create( "rezitcejbOS" ) );
+			so_direct_mbox()->deliver_message( my_another_message::create( "rezitcejbOS" ) );
 
 			std::cout << "\tmessages sent" << std::endl;
 
 			// Switch to default.
-			m_mbox->deliver_message( change_state_message::create( DEFAULT_STATE ) );
+			so_direct_mbox()->deliver_message( change_state_message::create( DEFAULT_STATE ) );
 		}
 	}
 }
@@ -259,23 +255,16 @@ my_agent_t::my_another_event_handler(
 }
 
 
-void
-init( so_5::rt::so_environment_t & env )
-{
-	so_5::rt::agent_coop_unique_ptr_t coop =
-		env.create_coop( "sample_coop" );
-
-	coop->add_agent( new my_agent_t( env ) );
-
-	env.register_coop( std::move(coop) );
-}
-
 int
 main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		so_5::api::run_so_environment(
+			[]( so_5::rt::so_environment_t & env )
+			{
+				env.register_agent_as_coop( "coop", new my_agent_t( env ) );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

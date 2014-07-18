@@ -10,56 +10,41 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-class msg_hello_to_all
-	:
-		public so_5::rt::message_t
+struct msg_hello_to_all : public so_5::rt::message_t
 {
-	public:
-		msg_hello_to_all(
-			const std::string & sender,
-			const so_5::rt::mbox_ref_t & mbox )
-			:
-				m_sender( sender ),
-				m_mbox( mbox )
-		{}
+	msg_hello_to_all(
+		std::string sender,
+		const so_5::rt::mbox_ref_t & mbox )
+		:	m_sender( std::move( sender ) ),
+			m_mbox( mbox )
+	{}
 
-		// Sender name.
-		const std::string m_sender;
-		// Sender Mbox.
-		const so_5::rt::mbox_ref_t m_mbox;
+	// Sender name.
+	const std::string m_sender;
+	// Sender Mbox.
+	const so_5::rt::mbox_ref_t m_mbox;
 };
 
-class msg_hello_to_you
-	:
-		public so_5::rt::message_t
+struct msg_hello_to_you : public so_5::rt::message_t
 {
-	public:
-		msg_hello_to_you(
-			const std::string & sender )
-			:
-				m_sender( sender )
-		{}
+	msg_hello_to_you( std::string sender )
+		: m_sender( std::move( sender ) )
+	{}
 
-		// Sender name.
-		const std::string m_sender;
+	// Sender name.
+	const std::string m_sender;
 };
 
 
 // An agent class.
-class a_hello_t
-	:
-		public so_5::rt::agent_t
+class a_hello_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public:
 		a_hello_t(
 			so_5::rt::so_environment_t & env,
 			const std::string & agent_name )
-			:
-				base_type_t( env ),
+			:	so_5::rt::agent_t( env ),
 				m_agent_name( agent_name ),
-				m_self_mbox( so_environment().create_local_mbox() ),
 				m_common_mbox( so_environment().create_local_mbox( "common_mbox" ) )
 		{}
 		virtual ~a_hello_t()
@@ -85,11 +70,8 @@ class a_hello_t
 		// Agent name.
 		const std::string m_agent_name;
 
-		// Agent mbox.
-		so_5::rt::mbox_ref_t m_self_mbox;
-
 		// Common mbox for all sample agents.
-		so_5::rt::mbox_ref_t m_common_mbox;
+		const so_5::rt::mbox_ref_t m_common_mbox;
 };
 
 void
@@ -99,7 +81,7 @@ a_hello_t::so_define_agent()
 	so_subscribe( m_common_mbox )
 		.event( &a_hello_t::evt_hello_to_all );
 
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.event( &a_hello_t::evt_hello_to_you );
 }
 
@@ -110,7 +92,7 @@ a_hello_t::so_evt_start()
 
 	// Send greeting to all agents.
 	m_common_mbox->deliver_message(
-		new msg_hello_to_all( m_agent_name, m_self_mbox ) );
+		new msg_hello_to_all( m_agent_name, so_direct_mbox() ) );
 }
 
 void

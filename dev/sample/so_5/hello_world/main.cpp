@@ -44,26 +44,19 @@ class a_hello_t
 		}
 };
 
-// SObjectizer Environment initialization.
-void
-init( so_5::rt::so_environment_t & env )
-{
-	// Creating a cooperation.
-	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "coop" );
-
-	// Adding agent to the cooperation.
-	coop->add_agent( new a_hello_t( env ) );
-
-	// Registering the cooperation.
-	env.register_coop( std::move( coop ) );
-}
-
 int
 main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		// Starting SObjectizer.
+		so_5::api::run_so_environment(
+			// A function for SO Environment initialization.
+			[]( so_5::rt::so_environment_t & env )
+			{
+				// Creating and registering single agent as a cooperation.
+				env.register_agent_as_coop( "coop", new a_hello_t( env ) );
+			} );
 	}
 	catch( const std::exception & ex )
 	{
