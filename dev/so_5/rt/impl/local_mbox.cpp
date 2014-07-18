@@ -3,8 +3,8 @@
 */
 
 #include <algorithm>
-
-#include <ace/Guard_T.h>
+#include <sstream>
+#include <mutex>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -24,36 +24,45 @@ namespace impl
 //
 
 local_mbox_t::local_mbox_t(
-	impl::mbox_core_t & mbox_core )
-	:
-		m_mbox_core( &mbox_core ),
-		m_lock( m_mbox_core->allocate_mutex() )
-{
-}
-
-local_mbox_t::local_mbox_t(
-	impl::mbox_core_t & mbox_core,
-	ACE_RW_Thread_Mutex & lock )
-	:
-		m_mbox_core( &mbox_core ),
-		m_lock( lock )
+	mbox_id_t id )
+	:	m_id( id )
 {
 }
 
 local_mbox_t::~local_mbox_t()
 {
-	m_mbox_core->deallocate_mutex( m_lock );
 }
 
 void
 local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
-	agent_t * subscriber,
-	const event_caller_block_ref_t & event_caller )
+	agent_t * subscriber )
 {
-	// Since v.5.2.3.4 there is no locking inside the method!
+	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
-	m_subscribers[ type_wrapper ][ subscriber ] = event_caller;
+	auto it = m_subscribers.find( type_wrapper );
+	if( it == m_subscribers.end() )
+	{
+		// There isn't such message type yet.
+		agent_container_t container;
+		container.push_back( subscriber );
+
+		m_subscribers.emplace( type_wrapper, std::move( container ) );
+	}
+	else
+	{
+		auto & agents = it->second;
+
+		auto pos = std::lower_bound( agents.begin(), agents.end(), subscriber );
+		if( pos != agents.end() )
+		{
+			// This is subscriber or appopriate place for it.
+			if( *pos != subscriber )
+				agents.insert( pos, subscriber );
+		}
+		else
+			agents.emplace_back( subscriber );
+	}
 }
 
 void
@@ -61,13 +70,18 @@ local_mbox_t::unsubscribe_event_handlers(
 	const std::type_index & type_wrapper,
 	agent_t * subscriber )
 {
-	// Since v.5.2.3.4 there is no locking inside the method!
+	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 	auto it = m_subscribers.find( type_wrapper );
 	if( it != m_subscribers.end() )
 	{
-		it->second.erase( subscriber );
-		if( it->second.empty() )
+		auto & agents = it->second;
+
+		auto pos = std::lower_bound( agents.begin(), agents.end(), subscriber );
+		if( pos != agents.end() && *pos == subscriber )
+			agents.erase( pos );
+
+		if( agents.empty() )
 			m_subscribers.erase( it );
 	}
 }
@@ -77,30 +91,13 @@ local_mbox_t::deliver_message(
 	const std::type_index & type_wrapper,
 	const message_ref_t & message_ref ) const
 {
-	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+	read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
 	auto it = m_subscribers.find( type_wrapper );
 	if( it != m_subscribers.end() )
-	{
-		for( auto s = it->second.begin(), e = it->second.end(); s != e; ++s )
-			agent_t::call_push_event( *(s->first), s->second, message_ref );
-	}
-}
-
-void
-local_mbox_t::read_write_lock_acquire()
-{
-	if( -1 == m_lock.acquire_write() )
-		SO_5_THROW_EXCEPTION( rc_unexpected_error,
-				"ACE_RW_Thread_Mutex::acquire_write() failed." );
-}
-
-void
-local_mbox_t::read_write_lock_release()
-{
-	if( -1 == m_lock.release() )
-		SO_5_THROW_EXCEPTION( rc_unexpected_error,
-				"ACE_RW_Thread_Mutex::release() failed." );
+		for( auto a : it->second )
+			agent_t::call_push_event(
+				*a, m_id, type_wrapper, message_ref );
 }
 
 void
@@ -114,32 +111,22 @@ local_mbox_t::deliver_service_request(
 
 	try
 		{
-			ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_lock );
+			read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
 			auto it = m_subscribers.find( type_index );
-			if( it != m_subscribers.end() )
-			{
-				auto f = it->second.begin();
-				if( f == it->second.end() )
-					SO_5_THROW_EXCEPTION(
-							so_5::rc_no_svc_handlers,
-							"no service handlers [ACTUAL SUBSCRIBERS MAP EMPTY!]" );
 
-				auto s = ++(it->second.begin());
-				if( s != it->second.end() )
-					SO_5_THROW_EXCEPTION(
-							so_5::rc_more_than_one_svc_handler,
-							"more than one service handler found" );
-
-				agent_t::call_push_service_request(
-						*(f->first),
-						f->second,
-						svc_request_ref );
-			}
-			else
+			if( it == m_subscribers.end() )
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_no_svc_handlers,
 						"no service handlers (no subscribers for message)" );
+
+			if( 1 != it->second.size() )
+				SO_5_THROW_EXCEPTION(
+						so_5::rc_more_than_one_svc_handler,
+						"more than one service handler found" );
+
+			agent_t::call_push_service_request(
+					*(it->second.front()), m_id, type_index, svc_request_ref );
 		}
 	catch( ... )
 		{
@@ -147,12 +134,13 @@ local_mbox_t::deliver_service_request(
 		}
 }
 
-const std::string g_mbox_empty_name;
-
-const std::string &
+std::string
 local_mbox_t::query_name() const
 {
-	return g_mbox_empty_name;
+	std::ostringstream s;
+	s << "<mbox:type=MPMC:id=" << m_id << ">";
+
+	return s.str();
 }
 
 } /* namespace impl */

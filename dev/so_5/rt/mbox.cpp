@@ -21,19 +21,13 @@ mbox_t::~mbox_t()
 bool
 mbox_t::operator==( const mbox_t & o ) const
 {
-	return cmp_ordinal() == o.cmp_ordinal();
+	return id() == o.id();
 }
 
 bool
 mbox_t::operator<( const mbox_t & o ) const
 {
-	return cmp_ordinal() < o.cmp_ordinal();
-}
-
-const mbox_t *
-mbox_t::cmp_ordinal() const
-{
-	return this;
+	return id() < o.id();
 }
 
 } /* namespace rt */

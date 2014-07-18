@@ -36,11 +36,19 @@ class SO_5_TYPE state_t
 		void
 		operator = ( const state_t & );
 	public:
+		/*!
+		 * \brief Constructor without user specified name.
+		 *
+		 * A name for the state will be generated automatically.
+		 */
 		explicit state_t(
 			const agent_t * agent );
+		/*!
+		 * \brief Full constructor.
+		 */
 		state_t(
 			const agent_t * agent,
-			const std::string & state_name );
+			std::string state_name );
 		virtual ~state_t();
 
 		bool
@@ -60,6 +68,10 @@ class SO_5_TYPE state_t
 
 		//! State name.
 		const std::string m_state_name;
+
+		inline const state_t *
+		self_ptr() const { return this; }
+
 };
 
 } /* namespace rt */

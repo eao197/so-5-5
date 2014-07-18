@@ -94,6 +94,8 @@ class SO_5_TYPE so_environment_params_t
 		 * This method allows change the default mutex pool size.
 		 *
 		 * \see so_environment_t::create_local_mbox().
+		 *
+		 * \deprecated Obsolete in 5.4.0
 		 */
 		so_environment_params_t &
 		mbox_mutex_pool_size(
@@ -436,33 +438,6 @@ class SO_5_TYPE so_environment_t
 		create_local_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
-
-		//! Create an anonymous mbox with the user supplied mutex.
-		/*!
-		 * Intended for cases when a dedicated mutex for the mbox
-		 * is necessary.
-		 *
-		 * \note always creates a new mbox.
-		 */
-		mbox_ref_t
-		create_local_mbox(
-			//! A dedicated mutex for the mbox.
-			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
-
-		//! Create a named mbox with the user supplied mutex.
-		/*!
-		 * Intended for cases when a dedicated mutex for the mbox
-		 * is necessary.
-		 * 
-		 * If \a mbox_name is unique then a new mutex will be created.
-		 * If not the reference to existing mutex will be returned.
-		 */
-		mbox_ref_t
-		create_local_mbox(
-			//! Mbox name.
-			const nonempty_name_t & mbox_name,
-			//! A dedicated mutex for the mbox.
-			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
 		/*!
 		 * \}
 		 */

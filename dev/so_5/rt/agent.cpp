@@ -5,10 +5,14 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/so_environment.hpp>
-#include <so_5/rt/h/event_caller_block.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
+#include <so_5/rt/impl/h/subscription_storage.hpp>
+#include <so_5/rt/impl/h/process_unhandled_exception.hpp>
+
+#include <sstream>
+#include <cstdlib>
 
 namespace so_5
 {
@@ -16,26 +20,150 @@ namespace so_5
 namespace rt
 {
 
+namespace
+{
+
+/*!
+ * \since v.5.4.0
+ * \brief A helper class for temporary setting and then dropping
+ * the ID of the current working thread.
+ *
+ * \note New working thread_id is set only if it is not an
+ * null thread_id.
+ */
+struct working_thread_id_sentinel_t
+	{
+		so_5::current_thread_id_t & m_id;
+
+		working_thread_id_sentinel_t(
+			so_5::current_thread_id_t & id_var,
+			so_5::current_thread_id_t value_to_set )
+			:	m_id( id_var )
+			{
+				if( value_to_set != null_current_thread_id() )
+					m_id = value_to_set;
+			}
+		~working_thread_id_sentinel_t()
+			{
+				if( m_id != null_current_thread_id() )
+					m_id = null_current_thread_id();
+			}
+	};
+
+/*!
+ * \since v.5.4.0
+ */
+std::string
+create_anonymous_state_name( const agent_t * agent, const state_t * st )
+	{
+		std::ostringstream ss;
+		ss << "<state:target=" << agent << ":this=" << st << ">";
+		return ss.str();
+	}
+
+} /* namespace anonymous */
+
+// NOTE: Implementation of state_t is moved to that file in v.5.4.0.
+
+//
+// state_t
+//
+
+state_t::state_t(
+	const agent_t * agent )
+	:	m_target_agent( agent )
+	,	m_state_name( create_anonymous_state_name( agent, self_ptr() ) )
+{
+}
+
+state_t::state_t(
+	const agent_t * agent,
+	std::string state_name )
+	:
+		m_target_agent( agent ),
+		m_state_name( state_name.empty() ?
+				create_anonymous_state_name( agent, self_ptr() ) :
+				std::move(state_name) )
+{
+}
+
+state_t::~state_t()
+{
+}
+
+bool
+state_t::operator == ( const state_t & state ) const
+{
+	return &state == this;
+}
+
+const std::string &
+state_t::query_name() const
+{
+	return m_state_name;
+}
+
+namespace {
+
+/*!
+ * \since v.5.4.0
+ * \brief A special object for the default state for all agents.
+ *
+ * It is not necessary to have this object in every agents.
+ * They can use pointer to the common global constant object.
+ */
+const state_t default_agent_state( nullptr, "<DEFAULT_STATE>" );
+
+/*!
+ * \since v.5.4.0
+ * \brief A special object for the state in which agent is awaiting
+ * for deregistration after unhandled exception.
+ *
+ * Like \a default_agent_state this object can be shared between
+ * all agents.
+ */
+const state_t awaiting_deregistration_state(
+		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
+
+} /* namespace anonymous */
+
+bool
+state_t::is_target( const agent_t * agent ) const
+{
+	if( m_target_agent )
+		return m_target_agent == agent;
+	else if( this == &default_agent_state )
+		return true;
+	else if( this == &awaiting_deregistration_state )
+		return true;
+	else
+		return false;
+}
+
 //
 // agent_t
 //
 
 agent_t::agent_t(
 	so_environment_t & env )
-	:	m_default_state( self_ptr() )
-	,	m_current_state_ptr( &m_default_state )
-	,	m_awaiting_deregistration_state( self_ptr() )
+	:	m_current_state_ptr( &default_agent_state )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
+	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
 	,	m_so_environment_impl( 0 )
+	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
+	,	m_direct_mbox(
+			env.so_environment_impl().create_mpsc_mbox(
+				self_ptr(),
+				m_event_queue_proxy ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.
-	,	m_working_thread_id( std::this_thread::get_id() )
+	,	m_working_thread_id( so_5::query_current_thread_id() )
 	,	m_agent_coop( 0 )
 	,	m_is_coop_deregistered( false )
 {
-	m_event_queue = &m_tmp_event_queue;
+	m_event_queue_proxy->switch_to( m_tmp_event_queue );
 
 	// Bind to the environment should be done.
 	bind_to_environment( env.so_environment_impl() );
@@ -43,12 +171,11 @@ agent_t::agent_t(
 
 agent_t::~agent_t()
 {
-}
+	// Sometimes it is possible that agent is destroyed without
+	// correct deregistration from SO Environment.
+	m_subscriptions.reset();
 
-const agent_t *
-agent_t::self_ptr() const
-{
-	return this;
+	m_event_queue_proxy->shutdown();
 }
 
 void
@@ -104,20 +231,26 @@ agent_t::so_exception_reaction() const
 void
 agent_t::so_switch_to_awaiting_deregistration_state()
 {
-	so_change_state( m_awaiting_deregistration_state );
+	so_change_state( awaiting_deregistration_state );
+}
+
+const mbox_ref_t &
+agent_t::so_direct_mbox() const
+{
+	return m_direct_mbox;
 }
 
 const state_t &
 agent_t::so_default_state() const
 {
-	return m_default_state;
+	return default_agent_state;
 }
 
 void
 agent_t::so_change_state(
 	const state_t & new_state )
 {
-	ensure_operation_is_on_working_thread();
+	ensure_operation_is_on_working_thread( "so_change_state" );
 
 	if( new_state.is_target( this ) )
 	{
@@ -138,21 +271,9 @@ agent_t::so_change_state(
 void
 agent_t::so_initiate_agent_definition()
 {
-	struct working_thread_id_sentinel
-		{
-			std::thread::id & m_id;
-
-			working_thread_id_sentinel( std::thread::id & id_var )
-				:	m_id( id_var )
-				{
-					m_id = std::this_thread::get_id();
-				}
-			~working_thread_id_sentinel()
-				{
-					m_id = std::thread::id();
-				}
-		}
-	sentinel( m_working_thread_id );
+	working_thread_id_sentinel_t sentinel(
+			m_working_thread_id,
+			so_5::query_current_thread_id() );
 
 	so_define_agent();
 
@@ -179,21 +300,37 @@ agent_t::so_environment()
 
 void
 agent_t::so_bind_to_dispatcher(
-	std::thread::id working_thread_id,
 	event_queue_t & queue )
 {
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
 
-	m_working_thread_id = working_thread_id;
-
 	m_tmp_event_queue.switch_to_actual_queue(
 			queue,
 			this,
 			&agent_t::demand_handler_on_start );
 
-	m_event_queue.store( &queue );
+	// Proxy must be switched on unblocked agent.
+	// Otherwise there could be a deadlock when direct mbox is used.
+	// Scenario:
+	//
+	// T1:
+	//  - is trying to send message to the agent;
+	//  - event_queue_proxy spinlock is locked in 'reader' mode;
+	//  - tmp_queue.push is called;
+	//  - tmp_queue.push is trying to acquire agent's mutex;
+	// T2:
+	//  - is trying to bind agent to the dispatcher;
+	//  - tmp_queue.switch_to_actual_queue is called;
+	//  - agent's mutex is acquired;
+	//  - an attempt to switch proxy to actual queue is performed;
+	//  - is trying to acquire proxy's spinlock if 'writer' mode.
+	//
+	// Becuase of that m_event_queue_proxy->switch_to is now called
+	// outside of m_tmp_event_queue.switch_to_actual_queue().
+	//
+	m_event_queue_proxy->switch_to( queue );
 }
 
 agent_ref_t
@@ -232,127 +369,93 @@ agent_t::shutdown_agent()
 	//
 	// 3. Send the last demand to the agent.
 
-	consumers_map_t subscriptions;
+	std::unique_ptr< impl::subscription_storage_t > subscriptions(
+			new impl::subscription_storage_t( self_ptr() ) );
 	{
 		// Step #1. Must be done on locked object.
 		std::lock_guard< std::mutex > lock( m_mutex );
 
 		m_is_coop_deregistered = true;
-		m_event_consumers_map.swap( subscriptions );
+		m_subscriptions.swap( subscriptions );
 	}
 
 	// Step #2. Must be done on unlocked object.
 	
 	// Subscriptions should be destroyed.
-	destroy_all_subscriptions( subscriptions );
+	subscriptions.reset();
 
-	m_event_queue.load( std::memory_order_acquire )->push(
-			this,
-			event_caller_block_ref_t(),
-			message_ref_t(),
-			&agent_t::demand_handler_on_finish );
+	// Step #3. We must shutdown proxy object. And only then
+	// the last demand will be sent to the agent.
+	auto q = m_event_queue_proxy->shutdown();
+	if( q )
+		q->push(
+				execution_demand_t(
+						this,
+						0,
+						typeid(void),
+						message_ref_t(),
+						&agent_t::demand_handler_on_finish ) );
+//FIXME: may be it is necessary to call std::abort() in the
+//case when q == nullptr?
 }
 
-//! Make textual representation of the subscription key.
-template< class PAIR >
-inline std::string
-subscription_key_string( const PAIR & sk )
+namespace
 {
-	const std::string msg_type =
-		sk.first.query_type_info().name();
+	template< class S >
+	bool is_known_mbox_msg_pair(
+		S & s,
+		typename S::iterator it )
+	{
+		if( it != s.begin() )
+		{
+			typename S::iterator prev = it;
+			++prev;
+			if( it->first.is_same_mbox_msg_pair( prev->first ) )
+				return true;
+		}
 
-	std::string str = "message type: " +
-		msg_type + "; mbox: " + sk.second->query_name();
+		typename S::iterator next = it;
+		++next;
+		if( next != s.end() )
+			return it->first.is_same_mbox_msg_pair( next->first );
 
-	return str;
-}
+		return false;
+	}
+
+	std::string
+	make_subscription_description(
+		const mbox_ref_t & mbox_ref,
+		std::type_index msg_type,
+		const state_t & state )
+	{
+		std::ostringstream s;
+		s << "(mbox:'" << mbox_ref->query_name()
+			<< "', msg_type:'" << msg_type.name() << "', state:'"
+			<< state.query_name() << "')";
+
+		return s.str();
+	}
+
+} /* namespace anonymous */
 
 void
 agent_t::create_event_subscription(
-	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref,
+	std::type_index type_index,
 	const state_t & target_state,
 	const event_handler_method_t & method )
 {
-	ensure_operation_is_on_working_thread();
-
-	subscription_key_t subscr_key( type_index, mbox_ref );
-
-	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
 
+	ensure_operation_is_on_working_thread( "create_event_subscription" );
+
 	if( m_is_coop_deregistered )
 		return;
 
-	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
-
-	// If subscription is not found then it should be created.
-	if( m_event_consumers_map.end() == it )
-	{
-		create_and_register_event_caller_block(
-				type_index,
-				mbox_proxy,
-				target_state,
-				method,
-				subscr_key );
-	}
-	else
-	{
-		it->second->insert( target_state, std::move(method) );
-	}
-}
-
-void
-agent_t::create_and_register_event_caller_block(
-	const std::type_index & type_index,
-	mbox_subscription_management_proxy_t & mbox_proxy,
-	const state_t & target_state,
-	const event_handler_method_t & method,
-	const subscription_key_t & subscr_key )
-{
-	event_caller_block_ref_t caller_block(
-			new event_caller_block_t() );
-	caller_block->insert( target_state, method );
-
-	mbox_proxy.subscribe_event_handler(
-		type_index,
-		this,
-		caller_block.get() );
-
-	// If we won't add event into event_consumers_map then
-	// event must be removed from mbox.
-	try
-	{
-		m_event_consumers_map.insert(
-			consumers_map_t::value_type(
-				subscr_key,
-				caller_block ) );
-	}
-	catch( ... )
-	{
-		mbox_proxy.unsubscribe_event_handlers( type_index, this );
-		throw;
-	}
-}
-
-void
-agent_t::destroy_all_subscriptions(
-	consumers_map_t & subscriptions )
-{
-	consumers_map_t::iterator it = subscriptions.begin();
-	consumers_map_t::iterator it_end = subscriptions.end();
-
-	for(; it != it_end; ++it )
-	{
-		mbox_subscription_management_proxy_t mbox_proxy( it->first.second );
-
-		mbox_proxy.unsubscribe_event_handlers(
-			it->first.first,
-			this );
-	}
+	m_subscriptions->create_event_subscription(
+			mbox_ref, type_index, target_state, method );
 }
 
 void
@@ -361,32 +464,13 @@ agent_t::do_drop_subscription(
 	const mbox_ref_t & mbox_ref,
 	const state_t & target_state )
 {
-	ensure_operation_is_on_working_thread();
-
-	subscription_key_t subscr_key( type_index, mbox_ref );
-
-	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
+	ensure_operation_is_on_working_thread( "do_drop_subscription" );
 
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
-
-	if( m_event_consumers_map.end() != it )
-	{
-		it->second->remove_caller_for_state( target_state );
-
-		if( it->second->empty() )
-		{
-			mbox_proxy.unsubscribe_event_handlers(
-				it->first.first,
-				this );
-
-			// There is no more interest in that subscription key.
-			m_event_consumers_map.erase( it );
-		}
-	}
+	m_subscriptions->drop_subscription( type_index, mbox_ref, target_state );
 }
 
 void
@@ -394,97 +478,132 @@ agent_t::do_drop_subscription_for_all_states(
 	const std::type_index & type_index,
 	const mbox_ref_t & mbox_ref )
 {
-	ensure_operation_is_on_working_thread();
-
-	subscription_key_t subscr_key( type_index, mbox_ref );
-
-	mbox_subscription_management_proxy_t mbox_proxy( mbox_ref );
-
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	consumers_map_t::iterator it = m_event_consumers_map.find( subscr_key );
+	ensure_operation_is_on_working_thread(
+			"do_drop_subscription_for_all_states" );
 
-	if( m_event_consumers_map.end() != it )
-	{
-		mbox_proxy.unsubscribe_event_handlers(
-			it->first.first,
-			this );
-
-		// There is no more interest in that subscription key.
-		m_event_consumers_map.erase( it );
-	}
+	m_subscriptions->drop_subscription_for_all_states( type_index, mbox_ref );
 }
 
 void
 agent_t::push_event(
-	const event_caller_block_ref_t & event_caller_block,
+	mbox_id_t mbox_id,
+	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	m_event_queue.load( std::memory_order_acquire )->push(
-			this,
-			event_caller_block,
-			message,
-			&agent_t::demand_handler_on_message );
+	m_event_queue_proxy->push(
+			execution_demand_t(
+				this,
+				mbox_id,
+				msg_type,
+				message,
+				&agent_t::demand_handler_on_message ) );
 }
 
 void
 agent_t::push_service_request(
-	const event_caller_block_ref_t & event_caller_block,
+	mbox_id_t mbox_id,
+	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	m_event_queue.load( std::memory_order_acquire )->push(
-			this,
-			event_caller_block,
-			message,
-			&agent_t::service_request_handler_on_message );
+	m_event_queue_proxy->push(
+			execution_demand_t(
+					this,
+					mbox_id,
+					msg_type,
+					message,
+					&agent_t::service_request_handler_on_message ) );
 }
 
 void
 agent_t::demand_handler_on_start(
-	message_ref_t &,
-	const event_caller_block_t *,
-	agent_t * agent )
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
-	agent->so_evt_start();
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
+	try
+	{
+		d.m_receiver->so_evt_start();
+	}
+	catch( const std::exception & x )
+	{
+		impl::process_unhandled_exception(
+				working_thread_id, x, *(d.m_receiver) );
+	}
 }
 
 void
 agent_t::demand_handler_on_finish(
-	message_ref_t &,
-	const event_caller_block_t *,
-	agent_t * agent )
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
-	agent->so_evt_finish();
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
+	try
+	{
+		d.m_receiver->so_evt_finish();
+	}
+	catch( const std::exception & x )
+	{
+		impl::process_unhandled_exception(
+				working_thread_id, x, *(d.m_receiver) );
+	}
+
 	// Cooperation should receive notification about agent deregistration.
-	agent_coop_t::decrement_usage_count( *(agent->m_agent_coop) );
+	agent_coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
 void
 agent_t::demand_handler_on_message(
-	message_ref_t & msg,
-	const event_caller_block_t * event_handler,
-	agent_t * agent )
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
-	event_handler->call(
-			agent->so_current_state(),
-			invocation_type_t::event,
-			msg );
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
+	try
+	{
+		auto handler = d.m_receiver->m_subscriptions->find_handler(
+				d.m_mbox_id,
+				d.m_msg_type, 
+				d.m_receiver->so_current_state() );
+		if( handler )
+			(*handler)( invocation_type_t::event, d.m_message_ref );
+	}
+	catch( const std::exception & x )
+	{
+		impl::process_unhandled_exception(
+				working_thread_id, x, *(d.m_receiver) );
+	}
 }
 
 void
 agent_t::service_request_handler_on_message(
-	message_ref_t & msg,
-	const event_caller_block_t * event_handler,
-	agent_t * agent )
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
 	try
 		{
-			if( !event_handler->call(
-					agent->so_current_state(),
-					invocation_type_t::service_request,
-					msg ) )
+			auto handler = d.m_receiver->m_subscriptions->find_handler(
+					d.m_mbox_id,
+					d.m_msg_type, 
+					d.m_receiver->so_current_state() );
+			if( handler )
+				(*handler)( invocation_type_t::service_request, d.m_message_ref );
+			else
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,
 						"service request handler is not found for "
@@ -493,18 +612,29 @@ agent_t::service_request_handler_on_message(
 	catch( ... )
 		{
 			auto & svc_request =
-					*(dynamic_cast< msg_service_request_base_t * >( msg.get() ));
+					*(dynamic_cast< msg_service_request_base_t * >(
+							d.m_message_ref.get() ));
 			svc_request.set_exception( std::current_exception() );
 		}
 }
 
 void
-agent_t::ensure_operation_is_on_working_thread() const
+agent_t::ensure_operation_is_on_working_thread(
+	const char * operation_name ) const
 {
-	if( std::this_thread::get_id() != m_working_thread_id )
+	if( so_5::query_current_thread_id() != m_working_thread_id )
+	{
+		std::ostringstream s;
+
+		s << operation_name
+			<< ": operation is enabled only on agent's working thread; "
+			<< "working_thread_id: " << m_working_thread_id
+			<< ", current_thread_id: " << so_5::query_current_thread_id();
+
 		SO_5_THROW_EXCEPTION(
 				so_5::rc_operation_enabled_only_on_agent_working_thread,
-				"operation is enabled only on agent's working thread" );
+				s.str() );
+	}
 }
 
 } /* namespace rt */

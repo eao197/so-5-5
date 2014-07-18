@@ -3,12 +3,17 @@ require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target {
 
+	if 'cygwin' != toolset.tag( 'gcc_port', 'NOTGCC' )
+		required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
+	end
+
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 
 	required_prj( "test/so_5/bench/work_thread_speed/prj.rb" )
 	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
 	required_prj( "test/so_5/bench/same_msg_in_different_states/prj.rb" )
 	required_prj( "test/so_5/bench/parallel_send_to_same_mbox/prj.rb" )
+	required_prj( "test/so_5/bench/change_state/prj.rb" )
 
 	required_prj( "test/so_5/timer_thread/single_delayed/prj.ut.rb" )
 	required_prj( "test/so_5/timer_thread/single_periodic/prj.ut.rb" )
@@ -48,6 +53,10 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/mbox/subscribe_when_deregistered/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/drop_subscription/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/drop_subscr_when_demand_in_queue/prj.ut.rb" )
+	required_prj( "test/so_5/mbox/mpsc_mbox/prj.ut.rb" )
+	required_prj( "test/so_5/mbox/mpsc_mbox_illegal_subscriber/prj.ut.rb" )
+	required_prj( "test/so_5/mbox/mpsc_mbox_stress/prj.rb" )
+	required_prj( "test/so_5/mbox/hanging_subscriptions/prj.ut.rb" )
 
 	required_prj( "test/so_5/layer/layer_init/prj.ut.rb" )
 	required_prj( "test/so_5/layer/layer_query/prj.ut.rb" )

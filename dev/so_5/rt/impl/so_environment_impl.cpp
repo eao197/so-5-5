@@ -23,12 +23,9 @@ so_environment_impl_t::so_environment_impl_t(
 	so_environment_params_t && so_environment_params,
 	so_environment_t & public_so_environment )
 	:
-		m_mbox_core( new mbox_core_t(
-			so_environment_params.mbox_mutex_pool_size() ) ),
+		m_mbox_core( new mbox_core_t() ),
 		m_agent_core(
 			public_so_environment,
-			so_environment_params
-				.agent_event_queue_mutex_pool_size(),
 			std::move( so_environment_params.m_coop_listener ) ),
 		m_disp_core(
 			public_so_environment,

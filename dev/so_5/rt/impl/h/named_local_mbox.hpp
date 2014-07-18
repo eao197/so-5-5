@@ -51,42 +51,31 @@ class named_local_mbox_t
 	public:
 		virtual ~named_local_mbox_t();
 
-		virtual void
-		deliver_service_request(
-			const std::type_index & type_index,
-			const message_ref_t & svc_request_ref ) const;
+		virtual mbox_id_t
+		id() const;
 
-		virtual const std::string &
-		query_name() const;
-
-	protected:
-		virtual void
-		subscribe_event_handler(
-			const std::type_index & type_wrapper,
-			agent_t * subscriber,
-			const event_caller_block_ref_t & event_caller );
-
-		virtual void
-		unsubscribe_event_handlers(
-			const std::type_index & type_wrapper,
-			agent_t * subscriber );
-		//! \}
-
-		//! Deliver message to all consumers.
 		void
 		deliver_message(
 			const std::type_index & type_wrapper,
 			const message_ref_t & message_ref ) const;
 
 		virtual void
-		read_write_lock_acquire();
+		deliver_service_request(
+			const std::type_index & type_index,
+			const message_ref_t & svc_request_ref ) const;
 
 		virtual void
-		read_write_lock_release();
+		subscribe_event_handler(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber );
 
-		//! Get data for a comparision.
-		virtual const mbox_t *
-		cmp_ordinal() const;
+		virtual void
+		unsubscribe_event_handlers(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber );
+
+		virtual std::string
+		query_name() const;
 
 	private:
 		//! Mbox name.

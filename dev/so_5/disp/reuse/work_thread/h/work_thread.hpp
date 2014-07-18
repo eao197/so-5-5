@@ -19,7 +19,11 @@
 #include <utility>
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/current_thread_id.hpp>
+
 #include <so_5/rt/h/event_queue.hpp>
+
+#include <so_5/h/spinlocks.hpp>
 
 namespace so_5
 {
@@ -33,36 +37,201 @@ namespace reuse
 namespace work_thread
 {
 
-//
-// demand_t
-//
-
-//! Element of queue of demands to process agent events.
-struct demand_t
-{
-	//! Receiver of demand.
-	so_5::rt::agent_t * m_receiver;
-	//! Event handler.
-	so_5::rt::event_caller_block_ref_t m_event_caller_block;
-	//! Event incident.
-	so_5::rt::message_ref_t m_message_ref;
-	//! Demand handler.
-	so_5::rt::demand_handler_pfn_t m_demand_handler;
-
-	demand_t(
-		so_5::rt::agent_t * receiver,
-		so_5::rt::event_caller_block_ref_t event_caller_block,
-		so_5::rt::message_ref_t message_ref,
-		so_5::rt::demand_handler_pfn_t demand_handler )
-		:	m_receiver( receiver )
-		,	m_event_caller_block( std::move( event_caller_block ) )
-		,	m_message_ref( std::move( message_ref ) )
-		,	m_demand_handler( demand_handler )
-		{}
-};
-
 //! Typedef for demand's container.
-typedef std::deque< demand_t > demand_container_t;
+typedef std::deque< so_5::rt::execution_demand_t > demand_container_t;
+
+//
+// combined_queue_lock_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief A special combined lock for queue protection.
+ *
+ * This lock used spinlocks for efficiency and std::mutex and
+ * std::condition_variable for signalization.
+ */
+class combined_queue_lock_t
+	{
+		friend class combined_queue_unique_lock_t;
+		friend class combined_queue_lock_guard_t;
+
+	public :
+		inline
+		combined_queue_lock_t()
+			:	m_waiting( false )
+			,	m_signaled( false )
+			{}
+
+		combined_queue_lock_t( const combined_queue_lock_t & ) = delete;
+		combined_queue_lock_t( combined_queue_lock_t && ) = delete;
+
+		//! Lock object in exclusive mode.
+		inline void
+		lock()
+			{
+				m_spinlock.lock();
+			}
+
+		//! Unlock object locked in exclusive mode.
+		inline void
+		unlock()
+			{
+				m_spinlock.unlock();
+			}
+
+	protected :
+		//! Waiting for nofication.
+		/*!
+		 * \attention Must be called only when object is locked!
+		 */
+		inline void
+		wait_for_notify()
+			{
+				m_waiting = true;
+				auto stop_point = std::chrono::high_resolution_clock::now() +
+						std::chrono::milliseconds(1);
+
+				do
+					{
+						m_spinlock.unlock();
+
+						std::this_thread::yield();
+
+						m_spinlock.lock();
+
+						if( m_signaled )
+							{
+								m_waiting = false;
+								m_signaled = false;
+								return;
+							}
+					}
+				while( stop_point > std::chrono::high_resolution_clock::now() );
+
+				// m_lock is locked now.
+
+				// Must use heavy std::mutex and std::condition_variable
+				// to allow OS to efficiently use the resources while
+				// we are waiting for signal.
+				std::unique_lock< std::mutex > mlock( m_mutex );
+
+				m_spinlock.unlock();
+
+				m_condition.wait( mlock );
+
+				// At this point m_signaled must be 'true'.
+
+				m_spinlock.lock();
+
+				m_waiting = false;
+				m_signaled = false;
+			}
+
+		//! Notify one waiting thread if it exists.
+		/*!
+		 * \attention Must be called only when object is locked.
+		 */
+		inline void
+		notify_one()
+			{
+				if( m_waiting )
+					{
+						// There is a waiting thread.
+						m_mutex.lock();
+						if( !m_signaled )
+							{
+								m_signaled = true;
+								m_condition.notify_one();
+							}
+						m_mutex.unlock();
+					}
+			}
+
+	private :
+		default_spinlock_t m_spinlock;
+
+		std::mutex m_mutex;
+		std::condition_variable m_condition;
+
+		bool m_waiting;
+		bool m_signaled;
+	};
+
+//
+// combined_queue_unique_lock_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief An analog of std::unique_lock for combined_queue_lock.
+ */
+class combined_queue_unique_lock_t
+	{
+	public :
+		inline
+		combined_queue_unique_lock_t(
+			combined_queue_lock_t & lock )
+			:	m_lock( lock )
+			{
+				m_lock.lock();
+			}
+		inline
+		~combined_queue_unique_lock_t()
+			{
+				m_lock.unlock();
+			}
+
+		combined_queue_unique_lock_t( const combined_queue_unique_lock_t & )
+			= delete;
+		combined_queue_unique_lock_t( combined_queue_unique_lock_t && )
+			= delete;
+
+		inline void
+		wait_for_notify()
+			{
+				m_lock.wait_for_notify();
+			}
+
+	private :
+		combined_queue_lock_t & m_lock;
+	};
+
+//
+// combined_queue_lock_guard_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief An analog of std::lock_guard for combined_queue_lock.
+ */
+class combined_queue_lock_guard_t
+	{
+	public :
+		inline
+		combined_queue_lock_guard_t(
+			combined_queue_lock_t & lock )
+			:	m_lock( lock )
+			{
+				m_lock.lock();
+			}
+		inline
+		~combined_queue_lock_guard_t()
+			{
+				m_lock.unlock();
+			}
+
+		combined_queue_lock_guard_t( const combined_queue_lock_guard_t & )
+			= delete;
+		combined_queue_lock_guard_t( combined_queue_lock_guard_t && )
+			= delete;
+
+		inline void
+		notify_one()
+			{
+				m_lock.notify_one();
+			}
+
+	private :
+		combined_queue_lock_t & m_lock;
+	};
 
 //
 // demand_queue_t
@@ -87,10 +256,7 @@ class demand_queue_t : public so_5::rt::event_queue_t
 		 */
 		virtual void
 		push(
-			so_5::rt::agent_t * receiver,
-			const so_5::rt::event_caller_block_ref_t & event_caller_block,
-			const so_5::rt::message_ref_t & message_ref,
-			so_5::rt::demand_handler_pfn_t demand_handler );
+			so_5::rt::execution_demand_t demand );
 		/*!
 		 * \}
 		 */
@@ -134,8 +300,7 @@ class demand_queue_t : public so_5::rt::event_queue_t
 
 		//! \name Objects for the thread safety.
 		//! \{
-		std::mutex m_lock;
-		std::condition_variable m_not_empty;
+		combined_queue_lock_t m_lock;
 		//! \}
 
 		//! Service flag.
@@ -189,78 +354,15 @@ class work_thread_t
 
 		/*!
 		 * \since v.5.4.0
-		 * \brief Get the working thread ID.
-		 *
-		 * \attention This method must be called only on running thread.
-		 */
-		std::thread::id
-		thread_id();
-
-		/*!
-		 * \since v.5.4.0
 		 * \brief Get a binding information for an agent.
 		 */
-		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		so_5::rt::event_queue_t *
 		get_agent_binding();
 
 	protected:
 		//! Main working thread body.
 		void
 		body();
-
-		//! Exception handler.
-		void
-		handle_exception(
-			//! Raised and caught exception.
-			const std::exception & ex,
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Exception handler for the case when exception caught
-		 * but there is no current working agent.
-		 */
-		void
-		handle_exception_on_empty_demands_queue(
-			//! Raised and caught exception.
-			const std::exception & ex );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Log unhandled exception from cooperation.
-		 *
-		 * Calls abort() if an exception is raised during logging.
-		 */
-		void
-		log_unhandled_exception(
-			//! Raised and caught exception.
-			const std::exception & ex,
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Switch agent to special state and initiate stopping
-		 * of SObjectizer Environment.
-		 *
-		 * Calls abort() if an exception is raised during work.
-		 */
-		void
-		switch_agent_to_special_state_and_shutdown_sobjectizer(
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Switch agent to special state and deregister its cooperation.
-		 *
-		 * Calls abort() if an exception is raised during work.
-		 */
-		void
-		switch_agent_to_special_state_and_deregister_coop(
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
 
 		//! Handle a bunch of demands.
 		void
@@ -289,6 +391,14 @@ class work_thread_t
 
 		//! Actual working thread.
 		std::unique_ptr< std::thread > m_thread;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief ID of working thread.
+		 *
+		 * \attention Receive the value only after start of thread body.
+		 */
+		so_5::current_thread_id_t m_thread_id;
 
 		//! Owner of this working thread.
 		/*!

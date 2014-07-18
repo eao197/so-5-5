@@ -134,6 +134,12 @@ const int rc_no_interception_handler_provided = 45;
  * Not the one is specified for the deregistration.
  */
 const int rc_interception_handler_match_error = 46;
+
+/*!
+ * \since v.5.4.0
+ * \brief An attempt to create illegal subscription to mpsc_mbox.
+ */
+const int rc_illegal_subscriber_for_mpsc_mbox = 47;
 //! \}
 
 //! \name Error codes for mboxes.

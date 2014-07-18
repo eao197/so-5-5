@@ -15,9 +15,6 @@
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/ret_code.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/message.hpp>
-
 #include <so_5/timer_thread/h/timer_act.hpp>
 #include <so_5/timer_thread/h/timer_id.hpp>
 

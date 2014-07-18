@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdexcept>
 
+#include <ace/OS.h>
+
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
@@ -44,7 +46,6 @@ class a_parent_t
 		a_parent_t(
 			so_5::rt::so_environment_t & env )
 			:	base_type_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
 			,	m_counter( 0 )
 			,	m_max_counter( 3 )
 		{}
@@ -52,8 +53,10 @@ class a_parent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_self_mbox ).event( &a_parent_t::evt_child_created );
-			so_subscribe( m_self_mbox ).event( &a_parent_t::evt_child_destroyed );
+			so_subscribe( so_direct_mbox() )
+				.event( &a_parent_t::evt_child_created );
+			so_subscribe( so_direct_mbox() )
+				.event( &a_parent_t::evt_child_destroyed );
 		}
 
 		void
@@ -86,8 +89,6 @@ class a_parent_t
 		}
 
 	private :
-		so_5::rt::mbox_ref_t m_self_mbox;
-
 		int m_counter;
 		const int m_max_counter;
 
@@ -97,9 +98,9 @@ class a_parent_t
 			auto coop = so_environment().create_coop( "child" );
 			coop->set_parent_coop_name( so_coop_name() );
 			coop->add_reg_notificator(
-					so_5::rt::make_coop_reg_notificator( m_self_mbox ) );
+					so_5::rt::make_coop_reg_notificator( so_direct_mbox() ) );
 			coop->add_dereg_notificator(
-					so_5::rt::make_coop_dereg_notificator( m_self_mbox ) );
+					so_5::rt::make_coop_dereg_notificator( so_direct_mbox() ) );
 			coop->set_exception_reaction(
 					so_5::rt::deregister_coop_on_exception );
 
@@ -115,20 +116,18 @@ class a_parent_t
 		}
 };
 
-// The SObjectizer Environment initialization.
-void
-init( so_5::rt::so_environment_t & env )
-{
-	// Creating and registering a cooperation.
-	env.register_agent_as_coop( "parent", new a_parent_t( env ) );
-}
-
 int
 main( int, char ** )
 {
 	try
 	{
-		so_5::api::run_so_environment( &init );
+		so_5::api::run_so_environment(
+			// The SObjectizer Environment initialization.
+			[]( so_5::rt::so_environment_t & env )
+			{
+				// Creating and registering a cooperation.
+				env.register_agent_as_coop( "parent", new a_parent_t( env ) );
+			} );
 	}
 	catch( const std::exception & ex )
 	{

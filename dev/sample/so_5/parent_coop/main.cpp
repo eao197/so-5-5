@@ -55,7 +55,6 @@ class a_child_t
 		:
 			base_type_t( env ),
 			m_result_mbox( result_mbox ),
-			m_self_mbox( so_environment().create_local_mbox() ),
 			m_task_id( task_id )
 		{}
 
@@ -68,7 +67,7 @@ class a_child_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_self_mbox )
+			so_subscribe( so_direct_mbox() )
 				.event( &a_child_t::evt_task_completed );
 		}
 
@@ -80,7 +79,7 @@ class a_child_t
 
 			m_timer_ref = so_environment()
 				.schedule_timer< task_completed_t >(
-					m_self_mbox,
+					so_direct_mbox(),
 					// One second delay.
 					1 * 1000,
 					// Not periodic.
@@ -112,12 +111,8 @@ class a_child_t
 		}
 
 	private:
-
 		// Result mbox.
-		so_5::rt::mbox_ref_t m_result_mbox; 
-
-		// Self mbox.
-		so_5::rt::mbox_ref_t m_self_mbox; 
+		const so_5::rt::mbox_ref_t m_result_mbox; 
 
 		// Self-timer ref.
 		so_5::timer_thread::timer_id_ref_t	m_timer_ref; 
@@ -134,9 +129,7 @@ class a_parent_t
 		typedef so_5::rt::agent_t base_type_t;
 	public:
 		a_parent_t( so_5::rt::so_environment_t & env ) 
-		:
-			base_type_t( env ),
-			m_self_mbox( so_environment().create_local_mbox() )
+		: base_type_t( env )
 		{}
 
 		virtual ~a_parent_t()
@@ -148,7 +141,7 @@ class a_parent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_self_mbox )
+			so_subscribe( so_direct_mbox() )
 				.event( &a_parent_t::evt_task_result );
 		}
 
@@ -200,13 +193,15 @@ class a_parent_t
 			std::cout << "Parent: starting a child to do task " << id << std::endl;
 
 			// Creating a child cooperation.
-			so_5::rt::agent_coop_unique_ptr_t child_coop = so_environment().create_coop(
-				generate_child_coop_name() );
+			so_5::rt::agent_coop_unique_ptr_t child_coop =
+				so_environment().create_coop( generate_child_coop_name() );
 
 			// Adding agents to the cooperation.
-			child_coop->add_agent( new a_child_t( so_environment(), m_self_mbox, id ) );
+			child_coop->add_agent(
+					new a_child_t( so_environment(), so_direct_mbox(), id ) );
 
-			// Set the parent coopeation name (which is equal to the parent-coop name).
+			// Set the parent coopeation name
+			// (which is equal to the parent-coop name).
 			child_coop->set_parent_coop_name( so_coop_name() );
 
 			// Initiate child's work.

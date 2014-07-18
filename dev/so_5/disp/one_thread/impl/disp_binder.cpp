@@ -67,8 +67,7 @@ disp_binder_t::make_agent_binding(
 						"\", expected one_thread disp",
 				rc_disp_type_mismatch );
 
-		auto ctx = d->get_agent_binding();
-		agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
+		agent_ref->so_bind_to_dispatcher( *(d->get_agent_binding()) );
 	}
 	else
 	{

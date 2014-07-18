@@ -66,7 +66,7 @@ class dispatcher_t
 		//! \}
 
 		//! Creates a new thread for the agent specified.
-		std::pair< std::thread::id, so_5::rt::event_queue_t * >
+		so_5::rt::event_queue_t *
 		create_thread_for_agent( const so_5::rt::agent_t & agent );
 
 		//! Destroys the thread for the agent specified.

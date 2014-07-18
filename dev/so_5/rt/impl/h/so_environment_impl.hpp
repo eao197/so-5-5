@@ -60,23 +60,15 @@ class so_environment_impl_t
 		}
 
 		inline mbox_ref_t
-		create_local_mbox(
-			//! Mbox name.
-			const nonempty_name_t & mbox_name,
-			//! A user supplied mbox lock.
-			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
+		create_mpsc_mbox(
+			//! The only consumer for the messages.
+			agent_t * single_consumer,
+			//! Event queue proxy for the consumer.
+			event_queue_proxy_ref_t event_queue )
 		{
-			return m_mbox_core->create_local_mbox(
-				mbox_name,
-				std::move( lock_ptr ) );
-		}
-
-		inline mbox_ref_t
-		create_local_mbox(
-			//! A user supplied mbox lock.
-			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
-		{
-			return m_mbox_core->create_local_mbox( std::move( lock_ptr ) );
+			return m_mbox_core->create_mpsc_mbox(
+					single_consumer,
+					std::move( event_queue ) );
 		}
 		/*!
 		 * \}

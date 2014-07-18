@@ -3,6 +3,7 @@
 */
 
 #include <exception>
+#include <cstdlib>
 
 #include <so_5/h/exception.hpp>
 #include <so_5/h/log_err.hpp>

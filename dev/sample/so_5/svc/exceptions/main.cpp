@@ -7,6 +7,8 @@
 #include <sstream>
 #include <chrono>
 
+#include <ace/OS.h>
+
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 #include <so_5/h/types.hpp>
@@ -26,16 +28,14 @@ class a_convert_service_t
 	{
 	public :
 		a_convert_service_t(
-			so_5::rt::so_environment_t & env,
-			const so_5::rt::mbox_ref_t & self_mbox )
+			so_5::rt::so_environment_t & env )
 			:	so_5::rt::agent_t( env )
-			,	m_self_mbox( self_mbox )
 			{}
 
 		virtual void
 		so_define_agent()
 			{
-				so_subscribe( m_self_mbox )
+				so_subscribe( so_direct_mbox() )
 						.event( []( const msg_convert & msg ) -> int
 						{
 							std::istringstream s( msg.m_value );
@@ -52,9 +52,6 @@ class a_convert_service_t
 							return result;
 						} );
 			}
-
-	private :
-		const so_5::rt::mbox_ref_t m_self_mbox;
 	};
 
 class a_client_t
@@ -110,10 +107,8 @@ init(
 				"test_coop",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-		auto svc_mbox = env.create_local_mbox();
-
-		coop->add_agent( new a_convert_service_t( env, svc_mbox ) );
-		coop->add_agent( new a_client_t( env, svc_mbox ) );
+		auto a_service = coop->add_agent( new a_convert_service_t( env ) );
+		coop->add_agent( new a_client_t( env, a_service->so_direct_mbox() ) );
 
 		env.register_coop( std::move( coop ) );
 	}

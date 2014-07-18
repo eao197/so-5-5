@@ -33,7 +33,7 @@ class a_child_t : public so_5::rt::agent_t
 			:	so_5::rt::agent_t( env )
 			,	m_mbox( self_mbox )
 			,	m_parent_mbox( parent_mbox )
-			,	m_check_signal_received( false )
+			,	m_so_evt_finish_passed( false )
 		{}
 
 		virtual void
@@ -46,7 +46,7 @@ class a_child_t : public so_5::rt::agent_t
 			try
 			{
 				m_parent_mbox->run_one()
-						.wait_for( std::chrono::milliseconds( 0 ) )
+						.wait_for( std::chrono::milliseconds( 100 ) )
 						.sync_get< msg_initiate_dereg >();
 
 				throw std::runtime_error( "timeout expected" );
@@ -55,7 +55,7 @@ class a_child_t : public so_5::rt::agent_t
 			{
 				if( so_5::rc_svc_result_not_received_yet != x.error_code() )
 				{
-					std::cerr << "timeout expiration excpected, but "
+					std::cerr << "timeout expiration expected, but "
 							"the actual error_code: "
 							<< x.error_code() << std::endl;
 					std::abort();
@@ -68,24 +68,22 @@ class a_child_t : public so_5::rt::agent_t
 		virtual void
 		so_evt_finish()
 		{
-			if( !m_check_signal_received )
-			{
-				std::cerr << "so_evt_finish before check_signal" << std::endl;
-				std::abort();
-			}
+			m_so_evt_finish_passed = true;
 		}
 
 		virtual void
 		evt_check_signal()
 		{
-			m_check_signal_received = true;
+			if( m_so_evt_finish_passed )
+				throw std::runtime_error(
+						"evt_check_signal after so_evt_finish" );
 		}
 
 	private :
 		const so_5::rt::mbox_ref_t m_mbox;
 		const so_5::rt::mbox_ref_t m_parent_mbox;
 
-		bool m_check_signal_received;
+		bool m_so_evt_finish_passed;
 };
 
 class a_parent_t : public so_5::rt::agent_t

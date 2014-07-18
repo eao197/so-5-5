@@ -17,16 +17,12 @@
 #include <functional>
 #include <mutex>
 
-#include <ace/RW_Thread_Mutex.h>
-
 #include <so_5/rt/h/atomic_refcounted.hpp>
-
-#include <so_5/util/h/mutex_pool.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
-#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/event_queue_proxy.hpp>
 
 namespace so_5
 {
@@ -57,8 +53,7 @@ class mbox_core_t
 		operator = ( const mbox_core_t & );
 
 	public:
-		explicit mbox_core_t(
-			unsigned int mutex_pool_size );
+		explicit mbox_core_t();
 		virtual ~mbox_core_t();
 
 		//! Create local anonymous mbox.
@@ -80,28 +75,16 @@ class mbox_core_t
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
 
-		//! Create local anonymous mbox with a specified mutex.
 		/*!
-			\note always creates a new mbox.
-		*/
+		 * \since v.5.4.0
+		 * \brief Create anonymous mpsc_mbox.
+		 */
 		mbox_ref_t
-		create_local_mbox(
-			//! A mutex for mbox.
-			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
-
-		//! Create local named mbox with a specified mutex.
-		/*!
-			\note if mbox with specified name \a mbox_name is present, 
-			method won't create a new mbox. In this case method 
-			will return a new mbox_ref_t, which links to 
-			the present mbox (with this name).
-		*/
-		mbox_ref_t
-		create_local_mbox(
-			//! Mbox name.
-			const nonempty_name_t & mbox_name,
-			//! A mutex for mbox.
-			std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr );
+		create_mpsc_mbox(
+			//! The only consumer for messages.
+			agent_t * single_consumer,
+			//! Event queue proxy for the consumer.
+			event_queue_proxy_ref_t event_queue );
 
 		//! Remove a reference to the named mbox.
 		/*!
@@ -112,25 +95,9 @@ class mbox_core_t
 			//! Mbox name.
 			const std::string & name );
 
-		//! Allocate mutex from pool.
-		ACE_RW_Thread_Mutex &
-		allocate_mutex();
-
-		//! Release the mutex.
-		/*!
-		 * If \a m is a mutex from a pool it is returned to pool.
-		 * Otherwise it is assumed that \a m is a user supplied mutex and
-		 * it is destroyed via delete operator.
-		 */
-		void
-		deallocate_mutex( ACE_RW_Thread_Mutex & m );
-
 	private:
-		//! Mutex pool.
-		util::mutex_pool_t< ACE_RW_Thread_Mutex > m_mbox_mutex_pool;
-
 		//! Named mbox map's lock.
-		ACE_RW_Thread_Mutex m_dictionary_lock;
+		std::mutex m_dictionary_lock;
 
 		//! Named mbox information.
 		struct named_mbox_info_t
@@ -159,6 +126,12 @@ class mbox_core_t
 
 		//! Named mboxes.
 		named_mboxes_dictionary_t m_named_mboxes_dictionary;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief A counter for mbox ID generation.
+		 */
+		std::atomic< mbox_id_t > m_mbox_id_counter;
 
 		/*!
 		 * \since v.5.2.0

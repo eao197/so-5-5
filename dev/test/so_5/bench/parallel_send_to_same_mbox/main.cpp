@@ -16,6 +16,8 @@
 
 #include <so_5/disp/active_obj/h/pub.hpp>
 
+#include <test/so_5/bench/benchmark_helpers.hpp>
+
 struct msg_send : public so_5::rt::signal_t {};
 
 struct msg_complete : public so_5::rt::signal_t {};
@@ -107,6 +109,9 @@ main( int argc, char ** argv )
 		const unsigned int agent_count = std::atoi( argv[1] );
 		const unsigned int send_count = std::atoi( argv[2] );
 
+		benchmarker_t benchmark;
+		benchmark.start();
+
 		so_5::api::run_so_environment(
 			[agent_count, send_count]( so_5::rt::so_environment_t & env )
 			{
@@ -117,6 +122,10 @@ main( int argc, char ** argv )
 				params.add_named_dispatcher( "active_obj",
 					so_5::disp::active_obj::create_disp() );
 			} );
+
+		benchmark.finish_and_show_stats(
+				static_cast< unsigned long long >(agent_count) * send_count,
+				"sends" );
 	}
 	catch( const std::exception & ex )
 	{

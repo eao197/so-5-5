@@ -28,7 +28,6 @@ class a_hello_t : public so_5::rt::agent_t
 		a_hello_t( so_5::rt::so_environment_t & env )
 			:	so_5::rt::agent_t( env )
 			,	m_evt_count( 0 )
-			,	m_self_mbox( so_environment().create_local_mbox() )
 			,	m_shutdowner_mbox(
 					so_environment().create_local_mbox( "shutdown" ) )
 		{}
@@ -49,7 +48,6 @@ class a_hello_t : public so_5::rt::agent_t
 
 	private:
 		// Agent's mbox.
-		const so_5::rt::mbox_ref_t m_self_mbox;
 		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
 
 		// Timer events' identifiers.
@@ -64,7 +62,7 @@ void
 a_hello_t::so_define_agent()
 {
 	// Message subscription.
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.event( &a_hello_t::evt_hello_periodic );
 }
 
@@ -83,7 +81,7 @@ a_hello_t::so_evt_start()
 		so_environment()
 			.schedule_timer(
 				std::move( msg ),
-				m_self_mbox,
+				so_direct_mbox(),
 				// Delay for a second.
 				so_5::chrono_helpers::to_ms( std::chrono::seconds(1) ),
 				// Repeat every 1.25 of seconds.

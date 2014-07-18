@@ -22,20 +22,19 @@ MxxRu::Cpp::dll_target {
 	end
 
 	# ./
-	cpp_source( "exception.cpp" )
+	cpp_source 'exception.cpp'
+	cpp_source 'current_thread_id.cpp'
 
 	# Run-time.
 	sources_root( "rt" ) {
 
 		cpp_source( "atomic_refcounted.cpp" )
-		cpp_source( "state.cpp" )
 		cpp_source( "nonempty_name.cpp" )
 
 		cpp_source( "message.cpp" )
 
 		cpp_source( "mbox.cpp" )
 
-		cpp_source( "event_caller_block.cpp" )
 		cpp_source( "event_queue.cpp" )
 		cpp_source( "temporary_event_queue.cpp" )
 		cpp_source( "event_exception_logger.cpp" )
@@ -57,8 +56,13 @@ MxxRu::Cpp::dll_target {
 		cpp_source( "coop_listener.cpp" )
 
 		sources_root( "impl" ) {
+			cpp_source 'subscription_storage.cpp'
+
+			cpp_source 'process_unhandled_exception.cpp'
+
 			cpp_source( "local_mbox.cpp" )
 			cpp_source( "named_local_mbox.cpp" )
+			cpp_source( "mpsc_mbox.cpp" )
 			cpp_source( "mbox_core.cpp" )
 			cpp_source( "agent_core.cpp" )
 			cpp_source( "disp_core.cpp" )

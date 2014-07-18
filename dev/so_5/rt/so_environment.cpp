@@ -207,24 +207,6 @@ so_environment_t::create_local_mbox(
 	return m_so_environment_impl->create_local_mbox( nonempty_name );
 }
 
-mbox_ref_t
-so_environment_t::create_local_mbox(
-	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
-{
-	return m_so_environment_impl->create_local_mbox(
-		std::move( lock_ptr ) );
-}
-
-mbox_ref_t
-so_environment_t::create_local_mbox(
-	const nonempty_name_t & nonempty_name,
-	std::unique_ptr< ACE_RW_Thread_Mutex > lock_ptr )
-{
-	return m_so_environment_impl->create_local_mbox(
-		nonempty_name,
-		std::move( lock_ptr ) );
-}
-
 dispatcher_t &
 so_environment_t::query_default_dispatcher()
 {

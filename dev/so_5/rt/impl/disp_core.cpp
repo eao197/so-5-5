@@ -4,8 +4,6 @@
 
 #include <algorithm>
 
-#include <ace/Guard_T.h>
-
 #include <so_5/rt/impl/h/disp_core.hpp>
 
 #include <so_5/disp/one_thread/h/pub.hpp>

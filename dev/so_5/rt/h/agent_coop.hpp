@@ -296,12 +296,15 @@ class SO_5_TYPE agent_coop_t
 		 * Default dispatcher binding is used for the agent.
 		 */
 		template< class AGENT >
-		inline void
+		inline AGENT *
 		add_agent(
 			//! Agent.
 			std::unique_ptr< AGENT > agent )
 		{
+			AGENT * p = agent.get();
 			this->do_add_agent( agent_ref_t( agent.release() ) );
+
+			return p;
 		}
 
 		//! Add agent to cooperation via raw pointer.
@@ -310,12 +313,15 @@ class SO_5_TYPE agent_coop_t
 		 *
 		 * Default dispatcher binding is used for the agent.
 		 */
-		inline void
+		template< class AGENT >
+		inline AGENT *
 		add_agent(
 			//! Agent.
-			agent_t * agent )
+			AGENT * agent )
 		{
 			this->do_add_agent( agent_ref_t( agent ) );
+
+			return agent;
 		}
 
 		//! Add agent to the cooperation with the dispatcher binding.
@@ -324,16 +330,20 @@ class SO_5_TYPE agent_coop_t
 		 * is used for this agent during the cooperation registration.
 		 */
 		template< class AGENT >
-		inline void
+		inline AGENT *
 		add_agent(
 			//! Agent.
 			std::unique_ptr< AGENT > agent,
 			//! Agent to dispatcher binder.
 			disp_binder_unique_ptr_t disp_binder )
 		{
+			AGENT * p = agent.get();
+
 			this->do_add_agent(
 				agent_ref_t( agent.release() ),
 				std::move(disp_binder) );
+
+			return p;
 		}
 
 		//! Add agent to the cooperation via raw pointer and with the dispatcher
@@ -342,16 +352,19 @@ class SO_5_TYPE agent_coop_t
 		 * Instead of the default dispatcher binding the \a disp_binder
 		 * is used for this agent during the cooperation registration.
 		 */
-		inline void
+		template< class AGENT >
+		inline AGENT *
 		add_agent(
 			//! Agent.
-			agent_t * agent,
+			AGENT * agent,
 			//! Agent to dispatcher binder.
 			disp_binder_unique_ptr_t disp_binder )
 		{
 			this->do_add_agent(
 				agent_ref_t( agent ),
 				std::move(disp_binder) );
+
+			return agent;
 		}
 
 		//! Internal SObjectizer method.

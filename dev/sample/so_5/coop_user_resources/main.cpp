@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <sstream>
 
+#include <ace/OS.h>
+
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
@@ -84,7 +86,6 @@ class a_parent_t
 			logger_t & logger,
 			size_t child_count )
 			:	base_type_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
 			,	m_logger( logger )
 			,	m_child_count( child_count )
 			,	m_child_finished( 0 )
@@ -100,7 +101,7 @@ class a_parent_t
 		virtual void
 		so_define_agent()
 		{
-			so_subscribe( m_self_mbox ).event(
+			so_subscribe( so_direct_mbox() ).event(
 					so_5::signal< msg_child_finished >,
 					&a_parent_t::evt_child_finished );
 		}
@@ -127,8 +128,6 @@ class a_parent_t
 		}
 
 	private :
-		so_5::rt::mbox_ref_t m_self_mbox;
-
 		logger_t & m_logger;
 
 		const size_t m_child_count;
@@ -149,7 +148,7 @@ class a_parent_t
 						new a_child_t(
 								so_environment(),
 								s.str(),
-								m_self_mbox,
+								so_direct_mbox(),
 								m_logger ) );
 			}
 

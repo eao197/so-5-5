@@ -15,6 +15,7 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
 #include <type_traits>
+#include <typeindex>
 #include <future>
 
 namespace so_5
@@ -194,6 +195,26 @@ struct msg_service_request_t : public msg_service_request_base_t
 			{
 				m_promise.set_exception( what );
 			}
+	};
+
+//
+// invocation_type_t
+//
+/*!
+ * \since v.5.3.0
+ * \brief Type of agent method invocation (event handling, service request).
+ */
+enum class invocation_type_t : int
+	{
+		//! Ordinal event handler invocation.
+		/*! Return value of event handler could be skipped. */
+		event,
+		//! Service handler invocation.
+		/*!
+		 * Return value of service handler should be stored into
+		 * underlying std::promise object.
+		 */
+		service_request
 	};
 
 } /* namespace rt */

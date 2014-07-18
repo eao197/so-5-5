@@ -16,8 +16,6 @@
 #include <typeindex>
 #include <utility>
 
-#include <ace/RW_Thread_Mutex.h>
-
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/compiler_features.hpp>
 
@@ -26,15 +24,9 @@
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
-#include <so_5/rt/h/event_caller_block.hpp>
 
 namespace so_5
 {
-
-namespace timer_thread
-{
-	class timer_act_t;
-}
 
 namespace rt
 {
@@ -303,12 +295,7 @@ class SO_5_TYPE mbox_t
 	:
 		private atomic_refcounted_t
 {
-		friend class impl::named_local_mbox_t;
-		friend class so_5::timer_thread::timer_act_t;
-
 		friend class smart_atomic_reference_t< mbox_t >;
-
-		friend class mbox_subscription_management_proxy_t;
 
 		mbox_t( const mbox_t & );
 		void
@@ -317,6 +304,13 @@ class SO_5_TYPE mbox_t
 	public:
 		mbox_t();
 		virtual ~mbox_t();
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Unique ID of this mbox.
+		 */
+		virtual mbox_id_t
+		id() const = 0;
 
 		//! Deliver message.
 		/*!
@@ -378,6 +372,15 @@ class SO_5_TYPE mbox_t
 				return service_invoke_proxy_t< void >( mbox_ref_t( this ) );
 			}
 
+		//! Deliver message for all subscribers.
+		/*!
+		 * \note This method is public since v.5.4.0.
+		 */
+		virtual void
+		deliver_message(
+			const std::type_index & type_index,
+			const message_ref_t & message_ref ) const = 0;
+
 		/*!
 		 * \since v.5.3.0.
 		 * \brief Deliver service request.
@@ -389,8 +392,24 @@ class SO_5_TYPE mbox_t
 			//! This is reference to msg_service_request_t<RESULT,PARAM> instance.
 			const message_ref_t & svc_request_ref ) const = 0;
 
+		//! Add the message handler.
+		virtual void
+		subscribe_event_handler(
+			//! Message type.
+			const std::type_index & type_index,
+			//! Agent-subcriber.
+			agent_t * subscriber ) = 0;
+
+		//! Remove all message handlers.
+		virtual void
+		unsubscribe_event_handlers(
+			//! Message type.
+			const std::type_index & type_index,
+			//! Agent-subcriber.
+			agent_t * subscriber ) = 0;
+
 		//! Get the mbox name.
-		virtual const std::string &
+		virtual std::string
 		query_name() const = 0;
 
 		/*!
@@ -403,56 +422,6 @@ class SO_5_TYPE mbox_t
 		/*!
 		 * \}
 		 */
-
-	protected:
-		//! Add the message handler.
-		/*!
-		 * This method is called when the agent is subscribing to the message
-		 * at the first time.
-		 */
-		virtual void
-		subscribe_event_handler(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber,
-			//! The very first message handler.
-			const event_caller_block_ref_t & event_caller ) = 0;
-
-		//! Remove all message handlers.
-		virtual void
-		unsubscribe_event_handlers(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber ) = 0;
-
-		//! Deliver message for all subscribers.
-		virtual void
-		deliver_message(
-			const std::type_index & type_index,
-			const message_ref_t & message_ref ) const = 0;
-
-		/*!
-		 * \since v.5.2.3.4
-		 * \brief Lock mbox in read-write mode.
-		 */
-		virtual void
-		read_write_lock_acquire() = 0;
-
-		/*!
-		 * \since v.5.2.3.4
-		 * \brief Release mbox's read-write lock.
-		 */
-		virtual void
-		read_write_lock_release() = 0;
-
-		//! Get data for the object comparision.
-		/*!
-		 * Default implementation returns this pointer.
-		*/
-		virtual const mbox_t *
-		cmp_ordinal() const;
 };
 
 template< class MESSAGE >
@@ -753,61 +722,6 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 		return this->sync_get( std::move( msg ) );
 	}
 #endif
-
-/*!
- * \since v.5.2.3.4
- * \brief A special interface to perform subscription management.
- *
- * Mbox should be locked in read-write mode before making any
- * changes to subscriptions. This interface provides an approach
- * to do that without possibility to make some error with object
- * locking/unlocking.
- */
-class mbox_subscription_management_proxy_t
-{
-	public :
-		inline mbox_subscription_management_proxy_t(
-			const mbox_ref_t & mbox )
-			:	m_mbox( mbox )
-		{
-			m_mbox->read_write_lock_acquire();
-		}
-		inline ~mbox_subscription_management_proxy_t()
-		{
-			m_mbox->read_write_lock_release();
-		}
-
-		//! Add the message handler.
-		inline void
-		subscribe_event_handler(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber,
-			//! The very first message handler.
-			const event_caller_block_ref_t & event_caller )
-		{
-			m_mbox->subscribe_event_handler(
-					type_index,
-					subscriber,
-					event_caller );
-		}
-
-		//! Remove all message handlers.
-		inline void
-		unsubscribe_event_handlers(
-			//! Message type.
-			const std::type_index & type_index,
-			//! Agent-subcriber.
-			agent_t * subscriber )
-		{
-			m_mbox->unsubscribe_event_handlers( type_index, subscriber );
-		}
-
-	private :
-		//! Mbox to work with.
-		const mbox_ref_t m_mbox;
-};
 
 } /* namespace rt */
 

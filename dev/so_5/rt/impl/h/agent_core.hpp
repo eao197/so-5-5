@@ -19,8 +19,6 @@
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/util/h/mutex_pool.hpp>
-
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/coop_listener.hpp>
@@ -105,8 +103,6 @@ class agent_core_t
 		explicit agent_core_t(
 			//! SObjectizer Environment.
 			so_environment_t & so_environment_impl,
-			//! Mutex pool size for agent queues.
-			unsigned int agent_queue_mutex_pool_size,
 			//! Cooperation action listener.
 			coop_listener_unique_ptr_t coop_listener );
 
@@ -239,9 +235,6 @@ class agent_core_t
 
 		//! SObjectizer Environment to work with.
 		so_environment_t & m_so_environment;
-
-		//! Mutex pool for agent's event queues.
-		util::mutex_pool_t< std::mutex > m_agent_queue_mutex_pool;
 
 		//! Lock for operations on cooperations.
 		std::mutex m_coop_operations_lock;

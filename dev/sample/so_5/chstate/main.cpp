@@ -70,8 +70,7 @@ class a_state_swither_t
 				m_state_1( self_ptr(), "state_1" ),
 				m_state_2( self_ptr(), "state_2" ),
 				m_state_3( self_ptr(), "state_3" ),
-				m_state_shutdown( self_ptr(), "state_shutdown" ),
-				m_self_mbox( so_environment().create_local_mbox() )
+				m_state_shutdown( self_ptr(), "state_shutdown" )
 		{}
 
 		virtual ~a_state_swither_t()
@@ -111,9 +110,6 @@ class a_state_swither_t
 			const so_5::rt::event_data_t< msg_periodic > & );
 
 	private:
-		// Mbox for this agent.
-		so_5::rt::mbox_ref_t m_self_mbox;
-
 		// Timer event id.
 		// If we do not store it the periodic message will
 		// be canceled automatically.
@@ -124,22 +120,22 @@ void
 a_state_swither_t::so_define_agent()
 {
 	// Message subsription.
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.event( &a_state_swither_t::evt_handler_default );
 
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_state_1 )
 		.event( &a_state_swither_t::evt_handler_1 );
 
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_state_2 )
 		.event( &a_state_swither_t::evt_handler_2 );
 
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_state_3 )
 		.event( &a_state_swither_t::evt_handler_3 );
 
-	so_subscribe( m_self_mbox )
+	so_subscribe( so_direct_mbox() )
 		.in( m_state_shutdown )
 		.event( &a_state_swither_t::evt_handler_shutdown );
 }
@@ -153,7 +149,7 @@ a_state_swither_t::so_evt_start()
 
 	// Periodic message should be initiated.
 	m_timer_id = so_environment().schedule_timer< msg_periodic >(
-			m_self_mbox,
+			so_direct_mbox(),
 			1 * 1000,
 			1 * 1000 );
 }

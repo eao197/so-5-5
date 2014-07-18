@@ -10,7 +10,7 @@
 #if !defined( _SO_5__TIMER_THREAD__TIMER_ID_REF_HPP_ )
 #define _SO_5__TIMER_THREAD__TIMER_ID_REF_HPP_
 
-#include <ace/Basic_Types.h>
+#include <cstdint>
 
 #include <so_5/h/declspec.hpp>
 
@@ -23,7 +23,7 @@ namespace timer_thread
 {
 
 //! Timer event identifier type.
-typedef ACE_UINT64 timer_id_t;
+typedef std::uint_fast64_t timer_id_t;
 
 class timer_thread_t;
 class timer_id_ref_t;

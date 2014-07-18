@@ -7,6 +7,8 @@
 #include <exception>
 #include <sstream>
 
+#include <ace/OS.h>
+
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 #include <so_5/h/types.hpp>
@@ -39,6 +41,20 @@ class test_mbox_t : public so_5::rt::mbox_t
 					}
 			}
 
+		virtual so_5::mbox_id_t
+		id() const
+			{
+				return m_actual_mbox->id();
+			}
+
+		virtual void
+		deliver_message(
+			const std::type_index & type_index,
+			const so_5::rt::message_ref_t & message_ref ) const
+			{
+				// DO NOTHING FOR THAT TEST
+			}
+
 		virtual void
 		deliver_service_request(
 			const std::type_index & type_index,
@@ -49,21 +65,10 @@ class test_mbox_t : public so_5::rt::mbox_t
 						svc_request_ref );
 			}
 
-		virtual const std::string &
-		query_name() const { return m_actual_mbox->query_name(); }
-
-		static so_5::rt::mbox_ref_t
-		create( so_5::rt::so_environment_t & env )
-			{
-				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
-			}
-
-	protected:
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_index,
-			so_5::rt::agent_t * subscriber,
-			const so_5::rt::event_caller_block_ref_t & event_caller )
+			so_5::rt::agent_t * subscriber )
 			{
 				// DO NOTHING FOR THAT TEST
 			}
@@ -76,24 +81,13 @@ class test_mbox_t : public so_5::rt::mbox_t
 				// DO NOTHING FOR THAT TEST
 			}
 
-		virtual void
-		deliver_message(
-			const std::type_index & type_index,
-			const so_5::rt::message_ref_t & message_ref ) const
-			{
-				// DO NOTHING FOR THAT TEST
-			}
+		virtual std::string
+		query_name() const { return m_actual_mbox->query_name(); }
 
-		virtual void
-		read_write_lock_acquire()
+		static so_5::rt::mbox_ref_t
+		create( so_5::rt::so_environment_t & env )
 			{
-				// DO NOTHING FOR THAT TEST
-			}
-
-		virtual void
-		read_write_lock_release()
-			{
-				// DO NOTHING FOR THAT TEST
+				return so_5::rt::mbox_ref_t( new test_mbox_t( env ) );
 			}
 	};
 
@@ -186,11 +180,11 @@ main( int, char ** )
 			{
 				so_5::api::run_so_environment(
 					&init,
-					std::move(
-						so_5::rt::so_environment_params_t()
-							.add_named_dispatcher(
-								so_5::rt::nonempty_name_t( "active_obj" ),
-								so_5::disp::active_obj::create_disp() ) ) );
+					[]( so_5::rt::so_environment_params_t & p ) {
+						p.add_named_dispatcher(
+							so_5::rt::nonempty_name_t( "active_obj" ),
+							so_5::disp::active_obj::create_disp() );
+					} );
 			}
 		catch( const std::exception & ex )
 			{

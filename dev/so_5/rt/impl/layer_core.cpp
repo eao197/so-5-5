@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <iterator>
 
-#include <ace/Guard_T.h>
-
 #include <cpp_util_2/h/lexcast.hpp>
 
 #include <so_5/rt/impl/h/layer_core.hpp>
@@ -137,7 +135,7 @@ layer_core_t::query_layer(
 		return layer_it->m_layer.get();
 
 	// Layer not found yet. Search extra layers.
-	ACE_Read_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
+	std::lock_guard< std::mutex > lock( m_extra_layers_lock );
 
 	layer_it = search_for_layer(
 		m_extra_layers,
@@ -205,7 +203,7 @@ layer_core_t::add_extra_layer(
 			rc_trying_to_add_extra_layer_that_already_exists_in_default_list,
 			"trying to add extra layer that already exists in default list" );
 
-	ACE_Write_Guard< ACE_RW_Thread_Mutex > lock( m_extra_layers_lock );
+	std::lock_guard< std::mutex > lock( m_extra_layers_lock );
 
 	if( m_extra_layers.end() != search_for_layer( m_extra_layers, type ) )
 		SO_5_THROW_EXCEPTION(
