@@ -11,6 +11,8 @@
 #if !defined( _SO_5__RT__EXECUTION_DEMAND_HPP_ )
 #define _SO_5__RT__EXECUTION_DEMAND_HPP_
 
+#include <so_5/h/current_thread_id.hpp>
+
 #include <so_5/rt/h/message.hpp>
 
 namespace so_5
@@ -40,7 +42,9 @@ struct execution_demand_t;
  * \since v.5.2.0
  * \brief Demand handler prototype.
  */
-typedef void (*demand_handler_pfn_t)( execution_demand_t & );
+typedef void (*demand_handler_pfn_t)(
+	current_thread_id_t,
+	execution_demand_t & );
 
 //
 // execution_demand_t

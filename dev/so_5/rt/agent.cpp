@@ -9,6 +9,7 @@
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage.hpp>
+#include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 
 #include <sstream>
 #include <cstdlib>
@@ -18,6 +19,38 @@ namespace so_5
 
 namespace rt
 {
+
+namespace
+{
+
+/*!
+ * \since v.5.4.0
+ * \brief A helper class for temporary setting and then dropping
+ * the ID of the current working thread.
+ *
+ * \note New working thread_id is set only if it is not an
+ * null thread_id.
+ */
+struct working_thread_id_sentinel_t
+	{
+		so_5::current_thread_id_t & m_id;
+
+		working_thread_id_sentinel_t(
+			so_5::current_thread_id_t & id_var,
+			so_5::current_thread_id_t value_to_set )
+			:	m_id( id_var )
+			{
+				if( value_to_set != null_current_thread_id() )
+					m_id = value_to_set;
+			}
+		~working_thread_id_sentinel_t()
+			{
+				if( m_id != null_current_thread_id() )
+					m_id = null_current_thread_id();
+			}
+	};
+
+} /* namespace anonymous */
 
 //
 // agent_t
@@ -152,21 +185,9 @@ agent_t::so_change_state(
 void
 agent_t::so_initiate_agent_definition()
 {
-	struct working_thread_id_sentinel
-		{
-			so_5::current_thread_id_t & m_id;
-
-			working_thread_id_sentinel( so_5::current_thread_id_t & id_var )
-				:	m_id( id_var )
-				{
-					m_id = so_5::query_current_thread_id();
-				}
-			~working_thread_id_sentinel()
-				{
-					m_id = so_5::current_thread_id_t();
-				}
-		}
-	sentinel( m_working_thread_id );
+	working_thread_id_sentinel_t sentinel(
+			m_working_thread_id,
+			so_5::query_current_thread_id() );
 
 	so_define_agent();
 
@@ -193,14 +214,11 @@ agent_t::so_environment()
 
 void
 agent_t::so_bind_to_dispatcher(
-	so_5::current_thread_id_t working_thread_id,
 	event_queue_t & queue )
 {
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
-
-	m_working_thread_id = working_thread_id;
 
 	m_tmp_event_queue.switch_to_actual_queue(
 			queue,
@@ -415,33 +433,79 @@ agent_t::push_service_request(
 }
 
 void
-agent_t::demand_handler_on_start( execution_demand_t & d )
+agent_t::demand_handler_on_start(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
-	d.m_receiver->so_evt_start();
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
+	try
+	{
+		d.m_receiver->so_evt_start();
+	}
+	catch( const std::exception & x )
+	{
+		impl::process_unhandled_exception( x, *(d.m_receiver) );
+	}
 }
 
 void
-agent_t::demand_handler_on_finish( execution_demand_t & d )
+agent_t::demand_handler_on_finish(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
-	d.m_receiver->so_evt_finish();
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
+	try
+	{
+		d.m_receiver->so_evt_finish();
+	}
+	catch( const std::exception & x )
+	{
+		impl::process_unhandled_exception( x, *(d.m_receiver) );
+	}
+
 	// Cooperation should receive notification about agent deregistration.
 	agent_coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
 void
-agent_t::demand_handler_on_message( execution_demand_t & d )
+agent_t::demand_handler_on_message(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
-	auto handler = d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
-	if( handler )
-		(*handler)( invocation_type_t::event, d.m_message_ref );
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
+	try
+	{
+		auto handler = d.m_receiver->m_subscriptions->find_handler(
+				d.m_mbox_id,
+				d.m_msg_type, 
+				d.m_receiver->so_current_state() );
+		if( handler )
+			(*handler)( invocation_type_t::event, d.m_message_ref );
+	}
+	catch( const std::exception & x )
+	{
+		impl::process_unhandled_exception( x, *(d.m_receiver) );
+	}
 }
 
 void
-agent_t::service_request_handler_on_message( execution_demand_t & d )
+agent_t::service_request_handler_on_message(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
 {
+	working_thread_id_sentinel_t sentinel(
+			d.m_receiver->m_working_thread_id,
+			working_thread_id );
+
 	try
 		{
 			auto handler = d.m_receiver->m_subscriptions->find_handler(

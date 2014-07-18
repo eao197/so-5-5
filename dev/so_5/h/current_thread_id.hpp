@@ -30,6 +30,13 @@ namespace so_5
 			return std::this_thread::get_id();
 		}
 
+	//! Get NULL thread id.
+	inline current_thread_id_t
+	null_current_thread_id()
+		{
+			return std::thread::id();
+		}
+
 } /* namespace so_5 */
 
 #else
@@ -86,9 +93,19 @@ namespace so_5
 			id_t m_id;
 		};
 
+	//! Get NULL thread id.
+	inline current_thread_id_t
+	null_current_thread_id()
+		{
+			return current_thread_id_t();
+		}
+
 	inline std::ostream &
 	operator<<( std::ostream & o, const current_thread_id_t & id )
 		{
+			if( id == null_current_thread_id() )
+				return (o << "<thread_id:NULL>");
+
 			return (o << "<thread_id:" << id.id() << ">");
 		}
 

@@ -44,7 +44,7 @@ dispatcher_t::wait()
 	m_work_thread.wait();
 }
 
-std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
+so_5::rt::event_queue_t *
 dispatcher_t::get_agent_binding()
 {
 	return m_work_thread.get_agent_binding();

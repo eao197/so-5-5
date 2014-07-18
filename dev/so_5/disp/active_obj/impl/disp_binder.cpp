@@ -55,7 +55,7 @@ disp_binder_t::bind_agent(
 
 		try
 		{
-			agent_ref->so_bind_to_dispatcher( ctx.first, *ctx.second );
+			agent_ref->so_bind_to_dispatcher( *ctx );
 		}
 		catch( ... )
 		{

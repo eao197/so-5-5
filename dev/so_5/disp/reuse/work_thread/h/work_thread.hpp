@@ -354,78 +354,15 @@ class work_thread_t
 
 		/*!
 		 * \since v.5.4.0
-		 * \brief Get the working thread ID.
-		 *
-		 * \attention This method must be called only on running thread.
-		 */
-		so_5::current_thread_id_t
-		thread_id();
-
-		/*!
-		 * \since v.5.4.0
 		 * \brief Get a binding information for an agent.
 		 */
-		std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
+		so_5::rt::event_queue_t *
 		get_agent_binding();
 
 	protected:
 		//! Main working thread body.
 		void
 		body();
-
-		//! Exception handler.
-		void
-		handle_exception(
-			//! Raised and caught exception.
-			const std::exception & ex,
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Exception handler for the case when exception caught
-		 * but there is no current working agent.
-		 */
-		void
-		handle_exception_on_empty_demands_queue(
-			//! Raised and caught exception.
-			const std::exception & ex );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Log unhandled exception from cooperation.
-		 *
-		 * Calls abort() if an exception is raised during logging.
-		 */
-		void
-		log_unhandled_exception(
-			//! Raised and caught exception.
-			const std::exception & ex,
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Switch agent to special state and initiate stopping
-		 * of SObjectizer Environment.
-		 *
-		 * Calls abort() if an exception is raised during work.
-		 */
-		void
-		switch_agent_to_special_state_and_shutdown_sobjectizer(
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
-
-		/*!
-		 * \since v.5.2.3
-		 * \brief Switch agent to special state and deregister its cooperation.
-		 *
-		 * Calls abort() if an exception is raised during work.
-		 */
-		void
-		switch_agent_to_special_state_and_deregister_coop(
-			//! Agent who is the producer of the exception.
-			so_5::rt::agent_t & a_exception_producer );
 
 		//! Handle a bunch of demands.
 		void

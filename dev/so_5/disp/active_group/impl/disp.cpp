@@ -76,7 +76,7 @@ dispatcher_t::wait()
 		call_wait< active_group_map_t::value_type > );
 }
 
-std::pair< so_5::current_thread_id_t, so_5::rt::event_queue_t * >
+so_5::rt::event_queue_t *
 dispatcher_t::query_thread_for_group( const std::string & group_name )
 {
 	std::lock_guard< std::mutex > lock( m_lock );

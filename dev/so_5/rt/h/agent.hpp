@@ -975,8 +975,6 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		so_bind_to_dispatcher(
-			//! Working thread for an agent.
-			so_5::current_thread_id_t working_thread_id,
 			//! Actual event queue for an agent.
 			event_queue_t & queue );
 
@@ -1194,25 +1192,33 @@ class SO_5_TYPE agent_t
 		 * \brief Calls so_evt_start method for agent.
 		 */
 		static void
-		demand_handler_on_start( execution_demand_t & d );
+		demand_handler_on_start(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
 		/*!
 		 * \since v.5.2.0
 		 * \brief Calls so_evt_finish method for agent.
 		 */
 		static void
-		demand_handler_on_finish( execution_demand_t & d );
+		demand_handler_on_finish(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
 		/*!
 		 * \since v.5.2.0
 		 * \brief Calls event handler for message.
 		 */
 		static void
-		demand_handler_on_message( execution_demand_t & d );
+		demand_handler_on_message(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
 		/*!
 		 * \since v.5.3.0
 		 * \brief Calls request handler for message.
 		 */
 		static void
-		service_request_handler_on_message( execution_demand_t & d );
+		service_request_handler_on_message(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d );
 		/*!
 		 * \}
 		 */
