@@ -103,52 +103,58 @@ struct key_t
 		}
 };
 
-} /* namespace subscription_details */
-
-} /* namespace impl */
-
-} /* namespace rt */
-
-} /* namespace so_5 */
-
-// Specialization of std::hash for subscription_details::key_t.
-namespace std
-{
-
-template<>
-struct hash< so_5::rt::impl::subscription_details::key_t >
+//
+// hash_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief A special class for calculating hash value via pointer to key.
+ */
+struct hash_t
 	{
-		typedef so_5::rt::impl::subscription_details::key_t argument_type;
+		typedef const key_t * argument_type;
 		typedef std::size_t value_type;
 
-		inline value_type
-		operator()( const argument_type & a ) const
+		value_type operator()( argument_type ptr ) const
 			{
-				// This details has borrowed from documentation fo
+				// This details have been borrowed from documentation fo
 				// boost::hash_combine function:
 				// http://www.boost.org/doc/libs/1_46_1/doc/html/hash/reference.html#boost.hash_combine
 				//
-				const value_type h1 = hash< so_5::mbox_id_t >()( a.m_mbox_id );
+				const value_type h1 =
+					std::hash< so_5::mbox_id_t >()( ptr->m_mbox_id );
 				const value_type h2 = h1 ^
-					(hash< type_index >()( a.m_msg_type ) + 0x9e3779b9 +
-					 	(h1 << 6) + (h1 >> 2));
+					(std::hash< std::type_index >()( ptr->m_msg_type ) +
+					 	0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 
-				return h2 ^ (hash< const so_5::rt::state_t * >()( a.m_state ) +
+				return h2 ^ (std::hash< const so_5::rt::state_t * >()(
+							ptr->m_state ) +
 						0x9e3779b9 + (h2 << 6) + (h2 >> 2));
 			}
 	};
 
-} /* namespace std */
+//
+// equal_to_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief A special class for checking equality via pointer to key.
+ */
+struct equal_to_t
+	{
+		typedef bool result_type;
+		typedef const key_t * first_argument_type;
+		typedef const key_t * second_argument_type;
 
+		result_type operator()( first_argument_type a,
+			second_argument_type b ) const
+			{
+				return (*a) == (*b);
+			}
+	};
 
-namespace so_5
-{
+} /* namespace subscription_details */
 
-namespace rt
-{
-
-namespace impl
-{
 
 /*!
  * \since v.5.4.0
@@ -218,8 +224,10 @@ class subscription_storage_t
 
 		//! Type of event handlers hash table.
 		typedef std::unordered_map<
-						subscription_details::key_t,
-						event_handler_method_t >
+						const subscription_details::key_t *,
+						event_handler_method_t,
+						subscription_details::hash_t,
+						subscription_details::equal_to_t >
 				hash_table_t;
 
 		//! Hash table of event handlers.

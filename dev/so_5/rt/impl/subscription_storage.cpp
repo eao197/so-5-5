@@ -94,7 +94,7 @@ subscription_storage_t::create_event_subscription(
 
 		try
 			{
-				m_hash_table.emplace( key, method );
+				m_hash_table.emplace( &(insertion_result.first->first), method );
 			}
 		catch( ... )
 			{
@@ -115,7 +115,7 @@ subscription_storage_t::create_event_subscription(
 			catch( ... )
 			{
 				// Rollback agent's subscription.
-				m_hash_table.erase( key );
+				m_hash_table.erase( &(insertion_result.first->first) );
 				m_map.erase( insertion_result.first );
 				throw;
 			}
@@ -136,8 +136,8 @@ subscription_storage_t::drop_subscription(
 		{
 			bool mbox_msg_known = is_known_mbox_msg_pair( m_map, it );
 
+			m_hash_table.erase( &(it->first) );
 			m_map.erase( it );
-			m_hash_table.erase( key );
 
 			if( !mbox_msg_known )
 			{
@@ -160,7 +160,7 @@ subscription_storage_t::drop_subscription_for_all_states(
 		{
 			while( key.is_same_mbox_msg_pair( it->first ) )
 				{
-					m_hash_table.erase( it->first );
+					m_hash_table.erase( &(it->first) );
 					m_map.erase( it++ );
 				}
 
@@ -174,7 +174,8 @@ subscription_storage_t::find_handler(
 	const std::type_index & msg_type,
 	const state_t & current_state ) const
 	{
-		auto it = m_hash_table.find( key_t( mbox_id, msg_type, current_state ) );
+		key_t k( mbox_id, msg_type, current_state );
+		auto it = m_hash_table.find( &k );
 		if( it != m_hash_table.end() )
 			return &(it->second);
 		else
@@ -189,11 +190,11 @@ subscription_storage_t::destroy_all_subscriptions()
 				i.first.m_msg_type,
 				m_owner );
 
-		map_t tmp_map;
-		m_map.swap( tmp_map );
-
 		hash_table_t tmp_hash_table;
 		m_hash_table.swap( tmp_hash_table );
+
+		map_t tmp_map;
+		m_map.swap( tmp_map );
 	}
 
 } /* namespace impl */
