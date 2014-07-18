@@ -4,6 +4,9 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	There is no more anonymous agent states. If user doesn't specify name
+	for the state it will be generated automatically.
+
 	A new type of mbox is introduced: this is multi-producer/single-consumer
 	mbox. That mbox is belonging to the agent. A reference to that
 	mbox can be obtained only by agent_t::so_direct_mbox() method.

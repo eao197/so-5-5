@@ -50,6 +50,17 @@ struct working_thread_id_sentinel_t
 			}
 	};
 
+/*!
+ * \since v.5.4.0
+ */
+std::string
+create_anonymous_state_name( const agent_t * agent, const state_t * st )
+	{
+		std::ostringstream ss;
+		ss << "<state:target=" << agent << ":this=" << st << ">";
+		return ss.str();
+	}
+
 } /* namespace anonymous */
 
 // NOTE: Implementation of state_t is moved to that file in v.5.4.0.
@@ -60,8 +71,8 @@ struct working_thread_id_sentinel_t
 
 state_t::state_t(
 	const agent_t * agent )
-	:
-		m_target_agent( agent )
+	:	m_target_agent( agent )
+	,	m_state_name( create_anonymous_state_name( agent, self_ptr() ) )
 {
 }
 
@@ -70,7 +81,9 @@ state_t::state_t(
 	std::string state_name )
 	:
 		m_target_agent( agent ),
-		m_state_name( std::move(state_name) )
+		m_state_name( state_name.empty() ?
+				create_anonymous_state_name( agent, self_ptr() ) :
+				std::move(state_name) )
 {
 }
 
