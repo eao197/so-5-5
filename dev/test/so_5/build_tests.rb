@@ -24,6 +24,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/disp/binder/bind_to_disp_3/prj.ut.rb" )
 	required_prj( "test/so_5/disp/binder/bind_to_disp_error_no_disp/prj.ut.rb" )
 	required_prj( "test/so_5/disp/binder/bind_to_disp_error_disp_type_mismatch/prj.ut.rb" )
+	required_prj( "test/so_5/disp/binder/correct_unbind_after_throw_on_bind/prj.ut.rb" )
 
 	required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
@@ -41,6 +42,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/coop/reg_some_and_stop_3/prj.ut.rb" )
 	required_prj( "test/so_5/coop/throw_on_define_agent/prj.ut.rb" )
 	required_prj( "test/so_5/coop/throw_on_bind_to_disp/prj.ut.rb" )
+	required_prj( "test/so_5/coop/throw_on_bind_to_disp_2/prj.ut.rb" )
 	required_prj( "test/so_5/coop/coop_notify_1/prj.ut.rb" )
 	required_prj( "test/so_5/coop/coop_notify_2/prj.ut.rb" )
 	required_prj( "test/so_5/coop/coop_notify_3/prj.ut.rb" )

@@ -305,22 +305,55 @@ agent_coop_t::define_all_agents()
 void
 agent_coop_t::bind_agents_to_disp()
 {
-	agent_array_t::iterator it;
-	agent_array_t::iterator it_begin = m_agent_array.begin();
-	agent_array_t::iterator it_end = m_agent_array.end();
+	std::vector< disp_binding_activator_t > activators;
+	activators.reserve( m_agent_array.size() );
 
-	try
+	// The first stage of binding to dispatcher:
+	// allocating necessary resources for agents.
+	// Exceptions on that stage will lead to simple unbinding
+	// agents from dispatchers.
 	{
-		for( it = it_begin; it != it_end; ++it )
+		agent_array_t::iterator it;
+		try
 		{
-			it->m_binder->bind_agent( m_env, it->m_agent_ref );
+			for( it = m_agent_array.begin(); it != m_agent_array.end(); ++it )
+			{
+				activators.emplace_back(
+						it->m_binder->bind_agent( m_env, it->m_agent_ref ) );
+			}
+		}
+		catch( const std::exception & x )
+		{
+			unbind_agents_from_disp( it );
+
+			SO_5_THROW_EXCEPTION(
+					rc_agent_to_disp_binding_failed,
+					std::string( "an exception during the first stage of "
+							"binding agent to the dispatcher, cooperation: '" +
+							m_coop_name + "', exception: " + x.what() ) );
 		}
 	}
-	catch( const std::exception & ex )
-	{
-		unbind_agents_from_disp( it );
 
-		throw;
+	// The second stage of binding. Activation of the allocated on
+	// the first stage resources.
+	// Exceptions on that stage would lead to unpredictable application
+	// state. Therefore std::abort is called on exception.
+	try
+	{
+		for( auto & a : activators )
+			a();
+	}
+	catch( const std::exception & x )
+	{
+		ACE_ERROR(
+				(LM_ERROR,
+				 SO_5_LOG_FMT( "an exception on the second stage of "
+					 	"agents to dispatcher binding; cooperation: "
+						"'%s' exception: %s" ),
+				 m_coop_name.c_str(),
+				 x.what() ) );
+
+		std::abort();
 	}
 }
 

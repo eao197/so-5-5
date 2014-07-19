@@ -4,6 +4,10 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	New sequence of agent to dispatcher binding. Now it is two stage
+	procedure which guaratees that no so_evt_start() is called until
+	all cooperation's agents are bound to dispatchers.
+
 	New format of so_5::rt::agent_coop_t::add_agent(). Those methods now
 	return a pointer to agent which has been added to cooperation.
 

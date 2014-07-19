@@ -18,9 +18,6 @@
 #include <so_5/disp/active_obj/h/pub.hpp>
 
 so_5::atomic_counter_t g_agents_count;
-so_5::atomic_counter_t g_evt_count;
-
-so_5::rt::nonempty_name_t g_test_mbox_name( "test_mbox" );
 
 struct some_message : public so_5::rt::signal_t {};
 
@@ -47,15 +44,11 @@ class a_ordinary_t
 		virtual void
 		so_define_agent()
 		{
-			so_5::rt::mbox_ref_t mbox = so_environment()
-				.create_local_mbox( g_test_mbox_name );
-
-			so_subscribe( mbox )
+			so_subscribe( so_direct_mbox() )
 				.in( so_default_state() )
 					.event( &a_ordinary_t::some_handler );
 
-			// Give time to test message sender.
-			std::this_thread::sleep_for( std::chrono::milliseconds( 10 ) );
+			so_direct_mbox()->deliver_signal< some_message >();
 		}
 
 		virtual void
@@ -69,45 +62,19 @@ class a_ordinary_t
 void
 a_ordinary_t::so_evt_start()
 {
-	++g_evt_count;
+	// This method should not be called.
+	std::cerr << "error: a_ordinary_t::so_evt_start called.";
+	std::abort();
 }
 
 void
 a_ordinary_t::some_handler(
 	const so_5::rt::event_data_t< some_message > & )
 {
-	++g_evt_count;
+	// This method should not be called.
+	std::cerr << "error: a_ordinary_t::some_handler called.";
+	std::abort();
 }
-
-class a_throwing_t
-	:
-		public so_5::rt::agent_t
-{
-		typedef so_5::rt::agent_t base_type_t;
-
-	public:
-
-		a_throwing_t(
-			so_5::rt::so_environment_t & env )
-			:
-				base_type_t( env )
-		{
-			++g_agents_count;
-		}
-
-		virtual ~a_throwing_t()
-		{
-			--g_agents_count;
-		}
-
-		virtual void
-		so_define_agent()
-		{
-		}
-
-		virtual void
-		so_evt_start();
-};
 
 class throwing_disp_binder_t
 	:
@@ -122,6 +89,8 @@ class throwing_disp_binder_t
 			so_5::rt::so_environment_t & env,
 			so_5::rt::agent_ref_t agent_ref )
 		{
+			std::this_thread::sleep_for( std::chrono::milliseconds( 300 ) );
+
 			throw std::runtime_error(
 				"throwing while binding agent to disp" );
 		}
@@ -132,23 +101,14 @@ class throwing_disp_binder_t
 			so_5::rt::agent_ref_t agent_ref )
 		{
 		}
-
 };
-
-void
-a_throwing_t::so_evt_start()
-{
-	// This method should not be called.
-	std::cerr << "error: a_throwing_t::so_evt_start called.";
-	std::abort();
-}
 
 void
 reg_coop(
 	so_5::rt::so_environment_t & env )
 {
-	so_5::rt::agent_coop_unique_ptr_t coop =
-		env.create_coop( "test_coop" );
+	so_5::rt::agent_coop_unique_ptr_t coop = env.create_coop( "test_coop",
+			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
 	coop->add_agent( new a_ordinary_t( env ) );
 	coop->add_agent( new a_ordinary_t( env ) );
@@ -158,19 +118,18 @@ reg_coop(
 
 	// This agent will throw an exception during binding for dispatcher.
 	coop->add_agent(
-		new a_throwing_t( env ),
+		new a_ordinary_t( env ),
 		so_5::rt::disp_binder_unique_ptr_t( new throwing_disp_binder_t ) );
-
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
-	coop->add_agent( new a_ordinary_t( env ) );
 
 	try
 	{
 		env.register_coop( std::move( coop ) );
 	}
-	catch(...) {}
+	catch( const std::exception & x )
+	{
+		std::cout << "throw_on_bind_to_disp_2, expected exception: "
+			<< x.what() << std::endl;
+	}
 }
 
 void
@@ -188,21 +147,18 @@ main( int argc, char * argv[] )
 	{
 		so_5::api::run_so_environment(
 			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size( 4 )
-					.agent_event_queue_mutex_pool_size( 4 )
-					.add_named_dispatcher(
-						"active_obj",
-						so_5::disp::active_obj::create_disp() ) ) );
+			[]( so_5::rt::so_environment_params_t & params )
+			{
+				params.add_named_dispatcher(
+					"active_obj",
+					so_5::disp::active_obj::create_disp() );
+			} );
 
 		if( 0 != g_agents_count )
 		{
 			std::cerr << "g_agents_count: " << g_agents_count << "\n";
 			throw std::runtime_error( "g_agents_count != 0" );
 		}
-
-		std::cout << "event handled: " << g_evt_count << "\n";
 	}
 	catch( const std::exception & ex )
 	{
@@ -212,3 +168,4 @@ main( int argc, char * argv[] )
 
 	return 0;
 }
+

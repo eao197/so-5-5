@@ -83,6 +83,11 @@ const int rc_coop_has_no_parent = 25;
  */
 const int rc_parent_coop_not_found = 26;
 
+/*!
+ * \since v.5.4.0
+ * \brief Binding of agent to dispatcher failed.
+ */
+const int rc_agent_to_disp_binding_failed = 27;
 //! \}
 
 

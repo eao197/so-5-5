@@ -33,10 +33,10 @@ disp_binder_t::~disp_binder_t()
 {
 }
 
-void
+so_5::rt::disp_binding_activator_t
 disp_binder_t::bind_agent(
 	so_5::rt::so_environment_t & env,
-	so_5::rt::agent_ref_t & agent_ref )
+	so_5::rt::agent_ref_t agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
 		env.query_named_dispatcher( m_disp_name );
@@ -57,7 +57,12 @@ disp_binder_t::bind_agent(
 
 		try
 		{
-			agent_ref->so_bind_to_dispatcher( *ctx );
+			so_5::rt::disp_binding_activator_t activator =
+				[agent_ref, ctx]() {
+					agent_ref->so_bind_to_dispatcher( *ctx );
+				};
+
+			return activator;
 		}
 		catch( ... )
 		{
@@ -66,18 +71,16 @@ disp_binder_t::bind_agent(
 			throw;
 		}
 	}
-	else
-	{
-		throw so_5::exception_t(
-			"dispatcher with name \"" + m_disp_name + "\" not found",
-			rc_named_disp_not_found );
-	}
+
+	throw so_5::exception_t(
+		"dispatcher with name \"" + m_disp_name + "\" not found",
+		rc_named_disp_not_found );
 }
 
 void
 disp_binder_t::unbind_agent(
 	so_5::rt::so_environment_t & env,
-	so_5::rt::agent_ref_t & agent_ref )
+	so_5::rt::agent_ref_t agent_ref )
 {
 	so_5::rt::dispatcher_ref_t disp_ref =
 		env.query_named_dispatcher( m_disp_name );

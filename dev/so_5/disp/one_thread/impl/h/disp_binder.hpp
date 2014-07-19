@@ -38,15 +38,15 @@ class disp_binder_t
 		virtual ~disp_binder_t();
 
 
-		virtual void
+		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
 			so_5::rt::so_environment_t & env,
-			so_5::rt::agent_ref_t & agent_ref );
+			so_5::rt::agent_ref_t agent_ref );
 
 		virtual void
 		unbind_agent(
 			so_5::rt::so_environment_t & env,
-			so_5::rt::agent_ref_t & agent_ref );
+			so_5::rt::agent_ref_t agent_ref );
 
 	private:
 		//! Name of the dispatcher to be bound to.
@@ -59,10 +59,10 @@ class disp_binder_t
 		 * \since v.5.4.0
 		 * \brief Make binding to the dispatcher specified.
 		 */
-		void
+		so_5::rt::disp_binding_activator_t
 		make_agent_binding(
 			so_5::rt::dispatcher_t * disp,
-			so_5::rt::agent_ref_t & agent_ref );
+			so_5::rt::agent_ref_t agent_ref );
 };
 
 } /* namespace impl */
