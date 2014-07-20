@@ -56,18 +56,19 @@ class dispatcher_queue_t
 	public :
 		dispatcher_queue_t()
 			:	m_shutdown( false )
-			{}
+			{
+			}
 
 		//! Initiate shutdown for working threads.
 		void
 		shutdown()
 			{
-				queue_lock_guard_t lock( m_lock );
+				std::lock_guard< std::mutex > lock( m_lock );
 
 				m_shutdown = true;
 
 				if( m_active_queues.empty() )
-					lock.notify_all();
+					m_condition.notify_all();
 			}
 
 		//! Get next active queue.
@@ -77,7 +78,7 @@ class dispatcher_queue_t
 		agent_queue_t *
 		pop()
 			{
-				queue_unique_lock_t lock( m_lock );
+				std::unique_lock< std::mutex > lock( m_lock );
 				while( true )
 					{
 						if( m_shutdown )
@@ -91,7 +92,7 @@ class dispatcher_queue_t
 								return r;
 							}
 
-						lock.wait_for_notify();
+						m_condition.wait( lock );
 					}
 
 				return nullptr;
@@ -101,14 +102,14 @@ class dispatcher_queue_t
 		void
 		schedule( agent_queue_t * queue )
 			{
-				queue_lock_guard_t lock( m_lock );
+				std::lock_guard< std::mutex > lock( m_lock );
 
 				bool was_empty = m_active_queues.empty();
 
 				m_active_queues.push( queue );
 
 				if( was_empty )
-					lock.notify_all();
+					m_condition.notify_all();
 			}
 
 	private :
@@ -116,7 +117,8 @@ class dispatcher_queue_t
 		bool	m_shutdown;
 
 		//! Object's lock.
-		queue_lock_t m_lock;
+		std::mutex m_lock;
+		std::condition_variable m_condition;
 
 		//! Queue object.
 		std::queue< agent_queue_t * > m_active_queues;
@@ -310,7 +312,6 @@ class work_thread_t
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
 			{
-				start();
 			}
 
 		//! Move constructor.
@@ -344,6 +345,13 @@ class work_thread_t
 				m_thread.join();
 			}
 
+		//! Launch work thread.
+		void
+		start()
+			{
+				m_thread = std::thread( [this]() { body(); } );
+			}
+
 	private :
 		//! Dispatcher's queue.
 		dispatcher_queue_t * m_disp_queue;
@@ -356,13 +364,6 @@ class work_thread_t
 
 		//! Actual thread.
 		std::thread m_thread;
-
-		//! Launch work thread.
-		void
-		start()
-			{
-				m_thread = std::thread( [this]() { body(); } );
-			}
 
 		//! Thread body method.
 		void
@@ -476,6 +477,9 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				for( std::size_t i = 0; i != m_thread_count; ++i )
 					m_threads.emplace_back( work_thread_t( m_queue ) );
+
+				for( auto & t : m_threads )
+					t.start();
 			}
 
 		virtual void
