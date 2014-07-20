@@ -91,6 +91,18 @@ class SO_5_TYPE params_t
 	};
 
 //
+// create_disp
+//
+/*!
+ * \since v.5.4.0
+ * \brief Create thread pool dispatcher.
+ */
+SO_5_EXPORT_FUNC_SPEC(so_5::rt::dispatcher_unique_ptr_t)
+create_disp(
+	//! Count of working threads.
+	const std::size_t thread_count );
+
+//
 // create_disp_binder
 //
 /*!

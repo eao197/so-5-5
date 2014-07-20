@@ -60,6 +60,17 @@ params_t::query_max_demands_at_once() const
 		return m_max_demands_at_once;
 	}
 
+//
+// create_disp
+//
+SO_5_EXPORT_FUNC_SPEC(so_5::rt::dispatcher_unique_ptr_t)
+create_disp(
+	const std::size_t thread_count )
+	{
+		return so_5::rt::dispatcher_unique_ptr_t(
+				new impl::dispatcher_t( thread_count ) );
+	}
+
 namespace
 {
 

@@ -15,6 +15,7 @@
 #include <thread>
 #include <memory>
 #include <map>
+#include <iostream>
 
 #include <so_5/disp/reuse/locks/h/locks.hpp>
 
