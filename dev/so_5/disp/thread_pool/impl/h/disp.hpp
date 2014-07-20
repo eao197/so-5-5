@@ -218,6 +218,33 @@ class agent_queue_t : public so_5::rt::event_queue_t
 				return false;
 			}
 
+		/*!
+		 * \brief Wait while queue becomes empty.
+		 *
+		 * It is necessary because there is a possibility that
+		 * after processing of demand_handler_on_finish cooperation
+		 * will be destroyed and agents will be unbound from dispatcher
+		 * before the return from demand_handler_on_finish.
+		 *
+		 * Without waiting for queue emptyness it could lead to
+		 * dangling pointer to agent_queue in woring thread.
+		 */
+		void
+		wait_for_emptyness()
+			{
+				bool empty = false;
+				while( !empty )
+					{
+						{
+							std::lock_guard< spinlock_t > lock( m_lock );
+							empty = (nullptr == m_head.m_next);
+						}
+
+						if( !empty )
+							std::this_thread::yield();
+					}
+			}
+
 	private :
 		//! Dispatcher queue for scheduling processing of events from
 		//! this queue.
@@ -496,8 +523,18 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 										agent->so_coop_name() );
 								if( it_coop != m_cooperations.end() &&
 										0 == --(it_coop->second.m_agents) )
-									m_cooperations.erase( it_coop );
+									{
+										// agent_queue object can be destroyed
+										// only when it is empty.
+										it_coop->second.m_queue->wait_for_emptyness();
+
+										m_cooperations.erase( it_coop );
+									}
 							}
+						else
+							// agent_queue object can be destroyed
+							// only when it is empty.
+							it->second.m_queue->wait_for_emptyness();
 
 						m_agents.erase( it );
 					}

@@ -55,10 +55,6 @@ typedef std::shared_ptr< thread_id_collector_t > thread_id_collector_ptr_t;
 
 typedef std::vector< thread_id_collector_ptr_t > collector_container_t;
 
-struct msg_start : public so_5::rt::signal_t {};
-
-struct msg_hello : public so_5::rt::signal_t {};
-
 struct msg_shutdown : public so_5::rt::signal_t {};
 
 class a_test_t : public so_5::rt::agent_t
@@ -67,45 +63,24 @@ class a_test_t : public so_5::rt::agent_t
 		a_test_t(
 			so_5::rt::so_environment_t & env,
 			thread_id_collector_t & collector,
-			const so_5::rt::mbox_ref_t & shutdowner_mbox,
-			const so_5::rt::mbox_ref_t & starter_mbox )
+			const so_5::rt::mbox_ref_t & shutdowner_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_collector( collector )
 			,	m_shutdowner_mbox( shutdowner_mbox )
-			,	m_messages_sent( 0 )
 		{
-			so_subscribe( starter_mbox ).event(
-					so_5::signal< msg_start >,
-					[this]()
-					{
-						so_direct_mbox()->deliver_signal< msg_hello >();
-					} );
-		}
-
-		virtual void
-		so_define_agent()
-		{
-			so_subscribe( so_direct_mbox() ).event(
-					so_5::signal< msg_hello >,
-					&a_test_t::evt_hello );
 		}
 
 		void
-		evt_hello()
+		so_evt_start()
 		{
 			m_collector.add_current_thread();
 
-			if( ++m_messages_sent >= 10 )
-				m_shutdowner_mbox->deliver_signal< msg_shutdown >();
-			else
-				so_direct_mbox()->deliver_signal< msg_hello >();
+			m_shutdowner_mbox->deliver_signal< msg_shutdown >();
 		}
 
 	private :
 		thread_id_collector_t & m_collector;
 		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
-
-		std::size_t m_messages_sent;
 };
 
 class a_shutdowner_t : public so_5::rt::agent_t
@@ -126,7 +101,10 @@ class a_shutdowner_t : public so_5::rt::agent_t
 					[this]() {
 						--m_working_agents;
 						if( !m_working_agents )
+{
+std::cout << "stop" << std::endl;
 							so_environment().stop();
+}
 					} );
 		}
 
@@ -164,8 +142,6 @@ run_sobjectizer( collector_container_t & collectors )
 				env.register_coop( std::move( c ) );
 			}
 
-			auto starter_mbox = env.create_local_mbox();
-
 			so_5::disp::thread_pool::params_t params;
 			params.max_demands_at_once( 1024 );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
@@ -182,13 +158,10 @@ run_sobjectizer( collector_container_t & collectors )
 							new a_test_t(
 									env,
 									*(collectors[ i ]),
-									shutdowner_mbox,
-									starter_mbox ) );
+									shutdowner_mbox ) );
 				}
 				env.register_coop( std::move( c ) );
 			}
-
-			starter_mbox->deliver_signal< msg_start >();
 		},
 		[]( so_5::rt::so_environment_params_t & params )
 		{
