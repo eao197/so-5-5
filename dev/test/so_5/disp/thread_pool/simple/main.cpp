@@ -17,6 +17,8 @@
 
 #include <so_5/disp/thread_pool/h/pub.hpp>
 
+#include <test/so_5/time_limited_execution.hpp>
+
 struct msg_hello : public so_5::rt::signal_t {};
 
 class a_test_t : public so_5::rt::agent_t
@@ -48,10 +50,13 @@ class a_test_t : public so_5::rt::agent_t
 		}
 };
 
-void
-sobjectizer_thread( std::promise<void> * end )
+int
+main( int argc, char * argv[] )
+{
+	try
 	{
-		try
+		run_with_time_limit(
+			[]()
 			{
 				so_5::api::run_so_environment(
 					[]( so_5::rt::so_environment_t & env )
@@ -69,37 +74,14 @@ sobjectizer_thread( std::promise<void> * end )
 								"thread_pool",
 								so_5::disp::thread_pool::create_disp( 4 ) );
 					} );
-			}
-		catch( const std::exception & x )
-			{
-				std::cerr << "Exception: " << x.what() << std::endl;
-				std::abort();
-			}
-
-		end->set_value();
-	}
-
-int
-main( int argc, char * argv[] )
-{
-	try
-	{
-		std::promise< void > end;
-
-		std::thread so_thread( sobjectizer_thread, &end );
-
-		auto f = end.get_future();
-		f.wait_for( std::chrono::seconds(5) );
-
-		if( !f.valid() )
-			throw std::runtime_error( "SObjectizer is not finished!" );
-		else
-			so_thread.join();
+			},
+			5,
+			"simple thread_pool dispatcher test" );
 	}
 	catch( const std::exception & ex )
 	{
 		std::cerr << "Error: " << ex.what() << std::endl;
-		std::abort();
+		return 1;
 	}
 
 	return 0;

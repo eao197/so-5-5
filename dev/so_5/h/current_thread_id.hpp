@@ -78,6 +78,18 @@ namespace so_5
 					return m_id != o.m_id;
 				}
 
+			inline bool
+			operator<( const current_thread_id_t & o ) const
+				{
+					return m_id < o.m_id;
+				}
+
+			inline bool
+			operator<=( const current_thread_id_t & o ) const
+				{
+					return m_id <= o.m_id;
+				}
+
 			inline id_t
 			id() const
 				{
