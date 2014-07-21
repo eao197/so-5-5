@@ -22,12 +22,23 @@
 #include <so_5/h/spinlocks.hpp>
 
 #include <test/so_5/time_limited_execution.hpp>
+#include <test/so_5/bench/benchmark_helpers.hpp>
 
 typedef std::set< so_5::current_thread_id_t > thread_id_set_t;
 
 class thread_id_collector_t
 	{
 	public :
+		void lock()
+		{
+			m_lock.lock();
+		}
+
+		void unlock()
+		{
+			m_lock.unlock();
+		}
+
 		void add_current_thread()
 		{
 			std::lock_guard< so_5::default_spinlock_t > l( m_lock );
@@ -57,6 +68,23 @@ typedef std::vector< thread_id_collector_ptr_t > collector_container_t;
 
 struct msg_shutdown : public so_5::rt::signal_t {};
 
+struct msg_hello : public so_5::rt::signal_t {};
+
+/*
+ * There is a trick in working scheme for this agent.
+ *
+ * The first agent in cooperation will be blocked in so_evt_start()
+ * on m_collector.add_current_thread() call because collector will
+ * be locked before start of cooperation registration.
+ * Collector will be unlocked after return from register_coop().
+ * At this moment there must be demands for so_evt_start for
+ * all cooperation agents in the same agent_queue.
+ *
+ * During processing of so_evt_start() new demands (for msg_hello)
+ * will be placed to the same agent_queue. And this queue will be
+ * processed on the same working thread because of big value
+ * of max_demands_at_once parameter.
+ */
 class a_test_t : public so_5::rt::agent_t
 {
 	public:
@@ -66,8 +94,12 @@ class a_test_t : public so_5::rt::agent_t
 			const so_5::rt::mbox_ref_t & shutdowner_mbox )
 			:	so_5::rt::agent_t( env )
 			,	m_collector( collector )
-			,	m_shutdowner_mbox( shutdowner_mbox )
 		{
+			so_subscribe( so_direct_mbox() )
+					.event( so_5::signal< msg_hello >,
+							[this, shutdowner_mbox]() {
+								shutdowner_mbox->deliver_signal< msg_shutdown >();
+							} );
 		}
 
 		void
@@ -75,12 +107,11 @@ class a_test_t : public so_5::rt::agent_t
 		{
 			m_collector.add_current_thread();
 
-			m_shutdowner_mbox->deliver_signal< msg_shutdown >();
+			so_direct_mbox()->deliver_signal< msg_hello >();
 		}
 
 	private :
 		thread_id_collector_t & m_collector;
-		const so_5::rt::mbox_ref_t m_shutdowner_mbox;
 };
 
 class a_shutdowner_t : public so_5::rt::agent_t
@@ -101,10 +132,7 @@ class a_shutdowner_t : public so_5::rt::agent_t
 					[this]() {
 						--m_working_agents;
 						if( !m_working_agents )
-{
-std::cout << "stop" << std::endl;
 							so_environment().stop();
-}
 					} );
 		}
 
@@ -112,8 +140,8 @@ std::cout << "stop" << std::endl;
 		std::size_t m_working_agents;
 };
 
-const std::size_t cooperation_count = 2; // 1000;
-const std::size_t cooperation_size = 2; // 100;
+const std::size_t cooperation_count = 1024; // 1000;
+const std::size_t cooperation_size = 128; // 100;
 const std::size_t thread_count = 8;
 
 collector_container_t
@@ -130,6 +158,8 @@ create_collectors()
 void
 run_sobjectizer( collector_container_t & collectors )
 {
+	duration_meter_t duration( "running of test cooperations" );
+
 	so_5::api::run_so_environment(
 		[&]( so_5::rt::so_environment_t & env )
 		{
@@ -146,6 +176,15 @@ run_sobjectizer( collector_container_t & collectors )
 			params.max_demands_at_once( 1024 );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
+				// Lock collector for that cooperation until
+				// register_coop finished.
+				// It guarantees that the first cooperation agent
+				// will be blocked in so_evt_start. And demands for
+				// other agents will be placed into the same demands queue.
+
+				std::lock_guard< thread_id_collector_t > collector_lock(
+						*(collectors[ i ]) );
+
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
@@ -209,7 +248,7 @@ main( int argc, char * argv[] )
 			{
 				run_and_check();
 			},
-			5,
+			60,
 			"cooperation_fifo test" );
 	}
 	catch( const std::exception & ex )
