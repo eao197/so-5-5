@@ -27,6 +27,8 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/disp/binder/correct_unbind_after_throw_on_bind/prj.ut.rb" )
 
 	required_prj( "test/so_5/disp/thread_pool/simple/prj.ut.rb" )
+	required_prj( "test/so_5/disp/thread_pool/cooperation_fifo/prj.ut.rb" )
+	required_prj( "test/so_5/disp/thread_pool/individual_fifo/prj.ut.rb" )
 
 	required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
