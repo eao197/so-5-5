@@ -36,6 +36,10 @@ namespace locks
  *
  * This lock used spinlocks for efficiency and std::mutex and
  * std::condition_variable for signalization.
+ *
+ * \attention This lock can be used only for single-consumer queues!
+ * It is because there is no way found to implement notify_all on
+ * just two int variables (m_waiting and m_signaled). 
  */
 class combined_queue_lock_t
 	{
@@ -74,7 +78,7 @@ class combined_queue_lock_t
 		inline void
 		wait_for_notify()
 			{
-				m_waiting += 1;
+				m_waiting = true;
 				auto stop_point = std::chrono::high_resolution_clock::now() +
 						std::chrono::milliseconds(1);
 
@@ -88,8 +92,8 @@ class combined_queue_lock_t
 
 						if( m_signaled )
 							{
-								m_waiting -= 1;
-								m_signaled -= 1;
+								m_waiting = false;
+								m_signaled = false;
 								return;
 							}
 					}
@@ -110,8 +114,8 @@ class combined_queue_lock_t
 
 				m_spinlock.lock();
 
-				m_waiting -= 1;
-				m_signaled -= 1;
+				m_waiting = false;
+				m_signaled = false;
 			}
 
 		//! Notify one waiting thread if it exists.
@@ -125,25 +129,8 @@ class combined_queue_lock_t
 					{
 						// There is a waiting thread.
 						m_mutex.lock();
-						m_signaled += 1;
+						m_signaled = true;
 						m_condition.notify_one();
-						m_mutex.unlock();
-					}
-			}
-
-		//! Notify all waiting threads if exist.
-		/*!
-		 * \attention Must be called only when object is locked.
-		 */
-		inline void
-		notify_all()
-			{
-				if( m_waiting )
-					{
-						// There is a waiting thread.
-						m_mutex.lock();
-						m_signaled = m_waiting;
-						m_condition.notify_all();
 						m_mutex.unlock();
 					}
 			}
@@ -228,12 +215,6 @@ class combined_queue_lock_guard_t
 		notify_one()
 			{
 				m_lock.notify_one();
-			}
-
-		inline void
-		notify_all()
-			{
-				m_lock.notify_all();
 			}
 
 	private :
