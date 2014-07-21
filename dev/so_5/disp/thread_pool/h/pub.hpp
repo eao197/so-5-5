@@ -91,6 +91,24 @@ class SO_5_TYPE params_t
 	};
 
 //
+// default_thread_pool_size
+//
+/*!
+ * \since v.5.4.0
+ * \brief A helper function for detecting default thread count for
+ * thread pool.
+ */
+inline std::size_t
+default_thread_pool_size()
+	{
+		auto c = std::thread::hardware_concurrency();
+		if( !c )
+			c = 2;
+
+		return c;
+	}
+
+//
 // create_disp
 //
 /*!
@@ -100,7 +118,22 @@ class SO_5_TYPE params_t
 SO_5_EXPORT_FUNC_SPEC(so_5::rt::dispatcher_unique_ptr_t)
 create_disp(
 	//! Count of working threads.
-	const std::size_t thread_count );
+	std::size_t thread_count );
+
+//
+// create_disp
+//
+/*!
+ * \since v.5.4.0
+ * \brief Create thread pool dispatcher.
+ *
+ * Size of pool is detected automatically.
+ */
+inline so_5::rt::dispatcher_unique_ptr_t
+create_disp()
+	{
+		return create_disp( default_thread_pool_size() );
+	}
 
 //
 // create_disp_binder

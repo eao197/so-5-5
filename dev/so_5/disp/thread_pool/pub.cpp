@@ -65,8 +65,11 @@ params_t::query_max_demands_at_once() const
 //
 SO_5_EXPORT_FUNC_SPEC(so_5::rt::dispatcher_unique_ptr_t)
 create_disp(
-	const std::size_t thread_count )
+	std::size_t thread_count )
 	{
+		if( !thread_count )
+			thread_count = default_thread_pool_size();
+
 		return so_5::rt::dispatcher_unique_ptr_t(
 				new impl::dispatcher_t( thread_count ) );
 	}
