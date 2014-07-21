@@ -134,34 +134,6 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 
 		//! Binding parameters.
 		const params_t m_params;
-
-		template< class RESULT, class DISPATCHER > 
-		RESULT
-		do_with_dispatcher(
-			so_environment_t & env,
-			const std::string & disp_name,
-			std::function< RESULT ( DISPATCHER & ) > action )
-			{
-				dispatcher_ref_t disp_ref = env.query_named_dispatcher( disp_name );
-
-				// If the dispatcher is found then the agent should be bound to it.
-				if( !disp_ref.get() )
-					SO_5_THROW_EXCEPTION(
-							rc_named_disp_not_found,
-							"dispatcher with name '" + disp_name + "' not found" );
-
-				// It should be our dispatcher.
-				DISPATCHER * disp = dynamic_cast< DISPATCHER * >(
-						disp_ref.get() );
-
-				if( nullptr == disp )
-					SO_5_THROW_EXCEPTION(
-							rc_disp_type_mismatch,
-							"type of dispatcher with name '" + disp_name +
-							"' is not '" + typeid(DISPATCHER).name() + "'" );
-
-				return action( *disp );
-			}
 	};
 
 } /* namespace anonymous */

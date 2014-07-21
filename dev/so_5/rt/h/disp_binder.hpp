@@ -74,6 +74,40 @@ class SO_5_TYPE disp_binder_t
 			so_environment_t & env,
 			//! Agent to be bound.
 			agent_ref_t agent_ref ) = 0;
+
+	protected :
+		/*!
+		 * \since v.5.4.0
+		 * \brief A helper method for extracting dispatcher by name,
+		 * checking its type and to some action.
+		 */
+		template< class RESULT, class DISPATCHER > 
+		RESULT
+		do_with_dispatcher(
+			so_environment_t & env,
+			const std::string & disp_name,
+			std::function< RESULT ( DISPATCHER & ) > action )
+			{
+				dispatcher_ref_t disp_ref = env.query_named_dispatcher( disp_name );
+
+				// If the dispatcher is found then the agent should be bound to it.
+				if( !disp_ref.get() )
+					SO_5_THROW_EXCEPTION(
+							rc_named_disp_not_found,
+							"dispatcher with name '" + disp_name + "' not found" );
+
+				// It should be our dispatcher.
+				DISPATCHER * disp = dynamic_cast< DISPATCHER * >(
+						disp_ref.get() );
+
+				if( nullptr == disp )
+					SO_5_THROW_EXCEPTION(
+							rc_disp_type_mismatch,
+							"type of dispatcher with name '" + disp_name +
+							"' is not '" + typeid(DISPATCHER).name() + "'" );
+
+				return action( *disp );
+			}
 };
 
 //! Typedef for the disp_binder autopointer.
