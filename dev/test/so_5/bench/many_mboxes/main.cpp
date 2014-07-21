@@ -81,7 +81,7 @@ try_parse_cmdline(
 		throw std::runtime_error( "Unable to set long option 'iterations'" );
 	if( -1 == opt.long_option(
 			"help", 'h', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'iterations'" );
+		throw std::runtime_error( "Unable to set long option 'help'" );
 
 	cfg_t tmp_cfg;
 
