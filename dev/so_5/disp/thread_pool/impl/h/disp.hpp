@@ -56,6 +56,7 @@ class dispatcher_queue_t
 	public :
 		dispatcher_queue_t()
 			:	m_shutdown( false )
+			,	m_sleeping_workers( 0 )
 			{
 			}
 
@@ -89,9 +90,16 @@ class dispatcher_queue_t
 								auto r = m_active_queues.front();
 								m_active_queues.pop();
 
+								--m_sleeping_workers;
+
+								if( m_sleeping_workers && !m_active_queues.empty() )
+									// Another worker must be awakened.
+									m_condition.notify_one();
+
 								return r;
 							}
 
+						++m_sleeping_workers;
 						m_condition.wait( lock );
 					}
 
@@ -109,12 +117,15 @@ class dispatcher_queue_t
 				m_active_queues.push( queue );
 
 				if( was_empty )
-					m_condition.notify_all();
+					m_condition.notify_one();
 			}
 
 	private :
 		//! Shutdown flag.
 		bool	m_shutdown;
+
+		//! Count of sleeping workers.
+		unsigned int m_sleeping_workers;
 
 		//! Object's lock.
 		std::mutex m_lock;

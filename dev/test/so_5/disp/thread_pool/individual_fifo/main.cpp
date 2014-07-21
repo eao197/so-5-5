@@ -173,7 +173,7 @@ run_sobjectizer( collector_container_t & collectors )
 
 			so_5::disp::thread_pool::params_t params;
 			params.fifo( so_5::disp::thread_pool::fifo_t::individual );
-			params.max_demands_at_once( 1 );
+			params.max_demands_at_once( 2 );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
 				std::ostringstream ss;
