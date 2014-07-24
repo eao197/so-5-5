@@ -5,7 +5,7 @@
 /*!
  * \since v.5.4.0
  * \file
- * \brief An implementation of thread pool dispatcher.
+ * \brief An implementation of advanced thread pool dispatcher.
  */
 
 #pragma once
@@ -21,6 +21,7 @@
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
+#include <so_5/rt/h/atomic_refcounted.hpp>
 
 namespace so_5
 {
@@ -28,7 +29,7 @@ namespace so_5
 namespace disp
 {
 
-namespace thread_pool
+namespace adv_thread_pool
 {
 
 namespace impl
@@ -136,12 +137,19 @@ class dispatcher_queue_t
  * \since v.5.4.0
  * \brief Event queue for the agent (or cooperation).
  */
-class agent_queue_t : public so_5::rt::event_queue_t
+class agent_queue_t
+	:	public so_5::rt::event_queue_t
+	,	private so_5::rt::atomic_refcounted_t
 	{
+		friend class so_5::rt::smart_atomic_reference_t< agent_queue_t >;
+
 	private :
 		//! Actual demand in event queue.
-		struct demand_t : public so_5::rt::execution_demand_t
+		struct demand_t
 			{
+				//! Actual demand.
+				so_5::rt::execution_demand_t m_demand;
+
 				//! Next item in queue.
 				demand_t * m_next;
 
@@ -149,21 +157,23 @@ class agent_queue_t : public so_5::rt::event_queue_t
 					:	m_next( nullptr )
 					{}
 				demand_t( so_5::rt::execution_demand_t && original )
-					:	so_5::rt::execution_demand_t( std::move( original ) )
+					:	m_demand( std::move( original ) )
 					,	m_next( nullptr )
 					{}
 			};
 
 	public :
+		static const unsigned int thread_safe_worker = 2;
+		static const unsigned int not_thread_safe_worker = 1;
+
 		//! Constructor.
 		agent_queue_t(
 			//! Dispatcher queue to work with.
-			dispatcher_queue_t & disp_queue,
-			//! Maximum count of demands to be processed at once.
-			std::size_t max_demands_at_once )
+			dispatcher_queue_t & disp_queue )
 			:	m_disp_queue( disp_queue )
-			,	m_max_demands_at_once( max_demands_at_once )
 			,	m_tail( &m_head )
+			,	m_active( false )
+			,	m_workers( 0 )
 			{}
 
 		~agent_queue_t()
@@ -172,93 +182,122 @@ class agent_queue_t : public so_5::rt::event_queue_t
 					delete_head();
 			}
 
+		//! Access to the queue's lock.
+		spinlock_t &
+		lock()
+			{
+				return m_lock;
+			}
+
 		//! Push next demand to queue.
 		virtual void
 		push( so_5::rt::execution_demand_t demand )
 			{
-				std::lock_guard< spinlock_t > lock( m_lock );
+				bool need_schedule = false;
+				{
+					std::lock_guard< spinlock_t > lock( m_lock );
 
-				bool was_empty = (nullptr == m_head.m_next);
+					m_tail->m_next = new demand_t( std::move( demand ) );
+					m_tail = m_tail->m_next;
 
-				m_tail->m_next = new demand_t( std::move( demand ) );
-				m_tail = m_tail->m_next;
+					if( m_head.m_next == m_tail )
+						{
+							// Queue was empty. Need to detect
+							// necessity of queue activation.
+							if( !is_there_any_worker() )
+								need_schedule = true;
+							else if( !is_there_not_thread_safe_worker() )
+								need_schedule = !m_active;
+						}
+				}
 
-				if( was_empty )
+				if( need_schedule )
 					m_disp_queue.schedule( this );
 			}
 
-		//! Get the front demand from queue.
+		//! Get the information about the front demand.
 		/*!
 		 * \attention This method must be called only on non-empty queue.
 		 */
-		so_5::rt::execution_demand_t &
-		front()
+		so_5::rt::execution_demand_t
+		peek_front()
 			{
-				return *(m_head.m_next);
+				m_active = false;
+
+				return m_head.m_next->m_demand;
 			}
 
 		//! Remove the front demand.
 		/*!
-		 * \retval true queue not empty and next demand can be processed.
-		 * \retval false queue empty or
-		 * demands_processed >= m_max_demands_at_once
+		 * \retval true queue must be activated.
+		 * \retval false queue must not be activated.
 		 */
 		bool
-		pop(
-			//! Count of consequently processed demands from that queue.
-			std::size_t demands_processed )
+		worker_started(
+			//! Type of worker.
+			//! Must be thread_safe_worker or not_thread_safe_worker.
+			unsigned int type_of_worker )
 			{
-				std::lock_guard< spinlock_t > lock( m_lock );
-
 				delete_head();
-
-				if( m_head.m_next )
-				{
-					if( demands_processed < m_max_demands_at_once )
-						return true;
-					else
-						m_disp_queue.schedule( this );
-				}
-				else
+				if( !m_head.m_next )
 					m_tail = &m_head;
 
-				return false;
+				m_workers += type_of_worker;
+
+				// Queue must be activated only if queue is not empty
+				// and current worker is a thread safe worker.
+				m_active = ( m_head.m_next &&
+						thread_safe_worker == type_of_worker );
+
+				return m_active;
 			}
 
+		//! Signal about finishing of worker of the specified type.
 		/*!
-		 * \brief Wait while queue becomes empty.
-		 *
-		 * It is necessary because there is a possibility that
-		 * after processing of demand_handler_on_finish cooperation
-		 * will be destroyed and agents will be unbound from dispatcher
-		 * before the return from demand_handler_on_finish.
-		 *
-		 * Without waiting for queue emptyness it could lead to
-		 * dangling pointer to agent_queue in woring thread.
+		 * \retval true queue must be activated.
+		 * \retval false queue must not be activated.
 		 */
-		void
-		wait_for_emptyness()
+		bool
+		worker_finished(
+			//! Type of worker.
+			//! Must be thread_safe_worker or not_thread_safe_worker.
+			unsigned int type_of_worker )
 			{
-				bool empty = false;
-				while( !empty )
-					{
-						{
-							std::lock_guard< spinlock_t > lock( m_lock );
-							empty = (nullptr == m_head.m_next);
-						}
+				m_workers -= type_of_worker;
 
-						if( !empty )
-							std::this_thread::yield();
-					}
+				if( not_thread_safe_worker == type_of_worker )
+				{
+					// After thread unsafe worker queue must be activated
+					// if it is not empty.
+					m_active = (m_head.m_next != nullptr);
+				}
+				else
+					// After thread safe worker queue must be activated
+					// if it is not empty and is not active already.
+					if( m_head.m_next && !m_active )
+						m_active = true;
+
+				return m_active;
+			}
+
+		//! Check the presence of any worker at the moment.
+		bool
+		is_there_any_worker() const
+			{
+				return 0 != m_workers;
+			}
+
+		//! Check the presence of thread unsafe worker.
+		bool
+		is_there_not_thread_safe_worker() const
+			{
+				return 0 != (m_workers & not_thread_safe_worker );
 			}
 
 	private :
 		//! Dispatcher queue for scheduling processing of events from
 		//! this queue.
 		dispatcher_queue_t & m_disp_queue;
-
-		//! Maximum count of demands to be processed consequently.
-		const std::size_t m_max_demands_at_once;
 
 		//! Object's lock.
 		spinlock_t m_lock;
@@ -275,6 +314,15 @@ class agent_queue_t : public so_5::rt::event_queue_t
 		 */
 		demand_t * m_tail;
 
+		//! Is this queue activated?
+		/*!
+		 * Queue is activated if it is scheduled to dispatcher queue.
+		 */
+		bool m_active;
+
+		//! Count of active workers.
+		unsigned int m_workers;
+
 		//! Helper method for deleting queue's head object.
 		inline void
 		delete_head()
@@ -287,13 +335,13 @@ class agent_queue_t : public so_5::rt::event_queue_t
 	};
 
 //
-// agent_queue_shptr_t
+// agent_queue_ref_t
 //
 /*!
  * \since v.5.4.0
- * \brief A typedef of std::shared_ptr for agent_queue.
+ * \brief A typedef of smart pointer for agent_queue.
  */
-typedef std::shared_ptr< agent_queue_t > agent_queue_shptr_t;
+typedef so_5::rt::smart_atomic_reference_t< agent_queue_t > agent_queue_ref_t;
 
 //
 // work_thread_t
@@ -305,11 +353,6 @@ typedef std::shared_ptr< agent_queue_t > agent_queue_shptr_t;
 class work_thread_t
 	{
 	public :
-		//! Default constructor.
-		work_thread_t()
-			:	m_disp_queue( nullptr )
-			{}
-
 		//! Initializing constructor.
 		/*!
 		 * Automatically starts work thread.
@@ -317,31 +360,6 @@ class work_thread_t
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
 			{
-			}
-
-		//! Move constructor.
-		work_thread_t( work_thread_t && o )
-			:	m_disp_queue( o.m_disp_queue )
-			,	m_thread_id( o.m_thread_id )
-			,	m_thread( std::move( o.m_thread ) )
-			{}
-
-		//! Move operator.
-		work_thread_t &
-		operator=( work_thread_t && o )
-			{
-				work_thread_t tmp( std::move( o ) );
-				tmp.swap( *this );
-				return *this;
-			}
-
-		//! Swap operation.
-		void
-		swap( work_thread_t & o )
-			{
-				std::swap( m_disp_queue, o.m_disp_queue );
-				std::swap( m_thread_id, o.m_thread_id );
-				std::swap( m_thread, o.m_thread );
 			}
 
 		void
@@ -379,6 +397,10 @@ class work_thread_t
 				agent_queue_t * agent_queue;
 				while( nullptr != (agent_queue = m_disp_queue->pop()) )
 					{
+						// This guard is necessary to ensure that queue
+						// will exist until processing of queue finished.
+						agent_queue_ref_t agent_queue_guard( agent_queue );
+
 						process_queue( *agent_queue );
 					}
 			}
@@ -387,18 +409,54 @@ class work_thread_t
 		void
 		process_queue( agent_queue_t & queue )
 			{
-				std::size_t demands_processed = 0;
-				bool need_continue = true;
+				std::unique_lock< spinlock_t > lock( queue.lock() );
 
-				while( need_continue )
-					{
-						auto & d = queue.front();
+				auto demand = queue.peek_front();
+				if( queue.is_there_not_thread_safe_worker() )
+					// We can't process any demand until thread unsafe
+					// worker is working.
+					return;
 
-						(*d.m_demand_handler)( m_thread_id, d );
+				auto hint = demand.m_receiver->so_create_execution_hint(
+						m_thread_id, demand );
 
-						++demands_processed;
-						need_continue = queue.pop( demands_processed );
-					}
+				bool need_schedule = true;
+				if( !hint.is_thread_safe() )
+				{
+					if( queue.is_there_any_worker() )
+						// We can't process not thread safe demand until
+						// there are some other workers.
+						return;
+					else
+						need_schedule = queue.worker_started(
+								agent_queue_t::not_thread_safe_worker );
+				}
+				else
+					// Threa-safe worker can be started.
+					need_schedule = queue.worker_started(
+							agent_queue_t::thread_safe_worker );
+
+				// Next few actions must be done on unlocked queue.
+				lock.unlock();
+
+				if( need_schedule )
+					m_disp_queue->schedule( &queue );
+
+				// Processing of event.
+				hint.exec();
+
+				// Next actions must be done on locked queue.
+				lock.lock();
+
+				need_schedule = queue.worker_finished(
+						hint.is_thread_safe() ?
+								agent_queue_t::thread_safe_worker :
+								agent_queue_t::not_thread_safe_worker );
+
+				lock.unlock();
+
+				if( need_schedule )
+					m_disp_queue->schedule( &queue );
 			}
 	};
 
@@ -416,7 +474,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		struct cooperation_data_t
 			{
 				//! Event queue for the cooperation.
-				agent_queue_shptr_t m_queue;
+				agent_queue_ref_t m_queue;
 
 				//! Count of agents form that cooperation.
 				/*!
@@ -426,7 +484,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				std::size_t m_agents;
 
 				cooperation_data_t(
-					agent_queue_shptr_t queue,
+					agent_queue_ref_t queue,
 					std::size_t agents )
 					:	m_queue( std::move( queue ) )
 					,	m_agents( agents )
@@ -445,7 +503,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				 * It could be individual queue or queue for the whole
 				 * cooperation (to which agent is belonging).
 				 */
-				agent_queue_shptr_t m_queue;
+				agent_queue_ref_t m_queue;
 
 				//! Cooperation FIFO flag.
 				/*!
@@ -454,7 +512,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				bool m_cooperation_fifo;
 
 				agent_data_t(
-					agent_queue_shptr_t queue,
+					agent_queue_ref_t queue,
 					bool cooperation_fifo )
 					:	m_queue( std::move( queue ) )
 					,	m_cooperation_fifo( cooperation_fifo )
@@ -475,16 +533,17 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			:	m_thread_count( thread_count )
 			{
 				m_threads.reserve( thread_count );
+
+				for( std::size_t i = 0; i != m_thread_count; ++i )
+					m_threads.emplace_back( std::unique_ptr< work_thread_t >(
+								new work_thread_t( m_queue ) ) );
 			}
 
 		virtual void
 		start()
 			{
-				for( std::size_t i = 0; i != m_thread_count; ++i )
-					m_threads.emplace_back( work_thread_t( m_queue ) );
-
 				for( auto & t : m_threads )
-					t.start();
+					t->start();
 			}
 
 		virtual void
@@ -497,7 +556,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		wait()
 			{
 				for( auto & t : m_threads )
-					t.join();
+					t->join();
 			}
 
 		//! Bind agent to the dispatcher.
@@ -533,17 +592,9 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								if( it_coop != m_cooperations.end() &&
 										0 == --(it_coop->second.m_agents) )
 									{
-										// agent_queue object can be destroyed
-										// only when it is empty.
-										it_coop->second.m_queue->wait_for_emptyness();
-
 										m_cooperations.erase( it_coop );
 									}
 							}
-						else
-							// agent_queue object can be destroyed
-							// only when it is empty.
-							it->second.m_queue->wait_for_emptyness();
 
 						m_agents.erase( it );
 					}
@@ -557,7 +608,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		const std::size_t m_thread_count;
 
 		//! Pool of work threads.
-		std::vector< work_thread_t > m_threads;
+		std::vector< std::unique_ptr< work_thread_t > > m_threads;
 
 		//! Object's lock.
 		spinlock_t m_lock;
@@ -578,7 +629,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			so_5::rt::agent_ref_t agent,
 			const params_t & params )
 			{
-				agent_queue_shptr_t queue = make_new_agent_queue( params );
+				agent_queue_ref_t queue = make_new_agent_queue();
 
 				m_agents.emplace( agent.get(),
 						agent_data_t( queue, false ) );
@@ -599,10 +650,8 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				auto it = m_cooperations.find( agent->so_coop_name() );
 				if( it == m_cooperations.end() )
 					it = m_cooperations.emplace(
-							agent->so_coop_name(),
-							cooperation_data_t(
-									make_new_agent_queue( params ),
-									1 ) )
+									agent->so_coop_name(),
+									cooperation_data_t( make_new_agent_queue(), 1 ) )
 							.first;
 				else
 					it->second.m_agents += 1;
@@ -625,20 +674,16 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			}
 
 		//! Helper method for creating event queue for agents/cooperations.
-		agent_queue_shptr_t
-		make_new_agent_queue(
-			const params_t & params )
+		agent_queue_ref_t
+		make_new_agent_queue()
 			{
-				return agent_queue_shptr_t(
-						new agent_queue_t(
-								m_queue,
-								params.query_max_demands_at_once() ) );
+				return agent_queue_ref_t( new agent_queue_t( m_queue ) );
 			}
 	};
 
 } /* namespace impl */
 
-} /* namespace thread_pool */
+} /* namespace adv_thread_pool */
 
 } /* namespace disp */
 
