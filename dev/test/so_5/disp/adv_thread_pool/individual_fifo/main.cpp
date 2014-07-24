@@ -1,5 +1,5 @@
 /*
- * A for thread_pool dispatcher (individual_fifo mechanism).
+ * A test for adv_thread_pool dispatcher (individual_fifo mechanism).
  */
 
 #include <iostream>
@@ -17,7 +17,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-#include <so_5/disp/thread_pool/h/pub.hpp>
+#include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
 #include <so_5/h/spinlocks.hpp>
 
@@ -135,7 +135,7 @@ class a_shutdowner_t : public so_5::rt::agent_t
 		std::size_t m_working_agents;
 };
 
-const std::size_t cooperation_count = 128; // 1000;
+const std::size_t cooperation_count = 64; // 1000;
 const std::size_t cooperation_size = 128; // 100;
 const std::size_t thread_count = 8;
 
@@ -171,16 +171,15 @@ run_sobjectizer( collector_container_t & collectors )
 
 			std::size_t collector_index = 0;
 
-			so_5::disp::thread_pool::params_t params;
-			params.fifo( so_5::disp::thread_pool::fifo_t::individual );
-			params.max_demands_at_once( 2 );
+			so_5::disp::adv_thread_pool::params_t params;
+			params.fifo( so_5::disp::adv_thread_pool::fifo_t::individual );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
 				auto c = env.create_coop( ss.str(),
-						so_5::disp::thread_pool::create_disp_binder(
+						so_5::disp::adv_thread_pool::create_disp_binder(
 								"thread_pool", params ) );
 				for( std::size_t a = 0; a != cooperation_size;
 						++a, ++collector_index )
@@ -198,7 +197,7 @@ run_sobjectizer( collector_container_t & collectors )
 		{
 			params.add_named_dispatcher(
 					"thread_pool",
-					so_5::disp::thread_pool::create_disp( thread_count ) );
+					so_5::disp::adv_thread_pool::create_disp( thread_count ) );
 		} );
 }
 

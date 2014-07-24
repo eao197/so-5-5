@@ -15,7 +15,7 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
-#include <so_5/disp/thread_pool/h/pub.hpp>
+#include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
 #include <test/so_5/time_limited_execution.hpp>
 
@@ -64,19 +64,19 @@ main( int argc, char * argv[] )
 						env.register_agent_as_coop(
 								"test",
 								new a_test_t( env ),
-								so_5::disp::thread_pool::create_disp_binder(
+								so_5::disp::adv_thread_pool::create_disp_binder(
 										"thread_pool",
-										so_5::disp::thread_pool::params_t() ) );
+										so_5::disp::adv_thread_pool::params_t() ) );
 					},
 					[]( so_5::rt::so_environment_params_t & params )
 					{
 						params.add_named_dispatcher(
 								"thread_pool",
-								so_5::disp::thread_pool::create_disp( 4 ) );
+								so_5::disp::adv_thread_pool::create_disp( 4 ) );
 					} );
 			},
 			5,
-			"simple thread_pool dispatcher test" );
+			"simple adv_thread_pool dispatcher test" );
 	}
 	catch( const std::exception & ex )
 	{
