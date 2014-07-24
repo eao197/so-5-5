@@ -443,7 +443,8 @@ agent_t::create_event_subscription(
 	const mbox_ref_t & mbox_ref,
 	std::type_index type_index,
 	const state_t & target_state,
-	const event_handler_method_t & method )
+	const event_handler_method_t & method,
+	thread_safety_t thread_safety )
 {
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
@@ -455,7 +456,7 @@ agent_t::create_event_subscription(
 		return;
 
 	m_subscriptions->create_event_subscription(
-			mbox_ref, type_index, target_state, method );
+			mbox_ref, type_index, target_state, method, thread_safety );
 }
 
 void
@@ -577,7 +578,7 @@ agent_t::demand_handler_on_message(
 				d.m_msg_type, 
 				d.m_receiver->so_current_state() );
 		if( handler )
-			(*handler)( invocation_type_t::event, d.m_message_ref );
+			handler->m_method( invocation_type_t::event, d.m_message_ref );
 	}
 	catch( const std::exception & x )
 	{
@@ -602,7 +603,8 @@ agent_t::service_request_handler_on_message(
 					d.m_msg_type, 
 					d.m_receiver->so_current_state() );
 			if( handler )
-				(*handler)( invocation_type_t::service_request, d.m_message_ref );
+				handler->m_method(
+						invocation_type_t::service_request, d.m_message_ref );
 			else
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,

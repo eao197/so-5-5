@@ -147,10 +147,12 @@ class subscription_bind_t
 		 * message or signal information via event_data_t object.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
-		void
+		subscription_bind_t &
 		event(
 			//! Event handling method.
-			RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) );
+			RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
 
 		//! Make subscription to the message.
 		/*!
@@ -161,10 +163,12 @@ class subscription_bind_t
 		 * event_data_t wrapper.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
-		void
+		subscription_bind_t &
 		event(
 			//! Event handling method.
-			RESULT (AGENT::*pfn)( const MESSAGE & ) );
+			RESULT (AGENT::*pfn)( const MESSAGE & ),
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
 
 		/*!
 		 * \since v.5.3.0
@@ -173,12 +177,14 @@ class subscription_bind_t
 		 * \note This method supports event-methods for signals only.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
-		void
+		subscription_bind_t &
 		event(
 			//! Signal indicator.
 			signal_indicator_t< MESSAGE >(),
 			//! Event handling method.
-			RESULT (AGENT::*pfn)() );
+			RESULT (AGENT::*pfn)(),
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
 
 		/*!
 		 * \since v.5.3.0
@@ -195,8 +201,12 @@ class subscription_bind_t
 		 * event_data_t wrapper.
 		 */
 		template< class LAMBDA >
-		void
-		event( LAMBDA lambda );
+		subscription_bind_t &
+		event(
+			//! Event handler code.
+			LAMBDA lambda,
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
 
 		/*!
 		 * \since v.5.3.0
@@ -211,12 +221,14 @@ class subscription_bind_t
 		 * \note This method supports event-lambdas for signals only.
 		 */
 		template< class MESSAGE, class LAMBDA >
-		void
+		subscription_bind_t &
 		event(
 			//! Signal indicator.
 			signal_indicator_t< MESSAGE > indicator(),
 			//! Event handling lambda.
-			LAMBDA lambda );
+			LAMBDA lambda,
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
 
 	private:
 		//! Agent to which we are subscribing.
@@ -243,7 +255,8 @@ class subscription_bind_t
 		void
 		create_subscription_for_states(
 			const std::type_index & msg_type,
-			const event_handler_method_t & method ) const;
+			const event_handler_method_t & method,
+			thread_safety_t thread_safety ) const;
 };
 
 //
@@ -1111,7 +1124,9 @@ class SO_5_TYPE agent_t
 			//! State for event.
 			const state_t & target_state,
 			//! Event handler caller.
-			const event_handler_method_t & method );
+			const event_handler_method_t & method,
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety );
 
 		/*!
 		 * \since v.5.2.3
@@ -1493,9 +1508,10 @@ struct result_setter_t< void >
 } /* namespace promise_result_setting_details */
 
 template< class RESULT, class MESSAGE, class AGENT >
-inline void
+inline subscription_bind_t &
 subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
+	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
+	thread_safety_t thread_safety )
 {
 	using namespace event_subscription_helpers;
 
@@ -1534,13 +1550,16 @@ subscription_bind_t::event(
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method );
+	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+
+	return *this;
 }
 
 template< class RESULT, class MESSAGE, class AGENT >
-inline void
+inline subscription_bind_t &
 subscription_bind_t::event(
-	RESULT (AGENT::*pfn)( const MESSAGE & ) )
+	RESULT (AGENT::*pfn)( const MESSAGE & ),
+	thread_safety_t thread_safety )
 {
 	using namespace event_subscription_helpers;
 
@@ -1579,14 +1598,17 @@ subscription_bind_t::event(
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method );
+	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+
+	return *this;
 }
 
 template< class RESULT, class MESSAGE, class AGENT >
-void
+inline subscription_bind_t &
 subscription_bind_t::event(
 	signal_indicator_t< MESSAGE >(),
-	RESULT (AGENT::*pfn)() )
+	RESULT (AGENT::*pfn)(),
+	thread_safety_t thread_safety )
 {
 	ensure_signal< MESSAGE >();
 
@@ -1619,12 +1641,16 @@ subscription_bind_t::event(
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method );
+	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+
+	return *this;
 }
 
 template< class LAMBDA >
-void
-subscription_bind_t::event( LAMBDA lambda )
+inline subscription_bind_t &
+subscription_bind_t::event(
+	LAMBDA lambda,
+	thread_safety_t thread_safety )
 {
 	using namespace event_subscription_helpers;
 	using namespace promise_result_setting_details;
@@ -1662,14 +1688,17 @@ subscription_bind_t::event( LAMBDA lambda )
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method );
+	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+
+	return *this;
 }
 
 template< class MESSAGE, class LAMBDA >
-void
+inline subscription_bind_t &
 subscription_bind_t::event(
 	signal_indicator_t< MESSAGE > indicator(),
-	LAMBDA lambda )
+	LAMBDA lambda,
+	thread_safety_t thread_safety )
 {
 	ensure_signal< MESSAGE >();
 
@@ -1700,13 +1729,16 @@ subscription_bind_t::event(
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method );
+	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+
+	return *this;
 }
 
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
-	const event_handler_method_t & method ) const
+	const event_handler_method_t & method,
+	thread_safety_t thread_safety ) const
 {
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
@@ -1714,14 +1746,16 @@ subscription_bind_t::create_subscription_for_states(
 			m_mbox_ref,
 			msg_type,
 			m_agent.so_default_state(),
-			method );
+			method,
+			thread_safety );
 	else
 		for( auto s : m_states )
 			m_agent.create_event_subscription(
 					m_mbox_ref,
 					msg_type,
 					*s,
-					method );
+					method,
+					thread_safety );
 }
 
 } /* namespace rt */

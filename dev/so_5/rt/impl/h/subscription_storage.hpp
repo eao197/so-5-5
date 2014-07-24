@@ -156,6 +156,27 @@ struct equal_to_t
 
 } /* namespace subscription_details */
 
+//
+// event_handler_data_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief Information about event_handler and its properties.
+ */
+struct event_handler_data_t
+	{
+		//! Method for handling event.
+		event_handler_method_t m_method;
+		//! Is event handler thread safe or not.
+		thread_safety_t m_thread_safety;
+
+		event_handler_data_t(
+			event_handler_method_t method,
+			thread_safety_t thread_safety )
+			:	m_method( std::move( method ) )
+			,	m_thread_safety( thread_safety )
+			{}
+	};
 
 /*!
  * \since v.5.4.0
@@ -190,7 +211,8 @@ class subscription_storage_t
 			const mbox_ref_t & mbox_ref,
 			std::type_index type_index,
 			const state_t & target_state,
-			const event_handler_method_t & method );
+			const event_handler_method_t & method,
+			thread_safety_t thread_safety );
 
 		void
 		drop_subscription(
@@ -203,7 +225,7 @@ class subscription_storage_t
 			const std::type_index & type_index,
 			const mbox_ref_t & mbox_ref );
 
-		const event_handler_method_t *
+		const event_handler_data_t *
 		find_handler(
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
@@ -229,7 +251,7 @@ class subscription_storage_t
 		//! Type of event handlers hash table.
 		typedef std::unordered_map<
 						const subscription_details::key_t *,
-						event_handler_method_t,
+						event_handler_data_t,
 						subscription_details::hash_t,
 						subscription_details::equal_to_t >
 				hash_table_t;
