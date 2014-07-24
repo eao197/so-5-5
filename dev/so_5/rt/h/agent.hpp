@@ -1005,8 +1005,6 @@ class SO_5_TYPE agent_t
 		 */
 		static execution_hint_t
 		so_create_execution_hint(
-			//! ID of working context for the event handler.
-			current_thread_id_t working_thread_id,
 			//! Demand for execution of event handler.
 			execution_demand_t & demand );
 

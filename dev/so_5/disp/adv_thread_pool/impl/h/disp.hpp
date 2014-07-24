@@ -417,8 +417,7 @@ class work_thread_t
 					// worker is working.
 					return;
 
-				auto hint = demand.m_receiver->so_create_execution_hint(
-						m_thread_id, demand );
+				auto hint = demand.m_receiver->so_create_execution_hint( demand );
 
 				bool need_schedule = true;
 				if( !hint.is_thread_safe() )
@@ -443,7 +442,7 @@ class work_thread_t
 					m_disp_queue->schedule( &queue );
 
 				// Processing of event.
-				hint.exec();
+				hint.exec( m_thread_id );
 
 				// Next actions must be done on locked queue.
 				lock.lock();

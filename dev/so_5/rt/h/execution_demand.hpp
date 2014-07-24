@@ -101,7 +101,7 @@ class execution_hint_t
 {
 public :
 	//! Type of function for calling event handler directly.
-	typedef std::function< void() > direct_func_t;
+	typedef std::function< void( current_thread_id_t ) > direct_func_t;
 
 	//! Initializing constructor.
 	execution_hint_t(
@@ -119,9 +119,10 @@ public :
 
 	//! Call event handler directly.
 	void
-	exec() const
+	exec( current_thread_id_t working_thread_id ) const
 		{
-			m_direct_func();
+			m_direct_func( is_thread_safe() ?
+					null_current_thread_id() : working_thread_id );
 		}
 
 	//! Is thread safe handler?

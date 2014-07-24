@@ -78,9 +78,7 @@ UT_UNIT_TEST( no_handlers )
 				message_ref_t(),
 				&agent_t::demand_handler_on_message );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( false, hint );
 	}
@@ -93,9 +91,7 @@ UT_UNIT_TEST( no_handlers )
 				message_ref_t(),
 				&agent_t::service_request_handler_on_message );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 	}
@@ -108,9 +104,7 @@ UT_UNIT_TEST( no_handlers )
 				message_ref_t(),
 				&agent_t::demand_handler_on_start );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 	}
@@ -123,9 +117,7 @@ UT_UNIT_TEST( no_handlers )
 				message_ref_t(),
 				&agent_t::demand_handler_on_finish );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 	}
@@ -155,16 +147,14 @@ UT_UNIT_TEST( event_handler )
 				message_ref_t(),
 				&agent_t::demand_handler_on_message );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 		UT_CHECK_EQ( false, hint.is_thread_safe() );
 
 		UT_CHECK_EQ( false, agent.m_signal_handled );
 
-		hint.exec();
+		hint.exec( query_current_thread_id() );
 
 		UT_CHECK_EQ( true, agent.m_signal_handled );
 	}
@@ -177,16 +167,14 @@ UT_UNIT_TEST( event_handler )
 				message_ref_t(),
 				&agent_t::demand_handler_on_message );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 		UT_CHECK_EQ( true, hint.is_thread_safe() );
 
 		UT_CHECK_EQ( false, agent.m_thread_safe_signal_handled );
 
-		hint.exec();
+		hint.exec( query_current_thread_id() );
 
 		UT_CHECK_EQ( true, agent.m_thread_safe_signal_handled );
 	}
@@ -216,14 +204,12 @@ UT_UNIT_TEST( service_handler )
 				msg,
 				&agent_t::service_request_handler_on_message );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 		UT_CHECK_EQ( true, hint.is_thread_safe() );
 
-		hint.exec();
+		hint.exec( query_current_thread_id() );
 
 		UT_CHECK_THROW( exception_t, f.get() );
 
@@ -248,14 +234,12 @@ UT_UNIT_TEST( service_handler )
 				msg,
 				&agent_t::service_request_handler_on_message );
 
-		auto hint = agent_t::so_create_execution_hint(
-				query_current_thread_id(),
-				demand );
+		auto hint = agent_t::so_create_execution_hint( demand );
 
 		UT_CHECK_EQ( true, hint );
 		UT_CHECK_EQ( false, hint.is_thread_safe() );
 
-		hint.exec();
+		hint.exec( query_current_thread_id() );
 
 		UT_CHECK_EQ( "OK", f.get() );
 		UT_CHECK_EQ( true, agent.m_get_status_handled );

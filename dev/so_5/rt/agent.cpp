@@ -335,7 +335,6 @@ agent_t::so_bind_to_dispatcher(
 
 execution_hint_t
 agent_t::so_create_execution_hint(
-	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
 	const bool is_message_demand = 
@@ -354,9 +353,9 @@ agent_t::so_create_execution_hint(
 				{
 					if( handler )
 						return execution_hint_t(
-								[working_thread_id, &d, handler]() {
+								[&d, handler]( current_thread_id_t thread_id ) {
 									process_message(
-											working_thread_id,
+											thread_id,
 											d,
 											handler->m_method );
 								},
@@ -370,9 +369,9 @@ agent_t::so_create_execution_hint(
 				// because absence of service handler processed by
 				// different way than absence of event handler.
 				return execution_hint_t(
-						[working_thread_id, &d, handler]() {
+						[&d, handler]( current_thread_id_t thread_id ) {
 							process_service_request(
-									working_thread_id,
+									thread_id,
 									d,
 									std::make_pair( true, handler ) );
 						},
@@ -385,8 +384,8 @@ agent_t::so_create_execution_hint(
 	else
 		// This is demand_handler_on_start or demand_handler_on_finish.
 		return execution_hint_t(
-				[working_thread_id, &d]() {
-						d.m_demand_handler( working_thread_id, d );
+				[&d]( current_thread_id_t thread_id ) {
+						d.m_demand_handler( thread_id, d );
 				},
 				not_thread_safe );
 }
