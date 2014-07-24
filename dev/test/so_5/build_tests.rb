@@ -27,9 +27,11 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/disp/thread_pool/individual_fifo/prj.ut.rb" )
 
 	required_prj( "test/so_5/disp/adv_thread_pool/simple/prj.ut.rb" )
+	required_prj( "test/so_5/disp/adv_thread_pool/chstate_in_safe/prj.ut.rb" )
 	required_prj( "test/so_5/disp/adv_thread_pool/chained_svc_call/prj.ut.rb" )
 	required_prj( "test/so_5/disp/adv_thread_pool/cooperation_fifo/prj.ut.rb" )
 	required_prj( "test/so_5/disp/adv_thread_pool/individual_fifo/prj.ut.rb" )
+	required_prj( "test/so_5/disp/adv_thread_pool/unsafe_after_safe/prj.ut.rb" )
 
 	required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
