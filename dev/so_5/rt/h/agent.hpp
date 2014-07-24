@@ -13,6 +13,7 @@
 #include <map>
 #include <memory>
 #include <vector>
+#include <utility>
 #include <type_traits>
 
 #include <so_5/h/declspec.hpp>
@@ -82,6 +83,7 @@ class state_listener_controller_t;
 class mpsc_mbox_t;
 
 class subscription_storage_t;
+class event_handler_data_t;
 
 } /* namespace impl */
 
@@ -991,6 +993,23 @@ class SO_5_TYPE agent_t
 			//! Actual event queue for an agent.
 			event_queue_t & queue );
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief Create execution hint for the specified demand.
+		 *
+		 * The hint returned is intendent for the immediately usage.
+		 * It must not be stored for the long time and used sometime in
+		 * the future. It is because internal state of the agent
+		 * can be changed and some references from hint object to
+		 * agent's internals become invalid.
+		 */
+		static execution_hint_t
+		so_create_execution_hint(
+			//! ID of working context for the event handler.
+			current_thread_id_t working_thread_id,
+			//! Demand for execution of event handler.
+			execution_demand_t & demand );
+
 	private:
 		//! Current agent state.
 		const state_t * m_current_state_ptr;
@@ -1186,6 +1205,9 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
+		// NOTE: demand handlers declared as public to allow
+		// access this handlers from unit-tests.
+	public :
 		/*!
 		 * \name Demand handlers.
 		 * \{
@@ -1225,6 +1247,31 @@ class SO_5_TYPE agent_t
 		/*!
 		 * \}
 		 */
+
+	private :
+		/*!
+		 * \since v.5.4.0
+		 * \brief Actual implementation of message handling.
+		 */
+		static void
+		process_message(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d,
+			const event_handler_method_t & method );
+		/*!
+		 * \since v.5.4.0
+		 * \brief Actual implementation of service request handling.
+		 *
+		 * \note handler_data.first == true only if handler_data.second is an
+		 * actual result of searching handler for the message. If
+		 * handler_data.first == second then it is necessary to search event
+		 * handler for the message.
+		 */
+		static void
+		process_service_request(
+			current_thread_id_t working_thread_id,
+			execution_demand_t & d,
+			std::pair< bool, const impl::event_handler_data_t * > handler_data );
 
 		/*!
 		 * \since v.5.4.0

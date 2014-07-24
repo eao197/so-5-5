@@ -9,6 +9,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 
+	required_prj 'test/so_5/execution_hint/basic_checks/prj.ut.rb'
+
 	required_prj( "test/so_5/timer_thread/single_delayed/prj.ut.rb" )
 	required_prj( "test/so_5/timer_thread/single_periodic/prj.ut.rb" )
 	required_prj( "test/so_5/timer_thread/single_timer_zero_delay/prj.ut.rb" )
