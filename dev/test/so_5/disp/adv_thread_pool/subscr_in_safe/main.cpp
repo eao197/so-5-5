@@ -1,6 +1,6 @@
 /*
- * A test for adv_thread_pool dispatcher: so_change_state
- * must throw exception in thread safe event handlers.
+ * A test for adv_thread_pool dispatcher: subscription
+ * management methods must throw exception in thread safe event handlers.
  */
 
 #include <iostream>
@@ -27,6 +27,37 @@ struct msg_shutdown : public so_5::rt::signal_t {};
 struct msg_safe_signal : public so_5::rt::signal_t {};
 
 struct msg_unsafe_signal : public so_5::rt::signal_t {};
+
+void
+expect_throw(
+	const std::string & description,
+	int error_code,
+	std::function< void() > f )
+{
+	bool exception_thrown = true;
+	try
+	{
+		f();
+		exception_thrown = false;
+	}
+	catch( const so_5::exception_t & x )
+	{
+		if( error_code == x.error_code() )
+			std::cout << description << ", expected exception: "
+				<< x.what() << std::endl;
+		else
+		{
+			std::ostringstream ss;
+			ss << description << " expect exception with error_code("
+				<< error_code << ", but has: " << x.what();
+			throw std::runtime_error( ss.str() );
+		}
+	}
+
+	if( !exception_thrown )
+		throw std::runtime_error(
+				"an exception expected for " + description );
+}
 
 class a_test_t : public so_5::rt::agent_t
 {
@@ -74,20 +105,28 @@ class a_test_t : public so_5::rt::agent_t
 		void
 		evt_safe_signal()
 		{
-			bool exception_thrown = true;
-			try
-			{
-				so_change_state( st_unsafe );
-				exception_thrown = false;
-			}
-			catch( const so_5::exception_t & x )
-			{
-				std::cout << "expected exception: " << x.what() << std::endl;
-			}
+			expect_throw( "so_drop_subscription",
+					so_5::rc_operation_enabled_only_on_agent_working_thread,
+					[this]() {
+						so_drop_subscription( so_direct_mbox(),
+								st_safe,
+								so_5::signal< msg_safe_signal > );
+					} );
 
-			if( !exception_thrown )
-				throw std::runtime_error(
-						"an exception on so_change_state expected" );
+			expect_throw( "so_drop_subscription_for_all_states",
+					so_5::rc_operation_enabled_only_on_agent_working_thread,
+					[this]() {
+						so_drop_subscription_for_all_states( so_direct_mbox(),
+								so_5::signal< msg_safe_signal > );
+					} );
+
+			expect_throw( "so_subscribe",
+					so_5::rc_operation_enabled_only_on_agent_working_thread,
+					[this]() {
+						so_subscribe( so_direct_mbox() )
+								.event( so_5::signal< msg_safe_signal >,
+										&a_test_t::evt_safe_signal );
+					} );
 		}
 
 		void
@@ -133,7 +172,7 @@ main( int argc, char * argv[] )
 				run_sobjectizer();
 			},
 			5,
-			"chstate_in_safe test" );
+			"subscr_in_safe test" );
 	}
 	catch( const std::exception & ex )
 	{
