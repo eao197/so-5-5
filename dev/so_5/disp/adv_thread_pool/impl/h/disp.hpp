@@ -23,6 +23,18 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
+#if 0
+	#define SO_5__CHECK_INVARIANT__(what, data, file, line) \
+	if( !(what) ) { \
+		std::cerr << file << ":" << line << ": FAILED INVARIANT: " << #what << "; data: " << data << std::endl; \
+		std::abort(); \
+	}
+	#define SO_5__CHECK_INVARIANT(what, data) SO_5__CHECK_INVARIANT__(what, data, __FILE__, __LINE__)
+#else
+	#define SO_5__CHECK_INVARIANT(what, data)
+#endif
+
+
 namespace so_5
 {
 
@@ -83,7 +95,7 @@ class dispatcher_queue_t
 						if( !m_active_queues.empty() )
 							{
 								auto r = m_active_queues.front();
-								m_active_queues.pop();
+								m_active_queues.pop_front();
 
 								--m_sleeping_workers;
 
@@ -109,7 +121,7 @@ class dispatcher_queue_t
 
 				bool was_empty = m_active_queues.empty();
 
-				m_active_queues.push( queue );
+				m_active_queues.push_back( queue );
 
 				if( was_empty )
 					m_condition.notify_one();
@@ -127,7 +139,7 @@ class dispatcher_queue_t
 		std::condition_variable m_condition;
 
 		//! Queue object.
-		std::queue< agent_queue_t * > m_active_queues;
+		std::deque< agent_queue_t * > m_active_queues;
 	};
 
 //
@@ -204,11 +216,17 @@ class agent_queue_t
 						{
 							// Queue was empty. Need to detect
 							// necessity of queue activation.
-							if( !is_there_any_worker() )
-								need_schedule = true;
-							else if( !is_there_not_thread_safe_worker() )
-								need_schedule = !m_active;
+							if( !m_active )
+								if( !is_there_not_thread_safe_worker() )
+								{
+									need_schedule = true;
+									m_active = true;
+								}
 						}
+
+					SO_5__CHECK_INVARIANT( !empty(), this )
+					SO_5__CHECK_INVARIANT( m_active || is_there_any_worker(), this )
+					SO_5__CHECK_INVARIANT( !(need_schedule && !m_active), this )
 				}
 
 				if( need_schedule )
@@ -222,6 +240,9 @@ class agent_queue_t
 		so_5::rt::execution_demand_t
 		peek_front()
 			{
+				SO_5__CHECK_INVARIANT( !empty(), this )
+				SO_5__CHECK_INVARIANT( m_active, this )
+
 				m_active = false;
 
 				return m_head.m_next->m_demand;
@@ -238,6 +259,9 @@ class agent_queue_t
 			//! Must be thread_safe_worker or not_thread_safe_worker.
 			unsigned int type_of_worker )
 			{
+				SO_5__CHECK_INVARIANT( !empty(), this );
+				SO_5__CHECK_INVARIANT( !m_active, this );
+
 				delete_head();
 				if( !m_head.m_next )
 					m_tail = &m_head;
@@ -246,7 +270,7 @@ class agent_queue_t
 
 				// Queue must be activated only if queue is not empty
 				// and current worker is a thread safe worker.
-				m_active = ( m_head.m_next &&
+				m_active = ( !empty() &&
 						thread_safe_worker == type_of_worker );
 
 				return m_active;
@@ -265,19 +289,15 @@ class agent_queue_t
 			{
 				m_workers -= type_of_worker;
 
-				if( not_thread_safe_worker == type_of_worker )
-				{
-					// After thread unsafe worker queue must be activated
-					// if it is not empty.
-					m_active = (m_head.m_next != nullptr);
-				}
-				else
-					// After thread safe worker queue must be activated
-					// if it is not empty and is not active already.
-					if( m_head.m_next && !m_active )
-						m_active = true;
+				bool old_active = m_active;
+				if( !m_active )
+					m_active = !empty();
 
-				return m_active;
+				SO_5__CHECK_INVARIANT( !(m_active && empty()), this )
+				SO_5__CHECK_INVARIANT(
+						!old_active || m_active, this );
+
+				return old_active != m_active;
 			}
 
 		//! Check the presence of any worker at the moment.
@@ -293,6 +313,14 @@ class agent_queue_t
 			{
 				return 0 != (m_workers & not_thread_safe_worker );
 			}
+
+		//! Is empty queue?
+		bool
+		empty() const { return nullptr == m_head.m_next; }
+
+		//! Is active queue?
+		bool
+		active() const { return m_active; }
 
 	private :
 		//! Dispatcher queue for scheduling processing of events from
@@ -435,6 +463,11 @@ class work_thread_t
 					need_schedule = queue.worker_started(
 							agent_queue_t::thread_safe_worker );
 
+				SO_5__CHECK_INVARIANT( !(need_schedule && queue.empty()), &queue )
+				SO_5__CHECK_INVARIANT(
+						!need_schedule || hint.is_thread_safe(), &queue );
+				SO_5__CHECK_INVARIANT( !need_schedule || queue.active(), &queue );
+
 				// Next few actions must be done on unlocked queue.
 				lock.unlock();
 
@@ -451,6 +484,9 @@ class work_thread_t
 						hint.is_thread_safe() ?
 								agent_queue_t::thread_safe_worker :
 								agent_queue_t::not_thread_safe_worker );
+
+				SO_5__CHECK_INVARIANT(
+						!need_schedule || queue.active(), &queue );
 
 				lock.unlock();
 
