@@ -298,6 +298,8 @@ int main( int argc, char ** argv )
 						config_t::dispatcher_name,
 						config.m_factories.m_disp_factory() );
 			} );
+
+		return 0;
 	}
 	catch( const std::exception & x )
 	{
