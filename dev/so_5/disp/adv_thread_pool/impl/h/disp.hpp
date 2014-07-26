@@ -24,6 +24,8 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
+#include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
+
 #if 0
 	#define SO_5__CHECK_INVARIANT__(what, data, file, line) \
 	if( !(what) ) { \
@@ -52,148 +54,10 @@ using spinlock_t = so_5::default_spinlock_t;
 
 class agent_queue_t;
 
-class heavy_waiting_object_t
-	{
-		heavy_waiting_object_t( const heavy_waiting_object_t & ) = delete;
-
-		heavy_waiting_object_t &
-		operator()( const heavy_waiting_object_t & ) = delete;
-
-	public :
-		heavy_waiting_object_t()
-			{}
-
-		std::mutex &
-		lock()
-			{
-				return m_mutex;
-			}
-
-		void
-		wait( std::unique_lock< std::mutex > & l )
-			{
-				m_condition.wait( l );
-			}
-
-		void
-		lock_and_notify()
-			{
-				std::lock_guard< std::mutex > l( m_mutex );
-				m_condition.notify_one();
-			}
-
-	private :
-		std::mutex m_mutex;
-		std::condition_variable m_condition;
-	};
-
 //
 // dispatcher_queue_t
 //
-/*!
- * \since v.5.4.0
- * \brief A queue of active agent's queues for the whole dispatcher.
- */
-class dispatcher_queue_t
-	{
-	public :
-		dispatcher_queue_t()
-			:	m_shutdown( false )
-			{
-			}
-
-		//! Initiate shutdown for working threads.
-		void
-		shutdown()
-			{
-				std::lock_guard< spinlock_t > lock( m_lock );
-
-				m_shutdown = true;
-
-				while( !m_waiting_threads.empty() )
-					pop_and_notify_one_waiting_thread();
-			}
-
-		//! Get next active queue.
-		/*!
-		 * \retval nullptr is the case of dispatcher shutdown.
-		 */
-		agent_queue_t *
-		pop( heavy_waiting_object_t & wt_alarm )
-			{
-				using hrc = std::chrono::high_resolution_clock;
-				auto spin_stop_point = hrc::now() +
-						std::chrono::microseconds( 500 );
-				do
-					{
-						std::unique_lock< spinlock_t > lock( m_lock );
-
-						if( m_shutdown )
-							break;
-
-						if( !m_active_queues.empty() )
-							{
-								auto r = m_active_queues.front();
-								m_active_queues.pop_front();
-								return r;
-							}
-
-						if( spin_stop_point <= hrc::now() )
-							{
-								// Spin loop must be finished.
-								// Next waiting must be on heavy waiting object.
-								m_waiting_threads.push_back( &wt_alarm );
-
-								std::unique_lock< std::mutex > wt_lock( wt_alarm.lock() );
-								lock.unlock();
-								wt_alarm.wait( wt_lock );
-							}
-						else
-							{
-								// Spin loop must be continued.
-								lock.unlock();
-								std::this_thread::yield();
-							}
-					}
-				while( true );
-
-				return nullptr;
-			}
-
-		//! Schedule execution of demands from the queue.
-		void
-		schedule( agent_queue_t * queue )
-			{
-				std::lock_guard< spinlock_t > lock( m_lock );
-
-				m_active_queues.push_back( queue );
-
-				if( !m_waiting_threads.empty() )
-					pop_and_notify_one_waiting_thread();
-			}
-
-	private :
-		//! Object's lock.
-		spinlock_t m_lock;
-
-		//! Shutdown flag.
-		bool	m_shutdown;
-
-		//! Queue object.
-		std::deque< agent_queue_t * > m_active_queues;
-
-		//! Waiting threads.
-		std::deque< heavy_waiting_object_t * > m_waiting_threads;
-
-		void
-		pop_and_notify_one_waiting_thread()
-			{
-				heavy_waiting_object_t * wt_alarm = m_waiting_threads.front();
-				m_waiting_threads.pop_front();
-
-				wt_alarm->lock_and_notify();
-			}
-	};
+using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
 
 //
 // agent_queue_t
@@ -470,7 +334,7 @@ class work_thread_t
 		std::thread m_thread;
 
 		//! Thread alarm for long waiting.
-		heavy_waiting_object_t m_waiting_object;
+		dispatcher_queue_t::waiting_object_t m_waiting_object;
 
 		//! Thread body method.
 		void
