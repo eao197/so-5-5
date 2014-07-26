@@ -16,8 +16,15 @@
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 #include <so_5/disp/thread_pool/h/pub.hpp>
+#include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
 #include <test/so_5/bench/benchmark_helpers.hpp>
+
+enum class dispatcher_t
+	{
+		thread_pool,
+		adv_thread_pool
+	};
 
 struct cfg_t
 	{
@@ -27,6 +34,7 @@ struct cfg_t
 		std::size_t m_demands_at_once = 0;
 		std::size_t m_threads = 0;
 		bool m_individual_fifo = false;
+		dispatcher_t m_dispatcher = dispatcher_t::thread_pool;
 	};
 
 std::size_t
@@ -51,7 +59,7 @@ try_parse_cmdline(
 	int argc,
 	char ** argv )
 {
-	ACE_Get_Opt opt( argc, argv, ":c:a:m:d:t:ih" );
+	ACE_Get_Opt opt( argc, argv, ":c:a:m:d:t:iPh" );
 	if( -1 == opt.long_option(
 			"cooperations", 'c', ACE_Get_Opt::ARG_REQUIRED ) )
 		throw std::runtime_error( "Unable to set long option 'cooperations'"  );
@@ -69,6 +77,9 @@ try_parse_cmdline(
 		throw std::runtime_error( "Unable to set long option 'threads'" );
 	if( -1 == opt.long_option(
 			"individual-fifo", 'i', ACE_Get_Opt::NO_ARG ) )
+		throw std::runtime_error( "Unable to set long option 'individual-fifo'" );
+	if( -1 == opt.long_option(
+			"adv-thread-pool", 'P', ACE_Get_Opt::NO_ARG ) )
 		throw std::runtime_error( "Unable to set long option 'individual-fifo'" );
 	if( -1 == opt.long_option(
 			"help", 'h', ACE_Get_Opt::NO_ARG ) )
@@ -91,6 +102,7 @@ try_parse_cmdline(
 							"-d, --demands-at-once  count consequently processed demands\n"
 							"-t, --threads          size of thread pool\n"
 							"-i, --individual-fifo  use individual FIFO for agents\n"
+							"-P, --adv-thread-pool  use adv_thread_pool dispatcher\n"
 							"-h, --help             show this description\n"
 							<< std::endl;
 					std::exit(1);
@@ -118,6 +130,10 @@ try_parse_cmdline(
 
 				case 'i' :
 					tmp_cfg.m_individual_fifo = true;
+				break;
+
+				case 'P' :
+					tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
 				break;
 
 				case ':' :
@@ -233,6 +249,8 @@ class a_contoller_t : public so_5::rt::agent_t
 				m_benchmarker.finish_and_show_stats(
 						total_messages( m_cfg ), "messages" );
 
+				m_shutdown_duration.reset( new duration_meter_t( "shutdown" ) );
+
 				so_environment().stop();
 			}
 		}
@@ -245,25 +263,21 @@ class a_contoller_t : public so_5::rt::agent_t
 
 		benchmarker_t m_benchmarker;
 
+		std::unique_ptr< duration_meter_t > m_shutdown_duration;
+
 		void
 		create_cooperations()
 		{
 			duration_meter_t duration( "creating cooperations" );
-
-			so_5::disp::thread_pool::params_t params;
-			if( m_cfg.m_individual_fifo )
-				params.fifo( so_5::disp::thread_pool::fifo_t::individual );
-			if( m_cfg.m_demands_at_once )
-				params.max_demands_at_once( m_cfg.m_demands_at_once );
 
 			for( std::size_t i = 0; i != m_cfg.m_cooperations; ++i )
 			{
 				std::ostringstream ss;
 				ss << "coop_" << i;
 
-				auto c = so_environment().create_coop( ss.str(),
-						so_5::disp::thread_pool::create_disp_binder(
-								"thread_pool", params ) );
+				auto c = so_environment().create_coop( ss.str(), create_binder() );
+				c->set_parent_coop_name( so_coop_name() );
+
 				for( std::size_t a = 0; a != m_cfg.m_agents; ++a )
 				{
 					c->add_agent(
@@ -273,6 +287,29 @@ class a_contoller_t : public so_5::rt::agent_t
 									m_cfg.m_messages ) );
 				}
 				so_environment().register_coop( std::move( c ) );
+			}
+		}
+
+		so_5::rt::disp_binder_unique_ptr_t
+		create_binder() const
+		{
+			if( dispatcher_t::thread_pool == m_cfg.m_dispatcher )
+			{
+				using namespace so_5::disp::thread_pool;
+				params_t params;
+				if( m_cfg.m_individual_fifo )
+					params.fifo( fifo_t::individual );
+				if( m_cfg.m_demands_at_once )
+					params.max_demands_at_once( m_cfg.m_demands_at_once );
+				return create_disp_binder( "thread_pool", params );
+			}
+			else
+			{
+				using namespace so_5::disp::adv_thread_pool;
+				params_t params;
+				if( m_cfg.m_individual_fifo )
+					params.fifo( fifo_t::individual );
+				return create_disp_binder( "thread_pool", params );
 			}
 		}
 };
@@ -294,13 +331,23 @@ show_cfg( const cfg_t & cfg )
 			<< ", agents in coop: " << cfg.m_agents
 			<< ", msg per agent: " << cfg.m_messages
 			<< ", total msgs: " << total_messages( cfg )
-			<< "\n*** demands_at_once: ";
-	if( cfg.m_demands_at_once )
-		std::cout << cfg.m_demands_at_once;
-	else
-		std::cout << "default ("
-			<< so_5::disp::thread_pool::params_t().query_max_demands_at_once()
-			<< ")";
+			<< std::endl;
+
+	std::cout << "\n" "dispatcher: "
+			<< (dispatcher_t::thread_pool == cfg.m_dispatcher ?
+					"thread_pool" : "adv_thread_pool")
+			<< std::endl;
+
+	if( dispatcher_t::thread_pool == cfg.m_dispatcher ) 
+	{
+		std::cout << "\n*** demands_at_once: ";
+		if( cfg.m_demands_at_once )
+			std::cout << cfg.m_demands_at_once;
+		else
+			std::cout << "default ("
+				<< so_5::disp::thread_pool::params_t().query_max_demands_at_once()
+				<< ")";
+	}
 
 	std::cout << "\n*** threads in pool: ";
 	if( cfg.m_threads )
@@ -326,6 +373,18 @@ show_cfg( const cfg_t & cfg )
 	std::cout << std::endl;
 }
 
+so_5::rt::dispatcher_unique_ptr_t
+create_dispatcher( const cfg_t & cfg )
+{
+	const auto threads = cfg.m_threads ?
+			cfg.m_threads : default_thread_pool_size();
+
+	if( dispatcher_t::adv_thread_pool == cfg.m_dispatcher )
+		return so_5::disp::adv_thread_pool::create_disp( threads );
+
+	return so_5::disp::thread_pool::create_disp( threads );
+}
+
 int
 main( int argc, char ** argv )
 {
@@ -344,10 +403,7 @@ main( int argc, char ** argv )
 			{
 				params.add_named_dispatcher(
 					"thread_pool",
-					so_5::disp::thread_pool::create_disp(
-							cfg.m_threads ?
-								cfg.m_threads :
-								default_thread_pool_size() ) );
+					create_dispatcher( cfg ) );
 			});
 	}
 	catch( const std::exception & ex )
