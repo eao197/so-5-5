@@ -78,4 +78,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/bench/change_state/prj.rb" )
 	required_prj( "test/so_5/bench/many_mboxes/prj.rb" )
 	required_prj( "test/so_5/bench/thread_pool_disp/prj.rb" )
+	required_prj( "test/so_5/bench/no_workload/prj.rb" )
 }

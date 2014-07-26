@@ -18,13 +18,13 @@
 #include <iostream>
 #include <forward_list>
 
-#include <so_5/disp/reuse/locks/h/locks.hpp>
+#include <so_5/h/spinlocks.hpp>
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
-#if 1
+#if 0
 	#define SO_5__CHECK_INVARIANT__(what, data, file, line) \
 	if( !(what) ) { \
 		std::cerr << file << ":" << line << ": FAILED INVARIANT: " << #what << "; data: " << data << std::endl; \
@@ -50,9 +50,42 @@ namespace impl
 
 using spinlock_t = so_5::default_spinlock_t;
 
-using namespace so_5::disp::reuse::locks;
-
 class agent_queue_t;
+
+class heavy_waiting_object_t
+	{
+		heavy_waiting_object_t( const heavy_waiting_object_t & ) = delete;
+
+		heavy_waiting_object_t &
+		operator()( const heavy_waiting_object_t & ) = delete;
+
+	public :
+		heavy_waiting_object_t()
+			{}
+
+		std::mutex &
+		lock()
+			{
+				return m_mutex;
+			}
+
+		void
+		wait( std::unique_lock< std::mutex > & l )
+			{
+				m_condition.wait( l );
+			}
+
+		void
+		lock_and_notify()
+			{
+				std::lock_guard< std::mutex > l( m_mutex );
+				m_condition.notify_one();
+			}
+
+	private :
+		std::mutex m_mutex;
+		std::condition_variable m_condition;
+	};
 
 //
 // dispatcher_queue_t
@@ -78,9 +111,7 @@ class dispatcher_queue_t
 				m_shutdown = true;
 
 				while( !m_waiting_threads.empty() )
-					{
-						pop_and_notify_one_working_thread();
-					}
+					pop_and_notify_one_waiting_thread();
 			}
 
 		//! Get next active queue.
@@ -88,8 +119,11 @@ class dispatcher_queue_t
 		 * \retval nullptr is the case of dispatcher shutdown.
 		 */
 		agent_queue_t *
-		pop( combined_queue_lock_t & wt_lock )
+		pop( heavy_waiting_object_t & wt_alarm )
 			{
+				using hrc = std::chrono::high_resolution_clock;
+				auto spin_stop_point = hrc::now() +
+						std::chrono::microseconds( 500 );
 				do
 					{
 						std::unique_lock< spinlock_t > lock( m_lock );
@@ -104,15 +138,22 @@ class dispatcher_queue_t
 								return r;
 							}
 
-						// There is no active agent_queues. We must wait
-						// while someone notifies us about new agent_queue
-						// or shutdown.
-						combined_queue_unique_lock_t wt_lock_guard( wt_lock );
-						m_waiting_threads.push_front( &wt_lock );
+						if( spin_stop_point <= hrc::now() )
+							{
+								// Spin loop must be finished.
+								// Next waiting must be on heavy waiting object.
+								m_waiting_threads.push_back( &wt_alarm );
 
-						lock.unlock();
-
-						wt_lock_guard.wait_for_notify();
+								std::unique_lock< std::mutex > wt_lock( wt_alarm.lock() );
+								lock.unlock();
+								wt_alarm.wait( wt_lock );
+							}
+						else
+							{
+								// Spin loop must be continued.
+								lock.unlock();
+								std::this_thread::yield();
+							}
 					}
 				while( true );
 
@@ -125,43 +166,32 @@ class dispatcher_queue_t
 			{
 				std::lock_guard< spinlock_t > lock( m_lock );
 
-				bool was_empty = m_active_queues.empty();
-
 				m_active_queues.push_back( queue );
 
-				// There is a possibillity that no one of working threads
-				// entered pop() method before the first call to schedule.
-				if( /*was_empty &&*/ !m_waiting_threads.empty() )
-					{
-						pop_and_notify_one_working_thread();
-					}
+				if( !m_waiting_threads.empty() )
+					pop_and_notify_one_waiting_thread();
 			}
 
 	private :
-		//! Shutdown flag.
-		bool	m_shutdown;
-
 		//! Object's lock.
 		spinlock_t m_lock;
 
-		//! List of waiting threads.
-		std::forward_list< combined_queue_lock_t * > m_waiting_threads;
+		//! Shutdown flag.
+		bool	m_shutdown;
 
 		//! Queue object.
 		std::deque< agent_queue_t * > m_active_queues;
 
-		//! Helper method for poping up and notifying one of
-		//! sleeping working threads.
-		void
-		pop_and_notify_one_working_thread()
-			{
-				SO_5__CHECK_INVARIANT( !m_waiting_threads.empty(), this );
+		//! Waiting threads.
+		std::deque< heavy_waiting_object_t * > m_waiting_threads;
 
-				combined_queue_lock_t * wt_lock = m_waiting_threads.front();
+		void
+		pop_and_notify_one_waiting_thread()
+			{
+				heavy_waiting_object_t * wt_alarm = m_waiting_threads.front();
 				m_waiting_threads.pop_front();
 
-				combined_queue_lock_guard_t wt_lock_guard( *wt_lock );
-				wt_lock_guard.notify_one();
+				wt_alarm->lock_and_notify();
 			}
 	};
 
@@ -439,8 +469,8 @@ class work_thread_t
 		//! Actual thread.
 		std::thread m_thread;
 
-		//! Combined lock for thread notification after sleeping period.
-		combined_queue_lock_t m_combined_lock;
+		//! Thread alarm for long waiting.
+		heavy_waiting_object_t m_waiting_object;
 
 		//! Thread body method.
 		void
@@ -450,7 +480,7 @@ class work_thread_t
 
 				agent_queue_t * agent_queue;
 				while( nullptr !=
-						(agent_queue = m_disp_queue->pop( m_combined_lock )) )
+						(agent_queue = m_disp_queue->pop( m_waiting_object )) )
 					{
 						// This guard is necessary to ensure that queue
 						// will exist until processing of queue finished.
