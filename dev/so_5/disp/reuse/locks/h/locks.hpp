@@ -141,8 +141,8 @@ class combined_queue_lock_t
 		std::mutex m_mutex;
 		std::condition_variable m_condition;
 
-		std::uint_fast32_t m_waiting;
-		std::uint_fast32_t m_signaled;
+		bool m_waiting;
+		bool m_signaled;
 	};
 
 //

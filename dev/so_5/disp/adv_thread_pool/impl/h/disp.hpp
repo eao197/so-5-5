@@ -16,6 +16,7 @@
 #include <memory>
 #include <map>
 #include <iostream>
+#include <forward_list>
 
 #include <so_5/disp/reuse/locks/h/locks.hpp>
 
@@ -23,7 +24,7 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/atomic_refcounted.hpp>
 
-#if 0
+#if 1
 	#define SO_5__CHECK_INVARIANT__(what, data, file, line) \
 	if( !(what) ) { \
 		std::cerr << file << ":" << line << ": FAILED INVARIANT: " << #what << "; data: " << data << std::endl; \
@@ -49,6 +50,8 @@ namespace impl
 
 using spinlock_t = so_5::default_spinlock_t;
 
+using namespace so_5::disp::reuse::locks;
+
 class agent_queue_t;
 
 //
@@ -63,7 +66,6 @@ class dispatcher_queue_t
 	public :
 		dispatcher_queue_t()
 			:	m_shutdown( false )
-			,	m_sleeping_workers( 0 )
 			{
 			}
 
@@ -71,12 +73,14 @@ class dispatcher_queue_t
 		void
 		shutdown()
 			{
-				std::lock_guard< std::mutex > lock( m_lock );
+				std::lock_guard< spinlock_t > lock( m_lock );
 
 				m_shutdown = true;
 
-				if( m_active_queues.empty() )
-					m_condition.notify_all();
+				while( !m_waiting_threads.empty() )
+					{
+						pop_and_notify_one_working_thread();
+					}
 			}
 
 		//! Get next active queue.
@@ -84,11 +88,12 @@ class dispatcher_queue_t
 		 * \retval nullptr is the case of dispatcher shutdown.
 		 */
 		agent_queue_t *
-		pop()
+		pop( combined_queue_lock_t & wt_lock )
 			{
-				std::unique_lock< std::mutex > lock( m_lock );
-				while( true )
+				do
 					{
+						std::unique_lock< spinlock_t > lock( m_lock );
+
 						if( m_shutdown )
 							break;
 
@@ -96,19 +101,20 @@ class dispatcher_queue_t
 							{
 								auto r = m_active_queues.front();
 								m_active_queues.pop_front();
-
-								--m_sleeping_workers;
-
-								if( m_sleeping_workers && !m_active_queues.empty() )
-									// Another worker must be awakened.
-									m_condition.notify_one();
-
 								return r;
 							}
 
-						++m_sleeping_workers;
-						m_condition.wait( lock );
+						// There is no active agent_queues. We must wait
+						// while someone notifies us about new agent_queue
+						// or shutdown.
+						combined_queue_unique_lock_t wt_lock_guard( wt_lock );
+						m_waiting_threads.push_front( &wt_lock );
+
+						lock.unlock();
+
+						wt_lock_guard.wait_for_notify();
 					}
+				while( true );
 
 				return nullptr;
 			}
@@ -117,29 +123,46 @@ class dispatcher_queue_t
 		void
 		schedule( agent_queue_t * queue )
 			{
-				std::lock_guard< std::mutex > lock( m_lock );
+				std::lock_guard< spinlock_t > lock( m_lock );
 
 				bool was_empty = m_active_queues.empty();
 
 				m_active_queues.push_back( queue );
 
-				if( was_empty )
-					m_condition.notify_one();
+				// There is a possibillity that no one of working threads
+				// entered pop() method before the first call to schedule.
+				if( /*was_empty &&*/ !m_waiting_threads.empty() )
+					{
+						pop_and_notify_one_working_thread();
+					}
 			}
 
 	private :
 		//! Shutdown flag.
 		bool	m_shutdown;
 
-		//! Count of sleeping workers.
-		unsigned int m_sleeping_workers;
-
 		//! Object's lock.
-		std::mutex m_lock;
-		std::condition_variable m_condition;
+		spinlock_t m_lock;
+
+		//! List of waiting threads.
+		std::forward_list< combined_queue_lock_t * > m_waiting_threads;
 
 		//! Queue object.
 		std::deque< agent_queue_t * > m_active_queues;
+
+		//! Helper method for poping up and notifying one of
+		//! sleeping working threads.
+		void
+		pop_and_notify_one_working_thread()
+			{
+				SO_5__CHECK_INVARIANT( !m_waiting_threads.empty(), this );
+
+				combined_queue_lock_t * wt_lock = m_waiting_threads.front();
+				m_waiting_threads.pop_front();
+
+				combined_queue_lock_guard_t wt_lock_guard( *wt_lock );
+				wt_lock_guard.notify_one();
+			}
 	};
 
 //
@@ -416,6 +439,9 @@ class work_thread_t
 		//! Actual thread.
 		std::thread m_thread;
 
+		//! Combined lock for thread notification after sleeping period.
+		combined_queue_lock_t m_combined_lock;
+
 		//! Thread body method.
 		void
 		body()
@@ -423,7 +449,8 @@ class work_thread_t
 				m_thread_id = so_5::query_current_thread_id();
 
 				agent_queue_t * agent_queue;
-				while( nullptr != (agent_queue = m_disp_queue->pop()) )
+				while( nullptr !=
+						(agent_queue = m_disp_queue->pop( m_combined_lock )) )
 					{
 						// This guard is necessary to ensure that queue
 						// will exist until processing of queue finished.
