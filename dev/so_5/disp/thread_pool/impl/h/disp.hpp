@@ -17,10 +17,10 @@
 #include <map>
 #include <iostream>
 
-#include <so_5/disp/reuse/locks/h/locks.hpp>
-
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
+
+#include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 
 namespace so_5
 {
@@ -41,93 +41,7 @@ class agent_queue_t;
 //
 // dispatcher_queue_t
 //
-/*!
- * \since v.5.4.0
- * \brief A queue of active agent's queues for the whole dispatcher.
- */
-class dispatcher_queue_t
-	{
-	public :
-		dispatcher_queue_t()
-			:	m_shutdown( false )
-			,	m_sleeping_workers( 0 )
-			{
-			}
-
-		//! Initiate shutdown for working threads.
-		void
-		shutdown()
-			{
-				std::lock_guard< std::mutex > lock( m_lock );
-
-				m_shutdown = true;
-
-				if( m_active_queues.empty() )
-					m_condition.notify_all();
-			}
-
-		//! Get next active queue.
-		/*!
-		 * \retval nullptr is the case of dispatcher shutdown.
-		 */
-		agent_queue_t *
-		pop()
-			{
-				std::unique_lock< std::mutex > lock( m_lock );
-				while( true )
-					{
-						if( m_shutdown )
-							break;
-
-						if( !m_active_queues.empty() )
-							{
-								auto r = m_active_queues.front();
-								m_active_queues.pop();
-
-								--m_sleeping_workers;
-
-								if( m_sleeping_workers && !m_active_queues.empty() )
-									// Another worker must be awakened.
-									m_condition.notify_one();
-
-								return r;
-							}
-
-						++m_sleeping_workers;
-						m_condition.wait( lock );
-					}
-
-				return nullptr;
-			}
-
-		//! Schedule execution of demands from the queue.
-		void
-		schedule( agent_queue_t * queue )
-			{
-				std::lock_guard< std::mutex > lock( m_lock );
-
-				bool was_empty = m_active_queues.empty();
-
-				m_active_queues.push( queue );
-
-				if( was_empty )
-					m_condition.notify_one();
-			}
-
-	private :
-		//! Shutdown flag.
-		bool	m_shutdown;
-
-		//! Count of sleeping workers.
-		unsigned int m_sleeping_workers;
-
-		//! Object's lock.
-		std::mutex m_lock;
-		std::condition_variable m_condition;
-
-		//! Queue object.
-		std::queue< agent_queue_t * > m_active_queues;
-	};
+using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
 
 //
 // agent_queue_t
@@ -305,11 +219,6 @@ typedef std::shared_ptr< agent_queue_t > agent_queue_shptr_t;
 class work_thread_t
 	{
 	public :
-		//! Default constructor.
-		work_thread_t()
-			:	m_disp_queue( nullptr )
-			{}
-
 		//! Initializing constructor.
 		/*!
 		 * Automatically starts work thread.
@@ -317,31 +226,6 @@ class work_thread_t
 		work_thread_t( dispatcher_queue_t & queue )
 			:	m_disp_queue( &queue )
 			{
-			}
-
-		//! Move constructor.
-		work_thread_t( work_thread_t && o )
-			:	m_disp_queue( o.m_disp_queue )
-			,	m_thread_id( o.m_thread_id )
-			,	m_thread( std::move( o.m_thread ) )
-			{}
-
-		//! Move operator.
-		work_thread_t &
-		operator=( work_thread_t && o )
-			{
-				work_thread_t tmp( std::move( o ) );
-				tmp.swap( *this );
-				return *this;
-			}
-
-		//! Swap operation.
-		void
-		swap( work_thread_t & o )
-			{
-				std::swap( m_disp_queue, o.m_disp_queue );
-				std::swap( m_thread_id, o.m_thread_id );
-				std::swap( m_thread, o.m_thread );
 			}
 
 		void
@@ -370,6 +254,9 @@ class work_thread_t
 		//! Actual thread.
 		std::thread m_thread;
 
+		//! Waiting object for long wait.
+		dispatcher_queue_t::waiting_object_t m_waiting_object;
+
 		//! Thread body method.
 		void
 		body()
@@ -377,7 +264,8 @@ class work_thread_t
 				m_thread_id = so_5::query_current_thread_id();
 
 				agent_queue_t * agent_queue;
-				while( nullptr != (agent_queue = m_disp_queue->pop()) )
+				while( nullptr !=
+						(agent_queue = m_disp_queue->pop( m_waiting_object )) )
 					{
 						process_queue( *agent_queue );
 					}
@@ -475,16 +363,17 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			:	m_thread_count( thread_count )
 			{
 				m_threads.reserve( thread_count );
+
+				for( std::size_t i = 0; i != m_thread_count; ++i )
+					m_threads.emplace_back( std::unique_ptr< work_thread_t >(
+								new work_thread_t( m_queue ) ) );
 			}
 
 		virtual void
 		start()
 			{
-				for( std::size_t i = 0; i != m_thread_count; ++i )
-					m_threads.emplace_back( work_thread_t( m_queue ) );
-
 				for( auto & t : m_threads )
-					t.start();
+					t->start();
 			}
 
 		virtual void
@@ -497,7 +386,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		wait()
 			{
 				for( auto & t : m_threads )
-					t.join();
+					t->join();
 			}
 
 		//! Bind agent to the dispatcher.
@@ -557,7 +446,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		const std::size_t m_thread_count;
 
 		//! Pool of work threads.
-		std::vector< work_thread_t > m_threads;
+		std::vector< std::unique_ptr< work_thread_t > > m_threads;
 
 		//! Object's lock.
 		spinlock_t m_lock;

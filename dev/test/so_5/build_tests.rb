@@ -22,9 +22,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/disp/binder/bind_to_disp_error_disp_type_mismatch/prj.ut.rb" )
 	required_prj( "test/so_5/disp/binder/correct_unbind_after_throw_on_bind/prj.ut.rb" )
 
-	required_prj( "test/so_5/disp/thread_pool/simple/prj.ut.rb" )
-	required_prj( "test/so_5/disp/thread_pool/cooperation_fifo/prj.ut.rb" )
-	required_prj( "test/so_5/disp/thread_pool/individual_fifo/prj.ut.rb" )
+	required_prj( "test/so_5/disp/thread_pool/build_tests.rb" )
 
 	required_prj( "test/so_5/disp/adv_thread_pool/build_tests.rb" )
 
