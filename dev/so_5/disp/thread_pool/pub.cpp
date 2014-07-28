@@ -17,6 +17,8 @@
 #include <so_5/rt/h/disp_binder.hpp>
 #include <so_5/rt/h/so_environment.hpp>
 
+#include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
+
 namespace so_5
 {
 
@@ -103,6 +105,8 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 			so_environment_t & env,
 			agent_ref_t agent )
 			{
+				using namespace so_5::disp::reuse;
+
 				return do_with_dispatcher< disp_binding_activator_t, dispatcher_t >(
 					env,
 					m_disp_name,
@@ -121,6 +125,8 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 			so_environment_t & env,
 			agent_ref_t agent )
 			{
+				using namespace so_5::disp::reuse;
+
 				do_with_dispatcher< void, dispatcher_t >( env, m_disp_name,
 					[this, agent]( dispatcher_t & disp )
 					{

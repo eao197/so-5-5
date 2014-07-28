@@ -8,6 +8,8 @@
 #include <so_5/h/exception.hpp>
 #include <so_5/rt/h/agent.hpp>
 
+#include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
+
 namespace so_5
 {
 
@@ -39,6 +41,7 @@ disp_binder_t::bind_agent(
 	so_5::rt::agent_ref_t agent_ref )
 {
 	using so_5::rt::disp_binding_activator_t;
+	using namespace so_5::disp::reuse;
 
 	return do_with_dispatcher< disp_binding_activator_t, dispatcher_t >(
 		env,
@@ -70,6 +73,8 @@ disp_binder_t::unbind_agent(
 	so_5::rt::so_environment_t & env,
 	so_5::rt::agent_ref_t agent_ref )
 {
+	using namespace so_5::disp::reuse;
+
 	do_with_dispatcher< void, dispatcher_t >( env, m_disp_name,
 		[this]( dispatcher_t & disp )
 		{
