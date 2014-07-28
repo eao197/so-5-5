@@ -110,17 +110,10 @@ private:
 	void operator = (mpmc_bounded_queue const&);
 }; 
 
-struct delta_t
-{
-	std::size_t m_delta;
-};
-
 struct demand_t
 {
-	bool m_need_shutdown = false;
-	delta_t * m_delta = nullptr;
 	std::size_t m_processed = 0;
-	char cache__[ 64 - sizeof(std::size_t) - sizeof(bool) - sizeof(delta_t*) ];
+	char cache__[ 64 - sizeof(std::size_t) ];
 };
 
 using queue_t = mpmc_bounded_queue< demand_t * >;
@@ -131,16 +124,10 @@ void
 thread_body( queue_t * queue )
 {
 	demand_t * ptr;
-	while( true )
+	while( !shutdown.load( std::memory_order_acquire ) )
 		if( queue->dequeue( ptr ) )
 		{
-			if( ptr->m_need_shutdown )
-				return;
-
-			ptr->m_processed += ptr->m_delta->m_delta;
-			delete ptr->m_delta;
-			ptr->m_delta = new delta_t{ 1 };
-
+			ptr->m_processed += 1;
 			queue->enqueue( ptr );
 		}
 }
@@ -151,7 +138,6 @@ do_test( unsigned int test_time_seconds, unsigned int thread_count )
 	queue_t queue { 128 };
 
 	std::vector< demand_t > demands( thread_count, demand_t() );
-	std::vector< demand_t > shutdown_demands( thread_count, demand_t() );
 
 	std::vector< std::thread > threads;
 	threads.reserve( thread_count );
@@ -162,17 +148,11 @@ do_test( unsigned int test_time_seconds, unsigned int thread_count )
 	benchmarker.start();
 
 	for( auto & d : demands )
-	{
-		d.m_delta = new delta_t { 1 };
 		queue.enqueue( &d );
-	}
 
 	std::this_thread::sleep_for( std::chrono::seconds( test_time_seconds ) );
-	for( auto & sd : shutdown_demands )
-	{
-		sd.m_need_shutdown = true;
-		queue.enqueue( &sd );
-	}
+
+	shutdown.store( true, std::memory_order_release );
 
 	for( auto & t : threads )
 		t.join();
