@@ -258,12 +258,22 @@ class a_sender_t
 						for( auto & m : m_mboxes )
 							m->deliver_signal< SIGNAL >();
 
-						so_direct_mbox()->deliver_signal< msg_next_iteration >();
+						initiate_next_iteration();
 
 						--m_iterations_left;
 					}
 				else
 					m_common_mbox->deliver_signal< msg_shutdown >();
+			}
+
+		// This method with this strange implementation
+		// is necessary because of strange compilation
+		// error under GCC 4.9.0.
+		void
+		initiate_next_iteration()
+			{
+				so_5::rt::mbox_t & m = *(so_direct_mbox());
+				m.deliver_signal< msg_next_iteration >();
 			}
 	};
 
