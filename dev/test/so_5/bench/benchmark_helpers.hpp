@@ -40,8 +40,8 @@ class benchmarker_t
 				std::cout.precision( 10 );
 				std::cout << title << ": " << events
 						<< ", total_time: " << duration << "s"
-						<< ", price: " << price << "s"
-						<< ", throughtput: " << throughtput << " " << title << "/s"
+						<< "\n""price: " << price << "s"
+						<< "\n""throughtput: " << throughtput << " " << title << "/s"
 						<< std::endl;
 			}
 
