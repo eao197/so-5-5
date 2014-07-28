@@ -4,6 +4,18 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	Two new dispatchers: so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
+	The dispatcher adv_thread_pool can use event handler thread safety
+	information for launching several thread-safe event handlers of one
+	agent on different threads at the same time.
+
+	A possibility to specify thread safety for event handler. By default
+	all event handlers are not thread safe and SObjectizer is guarantees
+	that those handler will not be called from different threads at the
+	same time. But if event is declared as thread safe then dispatcher
+	is free to launch several thread-safe event handlers at different
+	threads at the same time.
+
 	New sequence of agent to dispatcher binding. Now it is two stage
 	procedure which guaratees that no so_evt_start() is called until
 	all cooperation's agents are bound to dispatchers.
