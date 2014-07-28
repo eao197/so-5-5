@@ -117,10 +117,10 @@ class throwing_disp_binder_t
 		throwing_disp_binder_t() {}
 		virtual ~throwing_disp_binder_t() {}
 
-		virtual void
+		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
 			so_5::rt::so_environment_t & env,
-			so_5::rt::agent_ref_t & agent_ref )
+			so_5::rt::agent_ref_t agent_ref )
 		{
 			throw std::runtime_error(
 				"throwing while binding agent to disp" );
@@ -129,7 +129,7 @@ class throwing_disp_binder_t
 		virtual void
 		unbind_agent(
 			so_5::rt::so_environment_t & env,
-			so_5::rt::agent_ref_t & agent_ref )
+			so_5::rt::agent_ref_t agent_ref )
 		{
 		}
 

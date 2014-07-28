@@ -9,11 +9,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj 'test/so_5/environment/moveable_params/prj.ut.rb'
 
-	required_prj( "test/so_5/bench/work_thread_speed/prj.rb" )
-	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
-	required_prj( "test/so_5/bench/same_msg_in_different_states/prj.rb" )
-	required_prj( "test/so_5/bench/parallel_send_to_same_mbox/prj.rb" )
-	required_prj( "test/so_5/bench/change_state/prj.rb" )
+	required_prj 'test/so_5/execution_hint/basic_checks/prj.ut.rb'
 
 	required_prj( "test/so_5/timer_thread/single_delayed/prj.ut.rb" )
 	required_prj( "test/so_5/timer_thread/single_periodic/prj.ut.rb" )
@@ -24,6 +20,11 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/disp/binder/bind_to_disp_3/prj.ut.rb" )
 	required_prj( "test/so_5/disp/binder/bind_to_disp_error_no_disp/prj.ut.rb" )
 	required_prj( "test/so_5/disp/binder/bind_to_disp_error_disp_type_mismatch/prj.ut.rb" )
+	required_prj( "test/so_5/disp/binder/correct_unbind_after_throw_on_bind/prj.ut.rb" )
+
+	required_prj( "test/so_5/disp/thread_pool/build_tests.rb" )
+
+	required_prj( "test/so_5/disp/adv_thread_pool/build_tests.rb" )
 
 	required_prj( "test/so_5/event_handler/subscribe_errors/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
@@ -41,6 +42,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/coop/reg_some_and_stop_3/prj.ut.rb" )
 	required_prj( "test/so_5/coop/throw_on_define_agent/prj.ut.rb" )
 	required_prj( "test/so_5/coop/throw_on_bind_to_disp/prj.ut.rb" )
+	required_prj( "test/so_5/coop/throw_on_bind_to_disp_2/prj.ut.rb" )
 	required_prj( "test/so_5/coop/coop_notify_1/prj.ut.rb" )
 	required_prj( "test/so_5/coop/coop_notify_2/prj.ut.rb" )
 	required_prj( "test/so_5/coop/coop_notify_3/prj.ut.rb" )
@@ -66,4 +68,12 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/api/run_so_environment/prj.ut.rb" )
 
 	required_prj( "test/so_5/svc/build_tests.rb" )
+
+	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
+	required_prj( "test/so_5/bench/same_msg_in_different_states/prj.rb" )
+	required_prj( "test/so_5/bench/parallel_send_to_same_mbox/prj.rb" )
+	required_prj( "test/so_5/bench/change_state/prj.rb" )
+	required_prj( "test/so_5/bench/many_mboxes/prj.rb" )
+	required_prj( "test/so_5/bench/thread_pool_disp/prj.rb" )
+	required_prj( "test/so_5/bench/no_workload/prj.rb" )
 }

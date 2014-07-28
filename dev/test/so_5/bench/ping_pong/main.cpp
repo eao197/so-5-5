@@ -41,7 +41,7 @@ try_parse_cmdline(
 	if( 1 == argc )
 		{
 			std::cout << "usage:\n"
-					"_test.bench.ping_pong <options>\n"
+					"_test.bench.so_5.ping_pong <options>\n"
 					"\noptions:\n"
 					"-a, --active-objects agents should be active objects\n"
 					"-r, --requests       count of requests to send\n"

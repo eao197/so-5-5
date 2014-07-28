@@ -11,6 +11,7 @@
 #if !defined( _SO_5__RT__EXECUTION_DEMAND_HPP_ )
 #define _SO_5__RT__EXECUTION_DEMAND_HPP_
 
+#include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
 
 #include <so_5/rt/h/message.hpp>
@@ -85,6 +86,73 @@ struct execution_demand_t
 		,	m_msg_type( msg_type )
 		,	m_message_ref( std::move( message_ref ) )
 		,	m_demand_handler( demand_handler )
+		{}
+};
+
+//
+// execution_hint_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief A hint for a dispatcher for execution of event
+ * for the concrete execution_demand.
+ */
+class execution_hint_t
+{
+public :
+	//! Type of function for calling event handler directly.
+	typedef std::function< void( current_thread_id_t ) > direct_func_t;
+
+	//! Initializing constructor.
+	execution_hint_t(
+		direct_func_t direct_func,
+		thread_safety_t thread_safety )
+		:	m_direct_func( std::move( direct_func ) )
+		,	m_thread_safety( thread_safety )
+		{}
+
+	//! Is event handler defined for the demand?
+	operator bool() const
+		{
+			return static_cast< bool >(m_direct_func);
+		}
+
+	//! Call event handler directly.
+	void
+	exec( current_thread_id_t working_thread_id ) const
+		{
+			m_direct_func( is_thread_safe() ?
+					null_current_thread_id() : working_thread_id );
+		}
+
+	//! Is thread safe handler?
+	bool
+	is_thread_safe() const
+		{
+			return thread_safe == m_thread_safety;
+		}
+
+	//! Create execution_hint object for the case when
+	//! event handler not found.
+	static execution_hint_t
+	create_empty_execution_hint()
+		{
+			return execution_hint_t();
+		}
+
+private :
+	//! Function for call event handler directly.
+	direct_func_t m_direct_func;
+
+	//! Thread safety for event handler.
+	thread_safety_t m_thread_safety;
+
+	//! Default constructor.
+	/*!
+	 * Useful when event handler for the demand not found.
+	 */
+	execution_hint_t()
+		:	m_thread_safety( thread_safe )
 		{}
 };
 

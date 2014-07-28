@@ -79,6 +79,12 @@ MxxRu::Cpp::dll_target {
 	}
 
 	sources_root( "disp" ) {
+		sources_root( "reuse" ) {
+			sources_root( "work_thread" ) {
+				cpp_source( "work_thread.cpp" )
+			}
+		}
+
 		sources_root( "one_thread" ) {
 			sources_root( "impl" ) {
 				cpp_source( "disp.cpp" )
@@ -103,10 +109,12 @@ MxxRu::Cpp::dll_target {
 			cpp_source( "pub.cpp" )
 		}
 
-		sources_root( "reuse" ) {
-			sources_root( "work_thread" ) {
-				cpp_source( "work_thread.cpp" )
-			}
+		sources_root( "thread_pool" ) {
+			cpp_source( "pub.cpp" )
+		}
+
+		sources_root( "adv_thread_pool" ) {
+			cpp_source( "pub.cpp" )
 		}
 	}
 

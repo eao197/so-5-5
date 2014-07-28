@@ -333,6 +333,63 @@ agent_t::so_bind_to_dispatcher(
 	m_event_queue_proxy->switch_to( queue );
 }
 
+execution_hint_t
+agent_t::so_create_execution_hint(
+	execution_demand_t & d )
+{
+	const bool is_message_demand = 
+			&agent_t::demand_handler_on_message == d.m_demand_handler;
+	const bool is_service_demand = !is_message_demand &&
+			&agent_t::service_request_handler_on_message == d.m_demand_handler;
+
+	if( is_message_demand || is_service_demand )
+		{
+			// Try to find handler for the demand.
+			auto handler = d.m_receiver->m_subscriptions->find_handler(
+					d.m_mbox_id,
+					d.m_msg_type, 
+					d.m_receiver->so_current_state() );
+			if( is_message_demand )
+				{
+					if( handler )
+						return execution_hint_t(
+								[&d, handler]( current_thread_id_t thread_id ) {
+									process_message(
+											thread_id,
+											d,
+											handler->m_method );
+								},
+								handler->m_thread_safety );
+					else
+						// Handler not found.
+						return execution_hint_t::create_empty_execution_hint();
+				}
+			else
+				// There must be a special hint for service requests
+				// because absence of service handler processed by
+				// different way than absence of event handler.
+				return execution_hint_t(
+						[&d, handler]( current_thread_id_t thread_id ) {
+							process_service_request(
+									thread_id,
+									d,
+									std::make_pair( true, handler ) );
+						},
+						handler ? handler->m_thread_safety :
+							// If there is no real handler then
+							// there will be only error processing.
+							// That processing is thread safe.
+							thread_safe );
+		}
+	else
+		// This is demand_handler_on_start or demand_handler_on_finish.
+		return execution_hint_t(
+				[&d]( current_thread_id_t thread_id ) {
+						d.m_demand_handler( thread_id, d );
+				},
+				not_thread_safe );
+}
+
 agent_ref_t
 agent_t::create_ref()
 {
@@ -443,7 +500,8 @@ agent_t::create_event_subscription(
 	const mbox_ref_t & mbox_ref,
 	std::type_index type_index,
 	const state_t & target_state,
-	const event_handler_method_t & method )
+	const event_handler_method_t & method,
+	thread_safety_t thread_safety )
 {
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
@@ -455,7 +513,7 @@ agent_t::create_event_subscription(
 		return;
 
 	m_subscriptions->create_event_subscription(
-			mbox_ref, type_index, target_state, method );
+			mbox_ref, type_index, target_state, method, thread_safety );
 }
 
 void
@@ -566,18 +624,40 @@ agent_t::demand_handler_on_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	auto handler = d.m_receiver->m_subscriptions->find_handler(
+			d.m_mbox_id,
+			d.m_msg_type, 
+			d.m_receiver->so_current_state() );
+	if( handler )
+		process_message( working_thread_id, d, handler->m_method );
+}
+
+void
+agent_t::service_request_handler_on_message(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d )
+{
+	static const impl::event_handler_data_t * const null_handler_data = nullptr;
+
+	process_service_request(
+			working_thread_id,
+			d,
+			std::make_pair( false, null_handler_data ) );
+}
+
+void
+agent_t::process_message(
+	current_thread_id_t working_thread_id,
+	execution_demand_t & d,
+	const event_handler_method_t & method )
+{
 	working_thread_id_sentinel_t sentinel(
 			d.m_receiver->m_working_thread_id,
 			working_thread_id );
 
 	try
 	{
-		auto handler = d.m_receiver->m_subscriptions->find_handler(
-				d.m_mbox_id,
-				d.m_msg_type, 
-				d.m_receiver->so_current_state() );
-		if( handler )
-			(*handler)( invocation_type_t::event, d.m_message_ref );
+		method( invocation_type_t::event, d.m_message_ref );
 	}
 	catch( const std::exception & x )
 	{
@@ -587,22 +667,29 @@ agent_t::demand_handler_on_message(
 }
 
 void
-agent_t::service_request_handler_on_message(
+agent_t::process_service_request(
 	current_thread_id_t working_thread_id,
-	execution_demand_t & d )
+	execution_demand_t & d,
+	std::pair< bool, const impl::event_handler_data_t * > handler_data )
 {
-	working_thread_id_sentinel_t sentinel(
-			d.m_receiver->m_working_thread_id,
-			working_thread_id );
-
 	try
 		{
-			auto handler = d.m_receiver->m_subscriptions->find_handler(
-					d.m_mbox_id,
-					d.m_msg_type, 
-					d.m_receiver->so_current_state() );
+			const impl::event_handler_data_t * handler =
+					handler_data.first ?
+							handler_data.second :
+							d.m_receiver->m_subscriptions->find_handler(
+									d.m_mbox_id,
+									d.m_msg_type, 
+									d.m_receiver->so_current_state() );
 			if( handler )
-				(*handler)( invocation_type_t::service_request, d.m_message_ref );
+			{
+				working_thread_id_sentinel_t sentinel(
+						d.m_receiver->m_working_thread_id,
+						working_thread_id );
+
+				handler->m_method(
+						invocation_type_t::service_request, d.m_message_ref );
+			}
 			else
 				SO_5_THROW_EXCEPTION(
 						so_5::rc_svc_not_handled,

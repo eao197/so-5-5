@@ -87,9 +87,10 @@ class adhoc_agent_definition_proxy_t
 		inline adhoc_agent_definition_proxy_t &
 		event(
 			const mbox_ref_t & mbox,
-			LAMBDA lambda )
+			LAMBDA lambda,
+			thread_safety_t thread_safety = not_thread_safe )
 			{
-				m_agent.so_subscribe( mbox ).event( lambda );
+				m_agent.so_subscribe( mbox ).event( lambda, thread_safety );
 
 				return *this;
 			}
@@ -102,9 +103,11 @@ class adhoc_agent_definition_proxy_t
 		event(
 			const mbox_ref_t & mbox,
 			signal_indicator_t< MESSAGE > (*indicator)(),
-			LAMBDA lambda )
+			LAMBDA lambda,
+			thread_safety_t thread_safety = not_thread_safe )
 			{
-				m_agent.so_subscribe( mbox ).event( indicator, lambda );
+				m_agent.so_subscribe( mbox )
+						.event( indicator, lambda, thread_safety );
 
 				return *this;
 			}

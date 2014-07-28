@@ -41,7 +41,7 @@ void
 demand_queue_t::push(
 	so_5::rt::execution_demand_t demand )
 {
-	combined_queue_lock_guard_t guard( m_lock );
+	queue_lock_guard_t guard( m_lock );
 
 	if( m_in_service )
 	{
@@ -62,7 +62,7 @@ int
 demand_queue_t::pop(
 	demand_container_t & demands )
 {
-	combined_queue_unique_lock_t lock( m_lock );
+	queue_unique_lock_t lock( m_lock );
 	while( true )
 	{
 		if( m_in_service && !m_demands.empty() )
@@ -86,7 +86,7 @@ demand_queue_t::pop(
 void
 demand_queue_t::start_service()
 {
-	combined_queue_lock_guard_t lock( m_lock );
+	queue_lock_guard_t lock( m_lock );
 
 	m_in_service = true;
 }
@@ -94,7 +94,7 @@ demand_queue_t::start_service()
 void
 demand_queue_t::stop_service()
 {
-	combined_queue_lock_guard_t lock( m_lock );
+	queue_lock_guard_t lock( m_lock );
 
 	m_in_service = false;
 	// If the demands queue is empty then someone is waiting
@@ -106,7 +106,7 @@ demand_queue_t::stop_service()
 void
 demand_queue_t::clear()
 {
-	combined_queue_lock_guard_t lock( m_lock );
+	queue_lock_guard_t lock( m_lock );
 
 	m_demands.clear();
 }

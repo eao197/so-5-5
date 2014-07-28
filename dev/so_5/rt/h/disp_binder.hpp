@@ -11,6 +11,7 @@
 #define _SO_5__RT__DISP_BINDER_HPP_
 
 #include <memory>
+#include <functional>
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/rt/h/agent.hpp>
@@ -33,6 +34,15 @@ class so_environment_impl_t;
 class so_environment_t;
 
 //
+// disp_binding_activator_t
+//
+/*!
+ * \since v.5.4.0
+ * \brief Type of activator for agent to dispatcher binding.
+ */
+typedef std::function< void() > disp_binding_activator_t;
+
+//
 // disp_binder_t
 //
 
@@ -47,14 +57,14 @@ class SO_5_TYPE disp_binder_t
 		disp_binder_t();
 		virtual ~disp_binder_t();
 
-		//! Bind agent to the dispatcher.
-		virtual void
+		//! Allocate resources in dispatcher for new agent.
+		virtual disp_binding_activator_t
 		bind_agent(
 			//! SObjectizer Environment where agent/cooperation/dispatcher
 			//! are working.
 			so_environment_t & env,
 			//! Agent to be bound.
-			agent_ref_t & agent_ref ) = 0;
+			agent_ref_t agent_ref ) = 0;
 
 		//! Unbind agent from dispatcher.
 		virtual void
@@ -63,7 +73,8 @@ class SO_5_TYPE disp_binder_t
 			//! are working.
 			so_environment_t & env,
 			//! Agent to be bound.
-			agent_ref_t & agent_ref ) = 0;
+			agent_ref_t agent_ref ) = 0;
+
 };
 
 //! Typedef for the disp_binder autopointer.

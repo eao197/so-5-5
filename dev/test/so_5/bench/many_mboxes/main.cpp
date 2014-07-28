@@ -81,7 +81,7 @@ try_parse_cmdline(
 		throw std::runtime_error( "Unable to set long option 'iterations'" );
 	if( -1 == opt.long_option(
 			"help", 'h', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'iterations'" );
+		throw std::runtime_error( "Unable to set long option 'help'" );
 
 	cfg_t tmp_cfg;
 
@@ -258,12 +258,22 @@ class a_sender_t
 						for( auto & m : m_mboxes )
 							m->deliver_signal< SIGNAL >();
 
-						so_direct_mbox()->deliver_signal< msg_next_iteration >();
+						initiate_next_iteration();
 
 						--m_iterations_left;
 					}
 				else
 					m_common_mbox->deliver_signal< msg_shutdown >();
+			}
+
+		// This method with this strange implementation
+		// is necessary because of strange compilation
+		// error under GCC 4.9.0.
+		void
+		initiate_next_iteration()
+			{
+				so_5::rt::mbox_t & m = *(so_direct_mbox());
+				m.deliver_signal< msg_next_iteration >();
 			}
 	};
 

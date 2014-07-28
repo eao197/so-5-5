@@ -80,7 +80,8 @@ subscription_storage_t::create_event_subscription(
 	const mbox_ref_t & mbox_ref,
 	std::type_index type_index,
 	const state_t & target_state,
-	const event_handler_method_t & method )
+	const event_handler_method_t & method,
+	thread_safety_t thread_safety )
 	{
 		key_t key( mbox_ref->id(), type_index, target_state );
 
@@ -94,7 +95,8 @@ subscription_storage_t::create_event_subscription(
 
 		try
 			{
-				m_hash_table.emplace( &(insertion_result.first->first), method );
+				m_hash_table.emplace( &(insertion_result.first->first),
+						event_handler_data_t( method, thread_safety ) );
 			}
 		catch( ... )
 			{
@@ -168,7 +170,7 @@ subscription_storage_t::drop_subscription_for_all_states(
 		}
 	}
 
-const event_handler_method_t *
+const event_handler_data_t *
 subscription_storage_t::find_handler(
 	mbox_id_t mbox_id,
 	const std::type_index & msg_type,
