@@ -36,16 +36,14 @@ class test_agent_t
 {
 		typedef so_5::rt::agent_t base_type_t;
 
-		const so_5::rt::state_t m_state_a;
-		const so_5::rt::state_t m_state_b;
+		const so_5::rt::state_t m_state_a = so_make_state();
+		const so_5::rt::state_t m_state_b = so_make_state();
 
 	public:
 		test_agent_t(
 			so_5::rt::so_environment_t & env )
 			:
 				base_type_t( env ),
-				m_state_a( self_ptr() ),
-				m_state_b( self_ptr() ),
 				m_mbox( so_environment().create_local_mbox() )
 		{}
 

@@ -4,6 +4,9 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	New methods so_5::rt::agent_t::so_make_state() introduced to
+	simplify initialization of so_5::rt::state_t objects.
+
 	Two new dispatchers: so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
 	The dispatcher adv_thread_pool can use event handler thread safety
 	information for launching several thread-safe event handlers of one

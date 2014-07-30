@@ -1008,6 +1008,56 @@ class SO_5_TYPE agent_t
 			//! Demand for execution of event handler.
 			execution_demand_t & demand );
 
+	protected :
+		/*!
+		 * \name Helpers for state object creation.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.4.0
+		 * \brief Helper method for creation of anonymous state object.
+		 *
+		 * \par Usage:
+		 	\code
+			class my_agent_t : public so_5::rt::agent_t
+			{
+				so_5::rt::state_t st_1 = so_make_state();
+				so_5::rt::state_t st_2 = so_make_state();
+				...
+			};
+			\endcode
+		 *
+		 */
+		inline state_t
+		so_make_state()
+		{
+			return state_t( self_ptr() );
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Helper method for creation of named state object.
+		 *
+		 * \par Usage:
+		 	\code
+			class my_agent_t : public so_5::rt::agent_t
+			{
+				so_5::rt::state_t st_1 = so_make_state( "st_one" );
+				so_5::rt::state_t st_2 = so_make_state( "st_two" );
+				...
+			};
+			\endcode
+		 *
+		 */
+		inline state_t
+		so_make_state( std::string name )
+		{
+			return state_t( self_ptr(), std::move( name ) );
+		}
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Current agent state.
 		const state_t * m_current_state_ptr;

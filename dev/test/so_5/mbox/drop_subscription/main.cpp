@@ -29,8 +29,6 @@ class a_test_t : public so_5::rt::agent_t
 			:	base_type_t( env )
 			,	m_sequence( sequence )
 			,	m_mbox( env.create_local_mbox() )
-			,	st_1( self_ptr() )
-			,	st_2( self_ptr() )
 		{
 		}
 
@@ -38,34 +36,23 @@ class a_test_t : public so_5::rt::agent_t
 		so_define_agent()
 		{
 			so_subscribe( m_mbox )
-				.event( &a_test_t::evt_default_one );
-			so_subscribe( m_mbox )
-				.event( &a_test_t::evt_default_two );
-			so_subscribe( m_mbox )
-				.event( &a_test_t::evt_default_three );
-			so_subscribe( m_mbox )
-				.event( &a_test_t::evt_default_four );
-			so_subscribe( m_mbox )
+				.event( &a_test_t::evt_default_one )
+				.event( &a_test_t::evt_default_two )
+				.event( &a_test_t::evt_default_three )
+				.event( &a_test_t::evt_default_four )
 				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
 
 			so_subscribe( m_mbox ).in( st_1 )
-				.event( &a_test_t::evt_st_1_one );
-			so_subscribe( m_mbox ).in( st_1 )
-				.event( &a_test_t::evt_st_1_two );
-			so_subscribe( m_mbox ).in( st_1 )
-				.event( &a_test_t::evt_st_1_three );
-			so_subscribe( m_mbox ).in( st_1 )
-				.event( &a_test_t::evt_default_four );
-			so_subscribe( m_mbox ).in( st_1 )
+				.event( &a_test_t::evt_st_1_one )
+				.event( &a_test_t::evt_st_1_two )
+				.event( &a_test_t::evt_st_1_three )
+				.event( &a_test_t::evt_default_four )
 				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
 
 			so_subscribe( m_mbox ).in( st_2 )
-				.event( &a_test_t::evt_st_2_one );
-			so_subscribe( m_mbox ).in( st_2 )
-				.event( &a_test_t::evt_st_2_two );
-			so_subscribe( m_mbox ).in( st_2 )
-				.event( &a_test_t::evt_st_2_three );
-			so_subscribe( m_mbox ).in( st_2 )
+				.event( &a_test_t::evt_st_2_one )
+				.event( &a_test_t::evt_st_2_two )
+				.event( &a_test_t::evt_st_2_three )
 				.event( so_5::signal< msg_five >, &a_test_t::evt_five );
 		}
 
@@ -191,8 +178,8 @@ class a_test_t : public so_5::rt::agent_t
 
 		so_5::rt::mbox_ref_t m_mbox;
 
-		so_5::rt::state_t st_1;
-		so_5::rt::state_t st_2;
+		so_5::rt::state_t st_1 = so_make_state();
+		so_5::rt::state_t st_2 = so_make_state();
 };
 
 class test_env_t

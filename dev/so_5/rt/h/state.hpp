@@ -32,9 +32,9 @@ class agent_t;
 //! Class for the representing agent state.
 class SO_5_TYPE state_t
 {
-		state_t( const state_t & );
-		void
-		operator = ( const state_t & );
+		state_t( const state_t & ) = delete;
+		state_t & operator =( const state_t & ) = delete;
+
 	public:
 		/*!
 		 * \brief Constructor without user specified name.
@@ -49,6 +49,12 @@ class SO_5_TYPE state_t
 		state_t(
 			const agent_t * agent,
 			std::string state_name );
+		/*!
+		 * \since v.5.4.0
+		 * \brief Move constructor.
+		 */
+		state_t( state_t && other );
+
 		virtual ~state_t();
 
 		bool
@@ -64,10 +70,10 @@ class SO_5_TYPE state_t
 
 	private:
 		//! Owner of this state.
-		const agent_t * const m_target_agent;
+		const agent_t * m_target_agent;
 
 		//! State name.
-		const std::string m_state_name;
+		std::string m_state_name;
 
 		inline const state_t *
 		self_ptr() const { return this; }

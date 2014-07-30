@@ -24,16 +24,6 @@ class a_test_t
 			so_5::rt::so_environment_t & env,
 			unsigned int iterations )
 			:	so_5::rt::agent_t( env )
-			,	st_0( self_ptr(), "0" )
-			,	st_1( self_ptr(), "1" )
-			,	st_2( self_ptr(), "2" )
-			,	st_3( self_ptr(), "3" )
-			,	st_4( self_ptr(), "4" )
-			,	st_5( self_ptr(), "5" )
-			,	st_6( self_ptr(), "6" )
-			,	st_7( self_ptr(), "7" )
-			,	st_8( self_ptr(), "8" )
-			,	st_9( self_ptr(), "9" )
 			,	m_iterations( iterations )
 			{
 				m_states.push_back( &st_0 );
@@ -92,16 +82,16 @@ class a_test_t
 			}
 
 	private :
-		const so_5::rt::state_t st_0;
-		const so_5::rt::state_t st_1;
-		const so_5::rt::state_t st_2;
-		const so_5::rt::state_t st_3;
-		const so_5::rt::state_t st_4;
-		const so_5::rt::state_t st_5;
-		const so_5::rt::state_t st_6;
-		const so_5::rt::state_t st_7;
-		const so_5::rt::state_t st_8;
-		const so_5::rt::state_t st_9;
+		const so_5::rt::state_t st_0 = so_make_state( "0" );
+		const so_5::rt::state_t st_1 = so_make_state( "1" );
+		const so_5::rt::state_t st_2 = so_make_state( "2" );
+		const so_5::rt::state_t st_3 = so_make_state( "3" );
+		const so_5::rt::state_t st_4 = so_make_state( "4" );
+		const so_5::rt::state_t st_5 = so_make_state( "5" );
+		const so_5::rt::state_t st_6 = so_make_state( "6" );
+		const so_5::rt::state_t st_7 = so_make_state( "7" );
+		const so_5::rt::state_t st_8 = so_make_state( "8" );
+		const so_5::rt::state_t st_9 = so_make_state( "9" );
 
 		unsigned int m_iterations;
 

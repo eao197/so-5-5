@@ -89,8 +89,6 @@ class a_meeting_place_t
 			int creatures,
 			int meetings )
 			:	so_5::rt::agent_t( env )
-			,	st_empty( self_ptr(), "st_empty" )
-			,	st_one_creature_inside( self_ptr(), "st_one_creature_inside" )
 			,	m_creatures_alive( creatures )	
 			,	m_remaining_meetings( meetings )
 			,	m_total_meetings( 0 )
@@ -154,8 +152,9 @@ class a_meeting_place_t
 			}
 
 	private :
-		so_5::rt::state_t st_empty;
-		so_5::rt::state_t st_one_creature_inside;
+		so_5::rt::state_t st_empty = so_make_state( "empty" );
+		so_5::rt::state_t st_one_creature_inside =
+				so_make_state( "one_creature_inside" );
 
 		int m_creatures_alive;
 		int m_remaining_meetings;

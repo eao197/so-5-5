@@ -87,6 +87,12 @@ state_t::state_t(
 {
 }
 
+state_t::state_t(
+	state_t && other )
+	:	m_target_agent( other.m_target_agent )
+	,	m_state_name( std::move( other.m_state_name ) )
+{}
+
 state_t::~state_t()
 {
 }

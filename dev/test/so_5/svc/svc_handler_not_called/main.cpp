@@ -32,7 +32,6 @@ class a_convert_service_t
 			so_5::rt::so_environment_t & env,
 			const so_5::rt::mbox_ref_t & self_mbox )
 			:	so_5::rt::agent_t( env )
-			,	st_dummy( self_ptr(), "dummy" )
 			,	m_self_mbox( self_mbox )
 			{}
 
@@ -53,7 +52,7 @@ class a_convert_service_t
 			}
 
 	private :
-		const so_5::rt::state_t st_dummy;
+		const so_5::rt::state_t st_dummy = so_make_state( "dummy" );
 
 		const so_5::rt::mbox_ref_t m_self_mbox;
 	};

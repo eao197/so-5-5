@@ -142,7 +142,6 @@ class a_client_t
 			const so_5::rt::mbox_ref_t & self_mbox,
 			const so_5::rt::mbox_ref_t & svc_mbox )
 			:	so_5::rt::agent_t( env )
-			,	st_deadlocks( self_ptr(), "st_deadlocks" )
 			,	m_self_mbox( self_mbox )
 			,	m_svc_mbox( svc_mbox )
 			,	m_normal_convert_actions_current( 0 )
@@ -218,7 +217,7 @@ class a_client_t
 			}
 
 	private :
-		const so_5::rt::state_t st_deadlocks;
+		const so_5::rt::state_t st_deadlocks = so_make_state( "deadlocks" );
 
 		const so_5::rt::mbox_ref_t m_self_mbox;
 		const so_5::rt::mbox_ref_t m_svc_mbox;

@@ -34,8 +34,6 @@ class a_test_t : public so_5::rt::agent_t
 		a_test_t(
 			so_5::rt::so_environment_t & env )
 			:	so_5::rt::agent_t( env )
-			,	st_safe( self_ptr(), "safe" )
-			,	st_unsafe( self_ptr(), "unsafe" )
 		{
 		}
 
@@ -97,8 +95,8 @@ class a_test_t : public so_5::rt::agent_t
 		}
 
 	private :
-		const so_5::rt::state_t st_safe;
-		const so_5::rt::state_t st_unsafe;
+		const so_5::rt::state_t st_safe = so_make_state( "safe" );
+		const so_5::rt::state_t st_unsafe = so_make_state( "unsafe" );
 };
 
 void

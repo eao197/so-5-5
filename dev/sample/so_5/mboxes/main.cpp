@@ -119,16 +119,14 @@ class my_agent_t
 
 	private:
 		// Agent states.
-		const so_5::rt::state_t m_first_state;
-		const so_5::rt::state_t m_second_state;
+		const so_5::rt::state_t m_first_state = so_make_state( "first" );
+		const so_5::rt::state_t m_second_state = so_make_state( "second" );
 };
 
 my_agent_t::my_agent_t(
 	so_5::rt::so_environment_t & env )
 	:
-		base_type_t( env ),
-		m_first_state( self_ptr(), "state_1" ),
-		m_second_state( self_ptr(), "state_2" )
+		base_type_t( env )
 {
 }
 

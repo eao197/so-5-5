@@ -36,8 +36,6 @@ class a_test_t : public so_5::rt::agent_t
 			:	base_type_t( env )
 			,	m_mbox( env.create_local_mbox() )
 			,	m_cycle( 0 )
-			,	st_wait_registration( self_ptr() )
-			,	st_wait_deregistration( self_ptr() )
 		{}
 
 		void
@@ -92,8 +90,8 @@ class a_test_t : public so_5::rt::agent_t
 
 		int m_cycle;
 
-		so_5::rt::state_t st_wait_registration;
-		so_5::rt::state_t st_wait_deregistration;
+		so_5::rt::state_t st_wait_registration = so_make_state();
+		so_5::rt::state_t st_wait_deregistration = so_make_state();
 
 		void
 		create_next_coop()

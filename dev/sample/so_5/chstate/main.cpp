@@ -51,26 +51,17 @@ class state_monitor_t
 };
 
 // A sample agent class.
-class a_state_swither_t
-	:
-		public so_5::rt::agent_t
+class a_state_swither_t : public so_5::rt::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 		// Agent states.
-		so_5::rt::state_t m_state_1;
-		so_5::rt::state_t m_state_2;
-		so_5::rt::state_t m_state_3;
-		so_5::rt::state_t m_state_shutdown;
+		so_5::rt::state_t m_state_1 = so_make_state( "state_1" );
+		so_5::rt::state_t m_state_2 = so_make_state( "state_2" );
+		so_5::rt::state_t m_state_3 = so_make_state( "state_3" );
+		so_5::rt::state_t m_state_shutdown = so_make_state( "shutdown" );
 
 	public:
 		a_state_swither_t( so_5::rt::so_environment_t & env )
-			:
-				base_type_t( env ),
-				m_state_1( self_ptr(), "state_1" ),
-				m_state_2( self_ptr(), "state_2" ),
-				m_state_3( self_ptr(), "state_3" ),
-				m_state_shutdown( self_ptr(), "state_shutdown" )
+			:	so_5::rt::agent_t( env )
 		{}
 
 		virtual ~a_state_swither_t()

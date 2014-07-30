@@ -174,7 +174,6 @@ class a_test_t : public so_5::rt::agent_t
 			:	base_type_t( env )
 			,	m_controller( controller )
 			,	m_mbox( env.create_local_mbox() )
-			,	st_stored( self_ptr() )
 		{
 		}
 
@@ -246,7 +245,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		so_5::rt::smart_atomic_reference_t< msg_test > m_stored_message;
 
-		so_5::rt::state_t st_stored;
+		so_5::rt::state_t st_stored = so_make_state( "stored" );
 };
 
 struct test_env_t
