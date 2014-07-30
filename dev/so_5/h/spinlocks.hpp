@@ -198,11 +198,11 @@ class read_lock_guard_t
 	public :
 		read_lock_guard_t( LOCK & l ) : m_lock( l )
 			{
-				m_lock.lock();
+				m_lock.lock_shared();
 			}
 		~read_lock_guard_t()
 			{
-				m_lock.unlock();
+				m_lock.unlock_shared();
 			}
 
 		read_lock_guard_t( const read_lock_guard_t & ) = delete;
