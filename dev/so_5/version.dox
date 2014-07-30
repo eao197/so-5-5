@@ -4,6 +4,9 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	New helper methods so_5::rt::agent_t::so_deregister_agent_coop() and
+	so_5::rt::agent_t::so_deregister_agent_coop_normally().
+
 	A new feature for SObjectizer Environment: SO Environment is shutting
 	down automatically if there is no more live cooperations.
 	This feature is on by default. To disable it new method

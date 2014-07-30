@@ -38,9 +38,7 @@ class a_test_t : public so_5::rt::agent_t
 						if( m_ticks < 15 )
 							so_direct_mbox()->deliver_signal< msg_tick >();
 						else
-							so_environment().deregister_coop(
-									so_coop_name(),
-									so_5::rt::dereg_reason::normal );
+							so_deregister_agent_coop_normally();
 					} );
 		}
 

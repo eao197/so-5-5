@@ -396,6 +396,19 @@ agent_t::so_create_execution_hint(
 				not_thread_safe );
 }
 
+void
+agent_t::so_deregister_agent_coop( int dereg_reason )
+{
+	so_environment().deregister_coop(
+			so_coop_name(), dereg_reason );
+}
+
+void
+agent_t::so_deregister_agent_coop_normally()
+{
+	so_deregister_agent_coop( so_5::rt::dereg_reason::normal );
+}
+
 agent_ref_t
 agent_t::create_ref()
 {

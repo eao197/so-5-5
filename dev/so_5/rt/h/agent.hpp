@@ -1008,6 +1008,26 @@ class SO_5_TYPE agent_t
 			//! Demand for execution of event handler.
 			execution_demand_t & demand );
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief A helper method for deregistering agent's coop.
+		 */
+		inline void
+		so_deregister_agent_coop( int dereg_reason );
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief A helper method for deregistering agent's coop
+		 * in case of normal deregistration.
+		 *
+		 * \note It is just a shorthand for:
+			\code
+			so_deregister_agent_coop( so_5::rt::dereg_reason::normal );
+			\endcode
+		 */
+		inline void
+		so_deregister_agent_coop_normally();
+
 	protected :
 		/*!
 		 * \name Helpers for state object creation.

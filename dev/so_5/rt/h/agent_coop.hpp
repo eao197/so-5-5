@@ -71,6 +71,7 @@ const int user_defined_reason = 0x1000;
 /*!
  * \}
  */
+
 } /* namespace dereg_reason */
 
 //
