@@ -394,13 +394,14 @@ agent_core_t::ready_to_deregister_notify(
 	m_coop_dereg_executor.push_dereg_demand( coop );
 }
 
-void
+bool
 agent_core_t::final_deregister_coop(
 	const std::string coop_name )
 {
 	info_for_dereg_notification_t notification_info;
 
 	bool need_signal_dereg_finished;
+	bool ret_value = false;
 	{
 		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
@@ -410,6 +411,9 @@ agent_core_t::final_deregister_coop(
 		// cooperation then a special flag should be set.
 		need_signal_dereg_finished =
 			m_deregistration_started && m_deregistered_coop.empty();
+
+		ret_value = !m_registered_coop.empty() ||
+				!m_deregistered_coop.empty();
 	}
 
 	if( need_signal_dereg_finished )
@@ -418,6 +422,8 @@ agent_core_t::final_deregister_coop(
 	do_coop_dereg_notification_if_necessary(
 			coop_name,
 			notification_info );
+
+	return ret_value;
 }
 
 void

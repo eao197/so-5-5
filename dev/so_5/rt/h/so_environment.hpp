@@ -250,6 +250,39 @@ class SO_5_TYPE so_environment_params_t
 		/*!
 		 * \}
 		 */
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Do not shutdown SO Environment when it is becomes empty.
+		 *
+		 * \par Description
+		 * Since v.5.4.0 SO Environment checks count of live cooperations
+		 * after every cooperation deregistration. If there is no more
+		 * live cooperations then SO Environment will be shutted down.
+		 * If it is not appropriate then this method must be called.
+		 * It disables autoshutdown of SO Environment. Event if there is
+		 * no more live cooperations SO Environment will work until
+		 * explisit call to so_environment_t::stop() method.
+		 */
+		so_environment_params_t &
+		disable_autoshutdown()
+		{
+			m_autoshutdown_disabled = true;
+			return *this;
+		}
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Is autoshutdown disabled?
+		 *
+		 * \see disable_autoshutdown()
+		 */
+		bool
+		autoshutdown_disabled() const
+		{
+			return m_autoshutdown_disabled;
+		}
+
 	private:
 		//! Add an additional layer.
 		/*!
@@ -299,6 +332,14 @@ class SO_5_TYPE so_environment_params_t
 		 * \brief Exception reaction flag for the whole SO Environment.
 		 */
 		exception_reaction_t m_exception_reaction;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Is autoshutdown when there is no more cooperation disabled?
+		 *
+		 * \see disable_autoshutdown()
+		 */
+		bool m_autoshutdown_disabled;
 };
 
 //

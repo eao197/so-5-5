@@ -141,7 +141,11 @@ class agent_core_t
 			agent_coop_t * coop );
 
 		//! Do final actions of the cooperation deregistration.
-		void
+		/*!
+		 * \retval true there are some live cooperations.
+		 * \retval false there is no more live cooperations.
+		 */
+		bool
 		final_deregister_coop(
 			//! Cooperation name to be deregistered.
 			/*!

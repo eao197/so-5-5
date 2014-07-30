@@ -38,6 +38,7 @@ so_environment_impl_t::so_environment_impl_t(
 		m_timer_thread(
 			std::move( so_environment_params.m_timer_thread ) ),
 		m_exception_reaction( so_environment_params.exception_reaction() )
+	,	m_autoshutdown_disabled( so_environment_params.autoshutdown_disabled() )
 {
 	if( 0 == m_timer_thread.get() )
 	{

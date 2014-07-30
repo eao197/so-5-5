@@ -22,6 +22,7 @@ so_environment_params_t::so_environment_params_t()
 	,	m_agent_event_queue_mutex_pool_size( 128 )
 	,	m_event_exception_logger( create_std_event_exception_logger() )
 	,	m_exception_reaction( abort_on_exception )
+	,	m_autoshutdown_disabled( false )
 {
 }
 
@@ -37,6 +38,7 @@ so_environment_params_t::so_environment_params_t(
 	,	m_coop_listener( std::move( other.m_coop_listener ) )
 	,	m_event_exception_logger( std::move( other.m_event_exception_logger ) )
 	,	m_exception_reaction( other.m_exception_reaction )
+	,	m_autoshutdown_disabled( other.m_autoshutdown_disabled )
 {}
 
 so_environment_params_t::~so_environment_params_t()
@@ -67,6 +69,7 @@ so_environment_params_t::swap( so_environment_params_t & other )
 	m_event_exception_logger.swap( other.m_event_exception_logger );
 
 	std::swap( m_exception_reaction, other.m_exception_reaction );
+	std::swap( m_autoshutdown_disabled, other.m_autoshutdown_disabled );
 }
 
 so_environment_params_t &

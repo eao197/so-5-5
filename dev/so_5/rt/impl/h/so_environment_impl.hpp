@@ -160,7 +160,11 @@ class so_environment_impl_t
 			//! Cooperation name to be deregistered.
 			const std::string & coop_name )
 		{
-			m_agent_core.final_deregister_coop( coop_name );
+			bool any_cooperation_alive = 
+					m_agent_core.final_deregister_coop( coop_name );
+
+			if( !any_cooperation_alive && !m_autoshutdown_disabled )
+				stop();
 		}
 		/*!
 		 * \}
@@ -271,6 +275,14 @@ class so_environment_impl_t
 		 * \brief An exception reaction for the whole SO Environment.
 		 */
 		const exception_reaction_t m_exception_reaction;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Is autoshutdown when there is no more cooperation disabled?
+		 *
+		 * \see so_environment_params_t::disable_autoshutdown()
+		 */
+		const bool m_autoshutdown_disabled;
 
 		/*!
 		 * \since v.5.2.0
