@@ -9,13 +9,7 @@
 
 #include <ace/OS.h>
 
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-
-#include <so_5/disp/one_thread/h/pub.hpp>
-#include <so_5/disp/active_obj/h/pub.hpp>
-#include <so_5/disp/thread_pool/h/pub.hpp>
-#include <so_5/disp/adv_thread_pool/h/pub.hpp>
+#include <so_5/all.hpp>
 
 struct msg_do_hardwork : public so_5::rt::message_t
 {

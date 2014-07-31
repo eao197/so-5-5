@@ -7,8 +7,7 @@
 #include <ace/OS.h>
 
 // Main SObjectizer header files.
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
+#include <so_5/all.hpp>
 
 struct msg_hello_to_all : public so_5::rt::message_t
 {
