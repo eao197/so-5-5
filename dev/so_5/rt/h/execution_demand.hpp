@@ -137,6 +137,7 @@ public :
 	static execution_hint_t
 	create_empty_execution_hint()
 		{
+std::cout << "create_empty_execution_hint" << std::endl;
 			return execution_hint_t();
 		}
 
@@ -152,7 +153,8 @@ private :
 	 * Useful when event handler for the demand not found.
 	 */
 	execution_hint_t()
-		:	m_thread_safety( thread_safe )
+		:	m_direct_func()
+		,	m_thread_safety( thread_safe )
 		{}
 };
 

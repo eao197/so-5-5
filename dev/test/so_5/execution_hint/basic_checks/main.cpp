@@ -76,7 +76,7 @@ UT_UNIT_TEST( no_handlers )
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
-				&agent_t::demand_handler_on_message );
+				agent_t::get_demand_handler_on_message_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -89,7 +89,7 @@ UT_UNIT_TEST( no_handlers )
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
-				&agent_t::service_request_handler_on_message );
+				agent_t::get_service_request_handler_on_message_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -102,7 +102,7 @@ UT_UNIT_TEST( no_handlers )
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
-				&agent_t::demand_handler_on_start );
+				agent_t::get_demand_handler_on_start_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -115,7 +115,7 @@ UT_UNIT_TEST( no_handlers )
 				0,
 				typeid(msg_signal),
 				message_ref_t(),
-				&agent_t::demand_handler_on_finish );
+				agent_t::get_demand_handler_on_finish_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -145,7 +145,7 @@ UT_UNIT_TEST( event_handler )
 				agent.so_direct_mbox()->id(),
 				typeid(msg_signal),
 				message_ref_t(),
-				&agent_t::demand_handler_on_message );
+				agent_t::get_demand_handler_on_message_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -165,7 +165,7 @@ UT_UNIT_TEST( event_handler )
 				agent.so_direct_mbox()->id(),
 				typeid(msg_thread_safe_signal),
 				message_ref_t(),
-				&agent_t::demand_handler_on_message );
+				agent_t::get_demand_handler_on_message_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -202,7 +202,7 @@ UT_UNIT_TEST( service_handler )
 				agent.so_direct_mbox()->id(),
 				typeid(msg_get_status),
 				msg,
-				&agent_t::service_request_handler_on_message );
+				agent_t::get_service_request_handler_on_message_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 
@@ -232,7 +232,7 @@ UT_UNIT_TEST( service_handler )
 				agent.so_direct_mbox()->id(),
 				typeid(msg_get_status),
 				msg,
-				&agent_t::service_request_handler_on_message );
+				agent_t::get_service_request_handler_on_message_ptr() );
 
 		auto hint = agent_t::so_create_execution_hint( demand );
 

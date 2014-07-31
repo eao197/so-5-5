@@ -1288,6 +1288,14 @@ class SO_5_TYPE agent_t
 		demand_handler_on_start(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
+
+		/*!
+		 * \since v.5.4.0
+		 * \note This method is necessary for GCC on Cygwin.
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_on_start_ptr();
+
 		/*!
 		 * \since v.5.2.0
 		 * \brief Calls so_evt_finish method for agent.
@@ -1296,6 +1304,14 @@ class SO_5_TYPE agent_t
 		demand_handler_on_finish(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
+
+		/*!
+		 * \since v.5.4.0
+		 * \note This method is necessary for GCC on Cygwin.
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_on_finish_ptr();
+
 		/*!
 		 * \since v.5.2.0
 		 * \brief Calls event handler for message.
@@ -1304,6 +1320,14 @@ class SO_5_TYPE agent_t
 		demand_handler_on_message(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
+
+		/*!
+		 * \since v.5.4.0
+		 * \note This method is necessary for GCC on Cygwin.
+		 */
+		static demand_handler_pfn_t
+		get_demand_handler_on_message_ptr();
+
 		/*!
 		 * \since v.5.3.0
 		 * \brief Calls request handler for message.
@@ -1312,6 +1336,14 @@ class SO_5_TYPE agent_t
 		service_request_handler_on_message(
 			current_thread_id_t working_thread_id,
 			execution_demand_t & d );
+
+		/*!
+		 * \since v.5.4.0
+		 * \note This method is necessary for GCC on Cygwin.
+		 */
+		static demand_handler_pfn_t
+		get_service_request_handler_on_message_ptr();
+
 		/*!
 		 * \}
 		 */

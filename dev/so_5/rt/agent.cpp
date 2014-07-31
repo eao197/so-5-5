@@ -343,10 +343,12 @@ execution_hint_t
 agent_t::so_create_execution_hint(
 	execution_demand_t & d )
 {
-	const bool is_message_demand = 
-			&agent_t::demand_handler_on_message == d.m_demand_handler;
+	static const demand_handler_pfn_t message_handler =
+			&agent_t::demand_handler_on_message;
+
+	const bool is_message_demand = (message_handler == d.m_demand_handler);
 	const bool is_service_demand = !is_message_demand &&
-			&agent_t::service_request_handler_on_message == d.m_demand_handler;
+			(&agent_t::service_request_handler_on_message == d.m_demand_handler);
 
 	if( is_message_demand || is_service_demand )
 		{
@@ -615,6 +617,12 @@ agent_t::demand_handler_on_start(
 	}
 }
 
+demand_handler_pfn_t
+agent_t::get_demand_handler_on_start_ptr()
+{
+	return &agent_t::demand_handler_on_start;
+}
+
 void
 agent_t::demand_handler_on_finish(
 	current_thread_id_t working_thread_id,
@@ -638,6 +646,12 @@ agent_t::demand_handler_on_finish(
 	agent_coop_t::decrement_usage_count( *(d.m_receiver->m_agent_coop) );
 }
 
+demand_handler_pfn_t
+agent_t::get_demand_handler_on_finish_ptr()
+{
+	return &agent_t::demand_handler_on_finish;
+}
+
 void
 agent_t::demand_handler_on_message(
 	current_thread_id_t working_thread_id,
@@ -651,6 +665,12 @@ agent_t::demand_handler_on_message(
 		process_message( working_thread_id, d, handler->m_method );
 }
 
+demand_handler_pfn_t
+agent_t::get_demand_handler_on_message_ptr()
+{
+	return &agent_t::demand_handler_on_message;
+}
+
 void
 agent_t::service_request_handler_on_message(
 	current_thread_id_t working_thread_id,
@@ -662,6 +682,12 @@ agent_t::service_request_handler_on_message(
 			working_thread_id,
 			d,
 			std::make_pair( false, null_handler_data ) );
+}
+
+demand_handler_pfn_t
+agent_t::get_service_request_handler_on_message_ptr()
+{
+	return &agent_t::service_request_handler_on_message;
 }
 
 void
