@@ -4,6 +4,10 @@
 
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
+	New method so_5::rt::so_environment_t::add_dispatcher_if_not_exists()
+	is implemeted. It allows to add new dispatcher on running
+	SO Environment. Added dispatcher cannot be removed.
+
 	New helper methods so_5::rt::agent_t::so_deregister_agent_coop() and
 	so_5::rt::agent_t::so_deregister_agent_coop_normally().
 
