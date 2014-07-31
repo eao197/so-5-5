@@ -1012,7 +1012,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief A helper method for deregistering agent's coop.
 		 */
-		inline void
+		void
 		so_deregister_agent_coop( int dereg_reason );
 
 		/*!
@@ -1025,7 +1025,7 @@ class SO_5_TYPE agent_t
 			so_deregister_agent_coop( so_5::rt::dereg_reason::normal );
 			\endcode
 		 */
-		inline void
+		void
 		so_deregister_agent_coop_normally();
 
 	protected :
