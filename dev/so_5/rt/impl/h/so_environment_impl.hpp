@@ -102,6 +102,19 @@ class so_environment_impl_t
 			m_disp_core.install_exception_logger( std::move( logger ) );
 		}
 
+		//! Add dispatcher if not exists.
+		/*!
+		 * \since v.5.4.0
+		 */
+		dispatcher_ref_t
+		add_dispatcher_if_not_exists(
+			const std::string & disp_name,
+			std::function< dispatcher_unique_ptr_t() > disp_factory )
+		{
+			return m_disp_core.add_dispatcher_if_not_exists(
+					disp_name, disp_factory );
+		}
+
 		/*!
 		 * \since v.5.2.3.
 		 * \brief Call event exception logger for logging an exception.

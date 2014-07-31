@@ -224,6 +224,16 @@ so_environment_t::query_named_dispatcher(
 		->query_named_dispatcher( disp_name );
 }
 
+dispatcher_ref_t
+so_environment_t::add_dispatcher_if_not_exists(
+	const std::string & disp_name,
+	std::function< dispatcher_unique_ptr_t() > disp_factory )
+{
+	return m_so_environment_impl->add_dispatcher_if_not_exists(
+			disp_name,
+			disp_factory );
+}
+
 void
 so_environment_t::install_exception_logger(
 	event_exception_logger_unique_ptr_t logger )

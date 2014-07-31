@@ -13,6 +13,8 @@
 #include <mutex>
 
 #include <so_5/h/ret_code.hpp>
+#include <so_5/h/spinlocks.hpp>
+
 #include <so_5/rt/h/so_environment.hpp>
 #include <so_5/rt/h/disp.hpp>
 
@@ -55,6 +57,15 @@ class disp_core_t
 		query_named_dispatcher(
 			const std::string & disp_name );
 
+		/*!
+		 * \since v.5.4.0
+		 * \brief Add named dispatcher if it is not exists.
+		 */
+		dispatcher_ref_t
+		add_dispatcher_if_not_exists(
+			const std::string & disp_name,
+			std::function< dispatcher_unique_ptr_t() > disp_factory );
+
 		//! Start all dispatchers.
 		void
 		start();
@@ -95,6 +106,32 @@ class disp_core_t
 
 		//! Exception logger.
 		event_exception_logger_unique_ptr_t m_event_exception_logger;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief State of dispatcher core.
+		 */
+		enum class state_t
+		{
+			//! Dispatcher core not started.
+			not_started,
+			//! Dispatcher core started.
+			started,
+			//! Dispatcher core is shutting down.
+			finishing
+		};
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief State of dispatcher core.
+		 */
+		state_t m_state;
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Object lock.
+		 */
+		default_rw_spinlock_t m_lock;
 
 		/*!
 		 * \since v.5.2.0

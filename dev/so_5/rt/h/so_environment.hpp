@@ -10,6 +10,8 @@
 #if !defined( _SO_5__RT__SO_ENVIRONMENT_HPP_ )
 #define _SO_5__RT__SO_ENVIRONMENT_HPP_
 
+#include <functional>
+
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
 
@@ -506,6 +508,27 @@ class SO_5_TYPE so_environment_t
 		void
 		install_exception_logger(
 			event_exception_logger_unique_ptr_t logger );
+
+		/*!
+		 * \since v.5.4.0
+		 * \brief Add named dispatcher if it is not exists.
+		 *
+		 * \par Usage:
+			\code
+			so_5::rt::so_environment_t & env = ...;
+			env.add_dispatcher_if_not_exists(
+				"my_coop_dispatcher",
+				[]() { so_5::disp::one_thread::create_disp(); } );
+			\endcode
+		 *
+		 * \throw so_5::exception_t if dispatcher cannot be added.
+		 */
+		dispatcher_ref_t
+		add_dispatcher_if_not_exists(
+			//! Dispatcher name.
+			const std::string & disp_name,
+			//! Dispatcher factory.
+			std::function< dispatcher_unique_ptr_t() > disp_factory );
 		/*!
 		 * \}
 		 */

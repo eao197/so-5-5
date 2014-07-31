@@ -104,6 +104,13 @@ const int rc_disp_create_failed = 31;
 //! agent dispatcher are not the same.
 const int rc_disp_type_mismatch = 32;
 
+/*!
+ * \since v.5.4.0
+ * \brief New dispatcher cannot be added because of illegal
+ * state of SObjectizer Environment.
+ */
+const int rc_disp_cannot_be_added = 34;
+
 //! \}
 
 //! \name Error codes for event handlers and message interceptors registration.
