@@ -72,7 +72,7 @@ class a_parent_t
 			std::cout << "coop_reg: " << evt.m_coop_name << std::endl;
 
 			if( m_counter >= m_max_counter )
-				so_environment().stop();
+				so_deregister_agent_coop_normally();
 
 			// Otherwise should wait for cooperation shutdown.
 		}
