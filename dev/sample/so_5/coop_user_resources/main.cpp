@@ -34,8 +34,7 @@ class logger_t
 };
 
 // A signal for parent cooperation about child work finish.
-struct msg_child_finished : public so_5::rt::signal_t
-{};
+struct msg_child_finished : public so_5::rt::signal_t {};
 
 // A class of child agent.
 class a_child_t
@@ -123,7 +122,7 @@ class a_parent_t
 			if( m_child_finished >= m_child_count )
 			{
 				m_logger.log( "stopping so_environment..." );
-				so_environment().stop();
+				so_deregister_agent_coop_normally();
 			}
 		}
 
