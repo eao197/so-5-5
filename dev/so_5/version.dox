@@ -10,14 +10,17 @@
 	New method so_5::rt::so_environment_t::add_dispatcher_if_not_exists()
 	is implemeted. It allows to add new dispatcher on running
 	SO Environment. Added dispatcher cannot be removed.
+	See \ref so_5_4_0__add_dispatcher_if_not_exists.
 
 	New helper methods so_5::rt::agent_t::so_deregister_agent_coop() and
 	so_5::rt::agent_t::so_deregister_agent_coop_normally().
+	See \ref so_5_4_0__coop_dereg_helper_methods.
 
 	A new feature for SObjectizer Environment: SO Environment is shutting
 	down automatically if there is no more live cooperations.
 	This feature is on by default. To disable it new method
 	so_5::rt::so_environment_params_t::disable_autoshutdown() must be used.
+	See \ref so_5_4_0__autoshutdown_mode.
 
 	New methods so_5::rt::agent_t::so_make_state() introduced to
 	simplify initialization of so_5::rt::state_t objects.
@@ -27,6 +30,8 @@
 	The dispatcher adv_thread_pool can use event handler thread safety
 	information for launching several thread-safe event handlers of one
 	agent on different threads at the same time.
+	See \ref so_5_4_0__thread_pool_dispatcher and
+	\ref so_5_4_0__adv_thread_pool_dispatcher.
 
 	A possibility to specify thread safety for event handler. By default
 	all event handlers are not thread safe and SObjectizer is guarantees
@@ -34,6 +39,7 @@
 	same time. But if event is declared as thread safe then dispatcher
 	is free to launch several thread-safe event handlers at different
 	threads at the same time.
+	See \ref so_5_4_0__thread_safety_for_events.
 
 	New sequence of agent to dispatcher binding. Now it is two stage
 	procedure which guaratees that no so_evt_start() is called until
@@ -45,6 +51,7 @@
 
 	There is no more anonymous agent states. If user doesn't specify name
 	for the state it will be generated automatically.
+	See \ref so_5_4_0__no_anonymous_states.
 
 	A new type of mbox is introduced: this is multi-producer/single-consumer
 	mbox. That mbox is belonging to the agent. A reference to that
