@@ -5,6 +5,7 @@
 \section so_5__4_0 5.4.0 "Katyn-Tau"
 
 	New helper header file so_5/api.hpp added.
+	See \ref so_5_4_0__new_header_all_hpp.
 
 	New method so_5::rt::so_environment_t::add_dispatcher_if_not_exists()
 	is implemeted. It allows to add new dispatcher on running
@@ -20,6 +21,7 @@
 
 	New methods so_5::rt::agent_t::so_make_state() introduced to
 	simplify initialization of so_5::rt::state_t objects.
+	See \ref so_5_4_0__method_so_make_state.
 
 	Two new dispatchers: so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
 	The dispatcher adv_thread_pool can use event handler thread safety
@@ -39,6 +41,7 @@
 
 	New format of so_5::rt::agent_coop_t::add_agent(). Those methods now
 	return a pointer to agent which has been added to cooperation.
+	See \ref so_5_4_0__new_format_of_add_agent.
 
 	There is no more anonymous agent states. If user doesn't specify name
 	for the state it will be generated automatically.
@@ -48,6 +51,7 @@
 	mbox can be obtained only by agent_t::so_direct_mbox() method.
 	Anyone can send messages/signals to such mbox, but only the owner
 	can be subscribed to messages from such mbox.
+	See \ref so_5_4_0__new_mpsc_mbox.
 
 	Format of so_5::rt::mbox_t::query_name() is changed. Now the std::string
 	object is returned, not the const reference as in previous versions.
