@@ -628,18 +628,22 @@ agent_t::demand_handler_on_finish(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
-	working_thread_id_sentinel_t sentinel(
-			d.m_receiver->m_working_thread_id,
-			working_thread_id );
+	{
+		// Sentinel must finish its work before decrementing
+		// reference count to cooperation.
+		working_thread_id_sentinel_t sentinel(
+				d.m_receiver->m_working_thread_id,
+				working_thread_id );
 
-	try
-	{
-		d.m_receiver->so_evt_finish();
-	}
-	catch( const std::exception & x )
-	{
-		impl::process_unhandled_exception(
-				working_thread_id, x, *(d.m_receiver) );
+		try
+		{
+			d.m_receiver->so_evt_finish();
+		}
+		catch( const std::exception & x )
+		{
+			impl::process_unhandled_exception(
+					working_thread_id, x, *(d.m_receiver) );
+		}
 	}
 
 	// Cooperation should receive notification about agent deregistration.
