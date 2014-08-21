@@ -32,7 +32,8 @@ disp_core_t::disp_core_t(
 		m_so_environment( so_environment ),
 		m_default_dispatcher( so_5::disp::one_thread::create_disp() ),
 		m_named_dispatcher_map( named_dispatcher_map ),
-		m_event_exception_logger( std::move( logger ) )
+		m_event_exception_logger( std::move( logger ) ),
+		m_state( state_t::not_started )
 {
 }
 

@@ -50,9 +50,7 @@ class test_agent_t
 		}
 
 		void
-		evt_test(
-			const so_5::rt::event_data_t< test_message > &
-				msg );
+		evt_test();
 
 	private:
 		so_5::rt::mbox_ref_t	m_test_mbox;
@@ -65,13 +63,11 @@ void
 test_agent_t::so_define_agent()
 {
 	so_subscribe( m_test_mbox )
-		.event( &test_agent_t::evt_test );
+		.event( so_5::signal< test_message >, &test_agent_t::evt_test );
 }
 
 void
-test_agent_t::evt_test(
-	const so_5::rt::event_data_t< test_message > &
-		msg )
+test_agent_t::evt_test()
 {
 	so_environment().stop();
 }
@@ -87,12 +83,7 @@ main( int argc, char * argv[] )
 {
 	try
 	{
-		so_5::api::run_so_environment(
-			&init,
-			std::move(
-				so_5::rt::so_environment_params_t()
-					.mbox_mutex_pool_size( 4 )
-					.agent_event_queue_mutex_pool_size( 4 ) ) );
+		so_5::api::run_so_environment( &init );
 	}
 	catch( const std::exception & ex )
 	{
