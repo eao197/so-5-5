@@ -52,6 +52,29 @@ class a_test_t : public so_5::rt::agent_t
 		unsigned int m_ticks = 0;
 };
 
+class a_starter_t : public so_5::rt::agent_t
+{
+	public :
+		a_starter_t( so_5::rt::so_environment_t & env )
+			:	so_5::rt::agent_t( env )
+		{}
+
+		virtual void
+		so_evt_start()
+		{
+			for( int i = 0; i < 1024; ++i )
+			{
+				std::ostringstream ss;
+				ss << "coop_" << i;
+
+				so_environment().register_agent_as_coop(
+					ss.str(), new a_test_t( so_environment() ) );
+			}
+
+			so_deregister_agent_coop_normally();
+		}
+};
+
 int
 main( int argc, char * argv[] )
 {
@@ -63,14 +86,8 @@ main( int argc, char * argv[] )
 				so_5::api::run_so_environment(
 					[]( so_5::rt::so_environment_t & env )
 					{
-						for( int i = 0; i < 1024; ++i )
-						{
-							std::ostringstream ss;
-							ss << "coop_" << i;
-
-							env.register_agent_as_coop(
-								ss.str(), new a_test_t( env ) );
-						}
+						env.register_agent_as_coop(
+							"starter", new a_starter_t( env ) );
 					} );
 			},
 			5,
