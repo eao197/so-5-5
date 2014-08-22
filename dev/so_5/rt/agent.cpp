@@ -436,33 +436,12 @@ agent_t::bind_to_environment(
 void
 agent_t::shutdown_agent()
 {
-	// Since v.5.2.3.4 shutdown is done by three steps:
-	//
-	// 1. Lock object, set deregistration status and move subscription
-	// map to different location.
-	//
-	// 2. Unlock object and remove all subscription. Subscriptions must be
-	// removed on unlocked object to avoid deadlocks on mbox operations (see for
-	// example: https://sourceforge.net/p/sobjectizer/bugs/10/).
-	//
-	// 3. Send the last demand to the agent.
+	// Since v.5.4.0.1 shutdown is done by one simple step: shutdown
+	// of event_queue_proxy objects. No new demands will be sent to
+	// the agent, but all the subscriptions remains. They will be destroyed
+	// at the very end of agent's lifetime.
 
-	std::unique_ptr< impl::subscription_storage_t > subscriptions(
-			new impl::subscription_storage_t( self_ptr() ) );
-	{
-		// Step #1. Must be done on locked object.
-		std::lock_guard< std::mutex > lock( m_mutex );
-
-		m_is_coop_deregistered = true;
-		m_subscriptions.swap( subscriptions );
-	}
-
-	// Step #2. Must be done on unlocked object.
-	
-	// Subscriptions should be destroyed.
-	subscriptions.reset();
-
-	// Step #3. We must shutdown proxy object. And only then
+	// e must shutdown proxy object. And only then
 	// the last demand will be sent to the agent.
 	auto q = m_event_queue_proxy->shutdown();
 	if( q )
