@@ -193,14 +193,60 @@ so_environment_impl_t::run_agent_core_and_go_further(
 			[this, &env] { run_user_supplied_init_and_wait_for_stop( env ); } );
 }
 
+namespace autoshutdown_guard
+{
+	//! An empty agent for the special cooperation for protection of
+	//! init function from autoshutdown feature.
+	class a_empty_agent_t : public agent_t
+	{
+		public :
+			a_empty_agent_t( so_environment_t & env )
+				:	agent_t( env )
+			{}
+	};
+
+	void
+	register_init_guard_cooperation(
+		so_environment_t & env,
+		bool autoshutdown_disabled )
+	{
+		if( !autoshutdown_disabled )
+			env.register_agent_as_coop(
+					"__so_5__init_autoshutdown_guard__",
+					new a_empty_agent_t( env ) );
+	}
+
+	void
+	deregistr_init_guard_cooperation(
+		so_environment_t & env,
+		bool autoshutdown_disabled )
+	{
+		if( !autoshutdown_disabled )
+			env.deregister_coop(
+					"__so_5__init_autoshutdown_guard__",
+					dereg_reason::normal );
+	}
+}
+
 void
 so_environment_impl_t::run_user_supplied_init_and_wait_for_stop(
 	so_environment_t & env )
 {
 	try
 	{
+		// init method must be protected from autoshutdown feature.
+		autoshutdown_guard::register_init_guard_cooperation(
+				m_public_so_environment,
+				m_autoshutdown_disabled );
+
 		// Initilizing environment.
 		env.init();
+
+		// Protection is no more needed.
+		autoshutdown_guard::deregistr_init_guard_cooperation(
+				m_public_so_environment,
+				m_autoshutdown_disabled );
+
 		m_agent_core.wait_for_start_deregistration();
 	}
 	catch( const std::exception & ex )

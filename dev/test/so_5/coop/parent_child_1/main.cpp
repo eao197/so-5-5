@@ -250,11 +250,16 @@ main( int argc, char * argv[] )
 	try
 	{
 		test_env_t test_env;
-		so_5::api::run_so_environment_on_object(
-				test_env,
-				&test_env_t::init,
-				std::move( so_5::rt::so_environment_params_t().
-						coop_listener( test_env.make_listener() ) ) );
+		so_5::api::run_so_environment(
+				[&test_env]( so_5::rt::so_environment_t & env )
+				{
+					test_env.init( env );
+				},
+				[&test_env]( so_5::rt::so_environment_params_t & params )
+				{
+					params.coop_listener( test_env.make_listener() );
+					params.disable_autoshutdown();
+				} );
 
 		test_env.check_result();
 	}
