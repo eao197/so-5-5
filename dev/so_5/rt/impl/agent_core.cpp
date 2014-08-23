@@ -349,6 +349,13 @@ agent_core_t::register_coop(
 		// All the following actions should be taken under the lock.
 		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
+		if( m_deregistration_started )
+			SO_5_THROW_EXCEPTION(
+					rc_unable_to_register_coop_during_shutdown,
+					coop_ref->query_coop_name() +
+					": a new cooperation cannot be started during "
+					"environment shutdown" );
+
 		// Name should be unique.
 		ensure_new_coop_name_unique( coop_ref->query_coop_name() );
 		// Process parent coop.

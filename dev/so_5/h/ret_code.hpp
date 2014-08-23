@@ -88,6 +88,13 @@ const int rc_parent_coop_not_found = 26;
  * \brief Binding of agent to dispatcher failed.
  */
 const int rc_agent_to_disp_binding_failed = 27;
+
+/*!
+ * \since v.5.4.0.1
+ * \brief It is impossible to register cooperation during
+ * SObjectizer Environment shutdown.
+ */
+const int rc_unable_to_register_coop_during_shutdown = 28;
 //! \}
 
 
