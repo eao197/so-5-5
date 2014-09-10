@@ -20,67 +20,60 @@ struct	cfg_t
 		{}
 };
 
-int
+cfg_t
 try_parse_cmdline(
 	int argc,
-	char ** argv,
-	cfg_t & cfg )
-{
-	if( 1 == argc )
-		{
-			std::cout << "usage:\n"
-					"sample.so_5.ping_pong <options>\n"
-					"\noptions:\n"
-					"-a, --active-objects agents should be active objects\n"
-					"-r, --requests       count of requests to send\n"
-					<< std::endl;
+	char ** argv )
+	{
+		if( 1 == argc )
+			{
+				std::cout << "usage:\n"
+						"sample.so_5.ping_pong <options>\n"
+						"\noptions:\n"
+						"-a, --active-objects agents should be active objects\n"
+						"-r, --requests       count of requests to send\n"
+						<< std::endl;
 
-			ACE_ERROR_RETURN(
-				( LM_ERROR, ACE_TEXT( "No arguments supplied\n" ) ), -1 );
-		}
+				throw std::runtime_error( "No command-line errors" );
+			}
 
-	ACE_Get_Opt opt( argc, argv, ":ar:" );
-	if( -1 == opt.long_option(
-			"active-objects", 'a', ACE_Get_Opt::NO_ARG ) )
-		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
-						"Unable to set long option 'active-objects'\n" )), -1 );
-	if( -1 == opt.long_option(
-			"requests", 'r', ACE_Get_Opt::ARG_REQUIRED ) )
-		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
-						"Unable to set long option 'requests'\n" )), -1 );
-
-	cfg_t tmp_cfg;
-
-	int o;
-	while( EOF != ( o = opt() ) )
-		{
-			switch( o )
+		auto is_arg = []( const char * value,
+				const char * v1,
+				const char * v2 )
 				{
-				case 'a' :
-					tmp_cfg.m_active_objects = true;
-				break;
+					return 0 == strcmp( value, v1 ) ||
+							0 == strcmp( value, v2 );
+				};
 
-				case 'r' :
-					tmp_cfg.m_request_count = ACE_OS::atoi( opt.opt_arg() );
-				break;
+		cfg_t result;
 
-				case ':' :
-					ACE_ERROR_RETURN(( LM_ERROR,
-							ACE_TEXT( "-%c requieres argument\n" ),
-									opt.opt_opt() ), -1 );
-				}
-		}
+		char ** current = argv + 1;
+		char ** last = argv + argc;
 
-	if( opt.opt_ind() < argc )
-		ACE_ERROR_RETURN(( LM_ERROR,
-				ACE_TEXT( "Unknown argument: '%s'\n" ),
-						argv[ opt.opt_ind() ] ),
-				-1 );
+		while( current != last )
+			{
+				if( is_arg( *current, "-a", "--active-objects" ) )
+					{
+						result.m_active_objects = true;
+					}
+				else if( is_arg( *current, "-r", "--requests" ) )
+					{
+						++current;
+						if( current == last )
+							throw std::runtime_error( "-r requires argument" );
 
-	cfg = tmp_cfg;
+						result.m_request_count = std::atoi( *current );
+					}
+				else
+					{
+						throw std::runtime_error(
+							std::string( "unknown argument: " ) + *current );
+					}
+				++current;
+			}
 
-	return 0;
-}
+		return result;
+	}
 
 void
 show_cfg(
@@ -147,21 +140,18 @@ run_sample(
 int
 main( int argc, char ** argv )
 {
-	cfg_t cfg;
-	if( -1 != try_parse_cmdline( argc, argv, cfg ) )
+	try
 	{
+		cfg_t cfg = try_parse_cmdline( argc, argv );
 		show_cfg( cfg );
 
-		try
-		{
-			run_sample( cfg );
+		run_sample( cfg );
 
-			return 0;
-		}
-		catch( const std::exception & x )
-		{
-			std::cerr << "*** Exception caught: " << x.what() << std::endl;
-		}
+		return 0;
+	}
+	catch( const std::exception & x )
+	{
+		std::cerr << "*** Exception caught: " << x.what() << std::endl;
 	}
 
 	return 2;

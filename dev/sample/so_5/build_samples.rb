@@ -24,6 +24,6 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/svc/parallel_sum/prj.rb" )
 	required_prj( "sample/so_5/svc/exceptions/prj.rb" )
 	required_prj( "sample/so_5/ping_pong_minimal/prj.rb" )
-#	required_prj( "sample/so_5/ping_pong/prj.rb" )
+	required_prj( "sample/so_5/ping_pong/prj.rb" )
 	required_prj( "sample/so_5/hardwork_imit/prj.rb" )
 }
