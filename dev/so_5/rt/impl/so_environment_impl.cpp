@@ -18,33 +18,50 @@ namespace rt
 namespace impl
 {
 
+namespace 
+{
+
+/*!
+ * \since v.5.5.0
+ * \brief Helper function for timer_thread creation.
+ */
+timer_thread_unique_ptr_t
+create_appropriate_timer_thread(
+	error_logger_shptr_t error_logger,
+	const timer_thread_factory_t & user_factory )
+{
+	if( user_factory )
+		return user_factory( std::move( error_logger ) );
+	else
+		return create_timer_wheel_thread( std::move( error_logger ) );
+}
+
+} /* namespace anonymous */
+
 so_environment_impl_t::so_environment_impl_t(
 	so_environment_params_t && so_environment_params,
 	so_environment_t & public_so_environment )
-	:
-		m_mbox_core( new mbox_core_t() ),
-		m_agent_core(
+//FIXME: error_logger object must be taken from so_environment_params!
+	:	m_error_logger( create_stderr_logger() )
+	,	m_mbox_core( new mbox_core_t() )
+	,	m_agent_core(
 			public_so_environment,
-			std::move( so_environment_params.m_coop_listener ) ),
-		m_disp_core(
+			std::move( so_environment_params.m_coop_listener ) )
+	,	m_disp_core(
 			public_so_environment,
 			so_environment_params.named_dispatcher_map(),
-			std::move( so_environment_params.m_event_exception_logger ) ),
-		m_layer_core(
+			std::move( so_environment_params.m_event_exception_logger ) )
+	,	m_layer_core(
 			so_environment_params.so_layers_map(),
-			&public_so_environment ),
-		m_public_so_environment( public_so_environment ),
-		m_timer_thread(
-			std::move( so_environment_params.m_timer_thread ) ),
-		m_exception_reaction( so_environment_params.exception_reaction() )
+			&public_so_environment )
+	,	m_public_so_environment( public_so_environment )
+	,	m_timer_thread(
+			create_appropriate_timer_thread(
+					m_error_logger,
+					so_environment_params.m_timer_thread_factory ) )
+	,	m_exception_reaction( so_environment_params.exception_reaction() )
 	,	m_autoshutdown_disabled( so_environment_params.autoshutdown_disabled() )
-//FIXME: error_logger object must be taken from so_environment_params!
-	,	m_error_logger( create_stderr_logger() )
 {
-	if( 0 == m_timer_thread.get() )
-	{
-		m_timer_thread = create_timer_wheel_thread();
-	}
 }
 
 so_environment_impl_t::~so_environment_impl_t()

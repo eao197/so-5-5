@@ -33,7 +33,7 @@ so_environment_params_t::so_environment_params_t(
 	,	m_agent_event_queue_mutex_pool_size(
 			other.m_agent_event_queue_mutex_pool_size )
 	,	m_named_dispatcher_map( std::move( other.m_named_dispatcher_map ) )
-	,	m_timer_thread( std::move( other.m_timer_thread ) )
+	,	m_timer_thread_factory( std::move( other.m_timer_thread_factory ) )
 	,	m_so_layers( std::move( other.m_so_layers ) )
 	,	m_coop_listener( std::move( other.m_coop_listener ) )
 	,	m_event_exception_logger( std::move( other.m_event_exception_logger ) )
@@ -63,7 +63,7 @@ so_environment_params_t::swap( so_environment_params_t & other )
 	std::swap( m_agent_event_queue_mutex_pool_size,
 			other.m_agent_event_queue_mutex_pool_size );
 	m_named_dispatcher_map.swap( other.m_named_dispatcher_map );
-	m_timer_thread.swap( other.m_timer_thread );
+	m_timer_thread_factory.swap( other.m_timer_thread_factory );
 	m_so_layers.swap( other.m_so_layers );
 	m_coop_listener.swap( other.m_coop_listener );
 	m_event_exception_logger.swap( other.m_event_exception_logger );
@@ -108,9 +108,9 @@ so_environment_params_t::add_named_dispatcher(
 
 so_environment_params_t &
 so_environment_params_t::timer_thread(
-	so_5::timer_thread_unique_ptr_t timer_thread )
+	so_5::timer_thread_factory_t factory )
 {
-	m_timer_thread = std::move( timer_thread );
+	m_timer_thread_factory = std::move( factory );
 	return  *this;
 }
 

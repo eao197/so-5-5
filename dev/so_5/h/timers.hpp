@@ -11,8 +11,11 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 
 #include <so_5/h/declspec.hpp>
+
+#include <so_5/h/error_logger.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -179,6 +182,16 @@ class SO_5_TYPE timer_thread_t
 //! Auxiliary typedef for timer_thread autopointer.
 typedef std::unique_ptr< timer_thread_t > timer_thread_unique_ptr_t;
 
+//
+// timer_thread_factory_t
+//
+/*!
+ * \since v.5.5.0
+ * \brief Type of factory for creating timer_thread objects.
+ */
+using timer_thread_factory_t = std::function<
+		timer_thread_unique_ptr_t( error_logger_shptr_t ) >;
+
 /*!
  * \name Standard timer thread factories.
  * \{
@@ -189,14 +202,18 @@ typedef std::unique_ptr< timer_thread_t > timer_thread_unique_ptr_t;
  * \note Default parameters will be used for timer thread.
  */
 SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
-create_timer_wheel_thread();
+create_timer_wheel_thread(
+	//! A logger for handling error messages inside timer_thread.
+	error_logger_shptr_t logger );
 
 /*!
  * \since v.5.5.0
  * \brief Create timer thread based on timer_list mechanism.
  */
 SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
-create_timer_list_thread();
+create_timer_list_thread(
+	//! A logger for handling error messages inside timer_thread.
+	error_logger_shptr_t logger );
 
 /*!
  * \}

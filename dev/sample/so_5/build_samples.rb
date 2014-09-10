@@ -9,7 +9,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/hello_delay/prj.rb" )
 	required_prj( "sample/so_5/hello_periodic/prj.rb" )
 	required_prj( "sample/so_5/chstate/prj.rb" )
-#	required_prj( "sample/so_5/disp/prj.rb" )
+	required_prj( "sample/so_5/disp/prj.rb" )
 	required_prj( "sample/so_5/coop_listener/prj.rb" )
 	required_prj( "sample/so_5/exception_logger/prj.rb" )
 	required_prj( "sample/so_5/exception_handler/prj.rb" )

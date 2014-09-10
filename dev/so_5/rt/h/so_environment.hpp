@@ -146,15 +146,15 @@ class SO_5_TYPE so_environment_params_t
 			//! Dispatcher.
 			dispatcher_unique_ptr_t dispatcher );
 
-		//! Set the timer thread.
+		//! Set the timer_thread factory.
 		/*!
-		 * If \a timer_thread is a nullptr then the default timer thread
+		 * If \a factory is a null then the default timer thread
 		 * will be used.
 		 */
 		so_environment_params_t &
 		timer_thread(
-			//! Timer thread to be set.
-			so_5::timer_thread_unique_ptr_t timer_thread );
+			//! timer_thread factory to be used.
+			so_5::timer_thread_factory_t factory );
 
 		//! Add an additional layer to the SObjectizer Environment.
 		/*!
@@ -318,8 +318,8 @@ class SO_5_TYPE so_environment_params_t
 		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;
 
-		//! Timer thread.
-		so_5::timer_thread_unique_ptr_t m_timer_thread;
+		//! Timer thread factory.
+		so_5::timer_thread_factory_t m_timer_thread_factory;
 
 		//! Additional layers.
 		so_layer_map_t m_so_layers;

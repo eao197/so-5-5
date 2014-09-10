@@ -231,25 +231,106 @@ class actual_thread_t : public timer_thread_t
 		std::unique_ptr< TIMER_THREAD > m_thread;
 	};
 
+//
+// error_logger_for_timertt_t
+//
+/*!
+ * \since v.5.5.0
+ * \brief Type of error_logger for timertt stuff.
+ */
+using error_logger_for_timertt_t = std::function< void(const std::string &) >;
+
+//
+// create_error_logger_for_timertt
+//
+error_logger_for_timertt_t
+create_error_logger_for_timertt( error_logger_shptr_t logger )
+	{
+		return [logger]( const std::string & msg ) {
+			SO_5_LOG_ERROR( *logger, stream ) {
+				stream << "error inside timer_thread: " << msg;
+			}
+		};
+	}
+
+//
+// exception_handler_for_timertt_t
+//
+/*!
+ * \since v.5.5.0
+ * \brief Type of actor_exception_handler for timertt stuff.
+ */
+using exception_handler_for_timertt_t =
+	std::function< void(const std::exception &) >;
+
+//
+// create_exception_handler_for_timertt
+//
+exception_handler_for_timertt_t
+create_exception_handler_for_timertt( error_logger_shptr_t logger )
+	{
+		return [logger]( const std::exception & x ) {
+			SO_5_LOG_ERROR( *logger, stream ) {
+				stream << "exception has been thrown and caught inside "
+						"timer_thread, application will be aborted. "
+						"Exception: " << x.what();
+			}
+
+			std::abort();
+		};
+	}
+
+/*!
+ * \name Short synonyms for timertt templates.
+ * \{
+ */
+//! timer_wheel thread type.
+using timer_wheel_thread_t = timertt::timer_wheel_thread_template_t<
+		error_logger_for_timertt_t,
+		exception_handler_for_timertt_t >;
+
+//! timer_list thread type.
+using timer_list_thread_t = timertt::timer_list_thread_template_t<
+		error_logger_for_timertt_t,
+		exception_handler_for_timertt_t >;
+/*!
+ * \}
+ */
+
 } /* namespace timers_details */
 
 SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
-create_timer_wheel_thread()
+create_timer_wheel_thread(
+	error_logger_shptr_t logger )
 	{
+		using timertt_thread_t = timers_details::timer_wheel_thread_t;
 		using namespace timers_details;
-		using timertt_thread_t = timertt::timer_wheel_thread_t;
 
-		std::unique_ptr< timertt_thread_t > thread( new timertt_thread_t() );
+		std::unique_ptr< timertt_thread_t > thread(
+				new timertt_thread_t(
+						timertt_thread_t::default_wheel_size(),
+						timertt_thread_t::default_granularity(),
+						create_error_logger_for_timertt( logger ),
+						create_exception_handler_for_timertt( logger ) ) );
 
 		return timer_thread_unique_ptr_t(
 				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
 	}
 
 SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
-create_timer_list_thread()
+create_timer_list_thread(
+	error_logger_shptr_t logger )
 	{
-//FIXME: implement this!
-		return timer_thread_unique_ptr_t();
+		using timertt_thread_t = timers_details::timer_list_thread_t;
+		using namespace timers_details;
+
+		std::unique_ptr< timertt_thread_t > thread(
+				new timertt_thread_t(
+						create_error_logger_for_timertt( logger ),
+						create_exception_handler_for_timertt( logger ) ) );
+
+		return timer_thread_unique_ptr_t(
+				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
 	}
 
 } /* namespace so_5 */
