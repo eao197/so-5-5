@@ -173,6 +173,16 @@ class agent_core_t
 		void
 		wait_all_coop_to_deregister();
 
+		/*!
+		 * \since v.5.5.0
+		 * \brief Access to SObjectizer Environment.
+		 *
+		 * \note This access is necessary to use error_logger for
+		 * logging error messages.
+		 */
+		so_environment_t &
+		environment();
+
 	private:
 		//! Typedef for map from cooperation name to the cooperation.
 		typedef std::map<

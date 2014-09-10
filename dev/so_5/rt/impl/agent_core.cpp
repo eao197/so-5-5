@@ -6,8 +6,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include <so_5/h/log_err.hpp>
-
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 
 namespace so_5
@@ -248,13 +246,13 @@ void
 deregistration_processor_t::initiate_abort_on_exception(
 	const std::exception & x )
 {
-	ACE_ERROR(
-			(LM_EMERGENCY,
-			 SO_5_LOG_FMT( "Exception during cooperation deregistration. "
-					"Work cannot be continued. Cooperation: '%s'. "
-					"Exception: %s" ),
-					m_root_coop_name.c_str(),
-					x.what() ) );
+	SO_5_LOG_ERROR( m_core.environment(), log_stream )
+	{
+		log_stream << "Exception during cooperation deregistration. "
+				"Work cannot be continued. Cooperation: '"
+				<< m_root_coop_name << "'. Exception: '"
+				<< x.what() << "'";
+	}
 
 	std::abort();
 }
@@ -492,6 +490,12 @@ agent_core_t::wait_all_coop_to_deregister()
 		// Wait for the deregistration finish.
 		m_deregistration_finished_cond.wait( lock );
 	}
+}
+
+so_environment_t &
+agent_core_t::environment()
+{
+	return m_so_environment;
 }
 
 void

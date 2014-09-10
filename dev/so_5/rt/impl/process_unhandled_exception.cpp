@@ -77,7 +77,7 @@ switch_agent_to_special_state_and_shutdown_sobjectizer(
 			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 			{
 				log_stream << "An exception '" << x.what()
-						<< "' during shutting down SObjectizer on unhandled ""
+						<< "' during shutting down SObjectizer on unhandled "
 						"exception processing. Application will be aborted.";
 			}
 
@@ -137,75 +137,77 @@ process_unhandled_exception(
 				so_5::rt::ignore_exception != reaction &&
 				so_5::rt::abort_on_exception != reaction )
 		{
-			ACE_ERROR(
-					(LM_EMERGENCY,
-					 SO_5_LOG_FMT( "Illegal exception_reaction code "
-						 	"for the multithreadded agent: %d. "
-							"The only allowed exception_reaction for "
-							"such kind of agents are ignore_exception or "
-							"abort_on_exception. "
-							"Application will be aborted. "
-							"Unhandled exception '%s' from cooperation '%s'" ),
-					 static_cast< int >(reaction),
-					 ex.what(),
-					 a_exception_producer.so_coop_name().c_str()) );
-
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "Illegal exception_reaction code "
+						"for the multithreadded agent: "
+						<< static_cast< int >(reaction) << ". "
+						"The only allowed exception_reaction for "
+						"such kind of agents are ignore_exception or "
+						"abort_on_exception. "
+						"Application will be aborted. "
+						"Unhandled exception '" << ex.what()
+						<< "' from cooperation '"
+						<< a_exception_producer.so_coop_name() << "'";
+			}
 			std::abort();
 		}
 
 		if( so_5::rt::abort_on_exception == reaction )
 		{
-			ACE_ERROR(
-					(LM_EMERGENCY,
-					 SO_5_LOG_FMT( "Application will be aborted due to unhandled "
-							"exception '%s' from cooperation '%s'" ),
-					 ex.what(),
-					 a_exception_producer.so_coop_name().c_str()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "Application will be aborted due to unhandled "
+						"exception '" << ex.what() << "' from cooperation '"
+						<< a_exception_producer.so_coop_name() << "'";
+			}
 			std::abort();
 		}
 		else if( so_5::rt::shutdown_sobjectizer_on_exception == reaction )
 		{
-			ACE_ERROR(
-					(LM_CRITICAL,
-					 SO_5_LOG_FMT( "SObjectizer will be shutted down due to "
-						 	"unhandled exception '%s' from cooperation '%s'" ),
-					 ex.what(),
-					 a_exception_producer.so_coop_name().c_str()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "SObjectizer will be shutted down due to "
+						"unhandled exception '" << ex.what()
+						<< "' from cooperation '"
+						<< a_exception_producer.so_coop_name() << "'";
+			}
 
 			switch_agent_to_special_state_and_shutdown_sobjectizer(
 					a_exception_producer );
 		}
 		else if( so_5::rt::deregister_coop_on_exception == reaction )
 		{
-			ACE_ERROR(
-					(LM_ALERT,
-					 SO_5_LOG_FMT( "Cooperation '%s' will be deregistered "
-							"due to unhandled exception '%s'" ),
-					 a_exception_producer.so_coop_name().c_str(),
-					 ex.what()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "Cooperation '"
+						<< a_exception_producer.so_coop_name()
+						<< "' will be deregistered due to unhandled exception '"
+						<< ex.what() << "'";
+			}
 
 			switch_agent_to_special_state_and_deregister_coop(
 					a_exception_producer );
 		}
 		else if( so_5::rt::ignore_exception == reaction )
 		{
-			ACE_ERROR(
-					(LM_WARNING,
-					 SO_5_LOG_FMT( "Ignore unhandled exception '%s' from "
-							"cooperation '%s'"),
-					 ex.what(),
-					 a_exception_producer.so_coop_name().c_str()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "Ignore unhandled exception '"
+						<< ex.what() << "' from cooperation '"
+						<< a_exception_producer.so_coop_name() << "'";
+			}
 		}
 		else
 		{
-			ACE_ERROR(
-					(LM_EMERGENCY,
-					 SO_5_LOG_FMT( "Unknown exception_reaction code: %d. "
-							"Application will be aborted. "
-							"Unhandled exception '%s' from cooperation '%s'" ),
-					 static_cast< int >(reaction),
-					 ex.what(),
-					 a_exception_producer.so_coop_name().c_str()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "Unknown exception_reaction code: "
+						<< static_cast< int >(reaction)
+						<< ". Application will be aborted. Unhandled exception '"
+						<< ex.what() << "' from cooperation '"
+						<< a_exception_producer.so_coop_name() << "'";
+			}
 
 			std::abort();
 		}
