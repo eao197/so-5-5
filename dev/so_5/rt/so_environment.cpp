@@ -108,7 +108,7 @@ so_environment_params_t::add_named_dispatcher(
 
 so_environment_params_t &
 so_environment_params_t::timer_thread(
-	so_5::timer_thread::timer_thread_unique_ptr_t timer_thread )
+	so_5::timer_thread_unique_ptr_t timer_thread )
 {
 	m_timer_thread = std::move( timer_thread );
 	return  *this;
@@ -274,7 +274,7 @@ so_environment_t::deregister_coop(
 	m_so_environment_impl->deregister_coop( name, reason );
 }
 
-so_5::timer_thread::timer_id_ref_t
+so_5::timer_id_t
 so_environment_t::schedule_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,

@@ -8,7 +8,6 @@
 #include <so_5/h/ret_code.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
-#include <so_5/timer_thread/ace_timer_queue_adapter/h/pub.hpp>
 
 namespace so_5
 {
@@ -44,8 +43,7 @@ so_environment_impl_t::so_environment_impl_t(
 {
 	if( 0 == m_timer_thread.get() )
 	{
-		using namespace so_5::timer_thread::ace_timer_queue_adapter;
-		m_timer_thread = create_timer_thread();
+		m_timer_thread = create_timer_wheel_thread();
 	}
 }
 
@@ -53,7 +51,7 @@ so_environment_impl_t::~so_environment_impl_t()
 {
 }
 
-so_5::timer_thread::timer_id_ref_t
+so_5::timer_id_t
 so_environment_impl_t::schedule_timer(
 	const std::type_index & type_wrapper,
 	const message_ref_t & msg,
@@ -61,20 +59,12 @@ so_environment_impl_t::schedule_timer(
 	unsigned int delay_msec,
 	unsigned int period_msec )
 {
-	timer_thread::timer_act_unique_ptr_t timer_act(
-		new timer_thread::timer_act_t(
+	return m_timer_thread->schedule(
 			type_wrapper,
-			mbox,
 			msg,
-			delay_msec,
-			period_msec ) );
-
-	timer_thread::timer_id_t timer_id = m_timer_thread->schedule_act(
-			std::move(timer_act) );
-
-	return timer_thread::timer_id_ref_t::create(
-		*m_timer_thread,
-		timer_id );
+			mbox,
+			std::chrono::milliseconds( delay_msec ),
+			std::chrono::milliseconds( period_msec ) );
 }
 
 void
@@ -84,15 +74,12 @@ so_environment_impl_t::single_timer(
 	const mbox_ref_t & mbox,
 	unsigned int delay_msec )
 {
-	timer_thread::timer_act_unique_ptr_t timer_act(
-		new timer_thread::timer_act_t(
+	return m_timer_thread->schedule_anonymous(
 			type_wrapper,
-			mbox,
 			msg,
-			delay_msec,
-			0 ) );
-
-	m_timer_thread->schedule_act( std::move(timer_act) );
+			mbox,
+			std::chrono::milliseconds( delay_msec ),
+			std::chrono::milliseconds::zero() );
 }
 
 so_layer_t *

@@ -189,7 +189,7 @@ class so_environment_impl_t
 		 */
 
 		//! Schedule timer event.
-		so_5::timer_thread::timer_id_ref_t
+		so_5::timer_id_t
 		schedule_timer(
 			//! Message type.
 			const std::type_index & type_wrapper,
@@ -288,7 +288,7 @@ class so_environment_impl_t
 		so_environment_t & m_public_so_environment;
 
 		//! Timer.
-		so_5::timer_thread::timer_thread_unique_ptr_t m_timer_thread;
+		so_5::timer_thread_unique_ptr_t m_timer_thread;
 
 		/*!
 		 * \since v.5.3.0

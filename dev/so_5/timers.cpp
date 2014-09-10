@@ -189,8 +189,8 @@ class actual_thread_t : public timer_thread_t
 		virtual timer_id_t
 		schedule(
 			const std::type_index & type_index,
-			so_5::rt::mbox_ref_t mbox,
-			so_5::rt::message_ref_t msg,
+			const so_5::rt::mbox_ref_t & mbox,
+			const so_5::rt::message_ref_t & msg,
 			std::chrono::milliseconds pause,
 			std::chrono::milliseconds period ) override
 			{
@@ -211,8 +211,8 @@ class actual_thread_t : public timer_thread_t
 		virtual void
 		schedule_anonymous(
 			const std::type_index & type_index,
-			so_5::rt::mbox_ref_t mbox,
-			so_5::rt::message_ref_t msg,
+			const so_5::rt::mbox_ref_t & mbox,
+			const so_5::rt::message_ref_t & msg,
 			std::chrono::milliseconds pause,
 			std::chrono::milliseconds period ) override
 			{

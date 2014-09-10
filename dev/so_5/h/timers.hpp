@@ -92,6 +92,18 @@ class SO_5_TYPE timer_id_t
 		so_5::rt::smart_atomic_reference_t< timer_t > m_timer;
 	};
 
+namespace timer_thread
+{
+	/*!
+	 * \deprecated
+	 * \brief Synonym for timed_id.
+	 *
+	 * Saved for compatibility with previous versions.
+	 */
+	using timer_id_ref_t = timer_id_t;
+
+} /* namespace timer_thread */
+
 //
 // timer_thread_t
 //
@@ -136,9 +148,9 @@ class SO_5_TYPE timer_thread_t
 			//! Type of message to be sheduled.
 			const std::type_index & type_index,
 			//! Mbox for message delivery.
-			so_5::rt::mbox_ref_t mbox,
+			const so_5::rt::mbox_ref_t & mbox,
 			//! Message to be sent.
-			so_5::rt::message_ref_t msg,
+			const so_5::rt::message_ref_t & msg,
 			//! Pause before first message delivery.
 			std::chrono::milliseconds pause,
 			//! Period for message repetition.
@@ -154,9 +166,9 @@ class SO_5_TYPE timer_thread_t
 			//! Type of message to be sheduled.
 			const std::type_index & type_index,
 			//! Mbox for message delivery.
-			so_5::rt::mbox_ref_t mbox,
+			const so_5::rt::mbox_ref_t & mbox,
 			//! Message to be sent.
-			so_5::rt::message_ref_t msg,
+			const so_5::rt::message_ref_t & msg,
 			//! Pause before first message delivery.
 			std::chrono::milliseconds pause,
 			//! Period for message repetition.

@@ -26,8 +26,8 @@
 #include <so_5/rt/h/coop_listener.hpp>
 #include <so_5/rt/h/event_exception_logger.hpp>
 
-#include <so_5/timer_thread/h/timer_thread.hpp>
-#include <so_5/timer_thread/h/timer_id.hpp>
+#include <so_5/h/timers.hpp>
+
 
 namespace so_5
 {
@@ -154,7 +154,7 @@ class SO_5_TYPE so_environment_params_t
 		so_environment_params_t &
 		timer_thread(
 			//! Timer thread to be set.
-			so_5::timer_thread::timer_thread_unique_ptr_t timer_thread );
+			so_5::timer_thread_unique_ptr_t timer_thread );
 
 		//! Add an additional layer to the SObjectizer Environment.
 		/*!
@@ -319,7 +319,7 @@ class SO_5_TYPE so_environment_params_t
 		named_dispatcher_map_t m_named_dispatcher_map;
 
 		//! Timer thread.
-		so_5::timer_thread::timer_thread_unique_ptr_t m_timer_thread;
+		so_5::timer_thread_unique_ptr_t m_timer_thread;
 
 		//! Additional layers.
 		so_layer_map_t m_so_layers;
@@ -737,7 +737,7 @@ class SO_5_TYPE so_environment_t
 
 		//! Schedule timer event.
 		template< class MESSAGE >
-		so_5::timer_thread::timer_id_ref_t
+		so_5::timer_id_t
 		schedule_timer(
 			//! Message to be sent after timeout.
 			std::unique_ptr< MESSAGE > msg,
@@ -764,7 +764,7 @@ class SO_5_TYPE so_environment_t
 
 		//! Schedule a timer event for a signal.
 		template< class MESSAGE >
-		so_5::timer_thread::timer_id_ref_t
+		so_5::timer_id_t
 		schedule_timer(
 			//! Mbox to which signal will be delivered.
 			const mbox_ref_t & mbox,
@@ -945,7 +945,7 @@ class SO_5_TYPE so_environment_t
 
 	private:
 		//! Schedule timer event.
-		so_5::timer_thread::timer_id_ref_t
+		so_5::timer_id_t
 		schedule_timer(
 			//! Message type.
 			const std::type_index & type_wrapper,
