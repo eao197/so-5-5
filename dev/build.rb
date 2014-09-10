@@ -13,6 +13,5 @@ MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 		MxxRu::enable_show_brief
 	end
 
-	required_prj( "ace/ace_lib_unpacker.rb" )
 	required_prj( "so_5/prj.rb" )
 }
