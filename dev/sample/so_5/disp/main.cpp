@@ -44,33 +44,30 @@ class a_disp_user_t
 		const std::string m_name;
 };
 
-// A helper macro for the ACE Logging.
-#define AGENT_MSG( s ) "TID:%t %T " s
-
 void
 a_disp_user_t::so_evt_start()
 {
-	ACE_DEBUG(( LM_INFO,
-		AGENT_MSG( "%s.so_evt_start(): start pause\n" ), m_name.c_str() ));
+	SO_5_LOG_ERROR( so_environment(), log_stream )
+	{ log_stream << m_name << ".so_evt_start(): start pause"; }
 
 	// Sleeping for some time.
-	ACE_OS::sleep( 1 );
+	std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
 
-	ACE_DEBUG(( LM_INFO,
-		AGENT_MSG( "%s.so_evt_start(): finish pause\n" ), m_name.c_str() ));
+	SO_5_LOG_ERROR( so_environment(), log_stream )
+	{ log_stream << m_name << ".so_evt_start(): finish pause"; }
 }
 
 void
 a_disp_user_t::so_evt_finish()
 {
-	ACE_DEBUG(( LM_INFO,
-		AGENT_MSG( "%s.so_evt_finish(): start pause\n" ), m_name.c_str() ));
+	SO_5_LOG_ERROR( so_environment(), log_stream )
+	{ log_stream << m_name << ".so_evt_finish(): start pause"; }
 
 	// Sleeping for some time.
-	ACE_OS::sleep( 1 );
+	std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
 
-	ACE_DEBUG(( LM_INFO,
-		AGENT_MSG( "%s.so_evt_finish(): finish pause\n" ), m_name.c_str() ));
+	SO_5_LOG_ERROR( so_environment(), log_stream )
+	{ log_stream << m_name << ".so_evt_finish(): finish pause"; }
 }
 
 // The helper function for making name of an agent.
@@ -159,7 +156,6 @@ init( so_5::rt::so_environment_t & env )
 int
 main( int, char ** argv )
 {
-	ACE_LOG_MSG->open (argv[0], ACE_Log_Msg::STDERR);
 	try
 	{
 		so_5::api::run_so_environment(
