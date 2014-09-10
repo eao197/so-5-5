@@ -10,9 +10,13 @@
 
 #pragma once
 
+#include <chrono>
+
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/atomic_refcounted.hpp>
+#include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/message.hpp>
 
 namespace so_5
 {
@@ -88,8 +92,6 @@ class SO_5_TYPE timer_id_t
 		so_5::rt::smart_atomic_reference_t< timer_t > m_timer;
 	};
 
-#if 0
-
 //
 // timer_thread_t
 //
@@ -106,15 +108,14 @@ class SO_5_TYPE timer_id_t
 	timer_thread_t::finish() method is used. The finish() method should block
 	caller until all timer resources will be released and all dedicated
 	timer threads (if any) are completelly stopped.
-
-	When so_5::rt::dispatcher_t::push_delayed_msg() is called the dispatcher
-	passes timer message to the timer_thread. After this timer is responsible
-	for storing and processing this message.
 */
 class SO_5_TYPE timer_thread_t
-{
-	public:
+	{
+		timer_thread_t( const timer_thread_t & ) = delete;
+		timer_thread_t &
+		operator=( const timer_thread_t & ) = delete;
 
+	public:
 		timer_thread_t();
 		virtual ~timer_thread_t();
 
@@ -127,19 +128,67 @@ class SO_5_TYPE timer_thread_t
 		finish() = 0;
 
 		//! Push delayed/periodic message to the timer queue.
+		/*!
+		 * A timer can be deactivated later by using returned timer_id.
+		 */
 		virtual timer_id_t
-		schedule_act(
-			timer_act_unique_ptr_t timer_act ) = 0;
+		schedule(
+			//! Type of message to be sheduled.
+			const std::type_index & type_index,
+			//! Mbox for message delivery.
+			so_5::rt::mbox_ref_t mbox,
+			//! Message to be sent.
+			so_5::rt::message_ref_t msg,
+			//! Pause before first message delivery.
+			std::chrono::milliseconds pause,
+			//! Period for message repetition.
+			//! Zero value means single shot delivery.
+			std::chrono::milliseconds period ) = 0;
 
-		//! Cancel delayer/periodic message.
+		//! Push anonymous delayed/periodic message to the timer queue.
+		/*!
+		 * A timer cannot be deactivated later.
+		 */
 		virtual void
-		cancel_act(
-			timer_id_t msg_id ) = 0;
-};
+		schedule_anonymous(
+			//! Type of message to be sheduled.
+			const std::type_index & type_index,
+			//! Mbox for message delivery.
+			so_5::rt::mbox_ref_t mbox,
+			//! Message to be sent.
+			so_5::rt::message_ref_t msg,
+			//! Pause before first message delivery.
+			std::chrono::milliseconds pause,
+			//! Period for message repetition.
+			//! Zero value means single shot delivery.
+			std::chrono::milliseconds period ) = 0;
+	};
 
 //! Auxiliary typedef for timer_thread autopointer.
 typedef std::unique_ptr< timer_thread_t > timer_thread_unique_ptr_t;
 
-#endif
+/*!
+ * \name Standard timer thread factories.
+ * \{
+ */
+/*!
+ * \since v.5.5.0
+ * \brief Create timer thread based on timer_wheel mechanism.
+ * \note Default parameters will be used for timer thread.
+ */
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_wheel_thread();
+
+/*!
+ * \since v.5.5.0
+ * \brief Create timer thread based on timer_list mechanism.
+ */
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_list_thread();
+
+/*!
+ * \}
+ */
 
 } /* namespace so_5 */
+
