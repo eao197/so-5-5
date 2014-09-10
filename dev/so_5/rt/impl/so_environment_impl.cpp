@@ -61,8 +61,8 @@ so_environment_impl_t::schedule_timer(
 {
 	return m_timer_thread->schedule(
 			type_wrapper,
-			msg,
 			mbox,
+			msg,
 			std::chrono::milliseconds( delay_msec ),
 			std::chrono::milliseconds( period_msec ) );
 }
@@ -76,8 +76,8 @@ so_environment_impl_t::single_timer(
 {
 	return m_timer_thread->schedule_anonymous(
 			type_wrapper,
-			msg,
 			mbox,
+			msg,
 			std::chrono::milliseconds( delay_msec ),
 			std::chrono::milliseconds::zero() );
 }
