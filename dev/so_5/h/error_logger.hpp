@@ -82,6 +82,15 @@ class conductor_t
 			,	m_line( line )
 			{}
 
+		template< class ENV >
+		conductor_t( const ENV & env,
+			const char * file,
+			unsigned int line )
+			:	m_logger( env.error_logger() )
+			,	m_file( file )
+			,	m_line( line )
+			{}
+
 		inline bool
 		completed() const { return m_completed; }
 
@@ -114,10 +123,10 @@ class conductor_t
  * \since v.5.5.0
  * \brief An implementation for SO_5_LOG_ERROR macro.
  */
-#define SO_5_LOG_ERROR_IMPL(logger, file, line) \
+#define SO_5_LOG_ERROR_IMPL(logger, file, line, var_name) \
 	for( so_5::log_msg_details::conductor_t conductor__( logger, file, line ); \
 			!conductor__.completed(); ) \
-		for( std::ostringstream & log_stream = conductor__.stream(); \
+		for( std::ostringstream & var_name = conductor__.stream(); \
 				!conductor__.completed(); conductor__.log_message() )
 
 //
@@ -128,6 +137,6 @@ class conductor_t
  * \brief A special macro for helping error logging.
  *
  */
-#define SO_5_LOG_ERROR(logger) \
-	SO_5_LOG_ERROR_IMPL(logger, __FILE__, __LINE__ )
+#define SO_5_LOG_ERROR(logger, var_name) \
+	SO_5_LOG_ERROR_IMPL(logger, __FILE__, __LINE__, var_name )
 

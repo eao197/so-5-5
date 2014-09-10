@@ -344,6 +344,12 @@ so_environment_t::exception_reaction() const
 	return m_so_environment_impl->exception_reaction();
 }
 
+error_logger_t &
+so_environment_t::error_logger() const
+{
+	return m_so_environment_impl->error_logger();
+}
+
 } /* namespace rt */
 
 } /* namespace so_5 */

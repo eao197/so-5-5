@@ -264,6 +264,13 @@ class so_environment_impl_t
 		exception_reaction_t
 		exception_reaction() const;
 
+		/*!
+		 * \since v.5.5.0
+		 * \brief Get the error_logger object.
+		 */
+		error_logger_t &
+		error_logger() const;
+
 	private:
 		//! An utility for mboxes.
 		mbox_core_ref_t m_mbox_core;
@@ -296,6 +303,12 @@ class so_environment_impl_t
 		 * \see so_environment_params_t::disable_autoshutdown()
 		 */
 		const bool m_autoshutdown_disabled;
+
+		/*!
+		 * \since v.5.5.0
+		 * \brief Error logger object for this environment.
+		 */
+		error_logger_shptr_t m_error_logger;
 
 		/*!
 		 * \since v.5.2.0

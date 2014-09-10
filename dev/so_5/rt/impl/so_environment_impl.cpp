@@ -39,6 +39,8 @@ so_environment_impl_t::so_environment_impl_t(
 			std::move( so_environment_params.m_timer_thread ) ),
 		m_exception_reaction( so_environment_params.exception_reaction() )
 	,	m_autoshutdown_disabled( so_environment_params.autoshutdown_disabled() )
+//FIXME: error_logger object must be taken from so_environment_params!
+	,	m_error_logger( create_stderr_logger() )
 {
 	if( 0 == m_timer_thread.get() )
 	{
@@ -147,6 +149,12 @@ exception_reaction_t
 so_environment_impl_t::exception_reaction() const
 {
 	return m_exception_reaction;
+}
+
+error_logger_t &
+so_environment_impl_t::error_logger() const
+{
+	return *m_error_logger;
 }
 
 void

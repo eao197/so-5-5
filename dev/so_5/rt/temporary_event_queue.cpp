@@ -13,7 +13,7 @@
 #include <queue>
 #include <cstdlib>
 
-#include <so_5/h/log_err.hpp>
+#include <so_5/rt/h/so_environment.hpp>
 
 namespace so_5
 {
@@ -89,14 +89,12 @@ temporary_event_queue_t::switch_to_actual_queue(
 			}
 		catch( const std::exception & x )
 			{
-				ACE_ERROR(
-						(LM_EMERGENCY,
-						 SO_5_LOG_FMT(
-							 	"Exception during transferring events from "
-								"temporary to the actual event queue. "
-								"Work cannot be continued. "
-								"Exception: %s" ),
-								x.what() ) );
+				SO_5_LOG_ERROR( agent->so_environment(), log_stream ) {
+					log_stream << "Exception during transferring events from "
+							"temporary to the actual event queue. "
+							"Work cannot be continued. "
+							"Exception: " << x.what();
+				}
 
 				std::abort();
 			}

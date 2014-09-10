@@ -6,7 +6,6 @@
 #include <cstdlib>
 
 #include <so_5/h/exception.hpp>
-#include <so_5/h/log_err.hpp>
 
 #include <so_5/rt/impl/h/so_environment_impl.hpp>
 #include <so_5/rt/h/so_environment.hpp>
@@ -51,12 +50,10 @@ coop_reg_notificators_container_t::call_all(
 		}
 		catch( const std::exception & x )
 		{
-			ACE_ERROR(
-					(LM_ERROR,
-					 SO_5_LOG_FMT( "on reg_notification for coop "
-						 	"'%s' exception: %s" ),
-					 coop_name.c_str(),
-					 x.what() ) );
+			SO_5_LOG_ERROR( env, log_stream ) {
+				 log_stream << "on reg_notification for coop '"
+					 	<< coop_name << "' exception: " << x.what();
+			}
 		}
 	}
 }
@@ -92,12 +89,10 @@ coop_dereg_notificators_container_t::call_all(
 		}
 		catch( const std::exception & x )
 		{
-			ACE_ERROR(
-					(LM_ERROR,
-					 SO_5_LOG_FMT( "on dereg_notification for coop "
-						 	"'%s' exception: %s" ),
-					 coop_name.c_str(),
-					 x.what() ) );
+			SO_5_LOG_ERROR( env, log_stream ) {
+				 log_stream << "on dereg_notification for coop '"
+					 	<< coop_name << "' exception: " << x.what();
+			}
 		}
 	}
 }
@@ -345,13 +340,11 @@ agent_coop_t::bind_agents_to_disp()
 	}
 	catch( const std::exception & x )
 	{
-		ACE_ERROR(
-				(LM_ERROR,
-				 SO_5_LOG_FMT( "an exception on the second stage of "
-					 	"agents to dispatcher binding; cooperation: "
-						"'%s' exception: %s" ),
-				 m_coop_name.c_str(),
-				 x.what() ) );
+		SO_5_LOG_ERROR( m_env, log_stream ) {
+			log_stream << "an exception on the second stage of "
+					"agents to dispatcher binding; cooperation: "
+					<< m_coop_name << ", exception: " << x.what();
+		}
 
 		std::abort();
 	}
@@ -380,14 +373,11 @@ agent_coop_t::shutdown_all_agents()
 	}
 	catch( const std::exception & x )
 	{
-		ACE_ERROR(
-				(LM_EMERGENCY,
-				 SO_5_LOG_FMT(
-					 	"Exception during shutting cooperation agents down. "
-						"Work cannot be continued. Cooperation: '%s'. "
-						"Exception: %s" ),
-						m_coop_name.c_str(),
-						x.what() ) );
+		SO_5_LOG_ERROR( m_env, log_stream ) {
+			log_stream << "Exception during shutting cooperation agents down. "
+					"Work cannot be continued. Cooperation: '"
+					<< m_coop_name << "'. Exception: " << x.what();
+		}
 
 		std::abort();
 	}

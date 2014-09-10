@@ -12,8 +12,6 @@
 
 #include <cstdlib>
 
-#include <so_5/h/log_err.hpp>
-
 #include <so_5/rt/h/so_environment.hpp>
 
 namespace so_5 {
@@ -45,13 +43,13 @@ switch_agent_to_special_state_and_deregister_coop(
 		}
 		catch( const std::exception & x )
 		{
-			ACE_ERROR(
-					(LM_EMERGENCY,
-					 SO_5_LOG_FMT( "An exception '%s' during "
-							"deregistring cooperation '%s' on unhandled exception"
-							"processing. Application will be aborted." ),
-					 x.what(),
-					 coop_name.c_str()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "An exception '" << x.what()
+						<< "' during deregistring cooperation '"
+						<< coop_name << "' on unhandled exception"
+						"processing. Application will be aborted.";
+			}
 
 			std::abort();
 		}
@@ -76,12 +74,12 @@ switch_agent_to_special_state_and_shutdown_sobjectizer(
 		}
 		catch( const std::exception & x )
 		{
-			ACE_ERROR(
-					(LM_EMERGENCY,
-					 SO_5_LOG_FMT( "An exception '%s' during "
-							"shutting down SObjectizer on unhandled exception"
-							"processing. Application will be aborted." ),
-					 x.what()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				log_stream << "An exception '" << x.what()
+						<< "' during shutting down SObjectizer on unhandled ""
+						"exception processing. Application will be aborted.";
+			}
 
 			std::abort();
 		}
@@ -108,14 +106,14 @@ log_unhandled_exception(
 		}
 		catch( const std::exception & x )
 		{
-			ACE_ERROR(
-					(LM_EMERGENCY,
-					 SO_5_LOG_FMT( "An exception '%s' during logging unhandled "
-							"exception '%s' from cooperation '%s'. "
-							"Application will be aborted." ),
-					 x.what(),
-					 ex_to_log.what(),
-					 a_exception_producer.so_coop_name().c_str()) );
+			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
+			{
+				 log_stream << "An exception '" << x.what()
+					 	<< "' during logging unhandled exception '"
+						<< ex_to_log.what() << "' from cooperation '"
+						<< a_exception_producer.so_coop_name()
+						<< "'. Application will be aborted.";
+			}
 
 			std::abort();
 		}

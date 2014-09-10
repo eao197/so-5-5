@@ -14,6 +14,7 @@
 
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
+#include <so_5/h/error_logger.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -934,6 +935,13 @@ class SO_5_TYPE so_environment_t
 		 */
 		exception_reaction_t
 		exception_reaction() const;
+
+		/*!
+		 * \since v.5.5.0
+		 * \brief Get the error_logger object.
+		 */
+		error_logger_t &
+		error_logger() const;
 
 	private:
 		//! Schedule timer event.
