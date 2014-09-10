@@ -8,8 +8,6 @@
 #include <memory>
 #include <map>
 
-#include <ace/OS.h>
-
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 

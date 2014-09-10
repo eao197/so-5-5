@@ -10,9 +10,6 @@
 #include <sstream>
 #include <cstdlib>
 
-#include <ace/OS.h>
-#include <ace/Get_Opt.h>
-
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 #include <so_5/disp/thread_pool/h/pub.hpp>

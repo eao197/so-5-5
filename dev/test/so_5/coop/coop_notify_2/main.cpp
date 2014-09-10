@@ -6,8 +6,6 @@
 #include <sstream>
 #include <mutex>
 
-#include <ace/OS.h>
-
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 
@@ -175,7 +173,8 @@ class test_env_t
 						m_sequence.add( "on_reg_1" );
 
 						// A timeout for child coop deregistration initiation.
-						ACE_OS::sleep( 1 );
+						std::this_thread::sleep_for(
+								std::chrono::seconds(1) );
 
 						m_sequence.add( "on_reg_2" );
 					};

@@ -7,8 +7,6 @@
 
 #include <utest_helper_1/h/helper.hpp>
 
-#include <ace/OS.h>
-
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>
 

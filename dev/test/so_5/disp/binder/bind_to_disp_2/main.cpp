@@ -8,8 +8,6 @@
 #include <memory>
 #include <set>
 
-#include <ace/OS.h>
-
 #include <so_5/h/types.hpp>
 
 #include <so_5/rt/h/rt.hpp>

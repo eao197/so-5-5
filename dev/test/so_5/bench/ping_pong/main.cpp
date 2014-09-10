@@ -4,12 +4,6 @@
 
 #include <cstdio>
 
-#include <ace/ACE.h>
-#include <ace/Get_Opt.h>
-#include <ace/Log_Msg.h>
-#include <ace/OS.h>
-#include <ace/OS_main.h>
-
 #include <so_5/api/h/api.hpp>
 #include <so_5/rt/h/rt.hpp>
 

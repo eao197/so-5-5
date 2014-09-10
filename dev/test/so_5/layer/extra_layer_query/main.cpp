@@ -8,8 +8,6 @@
 #include <memory>
 #include <exception>
 
-#include <ace/OS.h>
-
 #include <cpp_util_2/h/defs.hpp>
 
 #include <so_5/rt/h/rt.hpp>
