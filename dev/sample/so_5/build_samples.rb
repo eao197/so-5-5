@@ -9,7 +9,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/hello_delay/prj.rb" )
 	required_prj( "sample/so_5/hello_periodic/prj.rb" )
 	required_prj( "sample/so_5/chstate/prj.rb" )
-	required_prj( "sample/so_5/disp/prj.rb" )
+#	required_prj( "sample/so_5/disp/prj.rb" )
 	required_prj( "sample/so_5/coop_listener/prj.rb" )
 	required_prj( "sample/so_5/exception_logger/prj.rb" )
 	required_prj( "sample/so_5/exception_handler/prj.rb" )
@@ -24,6 +24,6 @@ MxxRu::Cpp::composite_target {
 	required_prj( "sample/so_5/svc/parallel_sum/prj.rb" )
 	required_prj( "sample/so_5/svc/exceptions/prj.rb" )
 	required_prj( "sample/so_5/ping_pong_minimal/prj.rb" )
-	required_prj( "sample/so_5/ping_pong/prj.rb" )
+#	required_prj( "sample/so_5/ping_pong/prj.rb" )
 	required_prj( "sample/so_5/hardwork_imit/prj.rb" )
 }

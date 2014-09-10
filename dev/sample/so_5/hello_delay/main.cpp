@@ -5,8 +5,6 @@
 #include <iostream>
 #include <time.h>
 
-#include <ace/OS.h>
-
 // Main SObjectizer header files.
 #include <so_5/all.hpp>
 

@@ -5,9 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <ace/OS.h>
-#include <ace/Log_Msg.h>
-
 // Main SObjectizer header files.
 #include <so_5/rt/h/rt.hpp>
 #include <so_5/api/h/api.hpp>

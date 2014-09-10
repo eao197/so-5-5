@@ -6,13 +6,7 @@
 #include <exception>
 #include <sstream>
 
-#include <ace/OS.h>
-
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/h/types.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 class msg_hello_svc : public so_5::rt::signal_t {};
 

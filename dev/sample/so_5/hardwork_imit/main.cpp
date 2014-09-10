@@ -7,8 +7,6 @@
 #include <chrono>
 #include <cstdlib>
 
-#include <ace/OS.h>
-
 #include <so_5/all.hpp>
 
 struct msg_do_hardwork : public so_5::rt::message_t

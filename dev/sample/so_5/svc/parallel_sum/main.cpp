@@ -7,13 +7,7 @@
 #include <numeric>
 #include <vector>
 
-#include <ace/OS.h>
-
-#include <so_5/rt/h/rt.hpp>
-#include <so_5/api/h/api.hpp>
-#include <so_5/h/types.hpp>
-
-#include <so_5/disp/active_obj/h/pub.hpp>
+#include <so_5/all.hpp>
 
 typedef std::vector< int > vector_t;
 
