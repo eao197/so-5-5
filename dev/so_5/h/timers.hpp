@@ -193,7 +193,7 @@ using timer_thread_factory_t = std::function<
 		timer_thread_unique_ptr_t( error_logger_shptr_t ) >;
 
 /*!
- * \name Standard timer thread factories.
+ * \name Tools for creating timer threads.
  * \{
  */
 /*!
@@ -214,7 +214,33 @@ SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
 create_timer_list_thread(
 	//! A logger for handling error messages inside timer_thread.
 	error_logger_shptr_t logger );
+/*!
+ * \}
+ */
 
+/*!
+ * \name Standard timer thread factories.
+ * \{
+ */
+/*!
+ * \since v.5.5.0
+ * \brief Factory for timer_wheel thread with default parameters.
+ */
+inline timer_thread_factory_t
+timer_wheel_factory()
+	{
+		return &create_timer_wheel_thread;
+	}
+
+/*!
+ * \since v.5.5.0
+ * \brief Factory for timer_list thread with default parameters.
+ */
+inline timer_thread_factory_t
+timer_list_factory()
+	{
+		return &create_timer_list_thread;
+	}
 /*!
  * \}
  */
