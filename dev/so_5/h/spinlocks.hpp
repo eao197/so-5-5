@@ -137,7 +137,7 @@ class rw_spinlock_t
 		inline void
 		unlock_shared()
 			{
-				m_counters.fetch_sub( read_lock, std::memory_order_acquire );
+				m_counters.fetch_sub( read_lock, std::memory_order_release );
 			}
 
 		//! Lock object in exclusive mode.
