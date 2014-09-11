@@ -83,10 +83,8 @@ try_parse_cmdline(
 						tmp_cfg.m_iterations, ++current, last,
 						"-i", "count of iterations for every message type" );
 			else
-				{
-					throw std::runtime_error(
-							std::string( "unknown argument: " ) + *current );
-				}
+				throw std::runtime_error(
+						std::string( "unknown argument: " ) + *current );
 		}
 
 	return tmp_cfg;

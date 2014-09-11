@@ -75,11 +75,11 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "test/so_5/svc/build_tests.rb" )
 
-#	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
+	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
 	required_prj( "test/so_5/bench/same_msg_in_different_states/prj.rb" )
 	required_prj( "test/so_5/bench/parallel_send_to_same_mbox/prj.rb" )
 	required_prj( "test/so_5/bench/change_state/prj.rb" )
-#	required_prj( "test/so_5/bench/many_mboxes/prj.rb" )
-#	required_prj( "test/so_5/bench/thread_pool_disp/prj.rb" )
-#	required_prj( "test/so_5/bench/no_workload/prj.rb" )
+	required_prj( "test/so_5/bench/many_mboxes/prj.rb" )
+	required_prj( "test/so_5/bench/thread_pool_disp/prj.rb" )
+	required_prj( "test/so_5/bench/no_workload/prj.rb" )
 }

@@ -17,6 +17,7 @@
 #include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
 #include <test/so_5/bench/benchmark_helpers.hpp>
+#include <test/so_5/bench/cmd_line_args_helpers.hpp>
 
 enum class dispatcher_t
 	{
@@ -31,50 +32,19 @@ struct cfg_t
 		dispatcher_t m_dispatcher = dispatcher_t::thread_pool;
 	};
 
-std::size_t
-arg_to_value( const char * arg )
-	{
-		std::stringstream ss;
-		ss << arg;
-		ss.seekg(0);
-
-		std::size_t r;
-		ss >> r;
-
-		if( !ss || !ss.eof() )
-			throw std::runtime_error(
-					std::string( "unable to parse value: " ) + arg );
-
-		return r;
-	}
-
 cfg_t
 try_parse_cmdline(
 	int argc,
 	char ** argv )
 {
-	ACE_Get_Opt opt( argc, argv, ":d:t:p:h" );
-	if( -1 == opt.long_option(
-			"dispatcher", 'd', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'dispatcher'"  );
-	if( -1 == opt.long_option(
-			"threads", 't', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'threads'" );
-	if( -1 == opt.long_option(
-			"pause", 'p', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'pause'" );
-	if( -1 == opt.long_option(
-			"help", 'h', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'help'" );
-
 	cfg_t tmp_cfg;
 
-	int o;
-	while( EOF != ( o = opt() ) )
+	for( char ** current = &argv[ 1 ], **last = argv + argc;
+			current != last;
+			++current )
 		{
-			switch( o )
+			if( is_arg( *current, "-h", "--help" ) )
 				{
-				case 'h' :
 					std::cout << "usage:\n"
 							"_test.bench.so_5.no_workload <options>\n"
 							"\noptions:\n"
@@ -84,39 +54,33 @@ try_parse_cmdline(
 							"-h, --help        show this description\n"
 							<< std::endl;
 					std::exit(1);
-				break;
-
-				case 'd' :
-					if( std::string( "thread_pool" ) == opt.opt_arg() )
+				}
+			else if( is_arg( *current, "-d", "--dispatcher" ) )
+				{
+					std::string v;
+					mandatory_arg_to_value( v, ++current, last,
+							"-d", "type of dispacther "
+									"[thread_pool, adv_thread_pool" );
+					if( "thread_pool" == v )
 						tmp_cfg.m_dispatcher = dispatcher_t::thread_pool;
-					else if( std::string( "adv_thread_pool" ) == opt.opt_arg() )
+					else if( "adv_thread_pool" == v )
 						tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
 					else
 						throw std::runtime_error(
-								std::string( "unsupported dispacther type: " ) +
-								opt.opt_arg() );
-				break;
-
-				case 't' :
-					tmp_cfg.m_threads = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'p' :
-					tmp_cfg.m_pause = arg_to_value( opt.opt_arg() );
-				break;
-
-				case ':' :
-					{
-						std::ostringstream ss;
-						ss << "-" << opt.opt_opt() << " requires an argument";
-						throw std::runtime_error( ss.str() );
-					}
+								"unsupported dispacther type: " + v );
 				}
+			else if( is_arg( *current, "-t", "--threads" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_threads, ++current, last,
+						"-t", "size of thread pool" );
+			else if( is_arg( *current, "-p", "--pause" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_pause, ++current, last,
+						"-p", "timeout before exit (in seconds)" );
+			else
+				throw std::runtime_error(
+						std::string( "unknown argument: " ) + *current );
 		}
-
-	if( opt.opt_ind() < argc )
-		throw std::runtime_error(
-				std::string( "unknown argument: " ) + argv[ opt.opt_ind() ] );
 
 	return tmp_cfg;
 }
@@ -208,6 +172,10 @@ main( int argc, char ** argv )
 				params.add_named_dispatcher(
 					"dispatcher",
 					create_dispatcher( cfg ) );
+
+				// This timer thread doesn't consume resources without
+				// actual delayed/periodic messages.
+				params.timer_thread( so_5::timer_list_factory() );
 			});
 	}
 	catch( const std::exception & ex )

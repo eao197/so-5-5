@@ -9,6 +9,8 @@
 
 #include <so_5/disp/active_obj/h/pub.hpp>
 
+#include <test/so_5/bench/cmd_line_args_helpers.hpp>
+
 using namespace std::chrono;
 
 struct	cfg_t
@@ -26,75 +28,43 @@ struct	cfg_t
 		{}
 };
 
-int
+cfg_t
 try_parse_cmdline(
 	int argc,
-	char ** argv,
-	cfg_t & cfg )
+	char ** argv )
 {
-	if( 1 == argc )
-		{
-			std::cout << "usage:\n"
-					"_test.bench.so_5.ping_pong <options>\n"
-					"\noptions:\n"
-					"-a, --active-objects agents should be active objects\n"
-					"-r, --requests       count of requests to send\n"
-					"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
-					<< std::endl;
-
-			ACE_ERROR_RETURN(
-				( LM_ERROR, ACE_TEXT( "No arguments supplied\n" ) ), -1 );
-		}
-
-	ACE_Get_Opt opt( argc, argv, ":adr:" );
-	if( -1 == opt.long_option(
-			"active-objects", 'a', ACE_Get_Opt::NO_ARG ) )
-		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
-						"Unable to set long option 'active-objects'\n" )), -1 );
-	if( -1 == opt.long_option(
-			"direct-mboxes", 'd', ACE_Get_Opt::NO_ARG ) )
-		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
-						"Unable to set long option 'direct-mboxes'\n" )), -1 );
-	if( -1 == opt.long_option(
-			"requests", 'r', ACE_Get_Opt::ARG_REQUIRED ) )
-		ACE_ERROR_RETURN(( LM_ERROR, ACE_TEXT(
-						"Unable to set long option 'requests'\n" )), -1 );
-
 	cfg_t tmp_cfg;
 
-	int o;
-	while( EOF != ( o = opt() ) )
+	for( char ** current = &argv[ 1 ], **last = argv + argc;
+			current != last;
+			++current )
 		{
-			switch( o )
+			if( is_arg( *current, "-h", "--help" ) )
 				{
-				case 'a' :
-					tmp_cfg.m_active_objects = true;
-				break;
-
-				case 'd' :
-					tmp_cfg.m_direct_mboxes = true;
-				break;
-
-				case 'r' :
-					tmp_cfg.m_request_count = ACE_OS::atoi( opt.opt_arg() );
-				break;
-
-				case ':' :
-					ACE_ERROR_RETURN(( LM_ERROR,
-							ACE_TEXT( "-%c requieres argument\n" ),
-									opt.opt_opt() ), -1 );
+					std::cout << "usage:\n"
+							"_test.bench.so_5.ping_pong <options>\n"
+							"\noptions:\n"
+							"-a, --active-objects agents should be active objects\n"
+							"-r, --requests       count of requests to send\n"
+							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
+							"-h, --help           show this help"
+							<< std::endl;
+					std::exit( 1 );
 				}
+			else if( is_arg( *current, "-a", "--active-objects" ) )
+				tmp_cfg.m_active_objects = true;
+			else if( is_arg( *current, "-d", "--direct-mboxes" ) )
+				tmp_cfg.m_direct_mboxes = true;
+			else if( is_arg( *current, "-r", "--requests" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_request_count, ++current, last,
+						"-r", "count of requests to send" );
+			else
+				throw std::runtime_error(
+						std::string( "unknown argument: " ) + *current );
 		}
 
-	if( opt.opt_ind() < argc )
-		ACE_ERROR_RETURN(( LM_ERROR,
-				ACE_TEXT( "Unknown argument: '%s'\n" ),
-						argv[ opt.opt_ind() ] ),
-				-1 );
-
-	cfg = tmp_cfg;
-
-	return 0;
+	return tmp_cfg;
 }
 
 struct	measure_result_t
@@ -301,34 +271,32 @@ class test_env_t
 int
 main( int argc, char ** argv )
 {
-	cfg_t cfg;
-	if( -1 != try_parse_cmdline( argc, argv, cfg ) )
+	try
 	{
+		cfg_t cfg = try_parse_cmdline( argc, argv );
 		show_cfg( cfg );
 
-		try
-		{
-			test_env_t test_env( cfg );
+		test_env_t test_env( cfg );
 
-			so_5::rt::so_environment_params_t params;
-			if( cfg.m_active_objects )
-				params.add_named_dispatcher(
-						"active_obj",
-						so_5::disp::active_obj::create_disp() );
+		so_5::rt::so_environment_params_t params;
+		if( cfg.m_active_objects )
+			params.add_named_dispatcher(
+					"active_obj",
+					so_5::disp::active_obj::create_disp() );
 
-			so_5::api::run_so_environment_on_object(
-					test_env,
-					&test_env_t::init,
-					std::move( params ) );
+//FIXME: timer_list_factory must be used!
+		so_5::api::run_so_environment_on_object(
+				test_env,
+				&test_env_t::init,
+				std::move( params ) );
 
-			test_env.process_results();
+		test_env.process_results();
 
-			return 0;
-		}
-		catch( const std::exception & x )
-		{
-			std::cerr << "*** Exception caught: " << x.what() << std::endl;
-		}
+		return 0;
+	}
+	catch( const std::exception & x )
+	{
+		std::cerr << "*** Exception caught: " << x.what() << std::endl;
 	}
 
 	return 2;

@@ -16,6 +16,7 @@
 #include <so_5/disp/adv_thread_pool/h/pub.hpp>
 
 #include <test/so_5/bench/benchmark_helpers.hpp>
+#include <test/so_5/bench/cmd_line_args_helpers.hpp>
 
 enum class dispatcher_t
 	{
@@ -34,62 +35,19 @@ struct cfg_t
 		dispatcher_t m_dispatcher = dispatcher_t::thread_pool;
 	};
 
-std::size_t
-arg_to_value( const char * arg )
-	{
-		std::stringstream ss;
-		ss << arg;
-		ss.seekg(0);
-
-		std::size_t r;
-		ss >> r;
-
-		if( !ss || !ss.eof() )
-			throw std::runtime_error(
-					std::string( "unable to parse value: " ) + arg );
-
-		return r;
-	}
-
 cfg_t
 try_parse_cmdline(
 	int argc,
 	char ** argv )
 {
-	ACE_Get_Opt opt( argc, argv, ":c:a:m:d:t:iPh" );
-	if( -1 == opt.long_option(
-			"cooperations", 'c', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'cooperations'"  );
-	if( -1 == opt.long_option(
-			"agents", 'a', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'agents'" );
-	if( -1 == opt.long_option(
-			"messages", 'm', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'messages'"  );
-	if( -1 == opt.long_option(
-			"demands-at-once", 'd', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'demands-at-once'" );
-	if( -1 == opt.long_option(
-			"threads", 't', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'threads'" );
-	if( -1 == opt.long_option(
-			"individual-fifo", 'i', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'individual-fifo'" );
-	if( -1 == opt.long_option(
-			"adv-thread-pool", 'P', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'individual-fifo'" );
-	if( -1 == opt.long_option(
-			"help", 'h', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'help'" );
-
 	cfg_t tmp_cfg;
 
-	int o;
-	while( EOF != ( o = opt() ) )
+	for( char ** current = &argv[ 1 ], **last = argv + argc;
+			current != last;
+			++current )
 		{
-			switch( o )
+			if( is_arg( *current, "-h", "--help" ) )
 				{
-				case 'h' :
 					std::cout << "usage:\n"
 							"_test.bench.so_5.thread_pool_disp <options>\n"
 							"\noptions:\n"
@@ -103,48 +61,42 @@ try_parse_cmdline(
 							"-h, --help             show this description\n"
 							<< std::endl;
 					std::exit(1);
-				break;
-
-				case 'c' :
-					tmp_cfg.m_cooperations = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'a' :
-					tmp_cfg.m_agents = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'm' :
-					tmp_cfg.m_messages = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'd' :
-					tmp_cfg.m_demands_at_once = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 't' :
-					tmp_cfg.m_threads = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'i' :
-					tmp_cfg.m_individual_fifo = true;
-				break;
-
-				case 'P' :
-					tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
-				break;
-
-				case ':' :
-					{
-						std::ostringstream ss;
-						ss << "-" << opt.opt_opt() << " requires an argument";
-						throw std::runtime_error( ss.str() );
-					}
 				}
-		}
+			else if( is_arg( *current, "-c", "--cooperations" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_cooperations, ++current, last,
+						"-c", "count of cooperations" );
 
-	if( opt.opt_ind() < argc )
-		throw std::runtime_error(
-				std::string( "unknown argument: " ) + argv[ opt.opt_ind() ] );
+			else if( is_arg( *current, "-a", "--arents" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_agents, ++current, last,
+						"-a", "count of agents in cooperation" );
+
+			else if( is_arg( *current, "-m", "--messages" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_messages, ++current, last,
+						"-m", "count of messages for every agent" );
+
+			else if( is_arg( *current, "-d", "--demands-at-once" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_demands_at_once, ++current, last,
+						"-d", "count of consequently processed demands" );
+
+			else if( is_arg( *current, "-t", "--threads" ) )
+				mandatory_arg_to_value(
+					tmp_cfg.m_threads, ++current, last,
+					"-t", "size of thread pool" );
+
+			else if( is_arg( *current, "i", "--individual-fifo" ) )
+					tmp_cfg.m_individual_fifo = true;
+
+			else if( is_arg( *current, "-P", "--adv-thread-pool" ) )
+					tmp_cfg.m_dispatcher = dispatcher_t::adv_thread_pool;
+
+			else
+				throw std::runtime_error(
+						std::string( "unknown argument: " ) + *current );
+		}
 
 	return tmp_cfg;
 }
@@ -401,6 +353,10 @@ main( int argc, char ** argv )
 				params.add_named_dispatcher(
 					"thread_pool",
 					create_dispatcher( cfg ) );
+
+				// This timer thread doesn't consume resources without
+				// actual delayed/periodic messages.
+				params.timer_thread( so_5::timer_list_factory() );
 			});
 	}
 	catch( const std::exception & ex )
