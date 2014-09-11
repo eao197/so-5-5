@@ -14,6 +14,7 @@
 #include <so_5/api/h/api.hpp>
 
 #include <test/so_5/bench/benchmark_helpers.hpp>
+#include <test/so_5/bench/cmd_line_args_helpers.hpp>
 
 struct cfg_t
 	{
@@ -41,53 +42,19 @@ struct cfg_t
 			{}
 	};
 
-std::size_t
-arg_to_value( const char * arg )
-	{
-		std::stringstream ss;
-		ss << arg;
-		ss.seekg(0);
-
-		std::size_t r;
-		ss >> r;
-
-		if( !ss || !ss.eof() )
-			throw std::runtime_error(
-					std::string( "unable to parse value: " ) + arg );
-
-		return r;
-	}
-
 cfg_t
 try_parse_cmdline(
 	int argc,
 	char ** argv )
 {
-	ACE_Get_Opt opt( argc, argv, ":m:a:t:i:h" );
-	if( -1 == opt.long_option(
-			"mboxes", 'm', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'mboxes'"  );
-	if( -1 == opt.long_option(
-			"agents", 'a', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'agents'" );
-	if( -1 == opt.long_option(
-			"types", 't', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'types'"  );
-	if( -1 == opt.long_option(
-			"iterations", 'i', ACE_Get_Opt::ARG_REQUIRED ) )
-		throw std::runtime_error( "Unable to set long option 'iterations'" );
-	if( -1 == opt.long_option(
-			"help", 'h', ACE_Get_Opt::NO_ARG ) )
-		throw std::runtime_error( "Unable to set long option 'help'" );
-
 	cfg_t tmp_cfg;
 
-	int o;
-	while( EOF != ( o = opt() ) )
+	for( char ** current = &argv[ 1 ], **last = argv + argc;
+			current != last;
+			++current )
 		{
-			switch( o )
+			if( is_arg( *current, "-h", "--help" ) )
 				{
-				case 'h' :
 					std::cout << "usage:\n"
 							"_test.bench.so_5.many_mboxes <options>\n"
 							"\noptions:\n"
@@ -98,36 +65,29 @@ try_parse_cmdline(
 							"-h, --help        show this description\n"
 							<< std::endl;
 					std::exit(1);
-				break;
-
-				case 'm' :
-					tmp_cfg.m_mboxes = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'a' :
-					tmp_cfg.m_agents = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 't' :
-					tmp_cfg.m_msg_types = arg_to_value( opt.opt_arg() );
-				break;
-
-				case 'i' :
-					tmp_cfg.m_iterations = arg_to_value( opt.opt_arg() );
-				break;
-
-				case ':' :
-					{
-						std::ostringstream ss;
-						ss << "-" << opt.opt_opt() << " requires an argument";
-						throw std::runtime_error( ss.str() );
-					}
+				}
+			else if( is_arg( *current, "-m", "--mboxes" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_mboxes, ++current, last,
+						"-m", "count of mboxes" );
+			else if( is_arg( *current, "-a", "--agents" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_agents, ++current, last,
+						"-a", "count of agents" );
+			else if( is_arg( *current, "-t", "--types" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_msg_types, ++current, last,
+						"-t", "count of message types" );
+			else if( is_arg( *current, "-i", "--iterations" ) )
+				mandatory_arg_to_value(
+						tmp_cfg.m_iterations, ++current, last,
+						"-i", "count of iterations for every message type" );
+			else
+				{
+					throw std::runtime_error(
+							std::string( "unknown argument: " ) + *current );
 				}
 		}
-
-	if( opt.opt_ind() < argc )
-		throw std::runtime_error(
-				std::string( "unknown argument: " ) + argv[ opt.opt_ind() ] );
 
 	return tmp_cfg;
 }
@@ -464,6 +424,12 @@ main( int argc, char ** argv )
 			{
 				env.register_agent_as_coop( "test",
 						new a_starter_stopper_t( env, cfg ) );
+			},
+			[]( so_5::rt::so_environment_params_t & params )
+			{
+				// This timer thread doesn't consume resources without
+				// actual delayed/periodic messages.
+				params.timer_thread( so_5::timer_list_factory() );
 			} );
 	}
 	catch( const std::exception & ex )

@@ -2,6 +2,7 @@
 #include <set>
 
 #include <cstdio>
+#include <cstring>
 
 #include <so_5/api/h/api.hpp>
 #include <so_5/rt/h/rt.hpp>
@@ -41,8 +42,8 @@ try_parse_cmdline(
 				const char * v1,
 				const char * v2 )
 				{
-					return 0 == strcmp( value, v1 ) ||
-							0 == strcmp( value, v2 );
+					return 0 == std::strcmp( value, v1 ) ||
+							0 == std::strcmp( value, v2 );
 				};
 
 		cfg_t result;
