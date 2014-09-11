@@ -124,6 +124,8 @@ main()
 	try
 	{
 		check_factory( "timer_wheel_factory", so_5::timer_wheel_factory() );
+		check_factory( "timer_wheel_factory(20,1s)",
+				so_5::timer_wheel_factory( 20, std::chrono::seconds(1) ) );
 		check_factory( "timer_list_factory", so_5::timer_list_factory() );
 
 		return 0;

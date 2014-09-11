@@ -208,6 +208,20 @@ create_timer_wheel_thread(
 
 /*!
  * \since v.5.5.0
+ * \brief Create timer thread based on timer_wheel mechanism.
+ * \note Parameters must be specified explicitely.
+ */
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_wheel_thread(
+	//! A logger for handling error messages inside timer_thread.
+	error_logger_shptr_t logger,
+	//! Size of the wheel.
+	unsigned int wheel_size,
+	//! A size of one time step for the wheel.
+	std::chrono::steady_clock::duration granuality );
+
+/*!
+ * \since v.5.5.0
  * \brief Create timer thread based on timer_list mechanism.
  */
 SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
@@ -229,7 +243,34 @@ create_timer_list_thread(
 inline timer_thread_factory_t
 timer_wheel_factory()
 	{
-		return &create_timer_wheel_thread;
+		// Use this trick because create_timer_wheel_thread is overloaded.
+		timer_thread_unique_ptr_t (*f)( error_logger_shptr_t ) =
+				create_timer_wheel_thread;
+		return f;
+	}
+
+/*!
+ * \since v.5.5.0
+ * \brief Factory for timer_wheel thread with explicitely specified parameters.
+ */
+inline timer_thread_factory_t
+timer_wheel_factory(
+	//! Size of the wheel.
+	unsigned int wheel_size,
+	//! A size of one time step for the wheel.
+	std::chrono::steady_clock::duration granularity )
+	{
+		// Use this trick because create_timer_wheel_thread is overloaded.
+		timer_thread_unique_ptr_t (*f)(
+						error_logger_shptr_t,
+						unsigned int,
+						std::chrono::steady_clock::duration ) =
+				create_timer_wheel_thread;
+
+		using namespace std;
+		using namespace std::placeholders;
+
+		return std::bind( f, _1, wheel_size, granularity );
 	}
 
 /*!

@@ -304,12 +304,26 @@ create_timer_wheel_thread(
 	error_logger_shptr_t logger )
 	{
 		using timertt_thread_t = timers_details::timer_wheel_thread_t;
+
+		return create_timer_wheel_thread(
+				logger,
+				timertt_thread_t::default_wheel_size(),
+				timertt_thread_t::default_granularity() );
+	}
+
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_wheel_thread(
+	error_logger_shptr_t logger,
+	unsigned int wheel_size,
+	std::chrono::steady_clock::duration granuality )
+	{
+		using timertt_thread_t = timers_details::timer_wheel_thread_t;
 		using namespace timers_details;
 
 		std::unique_ptr< timertt_thread_t > thread(
 				new timertt_thread_t(
-						timertt_thread_t::default_wheel_size(),
-						timertt_thread_t::default_granularity(),
+						wheel_size,
+						granuality,
 						create_error_logger_for_timertt( logger ),
 						create_exception_handler_for_timertt( logger ) ) );
 
