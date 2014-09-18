@@ -289,6 +289,11 @@ using timer_wheel_thread_t = timertt::timer_wheel_thread_template_t<
 		error_logger_for_timertt_t,
 		exception_handler_for_timertt_t >;
 
+//! timer_heap thread type.
+using timer_heap_thread_t = timertt::timer_heap_thread_template_t<
+		error_logger_for_timertt_t,
+		exception_handler_for_timertt_t >;
+
 //! timer_list thread type.
 using timer_list_thread_t = timertt::timer_list_thread_template_t<
 		error_logger_for_timertt_t,
@@ -324,6 +329,35 @@ create_timer_wheel_thread(
 				new timertt_thread_t(
 						wheel_size,
 						granuality,
+						create_error_logger_for_timertt( logger ),
+						create_exception_handler_for_timertt( logger ) ) );
+
+		return timer_thread_unique_ptr_t(
+				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
+	}
+
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_heap_thread(
+	error_logger_shptr_t logger )
+	{
+		using timertt_thread_t = timers_details::timer_heap_thread_t;
+
+		return create_timer_heap_thread(
+				logger,
+				timertt_thread_t::default_initial_heap_capacity() );
+	}
+
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_heap_thread(
+	error_logger_shptr_t logger,
+	std::size_t initial_heap_capacity )
+	{
+		using timertt_thread_t = timers_details::timer_heap_thread_t;
+		using namespace timers_details;
+
+		std::unique_ptr< timertt_thread_t > thread(
+				new timertt_thread_t(
+						initial_heap_capacity,
 						create_error_logger_for_timertt( logger ),
 						create_exception_handler_for_timertt( logger ) ) );
 

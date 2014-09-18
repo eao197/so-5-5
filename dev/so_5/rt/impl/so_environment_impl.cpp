@@ -33,7 +33,7 @@ create_appropriate_timer_thread(
 	if( user_factory )
 		return user_factory( std::move( error_logger ) );
 	else
-		return create_timer_wheel_thread( std::move( error_logger ) );
+		return create_timer_heap_thread( std::move( error_logger ) );
 }
 
 } /* namespace anonymous */

@@ -222,6 +222,28 @@ create_timer_wheel_thread(
 
 /*!
  * \since v.5.5.0
+ * \brief Create timer thread based on timer_heap mechanism.
+ * \note Default parameters will be used for timer thread.
+ */
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_heap_thread(
+	//! A logger for handling error messages inside timer_thread.
+	error_logger_shptr_t logger );
+
+/*!
+ * \since v.5.5.0
+ * \brief Create timer thread based on timer_heap mechanism.
+ * \note Parameters must be specified explicitely.
+ */
+SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
+create_timer_heap_thread(
+	//! A logger for handling error messages inside timer_thread.
+	error_logger_shptr_t logger,
+	//! Initical capacity of heap array.
+	std::size_t initial_heap_capacity );
+
+/*!
+ * \since v.5.5.0
  * \brief Create timer thread based on timer_list mechanism.
  */
 SO_5_EXPORT_FUNC_SPEC( timer_thread_unique_ptr_t )
@@ -271,6 +293,38 @@ timer_wheel_factory(
 		using namespace std::placeholders;
 
 		return std::bind( f, _1, wheel_size, granularity );
+	}
+
+/*!
+ * \since v.5.5.0
+ * \brief Factory for timer_heap thread with default parameters.
+ */
+inline timer_thread_factory_t
+timer_heap_factory()
+	{
+		// Use this trick because create_timer_wheel_thread is overloaded.
+		timer_thread_unique_ptr_t (*f)( error_logger_shptr_t ) =
+				create_timer_heap_thread;
+		return f;
+	}
+
+/*!
+ * \since v.5.5.0
+ * \brief Factory for timer_heap thread with explicitely specified parameters.
+ */
+inline timer_thread_factory_t
+timer_heap_factory(
+	//! Initial capacity of heap array.
+	std::size_t initial_heap_capacity )
+	{
+		// Use this trick because create_timer_wheel_thread is overloaded.
+		timer_thread_unique_ptr_t (*f)( error_logger_shptr_t, std::size_t ) =
+				create_timer_heap_thread;
+
+		using namespace std;
+		using namespace std::placeholders;
+
+		return std::bind( f, _1, initial_heap_capacity );
 	}
 
 /*!
