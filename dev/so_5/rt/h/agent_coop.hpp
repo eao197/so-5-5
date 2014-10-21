@@ -271,6 +271,10 @@ class SO_5_TYPE agent_coop_t
 		friend class impl::agent_core_t;
 		friend class impl::agent_coop_private_iface_t;
 
+		agent_coop_t( const agent_coop_t & ) = delete;
+		agent_coop_t &
+		operator=( const agent_coop_t & ) = delete;
+
 	protected :
 		virtual ~agent_coop_t();
 

@@ -260,7 +260,7 @@ class subscription_bind_t
 
 	private:
 		//! Agent to which we are subscribing.
-		agent_t & m_agent;
+		agent_t * m_agent;
 		//! Mbox for messages to subscribe.
 		mbox_t m_mbox_ref;
 
@@ -1430,7 +1430,7 @@ inline
 subscription_bind_t::subscription_bind_t(
 	agent_t & agent,
 	const mbox_t & mbox_ref )
-	:	m_agent( agent )
+	:	m_agent( &agent )
 	,	m_mbox_ref( mbox_ref )
 {
 }
@@ -1439,7 +1439,7 @@ inline subscription_bind_t &
 subscription_bind_t::in(
 	const state_t & state )
 {
-	if( !state.is_target( &m_agent ) )
+	if( !state.is_target( m_agent ) )
 	{
 		SO_5_THROW_EXCEPTION(
 			rc_agent_is_not_the_state_owner,
@@ -1703,7 +1703,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
@@ -1751,7 +1751,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
@@ -1802,7 +1802,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( m_agent );
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
 	auto method = [cast_result,pfn](
 			invocation_type_t invocation_type,
@@ -1929,15 +1929,15 @@ subscription_bind_t::create_subscription_for_states(
 {
 	if( m_states.empty() )
 		// Agent should be subscribed only in default state.
-		m_agent.create_event_subscription(
+		m_agent->create_event_subscription(
 			m_mbox_ref,
 			msg_type,
-			m_agent.so_default_state(),
+			m_agent->so_default_state(),
 			method,
 			thread_safety );
 	else
 		for( auto s : m_states )
-			m_agent.create_event_subscription(
+			m_agent->create_event_subscription(
 					m_mbox_ref,
 					msg_type,
 					*s,
