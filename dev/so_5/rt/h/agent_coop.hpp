@@ -7,13 +7,13 @@
 	\brief Agent cooperation definition.
 */
 
-#if !defined( _SO_5__RT__AGENT_COOP_HPP_ )
-#define _SO_5__RT__AGENT_COOP_HPP_
+#pragma once
 
 #include <vector>
 #include <memory>
 #include <functional>
 
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
 #include <so_5/h/types.hpp>
@@ -22,6 +22,11 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/adhoc_agent_wrapper.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -920,4 +925,7 @@ typedef std::shared_ptr< agent_coop_t > agent_coop_ref_t;
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
+

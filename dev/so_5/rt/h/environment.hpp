@@ -13,6 +13,7 @@
 #include <chrono>
 #include <memory>
 
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
@@ -30,6 +31,10 @@
 
 #include <so_5/h/timers.hpp>
 
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -1340,4 +1345,8 @@ typedef environment_t so_environment_t;
 } /* namespace rt */
 
 } /* namespace so_5 */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 

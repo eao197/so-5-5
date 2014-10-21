@@ -7,8 +7,7 @@
 	\brief A base class for agents.
 */
 
-#if !defined( _SO_5__RT__AGENT_HPP_ )
-#define _SO_5__RT__AGENT_HPP_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -16,6 +15,7 @@
 #include <utility>
 #include <type_traits>
 
+#include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
@@ -29,6 +29,11 @@
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -83,7 +88,7 @@ class state_listener_controller_t;
 class mpsc_mbox_t;
 
 class subscription_storage_t;
-class event_handler_data_t;
+struct event_handler_data_t;
 
 } /* namespace impl */
 
@@ -2059,5 +2064,7 @@ operator>>=( agent_t * agent, const state_t & new_state )
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
 

@@ -8,12 +8,16 @@
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
  */
 
-#if !defined( SO_5__RT__ADHOC_AGENT_WRAPPER_HPP )
-#define SO_5__RT__ADHOC_AGENT_WRAPPER_HPP
+#pragma once
 
 #include <so_5/rt/h/agent.hpp>
 
 #include <functional>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	#pragma warning(disable: 4251)
+#endif
 
 namespace so_5
 {
@@ -175,4 +179,7 @@ class adhoc_agent_definition_proxy_t
 
 } /* namespace so_5 */
 
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
 #endif
+

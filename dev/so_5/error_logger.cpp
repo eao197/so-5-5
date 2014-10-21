@@ -15,7 +15,15 @@
 #include <cstdio>
 #include <iostream>
 
+#include <so_5/h/compiler_features.hpp>
+
 #include <so_5/h/current_thread_id.hpp>
+
+#if defined( SO_5_MSVC )
+	#pragma warning(push)
+	// Warning about non-secure localtime and sprintf.
+	#pragma warning(disable: 4996)
+#endif
 
 namespace so_5
 {
@@ -85,4 +93,8 @@ create_stderr_logger()
 	}
 
 } /* namespace so_5 */
+
+#if defined( SO_5_MSVC )
+	#pragma warning(pop)
+#endif
 
