@@ -38,7 +38,7 @@ class SO_5_TYPE exception_t : public std::runtime_error
 		exception_t(
 			const std::string & error_descr,
 			int error_code );
-		virtual ~exception_t() throw();
+		virtual ~exception_t();
 
 		//! Error code getter.
 		int
