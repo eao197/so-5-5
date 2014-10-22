@@ -12,6 +12,7 @@
 #include <functional>
 #include <chrono>
 #include <memory>
+#include <type_traits>
 
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
@@ -1100,9 +1101,8 @@ class SO_5_TYPE environment_t
 		SO_LAYER *
 		query_layer_noexcept() const
 		{
-			// A kind of static assert.
-			// Checks that SO_LAYER is derived from the so_layer_t.
-			so_layer_t * layer = static_cast< so_layer_t* >( (SO_LAYER *)0 );
+			static_assert( std::is_base_of< so_layer_t, SO_LAYER >::value,
+					"SO_LAYER must be derived from so_layer_t class" );
 
 			return dynamic_cast< SO_LAYER * >(
 					query_layer( std::type_index( typeid( SO_LAYER ) ) ) );

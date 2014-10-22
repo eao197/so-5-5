@@ -196,7 +196,6 @@ struct environment_t::internals_t
 				env,
 				params.so5__giveout_coop_listener() )
 		,	m_disp_core(
-				env,
 				params.so5__giveout_named_dispatcher_map(),
 				params.so5__giveout_event_exception_logger() )
 		,	m_layer_core(
