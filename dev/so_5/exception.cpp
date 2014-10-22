@@ -22,7 +22,7 @@ exception_t::exception_t(
 {
 }
 
-exception_t::~exception_t() throw()
+exception_t::~exception_t()
 {
 }
 
