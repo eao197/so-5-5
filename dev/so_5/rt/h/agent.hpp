@@ -29,6 +29,7 @@
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
+#include <so_5/rt/h/subscription_storage_fwd.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -87,7 +88,6 @@ class state_listener_controller_t;
 
 class mpsc_mbox_t;
 
-class subscription_storage_t;
 struct event_handler_data_t;
 
 } /* namespace impl */
@@ -1152,7 +1152,7 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief All agent's subscriptions.
 		 */
-		std::unique_ptr< impl::subscription_storage_t > m_subscriptions;
+		impl::subscription_storage_unique_ptr_t m_subscriptions;
 
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;

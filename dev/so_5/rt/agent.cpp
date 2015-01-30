@@ -7,7 +7,7 @@
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
-#include <so_5/rt/impl/h/subscription_storage.hpp>
+#include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 
 #include <sstream>
@@ -148,7 +148,8 @@ agent_t::agent_t(
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
-	,	m_subscriptions( new impl::subscription_storage_t( self_ptr() ) )
+	,	m_subscriptions(
+			default_subscription_storage_factory()( self_ptr() ) )
 	,	m_env( env )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
