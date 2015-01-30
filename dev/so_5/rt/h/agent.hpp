@@ -24,6 +24,7 @@
 #include <so_5/h/exception.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
+#include <so_5/rt/h/agent_tuning_options.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
@@ -433,6 +434,29 @@ class SO_5_TYPE agent_t
 			//! The Environment for this agent must exist.
 			environment_t & env );
 
+		/*!
+		 * \since v.5.5.3
+		 * \brief Constructor which allows specification of
+		 * agent's tuning options.
+		 *
+		 * \par Usage sample:
+		 \code
+		 using namespace so_5::rt;
+		 class my_agent : public agent_t
+		 {
+		 public :
+		 	my_agent( environment_t & env )
+				:	agent_t( env, agent_t::tuning_options()
+						.subscription_storage_factory(
+								vector_based_subscription_storage_factory() ) )
+				{...}
+		 }
+		 \endcode
+		 */
+		agent_t(
+			environment_t & env,
+			agent_tuning_options_t tuning_options );
+
 		virtual ~agent_t();
 
 		//! Get the raw pointer of itself.
@@ -637,6 +661,16 @@ class SO_5_TYPE agent_t
 		 */
 		const mbox_t &
 		so_direct_mbox() const;
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Create tuning options object with default values.
+		 */
+		inline static agent_tuning_options_t
+		tuning_options()
+		{
+			return agent_tuning_options_t();
+		}
 
 	protected:
 		/*!

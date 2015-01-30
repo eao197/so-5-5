@@ -145,11 +145,18 @@ state_t::activate() const
 
 agent_t::agent_t(
 	environment_t & env )
+	:	agent_t( env, tuning_options() )
+{
+}
+
+agent_t::agent_t(
+	environment_t & env,
+	agent_tuning_options_t options )
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions(
-			default_subscription_storage_factory()( self_ptr() ) )
+			options.query_subscription_storage_factory()( self_ptr() ) )
 	,	m_env( env )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
