@@ -129,6 +129,21 @@ class storage_t : public subscription_storage_t
 		//! Type of vector with subscription information.
 		typedef std::vector< info_t > subscr_info_vector_t;
 
+		//! A helper predicate for searching the same
+		//! mbox and message type pairs.
+		struct is_same_mbox_msg
+			{
+				const mbox_id_t m_id;
+				const std::type_index & m_type;
+
+				bool
+				operator()( const info_t & info ) const
+					{
+						return m_id == info.m_mbox->id() &&
+								m_type == info.m_msg_type;
+					}
+			};
+
 		//! Subscription information.
 		subscr_info_vector_t m_events;
 
@@ -174,12 +189,13 @@ storage_t::create_event_subscription(
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
 	{
+		using namespace std;
+
 		const auto mbox_id = mbox->id();
 
 		// Check that this subscription is new.
 		auto existed_position = find(
-				m_events,
-				mbox_id, msg_type, target_state );
+				m_events, mbox_id, msg_type, target_state );
 
 		if( existed_position != m_events.end() )
 			SO_5_THROW_EXCEPTION(
@@ -192,24 +208,26 @@ storage_t::create_event_subscription(
 				mbox, msg_type, target_state, method, thread_safety );
 
 //FIXME: this step is not necessary if mbox is a direct mbox!
-		// If there is no subscription for that mbox it must be created.
-		for( std::size_t i = 0, max = m_events.size() - 1; i != max; ++i )
-			if( mbox_id == m_events[ i ].m_mbox->id() &&
-					msg_type == m_events[ i ].m_msg_type )
-				// Mbox already knows about this agents.
-				// There is no need to continue.
-				return;
 
-		// Mbox must create subscription.
-		try
+		// If there is no subscription for that mbox it must be created.
+		// Last item in m_events should not be checked becase it is
+		// description of the just added subscription.
+		auto last_to_check = --end( m_events );
+		if( last_to_check == find_if(
+				begin( m_events ), last_to_check,
+				is_same_mbox_msg{ mbox_id, msg_type } ) )
 			{
-				mbox->subscribe_event_handler( msg_type, owner() );
-			}
-		catch( ... )
-			{
-				// Rollback agent's subscription.
-				m_events.pop_back();
-				throw;
+				// Mbox must create subscription.
+				try
+					{
+						mbox->subscribe_event_handler( msg_type, owner() );
+					}
+				catch( ... )
+					{
+						// Rollback agent's subscription.
+						m_events.pop_back();
+						throw;
+					}
 			}
 	}
 
@@ -219,11 +237,12 @@ storage_t::drop_subscription(
 	const mbox_t & mbox,
 	const state_t & target_state )
 	{
+		using namespace std;
+
 		const auto mbox_id = mbox->id();
 
 		auto existed_position = find(
-				m_events,
-				mbox_id, msg_type, target_state );
+				m_events, mbox_id, msg_type, target_state );
 		if( existed_position != m_events.end() )
 			{
 				m_events.erase( existed_position );
@@ -231,15 +250,15 @@ storage_t::drop_subscription(
 				// If there is no more subscriptions to that mbox
 				// mbox must remove information about that agent.
 //FIXME: this step is not necessary if mbox is a direct mbox!
-				for( const auto & e : m_events )
-					if( mbox_id == e.m_mbox->id() &&
-							msg_type == e.m_msg_type )
-						return;
-
-				// If we are here then there is no more references
-				// to the mbox. And mbox must not hold reference
-				// to the agent.
-				mbox->unsubscribe_event_handlers( msg_type, owner() );
+				if( end( m_events ) == find_if(
+						begin( m_events ), end( m_events ),
+						is_same_mbox_msg{ mbox_id, msg_type } ) )
+					{
+						// If we are here then there is no more references
+						// to the mbox. And mbox must not hold reference
+						// to the agent.
+						mbox->unsubscribe_event_handlers( msg_type, owner() );
+					}
 			}
 	}
 
@@ -262,13 +281,6 @@ storage_t::drop_subscription_for_all_states(
 						} ),
 				end( m_events ) );
 
-//FIXME: must be removed later.
-#if 0
-		for( auto it = m_events.begin(); it != m_events.end(); ++it )
-			if( mbox_id == it->m_mbox->id() )
-				it = m_events.erase( it );
-#endif
-
 //FIXME: this step is not necessary if mbox is a direct mbox!
 		if( old_size != m_events.size() )
 			mbox->unsubscribe_event_handlers( msg_type, owner() );
@@ -280,9 +292,7 @@ storage_t::find_handler(
 	const std::type_index & msg_type,
 	const state_t & current_state ) const
 	{
-		auto it = find(
-				m_events,
-				mbox_id, msg_type, current_state );
+		auto it = find( m_events, mbox_id, msg_type, current_state );
 
 		if( it != std::end( m_events ) )
 			return &(it->m_handler);
