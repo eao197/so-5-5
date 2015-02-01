@@ -56,7 +56,7 @@ MxxRu::Cpp::dll_target {
 		sources_root( 'impl' ) {
 			cpp_source 'subscription_storage_iface.cpp'
 			cpp_source 'subscr_storage_vector_based.cpp'
-			cpp_source 'hash_table_subscr_storage.cpp'
+			cpp_source 'subscr_storage_hash_table_based.cpp'
 
 			cpp_source 'process_unhandled_exception.cpp'
 
