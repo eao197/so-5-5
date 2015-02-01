@@ -194,7 +194,8 @@ storage_t::create_event_subscription(
 //FIXME: this step is not necessary if mbox is a direct mbox!
 		// If there is no subscription for that mbox it must be created.
 		for( std::size_t i = 0, max = m_events.size() - 1; i != max; ++i )
-			if( mbox_id == m_events[ i ].m_mbox->id() )
+			if( mbox_id == m_events[ i ].m_mbox->id() &&
+					msg_type == m_events[ i ].m_msg_type )
 				// Mbox already knows about this agents.
 				// There is no need to continue.
 				return;
@@ -231,7 +232,8 @@ storage_t::drop_subscription(
 				// mbox must remove information about that agent.
 //FIXME: this step is not necessary if mbox is a direct mbox!
 				for( const auto & e : m_events )
-					if( mbox_id == e.m_mbox->id() )
+					if( mbox_id == e.m_mbox->id() &&
+							msg_type == e.m_msg_type )
 						return;
 
 				// If we are here then there is no more references
@@ -254,8 +256,9 @@ storage_t::drop_subscription_for_all_states(
 
 		m_events.erase(
 				remove_if( begin( m_events ), end( m_events ),
-						[mbox_id]( const info_t & i ) {
-							return i.m_mbox->id() == mbox_id;
+						[mbox_id, &msg_type]( const info_t & i ) {
+							return i.m_mbox->id() == mbox_id &&
+									i.m_msg_type == msg_type;
 						} ),
 				end( m_events ) );
 
@@ -281,7 +284,7 @@ storage_t::find_handler(
 				m_events,
 				mbox_id, msg_type, current_state );
 
-		if( it != std::begin( m_events ) )
+		if( it != std::end( m_events ) )
 			return &(it->m_handler);
 		else
 			return nullptr;

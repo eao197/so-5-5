@@ -7,6 +7,8 @@
 
 #include <so_5/all.hpp>
 
+#include <various_helpers_1/time_limited_execution.hpp>
+
 struct msg_one : public so_5::rt::signal_t {};
 struct msg_two : public so_5::rt::signal_t {};
 struct msg_three : public so_5::rt::signal_t {};
@@ -22,8 +24,12 @@ class a_test_t : public so_5::rt::agent_t
 	public :
 		a_test_t(
 			so_5::rt::environment_t & env,
+			so_5::rt::subscription_storage_factory_t factory,
 			std::string & sequence )
-			:	base_type_t( env )
+			:	base_type_t(
+					env,
+					so_5::rt::agent_t::tuning_options()
+						.subscription_storage_factory( std::move( factory ) ) )
 			,	m_sequence( sequence )
 			,	m_mbox( env.create_local_mbox() )
 		{
@@ -175,18 +181,23 @@ class a_test_t : public so_5::rt::agent_t
 
 		so_5::rt::mbox_t m_mbox;
 
-		so_5::rt::state_t st_1 = so_make_state();
-		so_5::rt::state_t st_2 = so_make_state();
+		so_5::rt::state_t st_1 = so_make_state( "st_1" );
+		so_5::rt::state_t st_2 = so_make_state( "st_2" );
 };
 
 class test_env_t
 {
 	public :
+		test_env_t(
+			so_5::rt::subscription_storage_factory_t factory )
+			:	m_factory( std::move( factory ) )
+		{}
+
 		void
 		init( so_5::rt::environment_t & env )
 		{
 			env.register_agent_as_coop(
-					"test", new a_test_t( env, m_sequence ) );
+					"test", new a_test_t( env, m_factory, m_sequence ) );
 		}
 
 		void
@@ -201,22 +212,50 @@ class test_env_t
 		}
 
 	private :
+		const so_5::rt::subscription_storage_factory_t m_factory;
+
 		std::string m_sequence;
 };
+
+void
+do_test()
+{
+	using factory_info_t =
+			std::pair< std::string, so_5::rt::subscription_storage_factory_t >;
+	
+	factory_info_t factories[] = {
+		{ "default", so_5::rt::default_subscription_storage_factory() }
+	,	{ "vector", so_5::rt::vector_based_subscription_storage_factory() }
+	}; 
+
+	for( auto & f : factories )
+	{
+		std::cout << "checking factory: " << f.first << " -> " << std::flush;
+
+		run_with_time_limit(
+			[f] {
+				test_env_t test_env{ f.second };
+				so_5::launch(
+					[&]( so_5::rt::environment_t & env )
+					{
+						test_env.init( env );
+					} );
+
+				test_env.check_result();
+			}, 
+			5,
+			"checking factory " + f.first );
+
+		std::cout << "OK" << std::endl;
+	}
+}
 
 int
 main( int argc, char * argv[] )
 {
 	try
 	{
-		test_env_t test_env;
-		so_5::launch(
-			[&]( so_5::rt::environment_t & env )
-			{
-				test_env.init( env );
-			} );
-
-		test_env.check_result();
+		do_test();
 	}
 	catch( const std::exception & ex )
 	{
