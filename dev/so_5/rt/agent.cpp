@@ -504,8 +504,8 @@ agent_t::create_event_subscription(
 
 void
 agent_t::do_drop_subscription(
-	const std::type_index & type_index,
-	const mbox_t & mbox_ref,
+	const mbox_t & mbox,
+	const std::type_index & msg_type,
 	const state_t & target_state )
 {
 	ensure_operation_is_on_working_thread( "do_drop_subscription" );
@@ -514,13 +514,13 @@ agent_t::do_drop_subscription(
 	// because this operation can be performed only on agent's
 	// working thread.
 
-	m_subscriptions->drop_subscription( type_index, mbox_ref, target_state );
+	m_subscriptions->drop_subscription( mbox, msg_type, target_state );
 }
 
 void
 agent_t::do_drop_subscription_for_all_states(
-	const std::type_index & type_index,
-	const mbox_t & mbox_ref )
+	const mbox_t & mbox,
+	const std::type_index & msg_type )
 {
 	// Since v.5.4.0 there is no need for locking agent's mutex
 	// because this operation can be performed only on agent's
@@ -529,7 +529,7 @@ agent_t::do_drop_subscription_for_all_states(
 	ensure_operation_is_on_working_thread(
 			"do_drop_subscription_for_all_states" );
 
-	m_subscriptions->drop_subscription_for_all_states( type_index, mbox_ref );
+	m_subscriptions->drop_subscription_for_all_states( mbox, msg_type );
 }
 
 void

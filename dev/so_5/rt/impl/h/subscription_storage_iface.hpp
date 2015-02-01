@@ -73,22 +73,22 @@ class subscription_storage_t
 
 		virtual void
 		create_event_subscription(
-			const mbox_t & mbox_ref,
-			std::type_index type_index,
+			const mbox_t & mbox,
+			std::type_index msg_type,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) = 0;
 
 		virtual void
 		drop_subscription(
-			const std::type_index & type_index,
-			const mbox_t & mbox_ref,
+			const mbox_t & mbox,
+			const std::type_index & msg_type,
 			const state_t & target_state ) = 0;
 
 		virtual void
 		drop_subscription_for_all_states(
-			const std::type_index & type_index,
-			const mbox_t & mbox_ref ) = 0;
+			const mbox_t & mbox,
+			const std::type_index & msg_type ) = 0;
 
 		virtual const event_handler_data_t *
 		find_handler(

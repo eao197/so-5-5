@@ -78,16 +78,14 @@ class storage_t : public subscription_storage_t
 
 		virtual void
 		drop_subscription(
-//FIXME: change order of arguments: mbox_ref, type_index
-			const std::type_index & type_index,
-			const mbox_t & mbox_ref,
+			const mbox_t & mbox,
+			const std::type_index & msg_type,
 			const state_t & target_state ) override;
 
 		void
 		drop_subscription_for_all_states(
-//FIXME: change order of arguments: mbox_ref, type_index
-			const std::type_index & type_index,
-			const mbox_t & mbox_ref );
+			const mbox_t & mbox,
+			const std::type_index & msg_type ) override;
 
 		const event_handler_data_t *
 		find_handler(
@@ -235,8 +233,8 @@ storage_t::create_event_subscription(
 
 void
 storage_t::drop_subscription(
-	const std::type_index & msg_type,
 	const mbox_t & mbox,
+	const std::type_index & msg_type,
 	const state_t & target_state )
 	{
 		using namespace std;
@@ -269,8 +267,8 @@ storage_t::drop_subscription(
 
 void
 storage_t::drop_subscription_for_all_states(
-	const std::type_index & msg_type,
-	const mbox_t & mbox )
+	const mbox_t & mbox,
+	const std::type_index & msg_type )
 	{
 		using namespace std;
 

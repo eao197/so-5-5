@@ -225,23 +225,23 @@ class storage_t : public subscription_storage_t
 
 		virtual void
 		drop_subscription(
-			const std::type_index & type_index,
 			const mbox_t & mbox_ref,
+			const std::type_index & type_index,
 			const state_t & target_state ) override;
 
 		void
 		drop_subscription_for_all_states(
-			const std::type_index & type_index,
-			const mbox_t & mbox_ref );
+			const mbox_t & mbox_ref,
+			const std::type_index & type_index ) override;
 
 		const event_handler_data_t *
 		find_handler(
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
-			const state_t & current_state ) const;
+			const state_t & current_state ) const override;
 
 		void
-		debug_dump( std::ostream & to ) const;
+		debug_dump( std::ostream & to ) const override;
 
 	private :
 		//! Type of subscription map.
@@ -330,8 +330,8 @@ storage_t::create_event_subscription(
 
 void
 storage_t::drop_subscription(
-	const std::type_index & type_index,
 	const mbox_t & mbox_ref,
+	const std::type_index & type_index,
 	const state_t & target_state )
 	{
 		key_t key( mbox_ref->id(), type_index, target_state );
@@ -354,8 +354,8 @@ storage_t::drop_subscription(
 
 void
 storage_t::drop_subscription_for_all_states(
-	const std::type_index & type_index,
-	const mbox_t & mbox_ref )
+	const mbox_t & mbox_ref,
+	const std::type_index & type_index )
 	{
 		key_t key( mbox_ref->id(), type_index );
 

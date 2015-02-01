@@ -773,7 +773,7 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
 
 		/*!
@@ -794,7 +794,7 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
 
 		/*!
@@ -810,7 +810,7 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, target_state );
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
 		}
 
 		/*!
@@ -830,7 +830,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
 
 		/*!
@@ -850,7 +850,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
 
 		/*!
@@ -865,7 +865,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription( typeid( MESSAGE ), mbox, so_default_state() );
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
 
 		/*!
@@ -886,7 +886,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
 
 		/*!
@@ -907,7 +907,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
 
 		/*!
@@ -923,7 +923,7 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription_for_all_states( typeid( MESSAGE ), mbox );
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
 		/*!
 		 * \}
@@ -1295,10 +1295,10 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		do_drop_subscription(
-			//! Message type.
-			const std::type_index & type_index,
 			//! Message's mbox.
-			const mbox_t & mbox_ref,
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type,
 			//! State for event.
 			const state_t & target_state );
 
@@ -1308,10 +1308,10 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		do_drop_subscription_for_all_states(
-			//! Message type.
-			const std::type_index & type_index,
 			//! Message's mbox.
-			const mbox_t & mbox_ref );
+			const mbox_t & mbox,
+			//! Message type.
+			const std::type_index & msg_type );
 		/*!
 		 * \}
 		 */
