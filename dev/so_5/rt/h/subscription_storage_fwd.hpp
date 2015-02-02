@@ -54,6 +54,13 @@ default_subscription_storage_factory();
 
 /*!
  * \since v.5.5.3
+ * \brief Factory for default subscription storage based on std::unordered_map.
+ */
+SO_5_FUNC subscription_storage_factory_t
+hash_table_based_subscription_storage_factory();
+
+/*!
+ * \since v.5.5.3
  * \brief Factory for subscription storage based on std::vector.
  */
 SO_5_FUNC subscription_storage_factory_t

@@ -436,6 +436,15 @@ default_subscription_storage_factory()
 		};
 	}
 
+SO_5_FUNC subscription_storage_factory_t
+hash_table_based_subscription_storage_factory()
+	{
+		return []( agent_t * owner ) {
+			return impl::subscription_storage_unique_ptr_t(
+					new impl::hash_table_subscr_storage::storage_t( owner ) );
+		};
+	}
+
 } /* namespace rt */
 
 } /* namespace so_5 */

@@ -308,11 +308,12 @@ do_test()
 			std::pair< std::string, so_5::rt::subscription_storage_factory_t >;
 	
 	factory_info_t factories[] = {
-		{ "default", so_5::rt::default_subscription_storage_factory() }
-	,	{ "vector[1]", so_5::rt::vector_based_subscription_storage_factory( 1 ) }
+		{ "vector[1]", so_5::rt::vector_based_subscription_storage_factory( 1 ) }
 	,	{ "vector[8]", so_5::rt::vector_based_subscription_storage_factory( 8 ) }
 	,	{ "vector[16]", so_5::rt::vector_based_subscription_storage_factory( 16 ) }
 	,	{ "map", so_5::rt::map_based_subscription_storage_factory() }
+	,	{ "hash_table", so_5::rt::hash_table_based_subscription_storage_factory() }
+	,	{ "default", so_5::rt::default_subscription_storage_factory() }
 	}; 
 
 	for( auto & f : factories )
