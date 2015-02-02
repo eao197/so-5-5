@@ -225,7 +225,9 @@ do_test()
 	
 	factory_info_t factories[] = {
 		{ "default", so_5::rt::default_subscription_storage_factory() }
-	,	{ "vector", so_5::rt::vector_based_subscription_storage_factory() }
+	,	{ "vector[1]", so_5::rt::vector_based_subscription_storage_factory( 1 ) }
+	,	{ "vector[8]", so_5::rt::vector_based_subscription_storage_factory( 8 ) }
+	,	{ "vector[16]", so_5::rt::vector_based_subscription_storage_factory( 16 ) }
 	,	{ "map", so_5::rt::map_based_subscription_storage_factory() }
 	}; 
 

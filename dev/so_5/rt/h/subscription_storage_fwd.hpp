@@ -57,7 +57,9 @@ default_subscription_storage_factory();
  * \brief Factory for subscription storage based on std::vector.
  */
 SO_5_FUNC subscription_storage_factory_t
-vector_based_subscription_storage_factory();
+vector_based_subscription_storage_factory(
+	//! Initial storage capacity.
+	std::size_t initial_capacity );
 
 /*!
  * \since v.5.5.3

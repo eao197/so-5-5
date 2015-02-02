@@ -64,8 +64,9 @@ namespace
 class storage_t : public subscription_storage_t
 	{
 	public :
-//FIXME: must receive initial vector size.
-		storage_t( agent_t * owner );
+		storage_t(
+			agent_t * owner,
+			std::size_t initial_capacity );
 		~storage_t();
 
 		virtual void
@@ -170,9 +171,13 @@ namespace
 
 } /* namespace anonymous */
 
-storage_t::storage_t( agent_t * owner )
+storage_t::storage_t(
+	agent_t * owner,
+	std::size_t initial_capacity )
 	:	subscription_storage_t( owner )
-	{}
+	{
+		m_events.reserve( initial_capacity );
+	}
 
 storage_t::~storage_t()
 	{
@@ -250,8 +255,8 @@ storage_t::drop_subscription(
 				// We must handle mbox subscription only if it is not MPSC mbox.
 				if( mbox_type_t::multi_producer_single_consumer != mbox->type() )
 					{
-						// If there is no more subscriptions to that mbox
-						// mbox must remove information about that agent.
+						// If there is no more subscriptions to that mbox then
+						// the mbox must remove information about that agent.
 						if( end( m_events ) == find_if(
 								begin( m_events ), end( m_events ),
 								is_same_mbox_msg{ mbox_id, msg_type } ) )
@@ -377,11 +382,14 @@ storage_t::destroy_all_subscriptions()
 } /* namespace impl */
 
 SO_5_FUNC subscription_storage_factory_t
-vector_based_subscription_storage_factory()
+vector_based_subscription_storage_factory(
+	std::size_t initial_capacity )
 	{
-		return []( agent_t * owner ) {
+		return [initial_capacity]( agent_t * owner ) {
 			return impl::subscription_storage_unique_ptr_t(
-					new impl::vector_based_subscr_storage::storage_t( owner ) );
+					new impl::vector_based_subscr_storage::storage_t(
+							owner,
+							initial_capacity ) );
 		};
 	}
 
