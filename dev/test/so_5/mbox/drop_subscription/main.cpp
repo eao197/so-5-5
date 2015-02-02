@@ -226,6 +226,7 @@ do_test()
 	factory_info_t factories[] = {
 		{ "default", so_5::rt::default_subscription_storage_factory() }
 	,	{ "vector", so_5::rt::vector_based_subscription_storage_factory() }
+	,	{ "map", so_5::rt::map_based_subscription_storage_factory() }
 	}; 
 
 	for( auto & f : factories )

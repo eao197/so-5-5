@@ -59,6 +59,13 @@ default_subscription_storage_factory();
 SO_5_FUNC subscription_storage_factory_t
 vector_based_subscription_storage_factory();
 
+/*!
+ * \since v.5.5.3
+ * \brief Factory for subscription storage based on std::map.
+ */
+SO_5_FUNC subscription_storage_factory_t
+map_based_subscription_storage_factory();
+
 } /* namespace rt */
 
 } /* namespace so_5 */
