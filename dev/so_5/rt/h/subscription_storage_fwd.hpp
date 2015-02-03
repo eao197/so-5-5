@@ -85,7 +85,29 @@ map_based_subscription_storage_factory();
  */
 SO_5_FUNC subscription_storage_factory_t
 adaptive_subscription_storage_factory(
+	//! Threshold for switching from small storage to the large one
+	//! (and back from the large to the small in the case of subscription
+	//! deletion).
 	std::size_t threshold );
+
+/*!
+ * \since v.5.5.3
+ * \brief Factory for adaptive subscription storage.
+ *
+ * This storage will use storage created by \a small_storage_factory for
+ * small amount of subscriptions. And storage created by
+ * \a large_storage_factory for large amount of subscriptions.
+ */
+SO_5_FUNC subscription_storage_factory_t
+adaptive_subscription_storage_factory(
+	//! Threshold for switching from small storage to the large one
+	//! (and back from the large to the small in the case of subscription
+	//! deletion).
+	std::size_t threshold,
+	//! A factory for creating small storage.
+	const subscription_storage_factory_t & small_storage_factory,
+	//! A factory for creating large storage.
+	const subscription_storage_factory_t & large_storage_factory );
 
 } /* namespace rt */
 

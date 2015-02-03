@@ -264,6 +264,22 @@ adaptive_subscription_storage_factory(
 	}
 
 SO_5_FUNC subscription_storage_factory_t
+adaptive_subscription_storage_factory(
+	std::size_t threshold,
+	const subscription_storage_factory_t & small_storage_factory,
+	const subscription_storage_factory_t & large_storage_factory )
+	{
+		return [=]( agent_t * owner ) {
+			return impl::subscription_storage_unique_ptr_t(
+					new impl::adaptive_subscr_storage::storage_t(
+							owner,
+							threshold,
+							small_storage_factory( owner ),
+							large_storage_factory( owner ) ) );
+		};
+	}
+
+SO_5_FUNC subscription_storage_factory_t
 default_subscription_storage_factory()
 	{
 		return adaptive_subscription_storage_factory( 8 );

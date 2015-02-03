@@ -814,6 +814,21 @@ class SO_5_TYPE agent_t
 		}
 
 		/*!
+		 * \since v.5.5.3
+		 * \brief Drop subscription for the state specified.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox,
+			const state_t & target_state )
+		{
+			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
+		}
+
+		/*!
 		 * \since v.5.2.3
 		 * \brief Drop subscription for the default agent state.
 		 *
@@ -864,6 +879,20 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
+		{
+			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
+		}
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Drop subscription for the default agent state.
+		 *
+		 * \note Doesn't throw if there is no such subscription.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription(
+			const mbox_t & mbox )
 		{
 			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
 		}
@@ -922,6 +951,21 @@ class SO_5_TYPE agent_t
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
+		{
+			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
+		}
+
+		/*!
+		 * \since v.5.5.3
+		 * \brief Drop subscription for all states.
+		 *
+		 * \note Doesn't throw if there is no any subscription for
+		 * that mbox and message type.
+		 */
+		template< class MESSAGE >
+		inline void
+		so_drop_subscription_for_all_states(
+			const mbox_t & mbox )
 		{
 			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
 		}
