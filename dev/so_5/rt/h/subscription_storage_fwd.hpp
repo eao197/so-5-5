@@ -75,6 +75,18 @@ vector_based_subscription_storage_factory(
 SO_5_FUNC subscription_storage_factory_t
 map_based_subscription_storage_factory();
 
+/*!
+ * \since v.5.5.3
+ * \brief Factory for adaptive subscription storage.
+ *
+ * This storage will use vector-based storage for small amount
+ * of subscriptions. And map-based storage for large amount
+ * of subscriptions.
+ */
+SO_5_FUNC subscription_storage_factory_t
+adaptive_subscription_storage_factory(
+	std::size_t threshold );
+
 } /* namespace rt */
 
 } /* namespace so_5 */

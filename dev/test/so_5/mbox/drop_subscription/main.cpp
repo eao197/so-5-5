@@ -313,6 +313,10 @@ do_test()
 	,	{ "vector[16]", so_5::rt::vector_based_subscription_storage_factory( 16 ) }
 	,	{ "map", so_5::rt::map_based_subscription_storage_factory() }
 	,	{ "hash_table", so_5::rt::hash_table_based_subscription_storage_factory() }
+	,	{ "adaptive[1]", so_5::rt::adaptive_subscription_storage_factory( 1 ) }
+	,	{ "adaptive[2]", so_5::rt::adaptive_subscription_storage_factory( 2 ) }
+	,	{ "adaptive[3]", so_5::rt::adaptive_subscription_storage_factory( 3 ) }
+	,	{ "adaptive[8]", so_5::rt::adaptive_subscription_storage_factory( 8 ) }
 	,	{ "default", so_5::rt::default_subscription_storage_factory() }
 	}; 
 

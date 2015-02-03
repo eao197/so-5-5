@@ -58,6 +58,7 @@ MxxRu::Cpp::dll_target {
 			cpp_source 'subscr_storage_vector_based.cpp'
 			cpp_source 'subscr_storage_map_based.cpp'
 			cpp_source 'subscr_storage_hash_table_based.cpp'
+			cpp_source 'subscr_storage_adaptive.cpp'
 
 			cpp_source 'process_unhandled_exception.cpp'
 

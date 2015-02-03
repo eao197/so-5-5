@@ -138,6 +138,7 @@ class subscription_storage_t
 		virtual void
 		create_event_subscription(
 			const mbox_t & mbox,
+//FIXME: it must be const reference, not a value!
 			std::type_index msg_type,
 			const state_t & target_state,
 			const event_handler_method_t & method,
