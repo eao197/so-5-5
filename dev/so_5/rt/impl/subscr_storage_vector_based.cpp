@@ -12,7 +12,6 @@
 
 #include <algorithm>
 #include <vector>
-#include <sstream>
 
 namespace so_5
 {
@@ -29,26 +28,6 @@ namespace impl
  */
 namespace vector_based_subscr_storage
 {
-
-namespace
-{
-//FIXME: this method must be defined as reusable
-//(may be in subscription_storage_iface.hpp).
-	std::string
-	make_subscription_description(
-		const mbox_t & mbox_ref,
-		std::type_index msg_type,
-		const state_t & state )
-	{
-		std::ostringstream s;
-		s << "(mbox:'" << mbox_ref->query_name()
-			<< "', msg_type:'" << msg_type.name() << "', state:'"
-			<< state.query_name() << "')";
-
-		return s.str();
-	}
-
-} /* namespace anonymous */
 
 /*!
  * \since v.5.5.3
@@ -97,36 +76,23 @@ class storage_t : public subscription_storage_t
 		void
 		debug_dump( std::ostream & to ) const;
 
+		void
+		drop_content() override;
+
+		subscription_storage_common::subscr_info_vector_t
+		query_content() const override;
+
+		void
+		setup_content(
+			subscription_storage_common::subscr_info_vector_t && info ) override;
+
+		std::size_t
+		query_subscriptions_count() const override;
+
 	private :
-		//! Information about subscription.
-		struct info_t
-			{
-				//! Reference to mbox.
-				/*!
-				 * Reference must be stored because we must have
-				 * access to mbox during destroyment of all
-				 * subscriptions in destructor.
-				 */
-				mbox_t m_mbox;
-				std::type_index m_msg_type;
-				const state_t * m_state;
-				event_handler_data_t m_handler;
-
-				info_t(
-					mbox_t mbox,
-					std::type_index msg_type,
-					const state_t & state,
-					const event_handler_method_t & method,
-					thread_safety_t thread_safety )
-					:	m_mbox( std::move( mbox ) )
-					,	m_msg_type( std::move( msg_type ) )
-					,	m_state( &state )
-					,	m_handler( method, thread_safety )
-					{}
-			};
-
-		//! Type of vector with subscription information.
-		typedef std::vector< info_t > subscr_info_vector_t;
+		using info_t = subscription_storage_common::subscr_info_t;
+		using subscr_info_vector_t =
+				subscription_storage_common::subscr_info_vector_t;
 
 		//! A helper predicate for searching the same
 		//! mbox and message type pairs.
@@ -193,6 +159,7 @@ storage_t::create_event_subscription(
 	thread_safety_t thread_safety )
 	{
 		using namespace std;
+		using namespace subscription_storage_common;
 
 		const auto mbox_id = mbox->id();
 
@@ -373,8 +340,33 @@ storage_t::destroy_all_subscriptions()
 			m.m_mbox->unsubscribe_event_handlers( *m.m_msg_type, owner() );
 
 		// Fourth step: cleanup subscription vector.
+		drop_content();
+	}
+
+void
+storage_t::drop_content()
+	{
 		subscr_info_vector_t empty_events;
 		m_events.swap( empty_events );
+	}
+
+subscription_storage_common::subscr_info_vector_t
+storage_t::query_content() const
+	{
+		return m_events;
+	}
+
+void
+storage_t::setup_content(
+	subscription_storage_common::subscr_info_vector_t && info )
+	{
+		m_events = std::move( info );
+	}
+
+std::size_t
+storage_t::query_subscriptions_count() const
+	{
+		return m_events.size();
 	}
 
 } /* namespace vector_based_subscr_storage */

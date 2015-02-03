@@ -12,7 +12,6 @@
 
 #include <map>
 #include <unordered_map>
-#include <sstream>
 
 namespace so_5
 {
@@ -171,20 +170,6 @@ namespace
 		return false;
 	}
 
-	std::string
-	make_subscription_description(
-		const mbox_t & mbox_ref,
-		std::type_index msg_type,
-		const state_t & state )
-	{
-		std::ostringstream s;
-		s << "(mbox:'" << mbox_ref->query_name()
-			<< "', msg_type:'" << msg_type.name() << "', state:'"
-			<< state.query_name() << "')";
-
-		return s.str();
-	}
-
 } /* namespace anonymous */
 
 /*!
@@ -243,6 +228,19 @@ class storage_t : public subscription_storage_t
 		void
 		debug_dump( std::ostream & to ) const override;
 
+		void
+		drop_content() override;
+
+		subscription_storage_common::subscr_info_vector_t
+		query_content() const override;
+
+		void
+		setup_content(
+			subscription_storage_common::subscr_info_vector_t && info ) override;
+
+		std::size_t
+		query_subscriptions_count() const override;
+
 	private :
 		//! Type of subscription map.
 		typedef std::map< key_t, mbox_t > map_t;
@@ -287,6 +285,8 @@ storage_t::create_event_subscription(
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
 	{
+		using namespace subscription_storage_common;
+
 		key_t key( mbox_ref->id(), type_index, target_state );
 
 		auto insertion_result = m_map.emplace( key, mbox_ref );
@@ -416,11 +416,74 @@ storage_t::destroy_all_subscriptions()
 			}
 		}
 
+		drop_content();
+	}
+
+void
+storage_t::drop_content()
+	{
 		hash_table_t tmp_hash_table;
 		m_hash_table.swap( tmp_hash_table );
 
 		map_t tmp_map;
 		m_map.swap( tmp_map );
+	}
+
+subscription_storage_common::subscr_info_vector_t
+storage_t::query_content() const
+	{
+		using namespace std;
+		using namespace subscription_storage_common;
+
+		subscr_info_vector_t events;
+		events.reserve( m_hash_table.size() );
+
+		transform( begin(m_hash_table), end(m_hash_table),
+				back_inserter(events),
+				[this]( const hash_table_t::value_type & i )
+				{
+					auto map_item = m_map.find( *(i.first) );
+
+					return subscr_info_t {
+							map_item->second,
+							map_item->first.m_msg_type,
+							*(map_item->first.m_state),
+							i.second.m_method,
+							i.second.m_thread_safety
+						};
+				} );
+
+		return events;
+	}
+
+void
+storage_t::setup_content(
+	subscription_storage_common::subscr_info_vector_t && info )
+	{
+		using namespace std;
+		using namespace subscription_storage_common;
+
+		map_t fresh_map;
+		hash_table_t fresh_table;
+
+		for_each( begin(info), end(info),
+			[&]( const subscr_info_t & info )
+			{
+				key_t k{ info.m_mbox->id(), info.m_msg_type, *(info.m_state) };
+
+				auto ins_result = fresh_map.emplace( k, info.m_mbox );
+
+				fresh_table.emplace( &(ins_result.first->first), info.m_handler );
+			} );
+
+		m_map.swap( fresh_map );
+		m_hash_table.swap( fresh_table );
+	}
+
+std::size_t
+storage_t::query_subscriptions_count() const
+	{
+		return m_hash_table.size();
 	}
 
 } /* namespace hash_table_subscr_storage */

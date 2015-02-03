@@ -11,6 +11,7 @@
 #pragma once
 
 #include <ostream>
+#include <sstream>
 
 #include <so_5/h/types.hpp>
 
@@ -49,6 +50,69 @@ struct event_handler_data_t
 			,	m_thread_safety( thread_safety )
 			{}
 	};
+
+/*!
+ * \since v.5.5.3
+ * \brief Common stuff for various subscription storage implementations.
+ */
+namespace subscription_storage_common
+{
+
+/*!
+ * \since v.5.5.3
+ * \brief An information about one subscription.
+ */
+struct subscr_info_t
+	{
+		//! Reference to mbox.
+		/*!
+		 * Reference must be stored because we must have
+		 * access to mbox during destroyment of all
+		 * subscriptions in destructor.
+		 */
+		mbox_t m_mbox;
+		std::type_index m_msg_type;
+		const state_t * m_state;
+		event_handler_data_t m_handler;
+
+		subscr_info_t(
+			mbox_t mbox,
+			std::type_index msg_type,
+			const state_t & state,
+			const event_handler_method_t & method,
+			thread_safety_t thread_safety )
+			:	m_mbox( std::move( mbox ) )
+			,	m_msg_type( std::move( msg_type ) )
+			,	m_state( &state )
+			,	m_handler( method, thread_safety )
+			{}
+	};
+
+/*!
+ * \since v.5.5.3
+ * \brief Type of vector with subscription information.
+ */
+typedef std::vector< subscr_info_t > subscr_info_vector_t;
+
+/*!
+ * \since v.5.5.3
+ * \brief A helper function for creating subscription description.
+ */
+inline std::string
+make_subscription_description(
+	const mbox_t & mbox_ref,
+	std::type_index msg_type,
+	const state_t & state )
+	{
+		std::ostringstream s;
+		s << "(mbox:'" << mbox_ref->query_name()
+			<< "', msg_type:'" << msg_type.name() << "', state:'"
+			<< state.query_name() << "')";
+
+		return s.str();
+	}
+
+} /* namespace subscription_storage_common */
 
 /*!
  * \since v.5.5.3
@@ -98,6 +162,31 @@ class subscription_storage_t
 
 		virtual void
 		debug_dump( std::ostream & to ) const = 0;
+
+		//! Drop all content.
+		/*!
+		 * All information about subscription must be erased,
+		 * but without real unsubscription.
+		 *
+		 * This method will be called after successful copy of
+		 * subscription information to another storage.
+		 */
+		virtual void
+		drop_content() = 0;
+
+		//! Get content for copying subscription information
+		//! to another storage object.
+		virtual subscription_storage_common::subscr_info_vector_t
+		query_content() const = 0;
+
+		//! Setup content from information from another storage object.
+		virtual void
+		setup_content(
+			subscription_storage_common::subscr_info_vector_t && info ) = 0;
+
+		//! Count of subscriptions in the storage.
+		virtual std::size_t
+		query_subscriptions_count() const = 0;
 
 	protected :
 		agent_t *

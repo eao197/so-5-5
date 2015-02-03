@@ -11,8 +11,8 @@
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 
 #include <algorithm>
+#include <iterator>
 #include <map>
-#include <sstream>
 
 namespace so_5
 {
@@ -29,26 +29,6 @@ namespace impl
  */
 namespace map_based_subscr_storage
 {
-
-namespace
-{
-//FIXME: this method must be defined as reusable
-//(may be in subscription_storage_iface.hpp).
-	std::string
-	make_subscription_description(
-		const mbox_t & mbox_ref,
-		std::type_index msg_type,
-		const state_t & state )
-	{
-		std::ostringstream s;
-		s << "(mbox:'" << mbox_ref->query_name()
-			<< "', msg_type:'" << msg_type.name() << "', state:'"
-			<< state.query_name() << "')";
-
-		return s.str();
-	}
-
-} /* namespace anonymous */
 
 /*!
  * \since v.5.5.3
@@ -86,10 +66,23 @@ class storage_t : public subscription_storage_t
 		find_handler(
 			mbox_id_t mbox_id,
 			const std::type_index & msg_type,
-			const state_t & current_state ) const;
+			const state_t & current_state ) const override;
 
 		void
-		debug_dump( std::ostream & to ) const;
+		debug_dump( std::ostream & to ) const override;
+
+		void
+		drop_content() override;
+
+		subscription_storage_common::subscr_info_vector_t
+		query_content() const override;
+
+		void
+		setup_content(
+			subscription_storage_common::subscr_info_vector_t && info ) override;
+
+		std::size_t
+		query_subscriptions_count() const override;
 
 	private :
 		//! Type of key in subscription's map.
@@ -216,6 +209,7 @@ storage_t::create_event_subscription(
 	thread_safety_t thread_safety )
 	{
 		using namespace std;
+		using namespace subscription_storage_common;
 
 		const auto mbox_id = mbox->id();
 
@@ -362,6 +356,70 @@ storage_t::destroy_all_subscriptions()
 
 				m_events.erase( cur );
 			}
+	}
+
+void
+storage_t::drop_content()
+	{
+		subscr_map_t empty_map;
+		m_events.swap( empty_map );
+	}
+
+subscription_storage_common::subscr_info_vector_t
+storage_t::query_content() const
+	{
+		using namespace std;
+		using namespace subscription_storage_common;
+
+		subscr_info_vector_t result;
+		result.reserve( m_events.size() );
+
+		transform( begin( m_events ), end( m_events ),
+				back_inserter( result ),
+				[]( const subscr_map_t::value_type & e )
+				{
+					return subscr_info_t(
+							e.second.m_mbox,
+							e.first.m_msg_type,
+							*(e.first.m_state),
+							e.second.m_handler.m_method,
+							e.second.m_handler.m_thread_safety );
+				} );
+
+		return result;
+	}
+
+void
+storage_t::setup_content(
+	subscription_storage_common::subscr_info_vector_t && info )
+	{
+		using namespace std;
+		using namespace subscription_storage_common;
+
+		subscr_map_t events;
+		transform( begin(info), end(info),
+				inserter( events, events.begin() ),
+				[]( const subscr_info_t & info )
+				{
+					return subscr_map_t::value_type {
+							key_t {
+								info.m_mbox->id(),
+								info.m_msg_type,
+								info.m_state
+							},
+							value_t {
+								info.m_mbox,
+								info.m_handler
+							} };
+				} );
+
+		m_events.swap( events );
+	}
+
+std::size_t
+storage_t::query_subscriptions_count() const
+	{
+		return m_events.size();
 	}
 
 } /* namespace map_based_subscr_storage */
