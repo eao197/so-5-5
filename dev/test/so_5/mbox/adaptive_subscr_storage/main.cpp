@@ -113,13 +113,13 @@ class a_test_t : public so_5::rt::agent_t
 		so_define_agent()
 		{
 			this >>= st_1_1;
-			st_1_1.event< next >( &a_test_t::evt_st_1_1 );
+			st_1_1.event< next >( m_mbox, &a_test_t::evt_st_1_1 );
 		}
 
 		void
 		so_evt_start()
 		{
-			so_5::send_to_agent< next >( *this );
+			so_5::send< next >( m_mbox );
 		}
 
 	private :
@@ -154,7 +154,7 @@ class a_test_t : public so_5::rt::agent_t
 		{
 			this >>= next_state;
 			next_state.event< next >( m_mbox, event_handler );
-			so_5::send_to_agent< next >( *this );
+			so_5::send< next >( m_mbox );
 		}
 
 		void
@@ -213,7 +213,8 @@ class a_test_t : public so_5::rt::agent_t
 			so_drop_subscription< next >( m_mbox, st_1_8 );
 
 			this >>= st_2_1;
-			st_2_1.event< next >( &a_test_t::evt_st_2_1 );
+			st_2_1.event< next >( m_mbox, &a_test_t::evt_st_2_1 );
+			so_5::send< next >( m_mbox );
 		}
 
 		void
@@ -266,7 +267,10 @@ class a_test_t : public so_5::rt::agent_t
 
 			this >>= st_finish;
 			st_finish.event< next >(
-					[this]{ so_deregister_agent_coop_normally(); } );
+					m_mbox,
+					[this]{
+						so_deregister_agent_coop_normally(); } );
+			so_5::send< next >( m_mbox );
 		}
 };
 
@@ -289,6 +293,31 @@ do_test()
 					threshold,
 					vector_based_subscription_storage_factory( threshold ),
 					hash_table_based_subscription_storage_factory() ) }
+	,	{ "hash_table+vector",
+			adaptive_subscription_storage_factory(
+					threshold,
+					hash_table_based_subscription_storage_factory(),
+					vector_based_subscription_storage_factory( threshold ) ) }
+	,	{ "map+hash_table",
+			adaptive_subscription_storage_factory(
+					threshold,
+					map_based_subscription_storage_factory(),
+					hash_table_based_subscription_storage_factory() ) }
+	,	{ "hash_table+map",
+			adaptive_subscription_storage_factory(
+					threshold,
+					hash_table_based_subscription_storage_factory(),
+					map_based_subscription_storage_factory() ) }
+	,	{ "vector+map",
+			adaptive_subscription_storage_factory(
+					threshold,
+					vector_based_subscription_storage_factory( threshold ),
+					map_based_subscription_storage_factory() ) }
+	,	{ "map+vector",
+			adaptive_subscription_storage_factory(
+					threshold,
+					map_based_subscription_storage_factory(),
+					vector_based_subscription_storage_factory( threshold ) ) }
 	}; 
 
 	for( auto & f : factories )
@@ -297,12 +326,13 @@ do_test()
 
 		run_with_time_limit(
 			[f] {
-				so_5::launch(
-					[&]( so_5::rt::environment_t & env )
-					{
-						env.register_agent_as_coop( "test",
-							new a_test_t( env, f.second ) );
-					} );
+				for( int i = 0; i != 10; ++i )
+					so_5::launch(
+						[&]( so_5::rt::environment_t & env )
+						{
+							env.register_agent_as_coop( "test",
+								new a_test_t( env, f.second ) );
+						} );
 			}, 
 			5,
 			"checking factory " + f.first );

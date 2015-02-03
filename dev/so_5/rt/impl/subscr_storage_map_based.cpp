@@ -372,19 +372,23 @@ storage_t::query_content() const
 		using namespace subscription_storage_common;
 
 		subscr_info_vector_t result;
-		result.reserve( m_events.size() );
 
-		transform( begin( m_events ), end( m_events ),
-				back_inserter( result ),
-				[]( const subscr_map_t::value_type & e )
-				{
-					return subscr_info_t(
-							e.second.m_mbox,
-							e.first.m_msg_type,
-							*(e.first.m_state),
-							e.second.m_handler.m_method,
-							e.second.m_handler.m_thread_safety );
-				} );
+		if( !m_events.empty() )
+			{
+				result.reserve( m_events.size() );
+
+				transform( begin( m_events ), end( m_events ),
+						back_inserter( result ),
+						[]( const subscr_map_t::value_type & e )
+						{
+							return subscr_info_t(
+									e.second.m_mbox,
+									e.first.m_msg_type,
+									*(e.first.m_state),
+									e.second.m_handler.m_method,
+									e.second.m_handler.m_thread_safety );
+						} );
+			}
 
 		return result;
 	}

@@ -357,16 +357,22 @@ storage_t::drop_subscription_for_all_states(
 	const mbox_t & mbox_ref,
 	const std::type_index & type_index )
 	{
-		key_t key( mbox_ref->id(), type_index );
+		const key_t key( mbox_ref->id(), type_index );
 
 		auto it = m_map.lower_bound( key );
-		if( it != m_map.end() )
+		auto need_erase = [&] {
+				return it != m_map.end() &&
+						key.is_same_mbox_msg_pair( it->first );
+			};
+		const bool found = need_erase();
+		if( found )
 		{
-			while( key.is_same_mbox_msg_pair( it->first ) )
+			do
 				{
 					m_hash_table.erase( &(it->first) );
 					m_map.erase( it++ );
 				}
+			while( need_erase() );
 
 			mbox_ref->unsubscribe_event_handlers( type_index, owner() );
 		}
@@ -436,22 +442,26 @@ storage_t::query_content() const
 		using namespace subscription_storage_common;
 
 		subscr_info_vector_t events;
-		events.reserve( m_hash_table.size() );
 
-		transform( begin(m_hash_table), end(m_hash_table),
-				back_inserter(events),
-				[this]( const hash_table_t::value_type & i )
-				{
-					auto map_item = m_map.find( *(i.first) );
+		if( !m_hash_table.empty() )
+			{
+				events.reserve( m_hash_table.size() );
 
-					return subscr_info_t {
-							map_item->second,
-							map_item->first.m_msg_type,
-							*(map_item->first.m_state),
-							i.second.m_method,
-							i.second.m_thread_safety
-						};
-				} );
+				transform( begin(m_hash_table), end(m_hash_table),
+						back_inserter(events),
+						[this]( const hash_table_t::value_type & i )
+						{
+							auto map_item = m_map.find( *(i.first) );
+
+							return subscr_info_t {
+									map_item->second,
+									map_item->first.m_msg_type,
+									*(map_item->first.m_state),
+									i.second.m_method,
+									i.second.m_thread_safety
+								};
+						} );
+			}
 
 		return events;
 	}
