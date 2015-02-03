@@ -203,7 +203,7 @@ class storage_t : public subscription_storage_t
 		virtual void
 		create_event_subscription(
 			const mbox_t & mbox_ref,
-			std::type_index type_index,
+			const std::type_index & type_index,
 			const state_t & target_state,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) override;
@@ -280,7 +280,7 @@ storage_t::~storage_t()
 void
 storage_t::create_event_subscription(
 	const mbox_t & mbox_ref,
-	std::type_index type_index,
+	const std::type_index & type_index,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
