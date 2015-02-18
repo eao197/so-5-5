@@ -146,6 +146,7 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 
 	work_thread_shptr_t thread( new work_thread_t() );
 
+//FIXME: this code is not exception safe!
 	thread->start();
 	m_agent_threads[ &agent ] = thread;
 
@@ -163,6 +164,10 @@ dispatcher_t::destroy_thread_for_agent( const so_5::rt::agent_t & agent )
 
 		if( m_agent_threads.end() != it )
 		{
+//FIXME: there could be another implementation:
+//call m_agent_threads.erase();
+//unlock mutex;
+//only then call shutdown and wait.
 			it->second->shutdown();
 			it->second->wait();
 			m_agent_threads.erase( it );

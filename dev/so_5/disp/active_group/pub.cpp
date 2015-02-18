@@ -184,6 +184,7 @@ dispatcher_t::query_thread_for_group( const std::string & group_name )
 	work_thread_shptr_t thread( new work_thread_t() );
 	thread->start();
 
+//FIXME: this code is not thread safe!
 	m_groups.insert(
 			active_group_map_t::value_type(
 					group_name,
@@ -203,6 +204,10 @@ dispatcher_t::release_thread_for_group( const std::string & group_name )
 
 		if( m_groups.end() != it && 0 == --(it->second.m_user_agent) )
 		{
+//FIXME: there could be another implementation:
+//call m_groups.erase();
+//unlock mutex;
+//then call shutdown and wait for the working thread.
 			it->second.m_thread->shutdown();
 			it->second.m_thread->wait();
 			m_groups.erase( it );
