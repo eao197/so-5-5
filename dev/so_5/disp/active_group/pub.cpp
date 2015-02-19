@@ -125,6 +125,20 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 		//! This object lock.
 		std::mutex m_lock;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper function for searching and erasing agent's
+		 * thread from map of active threads.
+		 *
+		 * \note Does all actions on locked object.
+		 *
+		 * \return nullptr if thread for the group is not found
+		 * or there are still some agents on it.
+		 */
+		so_5::disp::reuse::work_thread::work_thread_shptr_t
+		search_and_try_remove_group_from_map(
+			const std::string & group_name );
 };
 
 dispatcher_t::dispatcher_t()
@@ -201,11 +215,18 @@ dispatcher_t::query_thread_for_group( const std::string & group_name )
 	work_thread_shptr_t thread( new work_thread_t() );
 	thread->start();
 
-//FIXME: this code is not thread safe!
-	m_groups.insert(
-			active_group_map_t::value_type(
-					group_name,
-					thread_with_refcounter_t( thread, 1 ) ) );
+	try
+	{
+		m_groups.insert(
+				active_group_map_t::value_type(
+						group_name,
+						thread_with_refcounter_t( thread, 1 ) ) );
+	}
+	catch( ... )
+	{
+		shutdown_and_wait( *thread );
+		throw;
+	}
 
 	return thread->get_agent_binding();
 }
@@ -213,6 +234,17 @@ dispatcher_t::query_thread_for_group( const std::string & group_name )
 void
 dispatcher_t::release_thread_for_group( const std::string & group_name )
 {
+	auto thread = search_and_try_remove_group_from_map( group_name );
+	if( thread )
+		shutdown_and_wait( *thread );
+}
+
+so_5::disp::reuse::work_thread::work_thread_shptr_t
+dispatcher_t::search_and_try_remove_group_from_map(
+	const std::string & group_name )
+{
+	so_5::disp::reuse::work_thread::work_thread_shptr_t result;
+
 	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( !m_shutdown_started )
@@ -221,15 +253,12 @@ dispatcher_t::release_thread_for_group( const std::string & group_name )
 
 		if( m_groups.end() != it && 0 == --(it->second.m_user_agent) )
 		{
-//FIXME: there could be another implementation:
-//call m_groups.erase();
-//unlock mutex;
-//then call shutdown and wait for the working thread.
-			it->second.m_thread->shutdown();
-			it->second.m_thread->wait();
+			result = it->second.m_thread;
 			m_groups.erase( it );
 		}
 	}
+
+	return result;
 }
 
 //
