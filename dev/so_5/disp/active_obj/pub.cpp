@@ -279,7 +279,7 @@ class disp_binder_t
 		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
 			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent )
+			so_5::rt::agent_ref_t agent ) override
 			{
 				using so_5::rt::disp_binding_activator_t;
 				using namespace so_5::disp::reuse;
@@ -289,21 +289,21 @@ class disp_binder_t
 					m_disp_name,
 					[agent]( dispatcher_t & disp )
 					{
-						return do_bind( disp, agent );
+						return do_bind( disp, std::move( agent ) );
 					} );
 			}
 
 		virtual void
 		unbind_agent(
 			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent )
+			so_5::rt::agent_ref_t agent ) override
 			{
 				using namespace so_5::disp::reuse;
 
 				do_with_dispatcher< void, dispatcher_t >( env, m_disp_name,
 					[agent]( dispatcher_t & disp )
 					{
-						do_unbind( disp, agent );
+						do_unbind( disp, std::move( agent ) );
 					} );
 			}
 
@@ -338,17 +338,17 @@ class private_dispatcher_binder_t
 		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
 			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent )
+			so_5::rt::agent_ref_t agent ) override
 			{
-				return do_bind( m_instance, agent );
+				return do_bind( m_instance, std::move( agent ) );
 			}
 
 		virtual void
 		unbind_agent(
 			so_5::rt::environment_t & /*env*/,
-			so_5::rt::agent_ref_t agent )
+			so_5::rt::agent_ref_t agent ) override
 			{
-				do_unbind( m_instance, agent );
+				do_unbind( m_instance, std::move( agent ) );
 			}
 
 	private:

@@ -341,7 +341,7 @@ class disp_binder_t
 					m_disp_name,
 					[this, agent]( dispatcher_t & disp )
 					{
-						return do_bind( disp, agent );
+						return do_bind( disp, std::move( agent ) );
 					} );
 			}
 
@@ -396,7 +396,7 @@ class private_dispatcher_binder_t
 			so_5::rt::environment_t & /* env */,
 			so_5::rt::agent_ref_t agent ) override
 			{
-				return do_bind( m_instance, agent );
+				return do_bind( m_instance, std::move( agent ) );
 			}
 
 		virtual void

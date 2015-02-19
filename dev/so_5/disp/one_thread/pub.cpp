@@ -83,7 +83,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
 			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent_ref )
+			so_5::rt::agent_ref_t agent_ref ) override
 		{
 			if( m_disp_name.empty() )
 				return make_agent_binding(
@@ -98,7 +98,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 		virtual void
 		unbind_agent(
 			so_5::rt::environment_t & /*env*/,
-			so_5::rt::agent_ref_t /*agent_ref*/ )
+			so_5::rt::agent_ref_t /*agent_ref*/ ) override
 		{
 		}
 
@@ -161,7 +161,7 @@ class private_dispatcher_binder_t : public so_5::rt::disp_binder_t
 		virtual so_5::rt::disp_binding_activator_t
 		bind_agent(
 			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent )
+			so_5::rt::agent_ref_t agent ) override
 			{
 				return [agent, this]() {
 					agent->so_bind_to_dispatcher(
@@ -172,7 +172,7 @@ class private_dispatcher_binder_t : public so_5::rt::disp_binder_t
 		virtual void
 		unbind_agent(
 			so_5::rt::environment_t & /*env*/,
-			so_5::rt::agent_ref_t /*agent_ref*/ )
+			so_5::rt::agent_ref_t /*agent_ref*/ ) override
 			{}
 
 	private:
