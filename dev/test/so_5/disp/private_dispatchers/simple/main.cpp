@@ -72,12 +72,13 @@ init( so_5::rt::environment_t & env )
 	auto active_obj = so_5::disp::active_obj::create_private_disp();
 	auto active_group = so_5::disp::active_group::create_private_disp();
 	auto thread_pool = so_5::disp::thread_pool::create_private_disp( 3 );
+	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( 10 );
 
 	auto start_mbox = env.create_local_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );
 	
 	auto collector =
-			coop->add_agent( new a_collector_t( env, start_mbox, 9 ) );
+			coop->add_agent( new a_collector_t( env, start_mbox, 9 + 10 ) );
 
 	coop->define_agent( one_thread->binder() )
 		.event< msg_start >( start_mbox,
@@ -145,6 +146,24 @@ init( so_5::rt::environment_t & env )
 					so_5::send_to_agent< msg_hello >( *collector,
 							make_hello_string( "thread_pool-3" ) );
 				} );
+
+	const auto atp_params = so_5::disp::adv_thread_pool::params_t{}
+			.fifo( so_5::disp::adv_thread_pool::fifo_t::individual );
+
+	auto atp_agent = coop->define_agent( adv_thread_pool->binder( atp_params ) );
+	atp_agent
+		.event< msg_start >( start_mbox,
+				[collector, atp_agent]() {
+					for( int i = 0; i != 10; ++i )
+						so_5::send< msg_start >( atp_agent.direct_mbox() );
+				} )
+		.event< msg_start >( atp_agent.direct_mbox(),
+				[collector]() {
+					std::this_thread::sleep_for( std::chrono::seconds(1) );
+					so_5::send_to_agent< msg_hello >( *collector,
+							make_hello_string( "adv_thread_pool" ) );
+				},
+				so_5::thread_safe );
 
 	env.register_coop( std::move( coop ) );
 }
