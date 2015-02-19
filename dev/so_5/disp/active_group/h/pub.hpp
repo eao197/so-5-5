@@ -67,7 +67,7 @@ auto private_disp = so_5::disp::active_group::create_private_disp();
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private active_obj dispatcher.
+	// private active_group dispatcher.
 	private_disp->binder( "passive_objects" ) );
 \endcode
  */
