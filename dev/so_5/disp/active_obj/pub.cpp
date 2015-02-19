@@ -26,6 +26,23 @@ namespace active_obj
 namespace impl
 {
 
+namespace
+{
+
+/*!
+ * \since v.5.5.4
+ * \brief Just a helper function for consequetive call to shutdown and wait.
+ */
+template< class T >
+void
+shutdown_and_wait( T & w )
+	{
+		w.shutdown();
+		w.wait();
+	}
+
+} /* anonymous */
+
 //
 // dispatcher_t
 //
@@ -77,6 +94,17 @@ class dispatcher_t
 
 		//! This object lock.
 		std::mutex m_lock;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper function for searching and erasing agent's
+		 * thread from map of active threads.
+		 *
+		 * \note Does all actions on locked object.
+		 */
+		so_5::disp::reuse::work_thread::work_thread_shptr_t
+		search_and_remove_agent_from_map(
+			const so_5::rt::agent_t & agent );
 };
 
 dispatcher_t::dispatcher_t()
@@ -146,9 +174,16 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 
 	work_thread_shptr_t thread( new work_thread_t() );
 
-//FIXME: this code is not exception safe!
 	thread->start();
-	m_agent_threads[ &agent ] = thread;
+	try
+	{
+		m_agent_threads[ &agent ] = thread;
+	}
+	catch( ... )
+	{
+		shutdown_and_wait( *thread );
+		throw;
+	}
 
 	return thread->get_agent_binding();
 }
@@ -156,6 +191,17 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 void
 dispatcher_t::destroy_thread_for_agent( const so_5::rt::agent_t & agent )
 {
+	auto thread = search_and_remove_agent_from_map( agent );
+	if( thread )
+		shutdown_and_wait( *thread );
+}
+
+so_5::disp::reuse::work_thread::work_thread_shptr_t
+dispatcher_t::search_and_remove_agent_from_map(
+	const so_5::rt::agent_t & agent )
+{
+	so_5::disp::reuse::work_thread::work_thread_shptr_t result;
+
 	std::lock_guard< std::mutex > lock( m_lock );
 
 	if( !m_shutdown_started )
@@ -164,15 +210,12 @@ dispatcher_t::destroy_thread_for_agent( const so_5::rt::agent_t & agent )
 
 		if( m_agent_threads.end() != it )
 		{
-//FIXME: there could be another implementation:
-//call m_agent_threads.erase();
-//unlock mutex;
-//only then call shutdown and wait.
-			it->second->shutdown();
-			it->second->wait();
+			result = it->second;
 			m_agent_threads.erase( it );
 		}
 	}
+
+	return result;
 }
 
 //
@@ -342,8 +385,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		 */
 		~real_private_dispatcher_t()
 			{
-				m_disp->shutdown();
-				m_disp->wait();
+				shutdown_and_wait( *m_disp );
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
