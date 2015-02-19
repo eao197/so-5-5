@@ -69,18 +69,33 @@ void
 init( so_5::rt::environment_t & env )
 {
 	auto one_thread = so_5::disp::one_thread::create_private_disp();
+	auto active_obj = so_5::disp::active_obj::create_private_disp();
 
 	auto start_mbox = env.create_local_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );
 	
 	auto collector =
-			coop->add_agent( new a_collector_t( env, start_mbox, 1 ) );
+			coop->add_agent( new a_collector_t( env, start_mbox, 3 ) );
 
 	coop->define_agent( one_thread->binder() )
 		.event< msg_start >( start_mbox,
 				[collector]() {
 					so_5::send_to_agent< msg_hello >( *collector,
 							make_hello_string( "one_thread" ) );
+				} );
+
+	coop->define_agent( active_obj->binder() )
+		.event< msg_start >( start_mbox,
+				[collector]() {
+					so_5::send_to_agent< msg_hello >( *collector,
+							make_hello_string( "active_obj-1" ) );
+				} );
+
+	coop->define_agent( active_obj->binder() )
+		.event< msg_start >( start_mbox,
+				[collector]() {
+					so_5::send_to_agent< msg_hello >( *collector,
+							make_hello_string( "active_obj-2" ) );
 				} );
 
 	env.register_coop( std::move( coop ) );
