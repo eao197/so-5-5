@@ -130,4 +130,8 @@
  * \example so_5/simple_message_deadline/main.cpp
  */
 
+/*!
+ * \example so_5/private_dispatcher_hello/main.cpp
+ */
+
 // vim:ft=cpp.doxygen
