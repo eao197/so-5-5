@@ -36,4 +36,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/simple_message_deadline/prj.rb'
 	required_prj 'sample/so_5/watchdog_pimpl/prj.rb'
 	required_prj 'sample/so_5/private_dispatcher_hello/prj.rb'
+	required_prj 'sample/so_5/private_dispatcher_restarts/prj.rb'
 }

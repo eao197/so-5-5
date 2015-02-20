@@ -134,4 +134,8 @@
  * \example so_5/private_dispatcher_hello/main.cpp
  */
 
+/*!
+ * \example so_5/private_dispatcher_restarts/main.cpp
+ */
+
 // vim:ft=cpp.doxygen
