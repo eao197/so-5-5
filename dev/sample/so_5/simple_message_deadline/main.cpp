@@ -344,9 +344,9 @@ create_coop( so_5::rt::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
+	auto disp = create_private_disp( 3 );
 	auto c = env.create_coop( so_5::autoname,
-			create_disp_binder( "thread_pool",
-				[]( params_t & p ) { p.fifo( fifo_t::individual ); } ) );
+			disp->binder( params_t{}.fifo( fifo_t::individual ) ) );
 
 	std::unique_ptr< a_collector_t > collector{ new a_collector_t{ env } };
 	std::unique_ptr< a_performer_t > performer{
@@ -368,13 +368,7 @@ main()
 {
 	try
 	{
-		so_5::launch(
-			create_coop,
-			[]( so_5::rt::environment_params_t & params )
-			{
-				params.add_named_dispatcher( "thread_pool",
-						so_5::disp::thread_pool::create_disp( 3 ) );
-			} );
+		so_5::launch( &create_coop );
 
 		return 0;
 	}
