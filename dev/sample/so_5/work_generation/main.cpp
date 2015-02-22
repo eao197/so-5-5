@@ -407,20 +407,16 @@ create_processing_coops( so_5::rt::environment_t & env )
 	{
 		auto coop = env.create_coop( so_5::autoname );
 
-		auto receiver = std::unique_ptr< a_receiver_t >(
-				new a_receiver_t( env, "r" + std::to_string(i), c ) );
+		auto receiver = coop->make_agent_with_binder< a_receiver_t >(
+				receiver_disp->binder( so_5::disp::thread_pool::params_t{} ),
+				"r" + std::to_string(i), c );
 
-		auto receiver_mbox = receiver->so_direct_mbox();
+		const auto receiver_mbox = receiver->so_direct_mbox();
 		result.push_back( receiver_mbox );
 
-		auto processor = std::unique_ptr< a_processor_t >(
-				new a_processor_t( env, "p" + std::to_string(i), receiver_mbox ) );
-
-		coop->add_agent(
-				std::move( receiver ),
-				receiver_disp->binder( so_5::disp::thread_pool::params_t{} ) );
-
-		coop->add_agent( std::move( processor ), processor_disp->binder() );
+		coop->make_agent_with_binder< a_processor_t >(
+				processor_disp->binder(),
+				"p" + std::to_string(i), receiver_mbox );
 
 		env.register_coop( std::move( coop ) );
 

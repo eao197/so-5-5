@@ -385,27 +385,19 @@ create_processing_coops( so_5::rt::environment_t & env )
 		// that cooperation.
 		auto performer_disp = create_private_disp( concurrent_performers );
 
-		auto collector = std::unique_ptr< a_collector_t >(
-				new a_collector_t( env, "r" + std::to_string(i), c ) );
+		auto collector = coop->make_agent_with_binder< a_collector_t >(
+				collector_disp->binder( params_t{} ),
+				"r" + std::to_string(i), c );
 
 		auto collector_mbox = collector->so_direct_mbox();
 		result.push_back( collector_mbox );
 
-		coop->add_agent(
-				std::move( collector ),
-				collector_disp->binder( params_t{} ) );
-
 		for( std::size_t p = 0; p != concurrent_performers; ++p )
 		{
-			auto performer = std::unique_ptr< a_performer_t >(
-					new a_performer_t(
-							env,
-							"p" + std::to_string(i) + "_" + std::to_string(p),
-							collector_mbox ) );
-
-			coop->add_agent(
-					std::move( performer ),
-					performer_disp->binder( performer_disp_params ) );
+			coop->make_agent_with_binder< a_performer_t >(
+					performer_disp->binder( performer_disp_params ),
+					"p" + std::to_string(i) + "_" + std::to_string(p),
+					collector_mbox );
 		}
 
 		env.register_coop( std::move( coop ) );

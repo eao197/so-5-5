@@ -141,13 +141,7 @@ private :
 				// the private dispatcher.
 				disp->binder() );
 
-		coop->add_agent(
-				new a_child_t(
-						so_environment(),
-						so_direct_mbox(),
-						disp,
-						1,
-						6 ) );
+		coop->make_agent< a_child_t >( so_direct_mbox(), disp, 1, 6 );
 
 		so_environment().register_coop( std::move( coop ) );
 	}

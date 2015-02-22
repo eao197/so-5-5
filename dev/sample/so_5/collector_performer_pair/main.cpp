@@ -366,30 +366,15 @@ create_processing_coops( so_5::rt::environment_t & env )
 		auto performer_disp = so_5::disp::adv_thread_pool::create_private_disp(
 				concurrent_slots );
 
-		auto collector = std::unique_ptr< a_collector_t >(
-				new a_collector_t(
-						env,
-						"r" + std::to_string(i),
-						c,
-						concurrent_slots ) );
+		auto collector = coop->make_agent< a_collector_t >(
+				"r" + std::to_string(i), c, concurrent_slots );
 
 		auto collector_mbox = collector->so_direct_mbox();
 		result.push_back( collector_mbox );
 
-		auto performer = std::unique_ptr< a_performer_t >(
-				new a_performer_t(
-						env,
-						"p" + std::to_string(i),
-						collector_mbox ) );
+		auto performer = coop->make_agent< a_performer_t >(
+				"p" + std::to_string(i), collector_mbox );
 		collector->set_performer_mbox( performer->so_direct_mbox() );
-
-		coop->add_agent( std::move( collector ),
-				collector_disp->binder(
-						so_5::disp::thread_pool::params_t{} ) );
-
-		coop->add_agent( std::move( performer ),
-				performer_disp->binder(
-						so_5::disp::adv_thread_pool::params_t{} ) );
 
 		env.register_coop( std::move( coop ) );
 

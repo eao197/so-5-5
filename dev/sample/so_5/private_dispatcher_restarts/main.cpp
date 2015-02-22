@@ -146,7 +146,7 @@ private :
 		// Create all agents of child cooperation.
 		for( std::size_t i = 0; i != agent_count; ++i )
 		{
-			auto a = coop.add_agent( new a_chain_member_t( so_environment() ) );
+			auto a = coop.make_agent< a_chain_member_t >();
 			agents.push_back( a );
 			mboxes.push_back( a->so_direct_mbox() );
 		}
