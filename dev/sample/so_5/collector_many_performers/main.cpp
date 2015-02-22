@@ -423,9 +423,7 @@ init( so_5::rt::environment_t & env )
 
 	for( int i = 0; i != 3; ++i )
 	{
-		auto agent = std::unique_ptr< a_generator_t >( 
-				new a_generator_t( env, "g" + std::to_string(i), receivers ) );
-		coop->add_agent( std::move( agent ) );
+		coop->make_agent< a_generator_t >( "g" + std::to_string(i), receivers );
 	}
 
 	// Registration of generator will start example.
