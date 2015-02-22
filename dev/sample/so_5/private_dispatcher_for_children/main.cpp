@@ -81,13 +81,11 @@ private :
 				// The same dispatcher will be used for child cooperation.
 				m_dispatcher->binder() );
 
-		coop->add_agent(
-				new a_child_t(
-						so_environment(),
-						m_coordinator,
-						m_dispatcher,
-						m_generation + 1,
-						m_max_generation ) );
+		coop->make_agent< a_child_t >(
+				m_coordinator,
+				m_dispatcher,
+				m_generation + 1,
+				m_max_generation );
 
 		so_environment().register_coop( std::move( coop ) );
 	}
@@ -157,7 +155,7 @@ main()
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
 						so_5::autoname,
-						new a_coordinator_t( env ) );
+						env.make_agent< a_coordinator_t >() );
 			} );
 
 		return 0;

@@ -126,7 +126,7 @@ main()
 				// Coordinator agent will work on the default dispatcher.
 				env.register_agent_as_coop(
 						so_5::autoname,
-						new a_coordinator_t( env ) );
+						env.make_agent< a_coordinator_t >() );
 			} );
 
 		return 0;
