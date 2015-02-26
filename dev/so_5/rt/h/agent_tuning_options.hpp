@@ -11,6 +11,7 @@
 #pragma once
 
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
+#include <so_5/rt/h/message_limit.hpp>
 
 namespace so_5
 {
@@ -29,14 +30,13 @@ class agent_tuning_options_t
 	{
 	public :
 		//! Set factory for subscription storage creation.
-		agent_tuning_options_t
+		agent_tuning_options_t &
 		subscription_storage_factory(
 			subscription_storage_factory_t factory )
 			{
-				agent_tuning_options_t r{ *this };
-				r.m_subscription_storage_factory = factory;
+				m_subscription_storage_factory = factory;
 
-				return r;
+				return *this;
 			}
 
 		const subscription_storage_factory_t &
@@ -52,9 +52,28 @@ class agent_tuning_options_t
 				return so_5::rt::default_subscription_storage_factory();
 			}
 
+		const message_limit::description_container_t &
+		query_message_limits() const
+			{
+				return m_message_limits;
+			}
+
+		template< typename... ARGS >
+		agent_tuning_options_t &
+		message_limits( ARGS &&... args )
+			{
+				message_limit::accept_indicators(
+						m_message_limits,
+						std::forward< ARGS >( args )... );
+
+				return *this;
+			}
+
 	private :
 		subscription_storage_factory_t m_subscription_storage_factory =
 				default_subscription_storage_factory();
+
+		message_limit::description_container_t m_message_limits;
 	};
 
 } /* namespace rt */
