@@ -158,6 +158,9 @@ agent_t::agent_t(
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions(
 			options.query_subscription_storage_factory()( self_ptr() ) )
+	,	m_message_limits(
+			message_limit::impl::info_storage_t::create_if_necessary(
+				options.giveout_message_limits() ) )
 	,	m_env( env )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )

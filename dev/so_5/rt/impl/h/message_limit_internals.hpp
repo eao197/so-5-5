@@ -14,6 +14,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <memory>
 
 namespace so_5
 {
@@ -99,6 +100,20 @@ class info_storage_t
 					return &(r->m_control_block);
 
 				return nullptr;
+			}
+
+		//! Create info_storage object if there are some message limits.
+		inline static std::unique_ptr< info_storage_t >
+		create_if_necessary(
+			description_container_t && descriptions )
+			{
+				std::unique_ptr< info_storage_t > result;
+
+				if( !descriptions.empty() )
+					result.reset(
+							new info_storage_t( std::move( descriptions ) ) );
+
+				return result;
 			}
 
 	private :

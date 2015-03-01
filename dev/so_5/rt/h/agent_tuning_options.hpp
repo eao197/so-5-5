@@ -52,10 +52,10 @@ class agent_tuning_options_t
 				return so_5::rt::default_subscription_storage_factory();
 			}
 
-		const message_limit::description_container_t &
-		query_message_limits() const
+		message_limit::description_container_t
+		giveout_message_limits()
 			{
-				return m_message_limits;
+				return std::move( m_message_limits );
 			}
 
 		template< typename... ARGS >
