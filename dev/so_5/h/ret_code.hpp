@@ -159,6 +159,13 @@ const int rc_interception_handler_match_error = 46;
  * \brief An attempt to create illegal subscription to mpsc_mbox.
  */
 const int rc_illegal_subscriber_for_mpsc_mbox = 47;
+
+/*!
+ * \since v.5.5.4
+ * \brief An attempt to create subscription to message without
+ * predefined limit for that message type.
+ */
+const int rc_message_has_no_limit_defined = 48;
 //! \}
 
 //! \name Error codes for mboxes.

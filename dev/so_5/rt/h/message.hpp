@@ -16,7 +16,9 @@
 
 #include <type_traits>
 #include <typeindex>
+#include <functional>
 #include <future>
+#include <atomic>
 
 namespace so_5
 {
@@ -216,6 +218,49 @@ enum class invocation_type_t : int
 		 */
 		service_request
 	};
+
+namespace message_limit
+{
+
+//
+// action_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A type for reaction of message overlimit.
+ */
+using action_t = std::function< void(const message_t*) >;
+
+//
+// control_block_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A control block for one message limit.
+ */
+struct control_block_t
+	{
+		//! Limit value.
+		unsigned int m_limit;
+
+		//! The current count of the messages of that type.
+		mutable std::atomic_uint m_count;
+
+		//! Limit overflow reaction.
+		action_t m_action;
+
+		//! Initializing constructor.
+		control_block_t(
+			unsigned int limit,
+			action_t action )
+			:	m_limit( limit )
+			,	m_action( std::move( action ) )
+			{
+				m_count = 0;
+			}
+	};
+
+} /* namespace message_limit */
 
 } /* namespace rt */
 

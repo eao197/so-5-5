@@ -1355,6 +1355,19 @@ class SO_5_TYPE agent_t
 			thread_safety_t thread_safety );
 
 		/*!
+		 * \since v.5.5.4
+		 * \brief Detect limit for that message type.
+		 *
+		 * \return nullptr if message limits are not used.
+		 *
+		 * \throw exception_t if message limits are used but the limit
+		 * for that message type is not found.
+		 */
+		const message_limit::control_block_t *
+		detect_limit_for_message_type(
+			const std::type_index & msg_type ) const;
+
+		/*!
 		 * \since v.5.2.3
 		 * \brief Remove subscription for the state specified.
 		 */

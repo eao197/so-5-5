@@ -463,7 +463,7 @@ agent_t::shutdown_agent()
 void
 agent_t::create_event_subscription(
 	const mbox_t & mbox_ref,
-	std::type_index type_index,
+	std::type_index msg_type,
 	const state_t & target_state,
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
@@ -478,7 +478,32 @@ agent_t::create_event_subscription(
 		return;
 
 	m_subscriptions->create_event_subscription(
-			mbox_ref, type_index, target_state, method, thread_safety );
+			mbox_ref,
+			msg_type,
+			detect_limit_for_message_type( msg_type ),
+			target_state,
+			method,
+			thread_safety );
+}
+
+const message_limit::control_block_t *
+agent_t::detect_limit_for_message_type(
+	const std::type_index & msg_type ) const
+{
+	const message_limit::control_block_t * result = nullptr;
+
+	if( m_message_limits )
+	{
+		result = m_message_limits->find( msg_type );
+		if( !result )
+			SO_5_THROW_EXCEPTION(
+					so_5::rc_message_has_no_limit_defined,
+					std::string( "an attempt to subscribe to message type without "
+					"predefined limit for that type, type: " ) +
+					msg_type.name() );
+	}
+
+	return result;
 }
 
 void
