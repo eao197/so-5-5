@@ -11,6 +11,7 @@
 
 #include <functional>
 #include <typeindex>
+#include <atomic>
 
 #include <so_5/rt/h/message.hpp>
 
@@ -150,6 +151,43 @@ accept_indicators(
 	description_container_t & to )
 	{
 	}
+
+//
+// control_block_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A control block for one message limit.
+ */
+struct control_block_t
+	{
+		//! Limit value.
+		unsigned int m_limit;
+
+		//! The current count of the messages of that type.
+		std::atomic_uint m_count;
+
+		//! Limit overflow reaction.
+		action_t m_action;
+
+		//! Initializing constructor.
+		control_block_t(
+			unsigned int limit,
+			action_t action )
+			:	m_limit( limit )
+			,	m_action( std::move( action ) )
+			{
+				m_count = 0;
+			}
+	};
+
+namespace impl
+{
+
+// Forward declaration.
+class info_storage_t;
+
+} /* namespace impl */
 
 } /* namespace message_limit */
 

@@ -9,6 +9,7 @@
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
+#include <so_5/rt/impl/h/message_limit_internals.hpp>
 
 #include <sstream>
 #include <cstdlib>

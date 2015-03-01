@@ -31,6 +31,7 @@
 #include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
+#include <so_5/rt/h/message_limit.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -1242,6 +1243,15 @@ class SO_5_TYPE agent_t
 		 * \brief All agent's subscriptions.
 		 */
 		impl::subscription_storage_unique_ptr_t m_subscriptions;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Run-time information for message limits.
+		 *
+		 * Created only of message limits are described in agent's
+		 * tuning options.
+		 */
+		std::unique_ptr< message_limit::impl::info_storage_t > m_message_limits;
 
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
