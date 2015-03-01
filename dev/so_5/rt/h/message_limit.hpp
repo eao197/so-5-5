@@ -165,7 +165,7 @@ struct control_block_t
 		unsigned int m_limit;
 
 		//! The current count of the messages of that type.
-		std::atomic_uint m_count;
+		mutable std::atomic_uint m_count;
 
 		//! Limit overflow reaction.
 		action_t m_action;

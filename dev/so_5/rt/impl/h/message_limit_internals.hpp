@@ -85,8 +85,8 @@ class info_storage_t
 			:	m_blocks( build_blocks( std::move( descriptions ) ) )
 			{}
 
-		inline control_block_t *
-		find( const std::type_index & msg_type )
+		inline const control_block_t *
+		find( const std::type_index & msg_type ) const
 			{
 				using namespace std;
 
@@ -118,7 +118,7 @@ class info_storage_t
 
 	private :
 		//! Information about limits.
-		info_block_container_t m_blocks;
+		const info_block_container_t m_blocks;
 
 		//! Run-time limit information builder.
 		inline static info_block_container_t
