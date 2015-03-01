@@ -63,6 +63,7 @@ class mpsc_mbox_t : public abstract_message_box_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
+			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override;
 
 		virtual void

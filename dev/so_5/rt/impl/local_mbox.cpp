@@ -36,8 +36,10 @@ local_mbox_t::~local_mbox_t()
 void
 local_mbox_t::subscribe_event_handler(
 	const std::type_index & type_wrapper,
+	const so_5::rt::message_limit::control_block_t * limit,
 	agent_t * subscriber )
 {
+//FIXME: limit must be stored inside internal data structures!
 	std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 	auto it = m_subscribers.find( type_wrapper );

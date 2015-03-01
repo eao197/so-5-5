@@ -288,7 +288,6 @@ storage_t::create_event_subscription(
 	const event_handler_method_t & method,
 	thread_safety_t thread_safety )
 	{
-//FIXME: limit must be used!
 		using namespace subscription_storage_common;
 
 		key_t key( mbox_ref->id(), type_index, target_state );
@@ -320,7 +319,7 @@ storage_t::create_event_subscription(
 			// Mbox must create subscription.
 			try
 			{
-				mbox_ref->subscribe_event_handler( type_index, owner() );
+				mbox_ref->subscribe_event_handler( type_index, limit, owner() );
 			}
 			catch( ... )
 			{

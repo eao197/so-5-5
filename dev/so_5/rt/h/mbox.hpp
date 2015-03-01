@@ -395,6 +395,8 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		subscribe_event_handler(
 			//! Message type.
 			const std::type_index & type_index,
+			//! Optional message limit for that message type.
+			const message_limit::control_block_t * limit,
 			//! Agent-subcriber.
 			agent_t * subscriber ) = 0;
 
