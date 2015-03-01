@@ -460,31 +460,6 @@ agent_t::shutdown_agent()
 	}
 }
 
-namespace
-{
-	template< class S >
-	bool is_known_mbox_msg_pair(
-		S & s,
-		typename S::iterator it )
-	{
-		if( it != s.begin() )
-		{
-			typename S::iterator prev = it;
-			++prev;
-			if( it->first.is_same_mbox_msg_pair( prev->first ) )
-				return true;
-		}
-
-		typename S::iterator next = it;
-		++next;
-		if( next != s.end() )
-			return it->first.is_same_mbox_msg_pair( next->first );
-
-		return false;
-	}
-
-} /* namespace anonymous */
-
 void
 agent_t::create_event_subscription(
 	const mbox_t & mbox_ref,
