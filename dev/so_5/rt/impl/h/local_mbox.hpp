@@ -87,16 +87,43 @@ class local_mbox_t : public abstract_message_box_t
 		mutable default_rw_spinlock_t m_lock;
 
 		/*!
+		 * \since v.5.5.4
+		 * \brief An information block about one subscriber.
+		 */
+		struct subscriber_info_t
+		{
+			//! Subscriber.
+			agent_t * m_agent;
+
+			//! Optional message limit for that subscriber.
+			const so_5::rt::message_limit::control_block_t * m_limit;
+
+			subscriber_info_t(
+				agent_t * agent,
+				const so_5::rt::message_limit::control_block_t * limit )
+				:	m_agent( agent )
+				,	m_limit( limit )
+			{}
+
+			//! Comparison uses only pointer to subscriber.
+			bool
+			operator<( const subscriber_info_t & o ) const
+			{
+				return m_agent < o.m_agent;
+			}
+		};
+
+		/*!
 		 * \since v.5.4.0
 		 * \brief Type of container with subscribers to one message type.
 		 */
-		typedef std::vector< agent_t * > agent_container_t;
+		typedef std::vector< subscriber_info_t > subscriber_container_t;
 
 		/*!
 		 * \since v.5.4.0
 		 * \brief Map from message type to subscribers.
 		 */
-		typedef std::map< std::type_index, agent_container_t >
+		typedef std::map< std::type_index, subscriber_container_t >
 				messages_table_t;
 
 		//! Map of subscribers to messages.

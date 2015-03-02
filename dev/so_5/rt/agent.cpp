@@ -167,6 +167,7 @@ agent_t::agent_t(
 	,	m_direct_mbox(
 			env.so5__create_mpsc_mbox(
 				self_ptr(),
+				m_message_limits.get(),
 				m_event_queue_proxy ) )
 		// It is necessary to enable agent subscription in the
 		// constructor of derived class.

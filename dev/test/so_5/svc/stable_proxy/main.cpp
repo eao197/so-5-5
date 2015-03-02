@@ -62,6 +62,7 @@ class test_mbox_t : public so_5::rt::abstract_message_box_t
 		virtual void
 		subscribe_event_handler(
 			const std::type_index &,
+			const so_5::rt::message_limit::control_block_t *,
 			so_5::rt::agent_t * )
 			{
 				// DO NOTHING FOR THAT TEST

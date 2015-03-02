@@ -1250,6 +1250,12 @@ class SO_5_TYPE agent_t
 		 *
 		 * Created only of message limits are described in agent's
 		 * tuning options.
+		 *
+		 * \attention This attribute must be initialized before the
+		 * \a m_direct_mbox attribute. It is because the value of
+		 * \a m_message_limits is used in \a m_direct_mbox creation.
+		 * Because of that \a m_message_limits is declared before
+		 * \a m_direct_mbox.
 		 */
 		std::unique_ptr< message_limit::impl::info_storage_t > m_message_limits;
 
