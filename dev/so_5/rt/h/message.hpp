@@ -14,6 +14,8 @@
 #include <so_5/h/exception.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
 
+#include <so_5/rt/h/agent_ref_fwd.hpp>
+
 #include <type_traits>
 #include <typeindex>
 #include <functional>
@@ -222,6 +224,43 @@ enum class invocation_type_t : int
 namespace message_limit
 {
 
+/*!
+ * \since v.5.5.4
+ * \brief Description of context for overlimit action.
+ */
+struct overlimit_context_t
+	{
+		//! Receiver of the message or service request.
+		const agent_t & m_receiver;
+
+		//! Is it message delivery or service request delivery.
+		invocation_type_t m_event_type;
+
+		//! The current deep of overlimit reaction recursion.
+		const unsigned int m_reaction_deep;
+
+		//! Type of message to be delivered.
+		const std::type_index & m_msg_type;
+
+		//! A message or service request to be delivered.
+		const message_ref_t & m_message;
+
+		//! Initializing constructor.
+		inline
+		overlimit_context_t(
+			const agent_t & receiver,
+			invocation_type_t event_type,
+			unsigned int reaction_deep,
+			const std::type_index & msg_type,
+			const message_ref_t & message )
+			:	m_receiver( receiver )
+			,	m_event_type( event_type )
+			,	m_reaction_deep( reaction_deep )
+			,	m_msg_type( msg_type )
+			,	m_message( message )
+			{}
+	};
+
 //
 // action_t
 //
@@ -229,7 +268,7 @@ namespace message_limit
  * \since v.5.5.4
  * \brief A type for reaction of message overlimit.
  */
-using action_t = std::function< void(const message_t*) >;
+using action_t = std::function< void(const overlimit_context_t&) >;
 
 //
 // control_block_t

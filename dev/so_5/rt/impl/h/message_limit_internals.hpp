@@ -148,6 +148,81 @@ class info_storage_t
 			}
 	};
 
+namespace
+{
+
+/*!
+ * \since v.5.5.4
+ * \brief Helper class to rollback message count change in
+ * case of an exception.
+ */
+struct decrement_on_exception_t
+{
+	const control_block_t * m_limit;
+	bool m_commited = false;
+
+	decrement_on_exception_t( const control_block_t * limit )
+		:	m_limit( limit )
+	{}
+	~decrement_on_exception_t()
+	{
+		if( !m_commited )
+			--(m_limit->m_count);
+	}
+
+	void
+	commit() { m_commited = true; }
+};
+
+} /* namespace anonymous */
+
+/*!
+ * \since v.5.5.4
+ * \brief A helper function for pushing a message or a service
+ * request to agent with respect to message limit.
+ *
+ * \tparam INVOCATION_TYPE it is a message or service request.
+ * \tparam LAMBDA lambda-function to do actual pushing.
+ */
+template< so_5::rt::invocation_type_t INVOCATION_TYPE, typename LAMBDA >
+void
+try_to_deliver_to_agent(
+	//! Receiver of the message or service request.
+	const agent_t & receiver,
+	//! Optional message limit.
+	//! Value nullptr means that there is no message limit to control.
+	const control_block_t * limit,
+	//! Type of message to be delivered.
+	const std::type_index & msg_type,
+	//! Message instance to be delivered.
+	const message_ref_t & what_to_deliver,
+	//! Deep of overlimit reactions recursion.
+	unsigned int overlimit_reaction_deep,
+	//! Actual delivery action.
+	LAMBDA delivery_action )
+{
+	if( limit && ( limit->m_limit < ++(limit->m_count) ) )
+	{
+		--(limit->m_count);
+
+		limit->m_action(
+			overlimit_context_t{
+				agent,
+				INVOCATION_TYPE,
+				overlimit_reaction_deep,
+				msg_type,
+				what_to_deliver } );
+	}
+	else
+	{
+		decrement_on_exception_t exception_guard{ limit };
+
+		delivery_action();
+
+		exception_guard.commit();
+	}
+}
+
 } /* namespace impl */
 
 } /* namespace message_limit */
@@ -155,5 +230,4 @@ class info_storage_t
 } /* namespace rt */
 
 } /* namespace so_5 */
-
 

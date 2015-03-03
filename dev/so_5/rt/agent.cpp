@@ -302,7 +302,7 @@ agent_t::so_was_defined() const
 }
 
 environment_t &
-agent_t::so_environment()
+agent_t::so_environment() const
 {
 	return m_env;
 }

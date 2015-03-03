@@ -1118,7 +1118,7 @@ class SO_5_TYPE agent_t
 			\endcode
 		*/
 		environment_t &
-		so_environment();
+		so_environment() const;
 
 		/*!
 		 * \since v.5.4.0

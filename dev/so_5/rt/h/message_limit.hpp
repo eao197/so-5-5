@@ -47,9 +47,6 @@ struct abort_app_indicator_t
 		//! Max count of waiting messages.
 		const unsigned int m_limit;
 
-//FIXME: there should be reference to SOEnv.
-//This reference is necessary for logging inside action.
-
 		abort_app_indicator_t( unsigned int limit )
 			:	m_limit( limit )
 			{}
@@ -111,7 +108,7 @@ accept_one_indicator(
 	{
 		to.emplace_back( typeid( M ),
 				indicator.m_limit,
-				[]( const message_t * ) {} );
+				[]( const overlimit_context_t & ) {} );
 	}
 
 template< class M >
@@ -123,7 +120,7 @@ accept_one_indicator(
 //FIXME: there must be an action with some logging.
 		to.emplace_back( typeid( M ),
 				indicator.m_limit,
-				[]( const message_t * ) { std::abort(); } );
+				[]( const overlimit_context_t & ) { std::abort(); } );
 	}
 
 //
