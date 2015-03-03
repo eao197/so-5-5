@@ -6,9 +6,11 @@
 #include <sstream>
 #include <mutex>
 
+#include <so_5/rt/impl/h/local_mbox.hpp>
+#include <so_5/rt/impl/h/message_limit_internals.hpp>
+
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/impl/h/local_mbox.hpp>
 
 namespace so_5
 {
@@ -90,59 +92,6 @@ local_mbox_t::unsubscribe_event_handlers(
 	}
 }
 
-void
-local_mbox_t::deliver_message(
-	const std::type_index & type_wrapper,
-	const message_ref_t & message_ref ) const
-{
-	read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
-
-	auto it = m_subscribers.find( type_wrapper );
-	if( it != m_subscribers.end() )
-		for( auto a : it->second )
-			agent_t::call_push_event(
-//FIXME: message limit must be handled here.
-				*(a.m_agent), m_id, type_wrapper, message_ref );
-}
-
-void
-local_mbox_t::deliver_service_request(
-	const std::type_index & type_index,
-	const message_ref_t & svc_request_ref ) const
-{
-	try
-		{
-			read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
-
-			auto it = m_subscribers.find( type_index );
-
-			if( it == m_subscribers.end() )
-				SO_5_THROW_EXCEPTION(
-						so_5::rc_no_svc_handlers,
-						"no service handlers (no subscribers for message)" );
-
-			if( 1 != it->second.size() )
-				SO_5_THROW_EXCEPTION(
-						so_5::rc_more_than_one_svc_handler,
-						"more than one service handler found" );
-
-			agent_t::call_push_service_request(
-					*(it->second.front().m_agent),
-//FIXME: message limit must be handled here.
-					m_id,
-					type_index,
-					svc_request_ref );
-		}
-	catch( ... )
-		{
-			msg_service_request_base_t & svc_request =
-					*(dynamic_cast< msg_service_request_base_t * >(
-							svc_request_ref.get() ));
-
-			svc_request.set_exception( std::current_exception() );
-		}
-}
-
 std::string
 local_mbox_t::query_name() const
 {
@@ -150,6 +99,83 @@ local_mbox_t::query_name() const
 	s << "<mbox:type=MPMC:id=" << m_id << ">";
 
 	return s.str();
+}
+
+void
+local_mbox_t::do_deliver_message(
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	unsigned int overlimit_reaction_deep ) const
+{
+	using namespace so_5::rt::message_limit::impl;
+
+	read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
+
+	auto it = m_subscribers.find( msg_type );
+	if( it != m_subscribers.end() )
+		for( auto a : it->second )
+			try_to_deliver_to_agent< invocation_type_t::event >(
+					*(a.m_agent),
+					a.m_limit,
+					msg_type,
+					message,
+					overlimit_reaction_deep,
+					[&] {
+						agent_t::call_push_event(
+								*(a.m_agent),
+								m_id,
+								msg_type,
+								message );
+					} );
+}
+
+void
+local_mbox_t::do_deliver_service_request(
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	unsigned int overlimit_reaction_deep ) const
+{
+	using namespace so_5::rt::message_limit::impl;
+
+	try
+	{
+		read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
+
+		auto it = m_subscribers.find( msg_type );
+
+		if( it == m_subscribers.end() )
+			SO_5_THROW_EXCEPTION(
+					so_5::rc_no_svc_handlers,
+					"no service handlers (no subscribers for message)" );
+
+		if( 1 != it->second.size() )
+			SO_5_THROW_EXCEPTION(
+					so_5::rc_more_than_one_svc_handler,
+					"more than one service handler found" );
+
+		auto & a = it->second.front();
+		try_to_deliver_to_agent< invocation_type_t::service_request >(
+				*(a.m_agent),
+				a.m_limit,
+				msg_type,
+				message,
+				overlimit_reaction_deep,
+				[&] {
+					agent_t::call_push_service_request(
+							*(a.m_agent),
+							m_id,
+							msg_type,
+							message );
+				} );
+	}
+	catch( ... )
+	{
+		msg_service_request_base_t & svc_request =
+				*(dynamic_cast< msg_service_request_base_t * >(
+						message.get() ));
+
+		svc_request.set_exception( std::current_exception() );
+	}
 }
 
 } /* namespace impl */

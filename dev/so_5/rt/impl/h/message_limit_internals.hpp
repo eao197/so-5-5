@@ -207,7 +207,7 @@ try_to_deliver_to_agent(
 
 		limit->m_action(
 			overlimit_context_t{
-				agent,
+				receiver,
 				INVOCATION_TYPE,
 				overlimit_reaction_deep,
 				msg_type,

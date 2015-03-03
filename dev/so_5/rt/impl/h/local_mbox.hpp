@@ -46,16 +46,6 @@ class local_mbox_t : public abstract_message_box_t
 				return m_id;
 			}
 
-		void
-		deliver_message(
-			const std::type_index & type_wrapper,
-			const message_ref_t & message_ref ) const override;
-
-		virtual void
-		deliver_service_request(
-			const std::type_index & type_index,
-			const message_ref_t & svc_request_ref ) const override;
-
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
@@ -75,6 +65,18 @@ class local_mbox_t : public abstract_message_box_t
 			{
 				return mbox_type_t::multi_producer_multi_consumer;
 			}
+
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
 
 	private:
 		/*!

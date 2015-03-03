@@ -58,22 +58,6 @@ named_local_mbox_t::unsubscribe_event_handlers(
 	return m_mbox->unsubscribe_event_handlers( type_wrapper, subscriber );
 }
 
-void
-named_local_mbox_t::deliver_message(
-	const std::type_index & type_wrapper,
-	const message_ref_t & message_ref ) const
-{
-	m_mbox->deliver_message( type_wrapper, message_ref );
-}
-
-void
-named_local_mbox_t::deliver_service_request(
-	const std::type_index & type_index,
-	const message_ref_t & svc_request_ref ) const
-{
-	m_mbox->deliver_service_request( type_index, svc_request_ref );
-}
-
 std::string
 named_local_mbox_t::query_name() const
 {
@@ -86,8 +70,28 @@ named_local_mbox_t::type() const
 	return m_mbox->type();
 }
 
+void
+named_local_mbox_t::do_deliver_message(
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	unsigned int overlimit_reaction_deep ) const
+{
+	m_mbox->do_deliver_message( msg_type, message, overlimit_reaction_deep );
+}
+
+void
+named_local_mbox_t::do_deliver_service_request(
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	unsigned int overlimit_reaction_deep ) const
+{
+	m_mbox->do_deliver_service_request(
+			msg_type, message, overlimit_reaction_deep );
+}
+
 } /* namespace impl */
 
 } /* namespace rt */
 
 } /* namespace so_5 */
+

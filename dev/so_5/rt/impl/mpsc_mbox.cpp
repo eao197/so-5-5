@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <sstream>
 
+#include <so_5/rt/impl/h/mpsc_mbox.hpp>
+#include <so_5/rt/impl/h/message_limit_internals.hpp>
+
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
-#include <so_5/rt/impl/h/mpsc_mbox.hpp>
 
 namespace so_5
 {
@@ -56,34 +58,6 @@ limitless_mpsc_mbox_t::unsubscribe_event_handlers(
 	// Nothing to do.
 }
 
-void
-limitless_mpsc_mbox_t::deliver_message(
-	const std::type_index & msg_type,
-	const message_ref_t & message_ref ) const
-{
-	m_event_queue->push(
-			execution_demand_t(
-					m_single_consumer,
-					m_id,
-					msg_type,
-					message_ref,
-					&agent_t::demand_handler_on_message ) );
-}
-
-void
-limitless_mpsc_mbox_t::deliver_service_request(
-	const std::type_index & msg_type,
-	const message_ref_t & svc_request_ref ) const
-{
-	m_event_queue->push(
-			execution_demand_t(
-					m_single_consumer,
-					m_id,
-					msg_type,
-					svc_request_ref,
-					&agent_t::service_request_handler_on_message ) );
-}
-
 std::string
 limitless_mpsc_mbox_t::query_name() const
 {
@@ -93,6 +67,36 @@ limitless_mpsc_mbox_t::query_name() const
 			<< ">";
 
 	return s.str();
+}
+
+void
+limitless_mpsc_mbox_t::do_deliver_message(
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	unsigned int ) const
+{
+	m_event_queue->push(
+			execution_demand_t(
+					m_single_consumer,
+					m_id,
+					msg_type,
+					message,
+					&agent_t::demand_handler_on_message ) );
+}
+
+void
+limitless_mpsc_mbox_t::do_deliver_service_request(
+	const std::type_index & msg_type,
+	const message_ref_t & message,
+	unsigned int ) const
+{
+	m_event_queue->push(
+			execution_demand_t(
+					m_single_consumer,
+					m_id,
+					msg_type,
+					message,
+					&agent_t::service_request_handler_on_message ) );
 }
 
 //
@@ -114,23 +118,47 @@ limitful_mpsc_mbox_t::~limitful_mpsc_mbox_t()
 }
 
 void
-limitful_mpsc_mbox_t::deliver_message(
+limitful_mpsc_mbox_t::do_deliver_message(
 	const std::type_index & msg_type,
-	const message_ref_t & message_ref ) const
+	const message_ref_t & message,
+	unsigned int overlimit_reaction_deep ) const
 {
-//FIXME: do some actions with overload control.
+	using namespace so_5::rt::message_limit::impl;
 
-	limitless_mpsc_mbox_t::deliver_message( msg_type, message_ref );
+	try_to_deliver_to_agent< invocation_type_t::event >(
+			consumer(),
+			m_limits.find( msg_type ),
+			msg_type,
+			message,
+			overlimit_reaction_deep,
+			[&] {
+				limitless_mpsc_mbox_t::do_deliver_message(
+						msg_type,
+						message,
+						overlimit_reaction_deep );
+			} );
 }
 
 void
-limitful_mpsc_mbox_t::deliver_service_request(
+limitful_mpsc_mbox_t::do_deliver_service_request(
 	const std::type_index & msg_type,
-	const message_ref_t & svc_request_ref ) const
+	const message_ref_t & message,
+	unsigned int overlimit_reaction_deep ) const
 {
-//FIXME: do some actions with overload control.
+	using namespace so_5::rt::message_limit::impl;
 
-	limitless_mpsc_mbox_t::deliver_message( msg_type, svc_request_ref );
+	try_to_deliver_to_agent< invocation_type_t::service_request >(
+			consumer(),
+			m_limits.find( msg_type ),
+			msg_type,
+			message,
+			overlimit_reaction_deep,
+			[&] {
+				limitless_mpsc_mbox_t::do_deliver_service_request(
+						msg_type,
+						message,
+						overlimit_reaction_deep );
+			} );
 }
 
 } /* namespace impl */

@@ -54,16 +54,6 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 				return m_id;
 			}
 
-		void
-		deliver_message(
-			const std::type_index & msg_type,
-			const message_ref_t & message_ref ) const override;
-
-		virtual void
-		deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & svc_request_ref ) const override;
-
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & msg_type,
@@ -84,6 +74,18 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 				return mbox_type_t::multi_producer_single_consumer;
 			}
 
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
+
 	private:
 		/*!
 		 * \brief ID of this mbox.
@@ -95,6 +97,17 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 
 		//! Event queue for the single consumer.
 		event_queue_proxy_ref_t m_event_queue;
+
+	protected :
+		/*!
+		 * \since v.5.5.4
+		 * \brief Access to mbox's consumer.
+		 */
+		inline agent_t &
+		consumer() const
+		{
+			return *m_single_consumer;
+		}
 };
 
 //
@@ -122,15 +135,17 @@ class limitful_mpsc_mbox_t : public limitless_mpsc_mbox_t
 
 		virtual ~limitful_mpsc_mbox_t();
 
-		void
-		deliver_message(
+		virtual void
+		do_deliver_message(
 			const std::type_index & msg_type,
-			const message_ref_t & message_ref ) const override;
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
 
 		virtual void
-		deliver_service_request(
+		do_deliver_service_request(
 			const std::type_index & msg_type,
-			const message_ref_t & svc_request_ref ) const override;
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override;
 
 	private :
 		const so_5::rt::message_limit::impl::info_storage_t & m_limits;
