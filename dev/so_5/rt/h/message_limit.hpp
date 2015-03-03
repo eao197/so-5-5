@@ -140,7 +140,7 @@ accept_indicators(
 
 inline void
 accept_indicators(
-	description_container_t & to )
+	description_container_t & )
 	{
 	}
 

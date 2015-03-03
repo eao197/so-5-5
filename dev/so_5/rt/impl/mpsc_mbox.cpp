@@ -41,7 +41,7 @@ limitless_mpsc_mbox_t::~limitless_mpsc_mbox_t()
 void
 limitless_mpsc_mbox_t::subscribe_event_handler(
 	const std::type_index & /*type_wrapper*/,
-	const so_5::rt::message_limit::control_block_t * limit,
+	const so_5::rt::message_limit::control_block_t * /*limit*/,
 	agent_t * subscriber )
 {
 	if( subscriber != m_single_consumer )

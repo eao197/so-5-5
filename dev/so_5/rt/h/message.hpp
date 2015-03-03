@@ -297,6 +297,30 @@ struct control_block_t
 			{
 				m_count = 0;
 			}
+
+		//! Copy constructor.
+		control_block_t(
+			const control_block_t & o )
+			:	m_limit( o.m_limit )
+			,	m_action( o.m_action )
+			{
+				m_count.store(
+						o.m_count.load( std::memory_order_acquire ),
+						std::memory_order_release );
+			}
+
+		//! Copy operator.
+		control_block_t &
+		operator=( const control_block_t & o )
+			{
+				m_limit = o.m_limit;
+				m_count.store(
+						o.m_count.load( std::memory_order_acquire ),
+						std::memory_order_release );
+				m_action = o.m_action;
+
+				return *this;
+			}
 	};
 
 } /* namespace message_limit */
