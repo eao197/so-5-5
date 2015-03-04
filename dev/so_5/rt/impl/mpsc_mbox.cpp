@@ -91,14 +91,26 @@ limitless_mpsc_mbox_t::do_deliver_service_request(
 	const message_ref_t & message,
 	unsigned int ) const
 {
-	m_event_queue->push(
-			execution_demand_t(
-					m_single_consumer,
-					so_5::rt::message_limit::control_block_t::none(),
-					m_id,
-					msg_type,
-					message,
-					&agent_t::service_request_handler_on_message ) );
+	try
+	{
+		m_event_queue->push(
+				execution_demand_t(
+						m_single_consumer,
+						so_5::rt::message_limit::control_block_t::none(),
+						m_id,
+						msg_type,
+						message,
+						&agent_t::service_request_handler_on_message ) );
+	}
+//FIXME: this code must be packaged like reusable block of code.
+	catch( ... )
+	{
+		msg_service_request_base_t & svc_request =
+				*(dynamic_cast< msg_service_request_base_t * >(
+						message.get() ));
+
+		svc_request.set_exception( std::current_exception() );
+	}
 }
 
 //
@@ -157,22 +169,34 @@ limitful_mpsc_mbox_t::do_deliver_service_request(
 
 	auto limit = m_limits.find( msg_type );
 
-	try_to_deliver_to_agent< invocation_type_t::service_request >(
-			*m_single_consumer,
-			limit,
-			msg_type,
-			message,
-			overlimit_reaction_deep,
-			[&] {
-				m_event_queue->push(
-						execution_demand_t(
-								m_single_consumer,
-								limit,
-								m_id,
-								msg_type,
-								message,
-								&agent_t::service_request_handler_on_message ) );
-			} );
+	try
+	{
+		try_to_deliver_to_agent< invocation_type_t::service_request >(
+				*m_single_consumer,
+				limit,
+				msg_type,
+				message,
+				overlimit_reaction_deep,
+				[&] {
+					m_event_queue->push(
+							execution_demand_t(
+									m_single_consumer,
+									limit,
+									m_id,
+									msg_type,
+									message,
+									&agent_t::service_request_handler_on_message ) );
+				} );
+	}
+//FIXME: this code must be packaged like reusable block of code.
+	catch( ... )
+	{
+		msg_service_request_base_t & svc_request =
+				*(dynamic_cast< msg_service_request_base_t * >(
+						message.get() ));
+
+		svc_request.set_exception( std::current_exception() );
+	}
 }
 
 } /* namespace impl */
