@@ -15,6 +15,8 @@
 
 #include <so_5/rt/h/message.hpp>
 
+#include <so_5/h/declspec.hpp>
+
 namespace so_5
 {
 
@@ -111,16 +113,29 @@ accept_one_indicator(
 				[]( const overlimit_context_t & ) {} );
 	}
 
+namespace impl
+{
+
+/*!
+ * \since v.5.5.4
+ * \brief Actual implementation of abort application reaction.
+ */
+SO_5_FUNC
+void abort_app_reaction( const overlimit_context_t & ctx );
+
+} /* namespace impl */
+
 template< class M >
 void
 accept_one_indicator(
 	description_container_t & to,
 	const abort_app_indicator_t< M > & indicator )
 	{
-//FIXME: there must be an action with some logging.
 		to.emplace_back( typeid( M ),
 				indicator.m_limit,
-				[]( const overlimit_context_t & ) { std::abort(); } );
+				[]( const overlimit_context_t & ctx ) {
+					impl::abort_app_reaction( ctx );
+				} );
 	}
 
 //
