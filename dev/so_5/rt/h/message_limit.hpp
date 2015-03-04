@@ -10,6 +10,7 @@
 #pragma once
 
 #include <so_5/rt/h/message.hpp>
+#include <so_5/rt/h/mbox.hpp>
 
 #include <so_5/h/declspec.hpp>
 
@@ -56,6 +57,30 @@ struct abort_app_indicator_t
 	};
 
 //
+// redirect_indicator_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Indication that a message must be redirected on overlimit.
+ */
+template< class M >
+struct redirect_indicator_t
+	{
+		//! Max count of waiting messages.
+		const unsigned int m_limit;
+
+		//! Redirection mbox.
+		mbox_t m_destination;
+
+		redirect_indicator_t(
+			unsigned int limit,
+			mbox_t destination )
+			:	m_limit( limit )
+			,	m_destination( std::move( destination ) )
+			{}
+	};
+
+//
 // one_limit_describer_t
 //
 template< class M >
@@ -68,6 +93,14 @@ struct one_limit_describer_t
 			:	drop( limit )
 			,	abort_app( limit )
 			{}
+
+		//! Message must be redirected to another destination
+		//! on overflow.
+		redirect_indicator_t< M >
+		redirect( so_5::rt::mbox_t mbox )
+			{
+				return redirect_indicator_t< M >{ drop.m_limit, mbox };
+			}
 	};
 
 //
@@ -122,7 +155,8 @@ namespace impl
  * \brief Actual implementation of abort application reaction.
  */
 SO_5_FUNC
-void abort_app_reaction( const overlimit_context_t & ctx );
+void
+abort_app_reaction( const overlimit_context_t & ctx );
 
 } /* namespace impl */
 
@@ -136,6 +170,37 @@ accept_one_indicator(
 				indicator.m_limit,
 				[]( const overlimit_context_t & ctx ) {
 					impl::abort_app_reaction( ctx );
+				} );
+	}
+
+namespace impl
+{
+
+/*!
+ * \since v.5.5.4
+ * \brief Actual implementation of redirect message reaction.
+ */
+SO_5_FUNC
+void
+redirect_reaction(
+	//! Context on which overlimit must be handled.
+	const overlimit_context_t & ctx,
+	//! Destination for message redirection.
+	const mbox_t & to );
+
+} /* namespace impl */
+
+template< class M >
+void
+accept_one_indicator(
+	description_container_t & to,
+	const redirect_indicator_t< M > & indicator )
+	{
+		const mbox_t destination = indicator.m_destination;
+		to.emplace_back( typeid( M ),
+				indicator.m_limit,
+				[destination]( const overlimit_context_t & ctx ) {
+					impl::redirect_reaction( ctx, destination );
 				} );
 	}
 
