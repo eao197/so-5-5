@@ -86,7 +86,7 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override;
 
-	private:
+	protected :
 		/*!
 		 * \brief ID of this mbox.
 		 */
@@ -97,17 +97,6 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 
 		//! Event queue for the single consumer.
 		event_queue_proxy_ref_t m_event_queue;
-
-	protected :
-		/*!
-		 * \since v.5.5.4
-		 * \brief Access to mbox's consumer.
-		 */
-		inline agent_t &
-		consumer() const
-		{
-			return *m_single_consumer;
-		}
 };
 
 //

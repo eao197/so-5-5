@@ -328,6 +328,19 @@ struct control_block_t
 
 				return *this;
 			}
+
+		//! A special indicator about absence of control_block.
+		inline static const control_block_t *
+		none() { return nullptr; }
+
+		//! A safe decrement of message count with respect to absence of limit
+		//! for a message.
+		inline static void
+		decrement( const control_block_t * limit )
+			{
+				if( limit )
+					--(limit->m_count);
+			}
 	};
 
 } /* namespace message_limit */

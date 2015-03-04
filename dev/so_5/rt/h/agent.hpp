@@ -635,11 +635,12 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_event(
 			agent_t & agent,
+			const message_limit::control_block_t * limit,
 			mbox_id_t mbox_id,
 			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_event( mbox_id, msg_type, message );
+			agent.push_event( limit, mbox_id, msg_type, message );
 		}
 
 		/*!
@@ -649,11 +650,12 @@ class SO_5_TYPE agent_t
 		static inline void
 		call_push_service_request(
 			agent_t & agent,
+			const message_limit::control_block_t * limit,
 			mbox_id_t mbox_id,
 			std::type_index msg_type,
 			const message_ref_t & message )
 		{
-			agent.push_service_request( mbox_id, msg_type, message );
+			agent.push_service_request( limit, mbox_id, msg_type, message );
 		}
 
 		/*!
@@ -1408,6 +1410,8 @@ class SO_5_TYPE agent_t
 		//! Push event into the event queue.
 		void
 		push_event(
+			//! Optional message limit.
+			const message_limit::control_block_t * limit,
 			//! ID of mbox for this event.
 			mbox_id_t mbox_id,
 			//! Message type for event.
@@ -1421,6 +1425,8 @@ class SO_5_TYPE agent_t
 		 */
 		void
 		push_service_request(
+			//! Optional message limit.
+			const message_limit::control_block_t * limit,
 			//! ID of mbox for this event.
 			mbox_id_t mbox_id,
 			//! Message type for event.

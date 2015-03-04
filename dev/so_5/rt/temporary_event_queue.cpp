@@ -72,6 +72,7 @@ temporary_event_queue_t::switch_to_actual_queue(
 				actual_queue.push(
 						execution_demand_t(
 								agent,
+								message_limit::control_block_t::none(),
 								0,
 								typeid(void),
 								message_ref_t(),

@@ -37,11 +37,14 @@ public :
 	{
 		so_default_state().event< msg_pong >(
 			[&] {
+				const unsigned int max_series = 5;
+
 				++m_pongs;
 				if( !( m_pongs % 2) )
 				{
-					send_pings();
-					if( m_series_sent == 50 )
+					if( m_series_sent < max_series )
+						send_pings();
+					else if( m_series_sent == max_series )
 						so_5::send_to_agent< msg_finish >( *this );
 				}
 			} );

@@ -364,26 +364,32 @@ agent_t::so_create_execution_hint(
 				{
 					if( handler )
 						return execution_hint_t(
-								[&d, handler]( current_thread_id_t thread_id ) {
+								d,
+								[handler](
+										execution_demand_t & demand,
+										current_thread_id_t thread_id ) {
 									process_message(
 											thread_id,
-											d,
+											demand,
 											handler->m_method );
 								},
 								handler->m_thread_safety );
 					else
 						// Handler not found.
-						return execution_hint_t::create_empty_execution_hint();
+						return execution_hint_t::create_empty_execution_hint( d );
 				}
 			else
 				// There must be a special hint for service requests
 				// because absence of service handler processed by
 				// different way than absence of event handler.
 				return execution_hint_t(
-						[&d, handler]( current_thread_id_t thread_id ) {
+						d,
+						[handler](
+								execution_demand_t & demand,
+								current_thread_id_t thread_id ) {
 							process_service_request(
 									thread_id,
-									d,
+									demand,
 									std::make_pair( true, handler ) );
 						},
 						handler ? handler->m_thread_safety :
@@ -395,8 +401,10 @@ agent_t::so_create_execution_hint(
 	else
 		// This is demand_handler_on_start or demand_handler_on_finish.
 		return execution_hint_t(
-				[&d]( current_thread_id_t thread_id ) {
-						d.m_demand_handler( thread_id, d );
+				d,
+				[]( execution_demand_t & demand,
+					current_thread_id_t thread_id ) {
+					demand.m_demand_handler( thread_id, demand );
 				},
 				not_thread_safe );
 }
@@ -444,6 +452,7 @@ agent_t::shutdown_agent()
 		q->push(
 				execution_demand_t(
 						this,
+						message_limit::control_block_t::none(),
 						0,
 						typeid(void),
 						message_ref_t(),
@@ -539,6 +548,7 @@ agent_t::do_drop_subscription_for_all_states(
 
 void
 agent_t::push_event(
+	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
 	std::type_index msg_type,
 	const message_ref_t & message )
@@ -546,6 +556,7 @@ agent_t::push_event(
 	m_event_queue_proxy->push(
 			execution_demand_t(
 				this,
+				limit,
 				mbox_id,
 				msg_type,
 				message,
@@ -554,6 +565,7 @@ agent_t::push_event(
 
 void
 agent_t::push_service_request(
+	const message_limit::control_block_t * limit,
 	mbox_id_t mbox_id,
 	std::type_index msg_type,
 	const message_ref_t & message )
@@ -561,6 +573,7 @@ agent_t::push_service_request(
 	m_event_queue_proxy->push(
 			execution_demand_t(
 					this,
+					limit,
 					mbox_id,
 					msg_type,
 					message,
@@ -631,6 +644,8 @@ agent_t::demand_handler_on_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	message_limit::control_block_t::decrement( d.m_limit );
+
 	auto handler = d.m_receiver->m_subscriptions->find_handler(
 			d.m_mbox_id,
 			d.m_msg_type, 
@@ -650,6 +665,8 @@ agent_t::service_request_handler_on_message(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	message_limit::control_block_t::decrement( d.m_limit );
+
 	static const impl::event_handler_data_t * const null_handler_data = nullptr;
 
 	process_service_request(

@@ -123,6 +123,7 @@ local_mbox_t::do_deliver_message(
 					[&] {
 						agent_t::call_push_event(
 								*(a.m_agent),
+								a.m_limit,
 								m_id,
 								msg_type,
 								message );
@@ -163,6 +164,7 @@ local_mbox_t::do_deliver_service_request(
 				[&] {
 					agent_t::call_push_service_request(
 							*(a.m_agent),
+							a.m_limit,
 							m_id,
 							msg_type,
 							message );

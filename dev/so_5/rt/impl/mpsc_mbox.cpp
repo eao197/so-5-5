@@ -78,6 +78,7 @@ limitless_mpsc_mbox_t::do_deliver_message(
 	m_event_queue->push(
 			execution_demand_t(
 					m_single_consumer,
+					so_5::rt::message_limit::control_block_t::none(),
 					m_id,
 					msg_type,
 					message,
@@ -93,6 +94,7 @@ limitless_mpsc_mbox_t::do_deliver_service_request(
 	m_event_queue->push(
 			execution_demand_t(
 					m_single_consumer,
+					so_5::rt::message_limit::control_block_t::none(),
 					m_id,
 					msg_type,
 					message,
@@ -125,17 +127,23 @@ limitful_mpsc_mbox_t::do_deliver_message(
 {
 	using namespace so_5::rt::message_limit::impl;
 
+	auto limit = m_limits.find( msg_type );
+
 	try_to_deliver_to_agent< invocation_type_t::event >(
-			consumer(),
-			m_limits.find( msg_type ),
+			*m_single_consumer,
+			limit,
 			msg_type,
 			message,
 			overlimit_reaction_deep,
 			[&] {
-				limitless_mpsc_mbox_t::do_deliver_message(
-						msg_type,
-						message,
-						overlimit_reaction_deep );
+				m_event_queue->push(
+						execution_demand_t(
+								m_single_consumer,
+								limit,
+								m_id,
+								msg_type,
+								message,
+								&agent_t::demand_handler_on_message ) );
 			} );
 }
 
@@ -147,17 +155,23 @@ limitful_mpsc_mbox_t::do_deliver_service_request(
 {
 	using namespace so_5::rt::message_limit::impl;
 
+	auto limit = m_limits.find( msg_type );
+
 	try_to_deliver_to_agent< invocation_type_t::service_request >(
-			consumer(),
-			m_limits.find( msg_type ),
+			*m_single_consumer,
+			limit,
 			msg_type,
 			message,
 			overlimit_reaction_deep,
 			[&] {
-				limitless_mpsc_mbox_t::do_deliver_service_request(
-						msg_type,
-						message,
-						overlimit_reaction_deep );
+				m_event_queue->push(
+						execution_demand_t(
+								m_single_consumer,
+								limit,
+								m_id,
+								msg_type,
+								message,
+								&agent_t::service_request_handler_on_message ) );
 			} );
 }
 
