@@ -72,9 +72,9 @@ struct execution_demand_t
 	//! Default constructor.
 	execution_demand_t()
 		:	m_receiver( nullptr )
+		,	m_limit( nullptr )
 		,	m_mbox_id( 0 )
 		,	m_msg_type( typeid(void) )
-		,	m_limit( nullptr )
 		,	m_demand_handler( nullptr )
 		{}
 

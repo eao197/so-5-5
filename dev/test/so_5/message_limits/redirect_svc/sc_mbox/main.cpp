@@ -62,22 +62,38 @@ public :
 	{}
 
 	virtual void
+	so_define_agent() override
+	{
+		so_default_state().event< msg_get_results >(
+			[&] {
+				const std::string responses = m_r1.get() + m_r2.get() + m_r3.get();
+
+				if( m_expected_response == responses )
+					so_deregister_agent_coop_normally();
+			} );
+	}
+
+	virtual void
 	so_evt_start() override
 	{
-		auto svc = m_target_mbox->get_one< std::string >().wait_forever();
+		auto svc = m_target_mbox->get_one< std::string >();
 
-		m_responses += svc.sync_get< msg_request >();
-		m_responses += svc.sync_get< msg_request >();
-		m_responses += svc.sync_get< msg_request >();
+		m_r1 = svc.async< msg_request >();
+		m_r2 = svc.async< msg_request >();
+		m_r3 = svc.async< msg_request >();
 
-		if( m_expected_response == m_responses )
-			so_deregister_agent_coop_normally();
+		so_5::send_to_agent< msg_get_results >( *this );
 	}
 
 private :
+	struct msg_get_results : public so_5::rt::signal_t {};
+
 	const so_5::rt::mbox_t m_target_mbox;
 	const std::string m_expected_response;
-	std::string m_responses;
+
+	std::future< std::string > m_r1;
+	std::future< std::string > m_r2;
+	std::future< std::string > m_r3;
 };
 
 void
@@ -85,17 +101,9 @@ init( so_5::rt::environment_t & env )
 {
 	auto coop = env.create_coop( so_5::autoname );
 	
-	auto worker_disp = so_5::disp::one_thread::create_private_disp();
-
-	auto w3 = coop->make_agent_with_binder< a_worker_t >(
-			worker_disp->binder(),
-			"[three]" );
-	auto w2 = coop->make_agent_with_binder< a_worker_t >(
-			worker_disp->binder(), 
-			"[two]", w3->so_direct_mbox() );
-	auto w1 = coop->make_agent_with_binder< a_worker_t >(
-			worker_disp->binder(),
-			"[one]", w2->so_direct_mbox() );
+	auto w3 = coop->make_agent< a_worker_t >( "[three]" );
+	auto w2 = coop->make_agent< a_worker_t >( "[two]", w3->so_direct_mbox() );
+	auto w1 = coop->make_agent< a_worker_t >( "[one]", w2->so_direct_mbox() );
 
 	coop->make_agent< a_manager_t >( w1->so_direct_mbox(), "[one][two][three]" );
 
