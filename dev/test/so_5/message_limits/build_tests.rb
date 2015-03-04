@@ -11,4 +11,6 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/abort_app/sc_mbox/prj.ut.rb"
 	required_prj "#{path}/redirect_msg/mc_mbox/prj.ut.rb"
 	required_prj "#{path}/redirect_msg/sc_mbox/prj.ut.rb"
+	required_prj "#{path}/redirect_svc/mc_mbox/prj.ut.rb"
+	required_prj "#{path}/redirect_svc/sc_mbox/prj.ut.rb"
 }
