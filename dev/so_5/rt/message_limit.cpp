@@ -12,6 +12,9 @@
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/h/error_logger.hpp>
+#include <so_5/h/ret_code.hpp>
+
+#include <sstream>
 
 namespace so_5
 {
@@ -53,18 +56,15 @@ redirect_reaction(
 	{
 		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
 			{
-				SO_5_LOG_ERROR(
-						ctx.m_receiver.so_environment().error_logger(),
-						logger )
-					logger
-						<< "maximum message reaction deep exceeded on redirection, "
-							"application will be aborted. "
+				std::ostringstream ss;
+				ss << "maximum message reaction deep exceeded on redirection;"
 						<< " msg_type: " << ctx.m_msg_type.name()
 						<< ", limit: " << ctx.m_limit.m_limit
 						<< ", agent: " << &(ctx.m_receiver)
-						<< ", target_mbox: " << to->query_name()
-						<< std::endl;
-				std::abort();
+						<< ", target_mbox: " << to->query_name();
+				SO_5_THROW_EXCEPTION(
+						rc_max_overlimit_reaction_deep,
+						ss.str() );
 			}
 		else if( invocation_type_t::event == ctx.m_event_type )
 			to->do_deliver_message(
@@ -76,6 +76,15 @@ redirect_reaction(
 					ctx.m_msg_type,
 					ctx.m_message,
 					ctx.m_reaction_deep + 1 );
+	}
+
+SO_5_FUNC
+void
+redirect_reaction(
+	const overlimit_context_t & ctx,
+	const agent_t & to )
+	{
+		redirect_reaction( ctx, to.so_direct_mbox() );
 	}
 
 } /* namespace impl */

@@ -166,6 +166,12 @@ const int rc_illegal_subscriber_for_mpsc_mbox = 47;
  * predefined limit for that message type.
  */
 const int rc_message_has_no_limit_defined = 48;
+
+/*!
+ * \since v.5.5.4
+ * \brief Message cannot be redirected to non-existent mbox.
+ */
+const int rc_empty_mbox_for_redirection = 49;
 //! \}
 
 //! \name Error codes for mboxes.
@@ -231,6 +237,13 @@ mbox.get_one< std::string >().wait_forever().sync_get<msg_query_state>();
 \endcode
  */
 const int rc_msg_service_request_bad_cast = 87;
+
+/*!
+ * \since v.5.5.4.
+ * \brief Unable to continue execution of message overlimit reactions
+ * due to maximum overlimit reaction deep constraint.
+ */
+const int rc_max_overlimit_reaction_deep = 88;
 
 //! \}
 
