@@ -7,6 +7,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/subscr_without_limit/prj.ut.rb"
 	required_prj "#{path}/drop/prj.ut.rb"
+	required_prj "#{path}/drop_at_peaks/prj.ut.rb"
 	required_prj "#{path}/abort_app/mc_mbox/prj.ut.rb"
 	required_prj "#{path}/abort_app/sc_mbox/prj.ut.rb"
 	required_prj "#{path}/redirect_msg/mc_mbox/prj.ut.rb"
