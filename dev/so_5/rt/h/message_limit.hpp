@@ -9,13 +9,14 @@
 
 #pragma once
 
-#include <functional>
-#include <typeindex>
-#include <atomic>
-
 #include <so_5/rt/h/message.hpp>
 
 #include <so_5/h/declspec.hpp>
+
+#include <functional>
+#include <typeindex>
+#include <atomic>
+#include <vector>
 
 namespace so_5
 {

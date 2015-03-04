@@ -32,8 +32,9 @@ abort_app_reaction( const overlimit_context_t & ctx )
 		SO_5_LOG_ERROR( ctx.m_receiver.so_environment().error_logger(), logger )
 			logger
 				<< "message limit exceeded, application will be aborted. "
-				<< "agent: " << &(ctx.m_receiver)
-				<< ", msg_type: " << ctx.m_msg_type.name()
+				<< " msg_type: " << ctx.m_msg_type.name()
+				<< ", limit: " << ctx.m_limit.m_limit
+				<< ", agent: " << &(ctx.m_receiver)
 				<< std::endl;
 		std::abort();
 	}

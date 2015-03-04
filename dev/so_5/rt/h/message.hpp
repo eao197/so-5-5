@@ -224,6 +224,8 @@ enum class invocation_type_t : int
 namespace message_limit
 {
 
+struct control_block_t;
+
 /*!
  * \since v.5.5.4
  * \brief Description of context for overlimit action.
@@ -232,6 +234,9 @@ struct overlimit_context_t
 	{
 		//! Receiver of the message or service request.
 		const agent_t & m_receiver;
+
+		//! Control block for message limit.
+		const control_block_t & m_limit;
 
 		//! Is it message delivery or service request delivery.
 		invocation_type_t m_event_type;
@@ -249,11 +254,13 @@ struct overlimit_context_t
 		inline
 		overlimit_context_t(
 			const agent_t & receiver,
+			const control_block_t & limit,
 			invocation_type_t event_type,
 			unsigned int reaction_deep,
 			const std::type_index & msg_type,
 			const message_ref_t & message )
 			:	m_receiver( receiver )
+			,	m_limit( limit )
 			,	m_event_type( event_type )
 			,	m_reaction_deep( reaction_deep )
 			,	m_msg_type( msg_type )
