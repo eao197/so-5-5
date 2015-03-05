@@ -163,6 +163,31 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		//! Setup exception information to underlying promise/future objects.
 		virtual void
 		set_exception( std::exception_ptr ex ) = 0;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper wrapper for handling exceptions during
+		 * service request dispatching.
+		 */
+		template< class LAMBDA >
+		static void
+		dispatch_wrapper(
+			const message_ref_t & what,
+			LAMBDA handler )
+		{
+			try
+			{
+				handler();
+			}
+			catch( ... )
+			{
+				msg_service_request_base_t & svc_request =
+						*(dynamic_cast< msg_service_request_base_t * >(
+								what.get() ));
+
+				svc_request.set_exception( std::current_exception() );
+			}
+		}
 };
 
 //

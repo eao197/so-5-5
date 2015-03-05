@@ -138,46 +138,38 @@ local_mbox_t::do_deliver_service_request(
 {
 	using namespace so_5::rt::message_limit::impl;
 
-	try
-	{
-		read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
+	msg_service_request_base_t::dispatch_wrapper( message,
+		[&] {
+			read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
 
-		auto it = m_subscribers.find( msg_type );
+			auto it = m_subscribers.find( msg_type );
 
-		if( it == m_subscribers.end() )
-			SO_5_THROW_EXCEPTION(
-					so_5::rc_no_svc_handlers,
-					"no service handlers (no subscribers for message)" );
+			if( it == m_subscribers.end() )
+				SO_5_THROW_EXCEPTION(
+						so_5::rc_no_svc_handlers,
+						"no service handlers (no subscribers for message)" );
 
-		if( 1 != it->second.size() )
-			SO_5_THROW_EXCEPTION(
-					so_5::rc_more_than_one_svc_handler,
-					"more than one service handler found" );
+			if( 1 != it->second.size() )
+				SO_5_THROW_EXCEPTION(
+						so_5::rc_more_than_one_svc_handler,
+						"more than one service handler found" );
 
-		auto & a = it->second.front();
-		try_to_deliver_to_agent< invocation_type_t::service_request >(
-				*(a.m_agent),
-				a.m_limit,
-				msg_type,
-				message,
-				overlimit_reaction_deep,
-				[&] {
-					agent_t::call_push_service_request(
-							*(a.m_agent),
-							a.m_limit,
-							m_id,
-							msg_type,
-							message );
-				} );
-	}
-	catch( ... )
-	{
-		msg_service_request_base_t & svc_request =
-				*(dynamic_cast< msg_service_request_base_t * >(
-						message.get() ));
-
-		svc_request.set_exception( std::current_exception() );
-	}
+			auto & a = it->second.front();
+			try_to_deliver_to_agent< invocation_type_t::service_request >(
+					*(a.m_agent),
+					a.m_limit,
+					msg_type,
+					message,
+					overlimit_reaction_deep,
+					[&] {
+						agent_t::call_push_service_request(
+								*(a.m_agent),
+								a.m_limit,
+								m_id,
+								msg_type,
+								message );
+					} );
+		} );
 }
 
 } /* namespace impl */

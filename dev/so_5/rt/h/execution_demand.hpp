@@ -169,6 +169,16 @@ private :
 		,	m_direct_func()
 		,	m_thread_safety( thread_safe )
 		{}
+
+// Only for the unit-testing purposes!
+#if defined( SO_5__EXECUTION_HINT__UNIT_TEST )
+public :
+	//! Is event handler defined for the demand?
+	operator bool() const
+		{
+			return static_cast< bool >(m_direct_func);
+		}
+#endif
 };
 
 } /* namespace rt */
