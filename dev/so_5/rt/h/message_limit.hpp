@@ -12,6 +12,8 @@
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/mbox.hpp>
 
+#include <so_5/details/h/lambda_traits.hpp>
+
 #include <so_5/h/declspec.hpp>
 
 #include <functional>
@@ -267,6 +269,186 @@ accept_one_indicator(
 				[receiver]( const overlimit_context_t & ctx ) {
 					impl::redirect_reaction( ctx, *receiver );
 				} );
+	}
+
+namespace impl
+{
+
+/*!
+ * \since v.5.5.4
+ * \brief Actual implementation of transform reaction.
+ */
+SO_5_FUNC
+void
+transform_reaction(
+	//! Context on which overlimit must be handled.
+	const overlimit_context_t & ctx,
+	//! Destination for new message.
+	const mbox_t & to,
+	//! Type of new message.
+	const std::type_index & msg_type,
+	//! An instance of new message.
+	const message_ref_t & message );
+
+} /* namespace impl */
+
+//
+// transformed_message_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A result of message transformation.
+ *
+ * \tparam MSG Type of result (transformed) message.
+ */
+template< typename MSG >
+class transformed_message_t
+	{
+	public :
+		//! Initializing constructor for the case when MSG is a message type.
+		transformed_message_t(
+			//! Message box to which transformed message to be sent.
+			mbox_t mbox,
+			//! New message instance.
+			std::unique_ptr< MSG > msg )
+			:	m_mbox( std::move( mbox ) )
+			,	m_message( msg.release() )
+			{}
+		//! Initializing constructor for the case when MSG is a signal type.
+		transformed_message_t(
+			//! Message box to which signal to be sent.
+			mbox_t mbox )
+			:	m_mbox( std::move( mbox ) )
+			{}
+
+		//! Destination message box.
+		const mbox_t &
+		mbox() const { return m_mbox; }
+
+		//! Type of the transformed message.
+		std::type_index
+		msg_type() const { return typeid(MSG); }
+
+		//! Instance of transformed message.
+		/*!
+		 * \note Will be nullptr for signal.
+		 */
+		const message_ref_t &
+		message() const { return m_message; }
+
+		//! A helper method for transformed_message construction.
+		template< typename... ARGS >
+		static transformed_message_t< MSG >
+		make( mbox_t mbox, ARGS &&... args )
+			{
+				return transformed_message_t(
+						std::move( mbox ),
+						so_5::rt::details::make_message_instance< MSG >(
+							 std::forward<ARGS>( args )... ) );
+			}
+
+	private :
+		//! Destination message box.
+		mbox_t m_mbox;
+
+		//! Instance of transformed message.
+		/*!
+		 * \note Will be nullptr for signal.
+		 */
+		message_ref_t m_message;
+	};
+
+//
+// transform_indicator_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief An indicator of transform reaction on message overlimit.
+ *
+ * \tparam SOURCE Type of message to be transformed.
+ */
+template< typename SOURCE >
+struct transform_indicator_t
+	{
+		//! Limit value.
+		unsigned int m_limit;
+
+		//! Reaction.
+		action_t m_action;
+
+		//! Initializing constructor.
+		transform_indicator_t(
+			unsigned int limit,
+			action_t action )
+			:	m_limit( limit )
+			,	m_action( std::move( action ) )
+			{}
+	};
+
+//
+// limit_then_transform
+//
+/*!
+ * \since v.5.5.4
+ * \brief A helper function for creating transform_indicator.
+ *
+ * Must be used for message transformation. Type of message is
+ * detected automatically from the type of transformation lambda
+ * argument.
+ */
+template<
+		typename LAMBDA,
+		typename ARG = typename so_5::details::lambda_traits::
+				argument_type_if_lambda< LAMBDA >::type >
+transform_indicator_t< ARG >
+limit_then_transform(
+	unsigned int limit,
+	LAMBDA transformator )
+	{
+		ensure_not_signal< ARG >();
+
+		action_t act = [transformator]( const overlimit_context_t & ctx ) {
+				const ARG & msg = dynamic_cast< const ARG & >(
+						*ctx.m_message.get() );
+				auto r = transformator( msg );
+				impl::transform_reaction(
+						ctx, r.mbox(), r.msg_type(), r.message() );
+			};
+
+		return transform_indicator_t< ARG >{ limit, std::move( act ) };
+	}
+
+/*!
+ * \since v.5.5.4
+ * \brief A helper function for creating transform_indicator.
+ *
+ * Must be used for signal transformation. Type of signal must be
+ * explicitely specified.
+ */
+template< typename SOURCE, typename LAMBDA >
+transform_indicator_t< SOURCE >
+limit_then_transform(
+	unsigned int limit,
+	LAMBDA transformator )
+	{
+		ensure_signal< SOURCE >();
+
+		action_t act = [transformator]( const overlimit_context_t & ctx ) {
+				auto r = transformator();
+				impl::transform_reaction(
+						ctx, r.mbox(), r.msg_type(), r.message() );
+			};
+
+		return transform_indicator_t< SOURCE >{ limit, std::move( act ) };
+	}
+
+template< class M >
+void
+accept_one_indicator(
+	description_container_t & to,
+	const transform_indicator_t< M > & indicator )
+	{
+		to.emplace_back( typeid( M ), indicator.m_limit, indicator.m_action );
 	}
 
 //

@@ -87,6 +87,17 @@ redirect_reaction(
 		redirect_reaction( ctx, to.so_direct_mbox() );
 	}
 
+SO_5_FUNC
+void
+transform_reaction(
+	const overlimit_context_t & ctx,
+	const mbox_t & to,
+	const std::type_index & msg_type,
+	const message_ref_t & message )
+	{
+//FIXME: implement this!
+	}
+
 } /* namespace impl */
 
 } /* namespace message_limit */

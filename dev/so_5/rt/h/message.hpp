@@ -148,6 +148,50 @@ ensure_signal()
 			"expected a type derived from the signal_t" );
 }
 
+namespace details
+{
+
+template< bool is_signal, typename MSG >
+struct make_message_instance_impl
+	{
+		template< typename... ARGS >
+		static std::unique_ptr< MSG >
+		make( ARGS &&... args )
+			{
+				ensure_not_signal< MSG >();
+
+				return std::unique_ptr< MSG >(
+						new MSG( std::forward< ARGS >(args)... ) );
+			}
+	};
+
+template< typename MSG >
+struct make_message_instance_impl< true, MSG >
+	{
+		static std::unique_ptr< MSG >
+		make()
+			{
+				ensure_signal< MSG >();
+
+				return std::unique_ptr< MSG >();
+			}
+	};
+
+/*!
+ * \since v.5.5.4
+ * \brief A helper for allocate instance of a message.
+ */
+template< typename MSG, typename... ARGS >
+std::unique_ptr< MSG >
+make_message_instance( ARGS &&... args )
+	{
+		return make_message_instance_impl<
+						std::is_base_of< signal_t, MSG >::value, MSG
+				>::make( std::forward< ARGS >( args )... );
+	}
+
+} /* namespace details */
+
 //
 // msg_service_request_base_t
 //
