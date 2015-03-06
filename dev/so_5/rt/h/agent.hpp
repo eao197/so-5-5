@@ -23,6 +23,8 @@
 
 #include <so_5/h/exception.hpp>
 
+#include <so_5/details/h/lambda_traits.hpp>
+
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/agent_tuning_options.hpp>
 #include <so_5/rt/h/disp.hpp>
@@ -1643,63 +1645,7 @@ get_actual_service_request_pointer(
 namespace promise_result_setting_details
 {
 
-template< typename M >
-struct message_type_only
-	{
-		typedef typename std::remove_cv<
-				typename std::remove_reference< M >::type >::type type;
-	};
-
-template< typename L >
-struct lambda_traits
-	: 	public lambda_traits< decltype(&L::operator()) >
-	{};
-
-template< class L, class R, class M >
-struct lambda_traits< R (L::*)(M) const >
-	{
-		typedef R result_type;
-		typedef typename message_type_only< M >::type argument_type;
-
-		static R call_with_arg( L l, M m )
-			{
-				return l(m);
-			}
-	};
-
-template< class L, class R, class M >
-struct lambda_traits< R (L::*)(M) >
-	{
-		typedef R result_type;
-		typedef typename message_type_only< M >::type argument_type;
-
-		static R call_with_arg( L l, M m )
-			{
-				return l(m);
-			}
-	};
-
-template< class L, class R >
-struct lambda_traits< R (L::*)() const >
-	{
-		typedef R result_type;
-
-		static R call_without_arg( L l )
-			{
-				return l();
-			}
-	};
-
-template< class L, class R >
-struct lambda_traits< R (L::*)() >
-	{
-		typedef R result_type;
-
-		static R call_without_arg( L l )
-			{
-				return l();
-			}
-	};
+using namespace so_5::details::lambda_traits;
 
 template< class RESULT >
 struct result_setter_t
@@ -1743,7 +1689,7 @@ struct result_setter_t
 			LAMBDA l,
 			const PARAM & msg )
 			{
-				to.set_value( lambda_traits< LAMBDA >::call_with_arg( l, msg ) );
+				to.set_value( traits< LAMBDA >::call_with_arg( l, msg ) );
 			}
 
 		template< class LAMBDA >
@@ -1752,7 +1698,7 @@ struct result_setter_t
 			std::promise< RESULT > & to,
 			LAMBDA l )
 			{
-				to.set_value( lambda_traits< LAMBDA >::call_without_arg( l ) );
+				to.set_value( traits< LAMBDA >::call_without_arg( l ) );
 			}
 	};
 
@@ -1801,7 +1747,7 @@ struct result_setter_t< void >
 			LAMBDA l,
 			const PARAM & msg )
 			{
-				lambda_traits< LAMBDA >::call_with_arg( l, msg );
+				traits< LAMBDA >::call_with_arg( l, msg );
 				to.set_value();
 			}
 
@@ -1811,7 +1757,7 @@ struct result_setter_t< void >
 			std::promise< void > & to,
 			LAMBDA l )
 			{
-				lambda_traits< LAMBDA >::call_without_arg( l );
+				traits< LAMBDA >::call_without_arg( l );
 				to.set_value();
 			}
 	};
@@ -1966,7 +1912,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 	using namespace promise_result_setting_details;
 
-	typedef lambda_traits< LAMBDA > TRAITS;
+	typedef traits< LAMBDA > TRAITS;
 	typedef typename TRAITS::result_type RESULT;
 	typedef typename TRAITS::argument_type MESSAGE;
 
@@ -2016,7 +1962,7 @@ subscription_bind_t::event(
 	using namespace event_subscription_helpers;
 	using namespace promise_result_setting_details;
 
-	typedef lambda_traits< LAMBDA > TRAITS;
+	typedef traits< LAMBDA > TRAITS;
 	typedef typename TRAITS::result_type RESULT;
 
 	auto method = [lambda](
