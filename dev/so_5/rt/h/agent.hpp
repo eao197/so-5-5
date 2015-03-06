@@ -417,8 +417,8 @@ class subscription_bind_t
 	would be prohibited after agent registration.
 */
 class SO_5_TYPE agent_t
-	:
-		private atomic_refcounted_t
+	:	private atomic_refcounted_t
+	,	public message_limit::message_limit_methods_mixin_t
 {
 		friend class subscription_bind_t;
 		friend class intrusive_ptr_t< agent_t >;

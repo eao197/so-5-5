@@ -414,63 +414,6 @@ struct transform_indicator_t
 			{}
 	};
 
-//
-// limit_then_transform
-//
-/*!
- * \since v.5.5.4
- * \brief A helper function for creating transform_indicator.
- *
- * Must be used for message transformation. Type of message is
- * detected automatically from the type of transformation lambda
- * argument.
- */
-template<
-		typename LAMBDA,
-		typename ARG = typename so_5::details::lambda_traits::
-				argument_type_if_lambda< LAMBDA >::type >
-transform_indicator_t< ARG >
-limit_then_transform(
-	unsigned int limit,
-	LAMBDA transformator )
-	{
-		ensure_not_signal< ARG >();
-
-		action_t act = [transformator]( const overlimit_context_t & ctx ) {
-				const ARG & msg = dynamic_cast< const ARG & >(
-						*ctx.m_message.get() );
-				auto r = transformator( msg );
-				impl::transform_reaction(
-						ctx, r.mbox(), r.msg_type(), r.message() );
-			};
-
-		return transform_indicator_t< ARG >{ limit, std::move( act ) };
-	}
-
-/*!
- * \since v.5.5.4
- * \brief A helper function for creating transform_indicator.
- *
- * Must be used for signal transformation. Type of signal must be
- * explicitely specified.
- */
-template< typename SOURCE, typename LAMBDA >
-transform_indicator_t< SOURCE >
-limit_then_transform(
-	unsigned int limit,
-	LAMBDA transformator )
-	{
-		ensure_signal< SOURCE >();
-
-		action_t act = [transformator]( const overlimit_context_t & ctx ) {
-				auto r = transformator();
-				impl::transform_reaction(
-						ctx, r.mbox(), r.msg_type(), r.message() );
-			};
-
-		return transform_indicator_t< SOURCE >{ limit, std::move( act ) };
-	}
-
 template< class M >
 void
 accept_one_indicator(
@@ -500,6 +443,83 @@ accept_indicators(
 	description_container_t & )
 	{
 	}
+
+//
+// message_limit_methods_mixin_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief A mixin with message limit definition methods.
+ */
+struct message_limit_methods_mixin_t
+	{
+		/*!
+		 * \since v.5.5.4
+		 * \brief A helper function for creating transform_indicator.
+		 *
+		 * Must be used for message transformation. Type of message is
+		 * detected automatically from the type of transformation lambda
+		 * argument.
+		 */
+		template<
+				typename LAMBDA,
+				typename ARG = typename so_5::details::lambda_traits::
+						argument_type_if_lambda< LAMBDA >::type >
+		static transform_indicator_t< ARG >
+		limit_then_transform(
+			unsigned int limit,
+			LAMBDA transformator )
+			{
+				ensure_not_signal< ARG >();
+
+				action_t act = [transformator]( const overlimit_context_t & ctx ) {
+						const ARG & msg = dynamic_cast< const ARG & >(
+								*ctx.m_message.get() );
+						auto r = transformator( msg );
+						impl::transform_reaction(
+								ctx, r.mbox(), r.msg_type(), r.message() );
+					};
+
+				return transform_indicator_t< ARG >{ limit, std::move( act ) };
+			}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief A helper function for creating transform_indicator.
+		 *
+		 * Must be used for signal transformation. Type of signal must be
+		 * explicitely specified.
+		 */
+		template< typename SOURCE, typename LAMBDA >
+		static transform_indicator_t< SOURCE >
+		limit_then_transform(
+			unsigned int limit,
+			LAMBDA transformator )
+			{
+				ensure_signal< SOURCE >();
+
+				action_t act = [transformator]( const overlimit_context_t & ctx ) {
+						auto r = transformator();
+						impl::transform_reaction(
+								ctx, r.mbox(), r.msg_type(), r.message() );
+					};
+
+				return transform_indicator_t< SOURCE >{ limit, std::move( act ) };
+			}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper method for creating message transformation result.
+		 */
+		template< typename MSG, typename... ARGS >
+		static transformed_message_t< MSG >
+		make_transformed( mbox_t mbox, ARGS &&... args )
+			{
+				return transformed_message_t< MSG >::make(
+						std::move( mbox ),
+						std::forward<ARGS>( args )... );
+			}
+	};
 
 namespace impl
 {

@@ -45,8 +45,6 @@ struct msg_final_overlimit : public so_5::rt::message_t
 	{}
 };
 
-using namespace so_5::rt::message_limit;
-
 class a_test_t : public so_5::rt::agent_t
 {
 public :
@@ -56,23 +54,23 @@ public :
 				tuning_options().message_limits(
 					limit_then_transform( 1,
 						[&]( const msg_hello & msg ) {
-							return transformed_message_t< msg_hello_overlimit >::
-									make( m_working_mbox, "<=" + msg.m_text + "=>" );
+							return make_transformed< msg_hello_overlimit >(
+									m_working_mbox, "<=" + msg.m_text + "=>" );
 						} ),
 					limit_then_transform( 1,
 						[&]( const msg_hello_overlimit & ) {
-							return transformed_message_t< msg_double_overlimit >::
-									make( m_working_mbox );
+							return make_transformed< msg_double_overlimit >(
+									m_working_mbox );
 						} ),
 					limit_then_transform< msg_double_overlimit >( 1,
 						[&] {
-							return transformed_message_t< msg_triple_overlimit >::
-									make( m_working_mbox );
+							return make_transformed< msg_triple_overlimit >(
+									m_working_mbox );
 						} ),
 					limit_then_transform< msg_triple_overlimit >( 1,
 						[&] {
-							return transformed_message_t< msg_final_overlimit >::
-									make( m_working_mbox, "done" );
+							return make_transformed< msg_final_overlimit >(
+									m_working_mbox, "done" );
 						} ),
 					message_limit< msg_final_overlimit >( 1 ).drop,
 					message_limit< msg_finish >( 1 ).drop
