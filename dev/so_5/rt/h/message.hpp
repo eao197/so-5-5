@@ -100,6 +100,20 @@ struct is_signal
 	};
 
 //
+// is_message
+//
+/*!
+ * \since v.5.5.4
+ * \brief A helper class for checking that message is a message.
+ */
+template< class T >
+struct is_message
+	{
+		enum { value = (std::is_base_of< message_t, T >::value &&
+				!is_signal< T >::value) };
+	};
+
+//
 // ensure_not_signal
 //
 /*!
@@ -111,10 +125,7 @@ template< class MSG >
 void
 ensure_not_signal()
 {
-	static_assert( !is_signal< MSG >::value,
-			"signal_t instance cannot be used in place of"
-			" message_t instance" );
-	static_assert( std::is_base_of< message_t, MSG >::value,
+	static_assert( is_message< MSG >::value,
 			"message class must be derived from the message_t" );
 }
 
