@@ -126,7 +126,6 @@ transform_reaction(
 						rc_svc_request_cannot_be_transfomred_on_overlimit,
 						ss.str() );
 			}
-//FIXME: implement this!
 	}
 
 } /* namespace impl */

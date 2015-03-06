@@ -290,6 +290,28 @@ transform_reaction(
 	//! An instance of new message.
 	const message_ref_t & message );
 
+template< bool is_signal, typename RESULT, typename MSG, typename... ARGS >
+struct transformed_message_maker
+	{
+		static RESULT
+		make( mbox_t mbox, ARGS &&... args )
+			{
+				return RESULT( std::move( mbox ),
+						so_5::rt::details::make_message_instance< MSG >(
+								std::forward<ARGS>( args )... ) );
+			}
+	};
+
+template< typename RESULT, typename MSG >
+struct transformed_message_maker< true, RESULT, MSG >
+	{
+		static RESULT
+		make( mbox_t mbox )
+			{
+				return RESULT( std::move( mbox ) );
+			}
+	};
+
 } /* namespace impl */
 
 //
@@ -312,8 +334,11 @@ class transformed_message_t
 			//! New message instance.
 			std::unique_ptr< MSG > msg )
 			:	m_mbox( std::move( mbox ) )
-			,	m_message( msg.release() )
-			{}
+			{
+				ensure_message_with_actual_data( msg.get() );
+
+				m_message = message_ref_t( msg.release() );
+			}
 		//! Initializing constructor for the case when MSG is a signal type.
 		transformed_message_t(
 			//! Message box to which signal to be sent.
@@ -341,10 +366,14 @@ class transformed_message_t
 		static transformed_message_t< MSG >
 		make( mbox_t mbox, ARGS &&... args )
 			{
-				return transformed_message_t(
-						std::move( mbox ),
-						so_5::rt::details::make_message_instance< MSG >(
-							 std::forward<ARGS>( args )... ) );
+				return impl::transformed_message_maker<
+							is_signal< MSG >::value,
+							transformed_message_t,
+							MSG,
+							ARGS...
+						>::make(
+								std::move( mbox ),
+								std::forward<ARGS>( args )... );
 			}
 
 	private :

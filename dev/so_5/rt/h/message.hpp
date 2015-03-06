@@ -87,6 +87,19 @@ class SO_5_TYPE signal_t
 };
 
 //
+// is_signal
+//
+/*!
+ * \since v.5.5.4
+ * \brief A helper class for checking that message is a signal.
+ */
+template< class T >
+struct is_signal
+	{
+		enum { value = std::is_base_of< signal_t, T >::value };
+	};
+
+//
 // ensure_not_signal
 //
 /*!
@@ -98,7 +111,7 @@ template< class MSG >
 void
 ensure_not_signal()
 {
-	static_assert( !std::is_base_of< signal_t, MSG >::value,
+	static_assert( !is_signal< MSG >::value,
 			"signal_t instance cannot be used in place of"
 			" message_t instance" );
 	static_assert( std::is_base_of< message_t, MSG >::value,
@@ -144,7 +157,7 @@ template< class MSG >
 void
 ensure_signal()
 {
-	static_assert( std::is_base_of< signal_t, MSG >::value,
+	static_assert( is_signal< MSG >::value,
 			"expected a type derived from the signal_t" );
 }
 
@@ -186,7 +199,7 @@ std::unique_ptr< MSG >
 make_message_instance( ARGS &&... args )
 	{
 		return make_message_instance_impl<
-						std::is_base_of< signal_t, MSG >::value, MSG
+						is_signal< MSG >::value, MSG
 				>::make( std::forward< ARGS >( args )... );
 	}
 
