@@ -245,6 +245,12 @@ const int rc_msg_service_request_bad_cast = 87;
  */
 const int rc_max_overlimit_reaction_deep = 88;
 
+/*!
+ * \since v.5.5.4.
+ * \brief Unable to transform service request as part of overlimit reaction.
+ */
+const int rc_svc_request_cannot_be_transfomred_on_overlimit = 89;
+
 //! \}
 
 //! \name Error codes for delayed or repeated events.

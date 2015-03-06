@@ -89,22 +89,22 @@ public :
 	so_define_agent() override
 	{
 		so_default_state()
-			.event( [&]( const msg_hello & msg ) {
+			.event( m_working_mbox, [&]( const msg_hello & msg ) {
 					m_received += "[" + msg.m_text + "]";
 				} )
-			.event( [&]( const msg_hello_overlimit & msg ) {
+			.event( m_working_mbox, [&]( const msg_hello_overlimit & msg ) {
 					m_received += "[" + msg.m_desc + "]";
 				} )
-			.event< msg_double_overlimit >( [&] {
+			.event< msg_double_overlimit >( m_working_mbox, [&] {
 					m_received += "[<double>]";
 				} )
-			.event< msg_triple_overlimit >( [&] {
+			.event< msg_triple_overlimit >( m_working_mbox, [&] {
 					m_received += "[<triple>]";
 				} )
-			.event( [&]( const msg_final_overlimit & msg ) {
+			.event( m_working_mbox, [&]( const msg_final_overlimit & msg ) {
 					m_received += "[" + msg.m_text + "]";
 				} )
-			.event< msg_finish >( [&] {
+			.event< msg_finish >( m_working_mbox, [&] {
 					const std::string expected =
 						"[hello][<=hello2=>][<double>][<triple>][done]";
 
