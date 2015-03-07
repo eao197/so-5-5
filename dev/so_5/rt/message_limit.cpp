@@ -80,15 +80,6 @@ redirect_reaction(
 
 SO_5_FUNC
 void
-redirect_reaction(
-	const overlimit_context_t & ctx,
-	const agent_t & to )
-	{
-		redirect_reaction( ctx, to.so_direct_mbox() );
-	}
-
-SO_5_FUNC
-void
 transform_reaction(
 	const overlimit_context_t & ctx,
 	const mbox_t & to,

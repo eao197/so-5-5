@@ -59,56 +59,6 @@ struct abort_app_indicator_t
 	};
 
 //
-// redirect_to_mbox_indicator_t
-//
-/*!
- * \since v.5.5.4
- * \brief Indication that a message must be redirected on overlimit.
- */
-template< class M >
-struct redirect_to_mbox_indicator_t
-	{
-		//! Max count of waiting messages.
-		const unsigned int m_limit;
-
-		//! Redirection mbox.
-		mbox_t m_destination;
-
-		redirect_to_mbox_indicator_t(
-			unsigned int limit,
-			mbox_t destination )
-			:	m_limit( limit )
-			,	m_destination( std::move( destination ) )
-			{}
-	};
-
-//
-// redirect_to_agent_indicator_t
-//
-/*!
- * \since v.5.5.4
- * \brief Indication that a message must be redirected on overlimit.
- *
- * Redirection is done to the direct mbox of the agent specified.
- */
-template< class M >
-struct redirect_to_agent_indicator_t
-	{
-		//! Max count of waiting messages.
-		const unsigned int m_limit;
-
-		//! Redirection agent.
-		const agent_t * const m_receiver;
-
-		redirect_to_agent_indicator_t(
-			unsigned int limit,
-			const agent_t * receiver )
-			:	m_limit( limit )
-			,	m_receiver( receiver )
-			{}
-	};
-
-//
 // one_limit_describer_t
 //
 template< class M >
@@ -121,27 +71,6 @@ struct one_limit_describer_t
 			:	drop( limit )
 			,	abort_app( limit )
 			{}
-
-		//! Message must be redirected to another destination
-		//! on overflow.
-		redirect_to_mbox_indicator_t< M >
-		redirect( so_5::rt::mbox_t mbox )
-			{
-				if( !mbox )
-					SO_5_THROW_EXCEPTION( rc_empty_mbox_for_redirection,
-							std::string( "unable to redirect message to "
-								"empty mbox, msg_type: " ) +
-							typeid( M ).name() );
-
-				return redirect_to_mbox_indicator_t< M >{ drop.m_limit, mbox };
-			}
-
-		//! Message must be redirected to an agent on overflow.
-		redirect_to_agent_indicator_t< M >
-		redirect( const agent_t * to )
-			{
-				return redirect_to_agent_indicator_t< M >{ drop.m_limit, to };
-			}
 	};
 
 //
@@ -229,45 +158,47 @@ redirect_reaction(
 	//! Destination for message redirection.
 	const mbox_t & to );
 
-/*!
- * \since v.5.5.4
- * \brief Actual implementation of redirect message reaction.
- */
-SO_5_FUNC
-void
-redirect_reaction(
-	//! Context on which overlimit must be handled.
-	const overlimit_context_t & ctx,
-	//! A receiver for the redirected message.
-	const agent_t & to );
-
 } /* namespace impl */
 
-template< class M >
-void
-accept_one_indicator(
-	description_container_t & to,
-	const redirect_to_mbox_indicator_t< M > & indicator )
+//
+// redirect_indicator_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Indication that a message must be redirected on overlimit.
+ *
+ * \tparam MSG Message type of message/signal to be redirected.
+ * \tparam LAMBDA Type of lambda- or functional object which returns
+ * actual mbox for redirection.
+ */
+template< typename MSG, typename LAMBDA >
+struct redirect_indicator_t
 	{
-		const mbox_t destination = indicator.m_destination;
-		to.emplace_back( typeid( M ),
-				indicator.m_limit,
-				[destination]( const overlimit_context_t & ctx ) {
-					impl::redirect_reaction( ctx, destination );
-				} );
-	}
+		//! Max count of waiting messages.
+		const unsigned int m_limit;
 
-template< class M >
+		//! A lambda/functional object which returns mbox for redirection.
+		LAMBDA m_destination_getter;
+
+		redirect_indicator_t(
+			unsigned int limit,
+			LAMBDA destination_getter )
+			:	m_limit( limit )
+			,	m_destination_getter( std::move( destination_getter ) )
+			{}
+	};
+
+template< typename MSG, typename LAMBDA >
 void
 accept_one_indicator(
 	description_container_t & to,
-	const redirect_to_agent_indicator_t< M > & indicator )
+	const redirect_indicator_t< MSG, LAMBDA > & indicator )
 	{
-		const agent_t * const receiver = indicator.m_receiver;
-		to.emplace_back( typeid( M ),
+		LAMBDA dest_getter = indicator.m_destination_getter;
+		to.emplace_back( typeid( MSG ),
 				indicator.m_limit,
-				[receiver]( const overlimit_context_t & ctx ) {
-					impl::redirect_reaction( ctx, *receiver );
+				[dest_getter]( const overlimit_context_t & ctx ) {
+					impl::redirect_reaction( ctx, dest_getter() );
 				} );
 	}
 
@@ -453,6 +384,21 @@ accept_indicators(
  */
 struct message_limit_methods_mixin_t
 	{
+		/*!
+		 * \since v.5.5.4
+		 * \brief A helper function for creating redirect_indicator.
+		 */
+		template< typename MSG, typename LAMBDA >
+		static redirect_indicator_t< MSG, LAMBDA >
+		limit_then_redirect(
+			unsigned int limit,
+			LAMBDA dest_getter )
+			{
+				return redirect_indicator_t< MSG, LAMBDA >(
+						limit,
+						std::move( dest_getter ) );
+			}
+
 		/*!
 		 * \since v.5.5.4
 		 * \brief A helper function for creating transform_indicator.

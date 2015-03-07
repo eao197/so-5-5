@@ -24,7 +24,8 @@ public :
 		std::string reply )
 		:	so_5::rt::agent_t( env,
 				tuning_options().message_limits(
-					message_limit< msg_request >( 2 ).redirect( self_ptr() ) ) )
+					limit_then_redirect< msg_request >( 2,
+						[this] { return so_direct_mbox(); } ) ) )
 		,	m_reply( std::move( reply ) )
 	{}
 

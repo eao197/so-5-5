@@ -49,7 +49,8 @@ public :
 		const so_5::rt::mbox_t & redirect_to )
 		:	so_5::rt::agent_t( env,
 				tuning_options().message_limits(
-					message_limit< msg_request >( 1 ).redirect( redirect_to ) ) )
+					limit_then_redirect< msg_request >( 1,
+						[redirect_to] { return redirect_to; } ) ) )
 		,	m_reply( std::move( reply ) )
 	{}
 
