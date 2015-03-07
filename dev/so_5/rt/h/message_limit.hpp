@@ -192,6 +192,16 @@ namespace impl
 
 /*!
  * \since v.5.5.4
+ * \brief Checks that service request will not be transformed.
+ */
+SO_5_FUNC
+void
+ensure_event_transform_reaction(
+	//! Context on which overlimit must be handled.
+	const overlimit_context_t & ctx );
+
+/*!
+ * \since v.5.5.4
  * \brief Actual implementation of transform reaction.
  */
 SO_5_FUNC
@@ -426,6 +436,10 @@ struct message_limit_methods_mixin_t
 				ensure_not_signal< ARG >();
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
+						// Service request cannot be transformed.
+						// So ensure that is event, not service request.
+						impl::ensure_event_transform_reaction( ctx );
+
 						const ARG & msg = dynamic_cast< const ARG & >(
 								*ctx.m_message.get() );
 						auto r = transformator( msg );
@@ -452,6 +466,10 @@ struct message_limit_methods_mixin_t
 				ensure_signal< SOURCE >();
 
 				action_t act = [transformator]( const overlimit_context_t & ctx ) {
+						// Service request cannot be transformed.
+						// So ensure that is event, not service request.
+						impl::ensure_event_transform_reaction( ctx );
+
 						auto r = transformator();
 						impl::transform_reaction(
 								ctx, r.mbox(), r.msg_type(), r.message() );
