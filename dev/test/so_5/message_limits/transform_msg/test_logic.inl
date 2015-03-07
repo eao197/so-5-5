@@ -72,8 +72,8 @@ public :
 							return make_transformed< msg_final_overlimit >(
 									m_working_mbox, "done" );
 						} ),
-					message_limit< msg_final_overlimit >( 1 ).drop,
-					message_limit< msg_finish >( 1 ).drop
+					limit_then_drop< msg_final_overlimit >( 1 ),
+					limit_then_drop< msg_finish >( 1 )
 				 ) )
 	{}
 

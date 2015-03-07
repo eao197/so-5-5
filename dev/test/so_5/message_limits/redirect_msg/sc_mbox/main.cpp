@@ -39,7 +39,7 @@ public :
 		std::string reply )
 		:	so_5::rt::agent_t( env,
 				tuning_options().message_limits(
-					message_limit< msg_request >( 1 ).drop ) )
+					limit_then_drop< msg_request >( 1 ) ) )
 		,	m_reply( std::move( reply ) )
 	{}
 

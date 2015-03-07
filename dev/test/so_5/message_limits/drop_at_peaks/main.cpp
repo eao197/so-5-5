@@ -92,7 +92,7 @@ public :
 		so_5::rt::mbox_t sender )
 		:	so_5::rt::agent_t( env,
 				tuning_options().message_limits(
-					message_limit< msg_ping >( 2 ).drop ) )
+					limit_then_drop< msg_ping >( 2 ) ) )
 		,	m_sender( std::move( sender ) )
 	{}
 

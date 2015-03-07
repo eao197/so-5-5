@@ -31,20 +31,6 @@ namespace message_limit
 {
 
 //
-// drop_indicator_t
-//
-template< class M >
-struct drop_indicator_t
-	{
-		//! Max count of waiting messages.
-		const unsigned int m_limit;
-
-		drop_indicator_t( unsigned int limit )
-			:	m_limit( limit )
-			{}
-	};
-
-//
 // abort_app_indicator_t
 //
 template< class M >
@@ -64,12 +50,10 @@ struct abort_app_indicator_t
 template< class M >
 struct one_limit_describer_t
 	{
-		const drop_indicator_t< M > drop;
 		const abort_app_indicator_t< M > abort_app;
 
 		one_limit_describer_t( unsigned int limit )
-			:	drop( limit )
-			,	abort_app( limit )
+			:	abort_app( limit )
 			{}
 	};
 
@@ -102,6 +86,20 @@ struct description_t
 // description_container_t
 //
 using description_container_t = std::vector< description_t >;
+
+//
+// drop_indicator_t
+//
+template< class M >
+struct drop_indicator_t
+	{
+		//! Max count of waiting messages.
+		const unsigned int m_limit;
+
+		drop_indicator_t( unsigned int limit )
+			:	m_limit( limit )
+			{}
+	};
 
 //
 // accept_one_indicator
@@ -384,6 +382,17 @@ accept_indicators(
  */
 struct message_limit_methods_mixin_t
 	{
+		/*!
+		 * \since v.5.5.4
+		 * \brief A helper function for creating drop_indicator.
+		 */
+		template< typename MSG >
+		static drop_indicator_t< MSG >
+		limit_then_drop( unsigned int limit )
+			{
+				return drop_indicator_t< MSG >( limit );
+			}
+
 		/*!
 		 * \since v.5.5.4
 		 * \brief A helper function for creating redirect_indicator.

@@ -26,8 +26,8 @@ public :
 		so_5::rt::environment_t & env )
 		:	so_5::rt::agent_t( env,
 				tuning_options().message_limits(
-					message_limit< msg_one >( 2 ).drop,
-					message_limit< msg_two >( 1000 ).drop ) )
+					limit_then_drop< msg_one >( 2 ),
+					limit_then_drop< msg_two >( 1000 ) ) )
 	{}
 
 	virtual void
