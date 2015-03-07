@@ -56,15 +56,15 @@ redirect_reaction(
 	{
 		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
 			{
-				std::ostringstream ss;
-				ss << "maximum message reaction deep exceeded on redirection;"
+				SO_5_LOG_ERROR(
+						ctx.m_receiver.so_environment().error_logger(),
+						logger )
+					logger << "maximum message reaction deep exceeded on "
+							"redirection; message will be ignored; "
 						<< " msg_type: " << ctx.m_msg_type.name()
 						<< ", limit: " << ctx.m_limit.m_limit
 						<< ", agent: " << &(ctx.m_receiver)
 						<< ", target_mbox: " << to->query_name();
-				SO_5_THROW_EXCEPTION(
-						rc_max_overlimit_reaction_deep,
-						ss.str() );
 			}
 		else if( invocation_type_t::event == ctx.m_event_type )
 			to->do_deliver_message(
@@ -88,16 +88,16 @@ transform_reaction(
 	{
 		if( ctx.m_reaction_deep >= max_overlimit_reaction_deep )
 			{
-				std::ostringstream ss;
-				ss << "maximum message reaction deep exceeded on transformation;"
+				SO_5_LOG_ERROR(
+						ctx.m_receiver.so_environment().error_logger(),
+						logger )
+					logger << "maximum message reaction deep exceeded on "
+							"transformation; message will be ignored;"
 						<< " original_msg_type: " << ctx.m_msg_type.name()
 						<< ", limit: " << ctx.m_limit.m_limit
 						<< ", agent: " << &(ctx.m_receiver)
 						<< ", result_msg_type: " << msg_type.name()
 						<< ", target_mbox: " << to->query_name();
-				SO_5_THROW_EXCEPTION(
-						rc_max_overlimit_reaction_deep,
-						ss.str() );
 			}
 		else if( invocation_type_t::event == ctx.m_event_type )
 			to->do_deliver_message(
