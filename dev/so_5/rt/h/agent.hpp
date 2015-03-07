@@ -677,17 +677,6 @@ class SO_5_TYPE agent_t
 			return agent_tuning_options_t();
 		}
 
-		/*!
-		 * \since v.5.5.4
-		 * \brief Create descriptor for message limits.
-		 */
-		template< typename M >
-		inline static message_limit::one_limit_describer_t< M >
-		message_limit( unsigned int limit )
-		{
-			return message_limit::one_limit_describer_t< M >{ limit };
-		}
-
 	protected:
 		/*!
 		 * \name Methods for working with the agent state.

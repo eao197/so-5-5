@@ -31,33 +31,6 @@ namespace message_limit
 {
 
 //
-// abort_app_indicator_t
-//
-template< class M >
-struct abort_app_indicator_t
-	{
-		//! Max count of waiting messages.
-		const unsigned int m_limit;
-
-		abort_app_indicator_t( unsigned int limit )
-			:	m_limit( limit )
-			{}
-	};
-
-//
-// one_limit_describer_t
-//
-template< class M >
-struct one_limit_describer_t
-	{
-		const abort_app_indicator_t< M > abort_app;
-
-		one_limit_describer_t( unsigned int limit )
-			:	abort_app( limit )
-			{}
-	};
-
-//
 // description_t
 //
 struct description_t
@@ -127,6 +100,20 @@ void
 abort_app_reaction( const overlimit_context_t & ctx );
 
 } /* namespace impl */
+
+//
+// abort_app_indicator_t
+//
+template< class M >
+struct abort_app_indicator_t
+	{
+		//! Max count of waiting messages.
+		const unsigned int m_limit;
+
+		abort_app_indicator_t( unsigned int limit )
+			:	m_limit( limit )
+			{}
+	};
 
 template< class M >
 void
@@ -391,6 +378,17 @@ struct message_limit_methods_mixin_t
 		limit_then_drop( unsigned int limit )
 			{
 				return drop_indicator_t< MSG >( limit );
+			}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief A helper function for creating abort_app_indicator.
+		 */
+		template< typename MSG >
+		static abort_app_indicator_t< MSG >
+		limit_then_abort( unsigned int limit )
+			{
+				return abort_app_indicator_t< MSG >( limit );
 			}
 
 		/*!
