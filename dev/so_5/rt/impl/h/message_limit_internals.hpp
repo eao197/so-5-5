@@ -83,20 +83,15 @@ class info_storage_t
 			//! Source description of limits.
 			description_container_t && descriptions )
 			:	m_blocks( build_blocks( std::move( descriptions ) ) )
+			,	m_small_container( m_blocks.size() <= 8 )
 			{}
 
 		inline const control_block_t *
 		find( const std::type_index & msg_type ) const
 			{
-				using namespace std;
+				auto r = find_block( msg_type );
 
-//FIXME: for the big m_blocks a binary search must be used.
-				// Simple linear search just for the first implementation.
-				auto r = find_if( begin( m_blocks ), end( m_blocks ),
-						[&]( const info_block_t & blk ) {
-							return blk.m_msg_type == msg_type;
-						} );
-				if( r != end( m_blocks ) )
+				if( r )
 					return &(r->m_control_block);
 
 				return nullptr;
@@ -119,6 +114,9 @@ class info_storage_t
 	private :
 		//! Information about limits.
 		const info_block_container_t m_blocks;
+
+		//! Is the container is small and linear search must be used?
+		const bool m_small_container;
 
 		//! Run-time limit information builder.
 		inline static info_block_container_t
@@ -145,6 +143,65 @@ class info_storage_t
 						} );
 
 				return result;
+			}
+
+		//! Search for info_block.
+		inline const info_block_t *
+		find_block( const std::type_index & msg_type ) const
+			{
+				if( m_small_container )
+					return find_block_in_small_container( msg_type );
+				else
+					return find_block_in_large_container( msg_type );
+			}
+
+
+		//! Search for info_block in the small container.
+		inline const info_block_t *
+		find_block_in_small_container(
+			const std::type_index & msg_type ) const
+			{
+				using namespace std;
+
+				// Simple linear search because it is more effective
+				// on a small containers.
+				auto r = find_if( begin( m_blocks ), end( m_blocks ),
+						[&]( const info_block_t & blk ) {
+							return blk.m_msg_type == msg_type;
+						} );
+				if( r != end( m_blocks ) )
+					return &(*r);
+
+				return nullptr;
+			}
+
+		//! Search for info_block in the large container.
+		inline const info_block_t *
+		find_block_in_large_container(
+			const std::type_index & msg_type ) const
+			{
+				using namespace std;
+
+				// Use binary search.
+				auto left = begin( m_blocks );
+				auto count = distance( left, end( m_blocks ) );
+
+				while( count > 0 )
+					{
+						auto step = count / 2;
+						auto middle = left + step;
+						if( middle->m_msg_type == msg_type )
+							return &(*middle);
+						else if( middle->m_msg_type < msg_type )
+							{
+								left = middle + 1;
+								count -= step + 1;
+							}
+						else
+							count = step;
+					}
+
+				return nullptr;
 			}
 	};
 
