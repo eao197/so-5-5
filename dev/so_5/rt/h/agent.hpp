@@ -30,7 +30,6 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
-#include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
 
@@ -1295,22 +1294,12 @@ class SO_5_TYPE agent_t
 		 * \since v.5.4.0
 		 * \brief Event queue proxy.
 		 *
-		 * After creation of agent it is pointed to m_tmp_event_queue.
-		 *
 		 * After binding to the dispatcher is it pointed to the actual
 		 * event queue.
 		 *
 		 * After shutdown it is closed.
 		 */
 		event_queue_proxy_ref_t m_event_queue_proxy;
-
-		/*!
-		 * \since v.5.4.0
-		 * \brief Temporary event queue.
-		 *
-		 * This queue is used while agent is not bound to the dispatcher.
-		 */
-		temporary_event_queue_t m_tmp_event_queue;
 
 		/*!
 		 * \since v.5.4.0

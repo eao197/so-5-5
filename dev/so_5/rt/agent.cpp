@@ -155,7 +155,6 @@ agent_t::agent_t(
 	agent_tuning_options_t options )
 	:	agent_t( context_t{ env, std::move( options ) } )
 {
-	m_event_queue_proxy->switch_to( m_tmp_event_queue );
 }
 
 agent_t::agent_t(
@@ -170,7 +169,6 @@ agent_t::agent_t(
 				ctx.options().giveout_message_limits() ) )
 	,	m_env( ctx.env() )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
-	,	m_tmp_event_queue( m_mutex )
 	,	m_direct_mbox(
 			ctx.env().so5__create_mpsc_mbox(
 				self_ptr(),
@@ -183,6 +181,7 @@ agent_t::agent_t(
 	,	m_is_coop_deregistered( false )
 {
 }
+
 agent_t::~agent_t()
 {
 	// Sometimes it is possible that agent is destroyed without
@@ -320,31 +319,10 @@ agent_t::so_bind_to_dispatcher(
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
 
-	m_tmp_event_queue.switch_to_actual_queue(
+	m_event_queue_proxy->switch_to_actual_queue(
 			queue,
 			this,
 			&agent_t::demand_handler_on_start );
-
-	// Proxy must be switched on unblocked agent.
-	// Otherwise there could be a deadlock when direct mbox is used.
-	// Scenario:
-	//
-	// T1:
-	//  - is trying to send message to the agent;
-	//  - event_queue_proxy spinlock is locked in 'reader' mode;
-	//  - tmp_queue.push is called;
-	//  - tmp_queue.push is trying to acquire agent's mutex;
-	// T2:
-	//  - is trying to bind agent to the dispatcher;
-	//  - tmp_queue.switch_to_actual_queue is called;
-	//  - agent's mutex is acquired;
-	//  - an attempt to switch proxy to actual queue is performed;
-	//  - is trying to acquire proxy's spinlock if 'writer' mode.
-	//
-	// Becuase of that m_event_queue_proxy->switch_to is now called
-	// outside of m_tmp_event_queue.switch_to_actual_queue().
-	//
-	m_event_queue_proxy->switch_to( queue );
 }
 
 execution_hint_t
@@ -450,7 +428,7 @@ agent_t::shutdown_agent()
 	// the agent, but all the subscriptions remains. They will be destroyed
 	// at the very end of agent's lifetime.
 
-	// e must shutdown proxy object. And only then
+	// We must shutdown proxy object. And only then
 	// the last demand will be sent to the agent.
 	auto q = m_event_queue_proxy->shutdown();
 	if( q )
