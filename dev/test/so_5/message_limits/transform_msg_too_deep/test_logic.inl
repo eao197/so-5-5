@@ -49,14 +49,13 @@ public :
 	a_worker_t(
 		so_5::rt::environment_t & env,
 		std::string reply )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_transform( 2,
-						[this]( const msg_request & evt ) {
-							return make_transformed< msg_request >(
-									m_self_mbox, evt.m_reply_to );
-						} ),
-					limit_then_drop< msg_finish >( 1 ) ) )
+		:	so_5::rt::agent_t( env
+				+ limit_then_transform( 2,
+					[this]( const msg_request & evt ) {
+						return make_transformed< msg_request >(
+								m_self_mbox, evt.m_reply_to );
+					} )
+				+ limit_then_drop< msg_finish >( 1 ) )
 		,	m_reply( std::move( reply ) )
 	{}
 

@@ -22,9 +22,7 @@ public :
 	a_worker_t(
 		so_5::rt::environment_t & env,
 		std::string reply )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_drop< msg_request >( 1 ) ) )
+		:	so_5::rt::agent_t( env + limit_then_drop< msg_request >( 1 ) )
 		,	m_reply( std::move( reply ) )
 	{}
 
@@ -32,10 +30,9 @@ public :
 		so_5::rt::environment_t & env,
 		std::string reply,
 		const so_5::rt::mbox_t & redirect_to )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_redirect< msg_request >( 1,
-						[redirect_to] { return redirect_to; } ) ) )
+		:	so_5::rt::agent_t( env
+				+ limit_then_redirect< msg_request >( 1,
+					[redirect_to] { return redirect_to; } ) )
 		,	m_reply( std::move( reply ) )
 	{}
 

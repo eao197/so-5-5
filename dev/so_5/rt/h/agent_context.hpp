@@ -128,15 +128,44 @@ operator+( environment_t & env, OPTION arg )
  * \{
  */
 template< class M >
-agent_context_t &&
+agent_context_t
 operator+(
-	agent_context_t && ctx,
+	agent_context_t ctx,
 	message_limit::drop_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( limit );
 		return std::move( ctx );
 	};
 
+template< class M >
+agent_context_t
+operator+(
+	agent_context_t ctx,
+	message_limit::abort_app_indicator_t< M > limit )
+	{
+		ctx.options().message_limits( limit );
+		return std::move( ctx );
+	};
+
+template< class M, class L >
+agent_context_t
+operator+(
+	agent_context_t ctx,
+	message_limit::redirect_indicator_t< M, L > limit )
+	{
+		ctx.options().message_limits( limit );
+		return std::move( ctx );
+	};
+
+template< class M >
+agent_context_t
+operator+(
+	agent_context_t ctx,
+	message_limit::transform_indicator_t< M > limit )
+	{
+		ctx.options().message_limits( limit );
+		return std::move( ctx );
+	};
 /*!
  * \}
  */

@@ -50,31 +50,30 @@ class a_test_t : public so_5::rt::agent_t
 public :
 	a_test_t(
 		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_transform( 1,
-						[&]( const msg_hello & msg ) {
-							return make_transformed< msg_hello_overlimit >(
-									m_working_mbox, "<=" + msg.m_text + "=>" );
-						} ),
-					limit_then_transform( 1,
-						[&]( const msg_hello_overlimit & ) {
-							return make_transformed< msg_double_overlimit >(
-									m_working_mbox );
-						} ),
-					limit_then_transform< msg_double_overlimit >( 1,
-						[&] {
-							return make_transformed< msg_triple_overlimit >(
-									m_working_mbox );
-						} ),
-					limit_then_transform< msg_triple_overlimit >( 1,
-						[&] {
-							return make_transformed< msg_final_overlimit >(
-									m_working_mbox, "done" );
-						} ),
-					limit_then_drop< msg_final_overlimit >( 1 ),
-					limit_then_drop< msg_finish >( 1 )
-				 ) )
+		:	so_5::rt::agent_t( env
+				+ limit_then_transform( 1,
+					[&]( const msg_hello & msg ) {
+						return make_transformed< msg_hello_overlimit >(
+								m_working_mbox, "<=" + msg.m_text + "=>" );
+					} )
+				+ limit_then_transform( 1,
+					[&]( const msg_hello_overlimit & ) {
+						return make_transformed< msg_double_overlimit >(
+								m_working_mbox );
+					} )
+				+ limit_then_transform< msg_double_overlimit >( 1,
+					[&] {
+						return make_transformed< msg_triple_overlimit >(
+								m_working_mbox );
+					} )
+				+ limit_then_transform< msg_triple_overlimit >( 1,
+					[&] {
+						return make_transformed< msg_final_overlimit >(
+								m_working_mbox, "done" );
+					} )
+				+ limit_then_drop< msg_final_overlimit >( 1 )
+				+ limit_then_drop< msg_finish >( 1 )
+			)
 	{}
 
 	void

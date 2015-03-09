@@ -24,10 +24,9 @@ class a_with_limits_t : public so_5::rt::agent_t
 public :
 	a_with_limits_t(
 		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_drop< msg_one >( 2 ),
-					limit_then_drop< msg_two >( 1000 ) ) )
+		:	so_5::rt::agent_t( env
+				+ limit_then_drop< msg_one >( 2 )
+				+ limit_then_drop< msg_two >( 1000 ) )
 	{}
 
 	virtual void

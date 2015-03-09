@@ -21,9 +21,7 @@ class a_test_t : public so_5::rt::agent_t
 public :
 	a_test_t(
 		so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_abort< msg_one >( 1 ) ) )
+		:	so_5::rt::agent_t( env + limit_then_abort< msg_one >( 1 ) )
 	{}
 
 	void

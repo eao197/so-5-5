@@ -22,8 +22,8 @@ struct msg_finish : public so_5::rt::signal_t {};
 class a_sender_t : public so_5::rt::agent_t
 {
 public :
-	a_sender_t( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	a_sender_t( context_t ctx )
+		:	so_5::rt::agent_t( ctx )
 	{}
 
 	void
@@ -88,9 +88,9 @@ class a_receiver_t : public so_5::rt::agent_t
 {
 public :
 	a_receiver_t(
-		so_5::rt::environment_t & env,
+		context_t ctx,
 		so_5::rt::mbox_t sender )
-		:	so_5::rt::agent_t( env + limit_then_drop< msg_ping >( 2 ) )
+		:	so_5::rt::agent_t( ctx + limit_then_drop< msg_ping >( 2 ) )
 		,	m_sender( std::move( sender ) )
 	{}
 

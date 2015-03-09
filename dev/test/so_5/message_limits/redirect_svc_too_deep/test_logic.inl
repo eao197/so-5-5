@@ -22,10 +22,9 @@ public :
 	a_worker_t(
 		so_5::rt::environment_t & env,
 		std::string reply )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_redirect< msg_request >( 2,
-						[this] { return m_self_mbox; } ) ) )
+		:	so_5::rt::agent_t( env +
+				limit_then_redirect< msg_request >( 2,
+					[this] { return m_self_mbox; } ) )
 		,	m_reply( std::move( reply ) )
 	{}
 
