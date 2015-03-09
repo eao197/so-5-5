@@ -90,9 +90,7 @@ public :
 	a_receiver_t(
 		so_5::rt::environment_t & env,
 		so_5::rt::mbox_t sender )
-		:	so_5::rt::agent_t( env,
-				tuning_options().message_limits(
-					limit_then_drop< msg_ping >( 2 ) ) )
+		:	so_5::rt::agent_t( env + limit_then_drop< msg_ping >( 2 ) )
 		,	m_sender( std::move( sender ) )
 	{}
 

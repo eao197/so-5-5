@@ -153,19 +153,26 @@ agent_t::agent_t(
 agent_t::agent_t(
 	environment_t & env,
 	agent_tuning_options_t options )
+	:	agent_t( context_t{ env, std::move( options ) } )
+{
+	m_event_queue_proxy->switch_to( m_tmp_event_queue );
+}
+
+agent_t::agent_t(
+	context_t ctx )
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
 	,	m_subscriptions(
-			options.query_subscription_storage_factory()( self_ptr() ) )
+			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
 	,	m_message_limits(
 			message_limit::impl::info_storage_t::create_if_necessary(
-				options.giveout_message_limits() ) )
-	,	m_env( env )
+				ctx.options().giveout_message_limits() ) )
+	,	m_env( ctx.env() )
 	,	m_event_queue_proxy( new event_queue_proxy_t() )
 	,	m_tmp_event_queue( m_mutex )
 	,	m_direct_mbox(
-			env.so5__create_mpsc_mbox(
+			ctx.env().so5__create_mpsc_mbox(
 				self_ptr(),
 				m_message_limits.get(),
 				m_event_queue_proxy ) )
@@ -175,9 +182,7 @@ agent_t::agent_t(
 	,	m_agent_coop( 0 )
 	,	m_is_coop_deregistered( false )
 {
-	m_event_queue_proxy->switch_to( m_tmp_event_queue );
 }
-
 agent_t::~agent_t()
 {
 	// Sometimes it is possible that agent is destroyed without

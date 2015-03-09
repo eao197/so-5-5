@@ -19,6 +19,10 @@ namespace so_5
 namespace rt
 {
 
+/*
+ * NOTE: copy and move constructors and copy operator is implemented
+ * because Visual C++ 12.0 (MSVS2013) doesn't generate it by itself.
+ */
 //
 // agent_tuning_options_t
 //
@@ -29,6 +33,35 @@ namespace rt
 class agent_tuning_options_t
 	{
 	public :
+		agent_tuning_options_t()
+			{}
+		agent_tuning_options_t(
+			const agent_tuning_options_t & o )
+			:	m_subscription_storage_factory( o.m_subscription_storage_factory )
+			,	m_message_limits( o.m_message_limits )
+			{}
+		agent_tuning_options_t(
+			agent_tuning_options_t && o )
+			:	m_subscription_storage_factory(
+					std::move( o.m_subscription_storage_factory ) )
+			,	m_message_limits( std::move( o.m_message_limits ) )
+			{}
+
+		void
+		swap( agent_tuning_options_t & o )
+			{
+				std::swap( m_subscription_storage_factory,
+						o.m_subscription_storage_factory );
+				std::swap( m_message_limits, o.m_message_limits );
+			}
+
+		agent_tuning_options_t &
+		operator=( agent_tuning_options_t o )
+			{
+				swap( o );
+				return *this;
+			}
+
 		//! Set factory for subscription storage creation.
 		agent_tuning_options_t &
 		subscription_storage_factory(
@@ -79,4 +112,17 @@ class agent_tuning_options_t
 } /* namespace rt */
 
 } /* namespace so_5 */
+
+namespace std
+{
+
+inline void
+swap(
+	so_5::rt::agent_tuning_options_t & a,
+	so_5::rt::agent_tuning_options_t & b )
+	{
+		a.swap( b );
+	}
+
+} /* namespace std */
 

@@ -26,14 +26,13 @@
 #include <so_5/details/h/lambda_traits.hpp>
 
 #include <so_5/rt/h/agent_ref_fwd.hpp>
-#include <so_5/rt/h/agent_tuning_options.hpp>
+#include <so_5/rt/h/agent_context.hpp>
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
 #include <so_5/rt/h/temporary_event_queue.hpp>
 #include <so_5/rt/h/event_queue_proxy.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
-#include <so_5/rt/h/message_limit.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -428,6 +427,12 @@ class SO_5_TYPE agent_t
 		friend class so_5::rt::impl::mpsc_mbox_t;
 
 	public:
+		/*!
+		 * \since v.5.5.4
+		 * \brief Short alias for agent_context.
+		 */
+		using context_t = so_5::rt::agent_context_t;
+
 		//! Constructor.
 		/*!
 			Agent must be bound to the SObjectizer Environment during
@@ -459,6 +464,37 @@ class SO_5_TYPE agent_t
 		agent_t(
 			environment_t & env,
 			agent_tuning_options_t tuning_options );
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Constructor which simplifies agent construction with
+		 * or without agent's tuning options.
+		 *
+		 * \par Usage sample:
+		 * \code
+		 class my_agent : public so_5::rt::agent_t
+		 {
+		 public :
+		 	my_agent( context_t ctx )
+				:	so_5::rt::agent( ctx + limit_then_drop< get_status >(1) )
+				{}
+			...
+		 };
+		 class my_more_specific_agent : public my_agent
+		 {
+		 public :
+		 	my_more_specific_agent( context_t ctx )
+				:	my_agent( ctx + limit_then_drop< reconfigure >(1) )
+				{}
+		 };
+
+		 // Then somewhere in the code:
+		 auto coop = env.create_coop( so_5::autoname );
+		 auto a = coop->make_agent< my_agent >();
+		 auto b = coop->make_agent< my_more_specific_agent >();
+		 * \endcode
+		 */
+		agent_t( context_t ctx );
 
 		virtual ~agent_t();
 
