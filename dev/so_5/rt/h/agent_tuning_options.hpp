@@ -67,7 +67,7 @@ class agent_tuning_options_t
 		subscription_storage_factory(
 			subscription_storage_factory_t factory )
 			{
-				m_subscription_storage_factory = factory;
+				m_subscription_storage_factory = std::move( factory );
 
 				return *this;
 			}

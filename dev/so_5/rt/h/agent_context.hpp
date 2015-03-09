@@ -127,6 +127,15 @@ operator+( environment_t & env, OPTION arg )
  * \name Operators for tuning agent_context.
  * \{
  */
+inline agent_context_t
+operator+(
+	agent_context_t ctx,
+	subscription_storage_factory_t factory )
+	{
+		ctx.options().subscription_storage_factory( std::move( factory ) );
+		return std::move( ctx );
+	}
+
 template< class M >
 agent_context_t
 operator+(

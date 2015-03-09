@@ -106,10 +106,7 @@ class a_test_t : public so_5::rt::agent_t
 		a_test_t(
 			so_5::rt::environment_t & env,
 			so_5::rt::subscription_storage_factory_t factory )
-			:	base_type_t(
-					env,
-					tuning_options()
-						.subscription_storage_factory( std::move( factory ) ) )
+			:	base_type_t( env + factory )
 			,	m_mbox( test_mbox_t::create( env ) )
 		{
 		}
