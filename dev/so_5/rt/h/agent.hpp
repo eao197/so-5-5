@@ -1250,12 +1250,6 @@ class SO_5_TYPE agent_t
 		//! Current agent state.
 		const state_t * m_current_state_ptr;
 
-		/*!
-		 * \since v.5.4.0
-		 * \brief A mutex for protecting that agent.
-		 */
-		std::mutex m_mutex;
-
 		//! Agent definition flag.
 		/*!
 		 * Set to true after a successful return from the so_define_agent().
