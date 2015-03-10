@@ -162,7 +162,7 @@ operator+(
 	agent_context_t ctx,
 	message_limit::redirect_indicator_t< M, L > limit )
 	{
-		ctx.options().message_limits( limit );
+		ctx.options().message_limits( std::move( limit ) );
 		return std::move( ctx );
 	};
 
@@ -172,7 +172,7 @@ operator+(
 	agent_context_t ctx,
 	message_limit::transform_indicator_t< M > limit )
 	{
-		ctx.options().message_limits( limit );
+		ctx.options().message_limits( std::move( limit ) );
 		return std::move( ctx );
 	};
 /*!
