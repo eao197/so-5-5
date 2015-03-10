@@ -8,6 +8,7 @@
 #include <deque>
 #include <chrono>
 #include <string>
+#include <sstream>
 
 #include <so_5/all.hpp>
 
@@ -89,15 +90,32 @@ public :
 				// Because we can't lost log messages the overlimit
 				// must lead to application crash.
 				+ limit_then_abort< log_message >( 100 ) )
+		,	m_started_at( std::chrono::steady_clock::now() )
 	{}
 
 	virtual void
 	so_define_agent() override
 	{
 		so_default_state().event(
-			[]( const log_message & evt ) {
-				std::cout << "[log] -- " << evt.m_what << std::endl;
+			[this]( const log_message & evt ) {
+				std::cout << "[+" << time_delta()
+						<< "] -- " << evt.m_what << std::endl;
 			} );
+	}
+
+private :
+	const std::chrono::steady_clock::time_point m_started_at;
+
+	std::string
+	time_delta() const
+	{
+		auto now = std::chrono::steady_clock::now();
+
+		std::ostringstream ss;
+		ss << std::chrono::duration_cast< std::chrono::milliseconds >(
+				now - m_started_at ).count() / 1000.0 << "ms";
+
+		return ss.str();
 	}
 };
 
@@ -111,6 +129,8 @@ public :
 		so_5::rt::environment_t & env,
 		// Name of generator.
 		std::string name,
+		// Starting value for request ID generation.
+		int id_starting_point,
 		// Address of message processor.
 		so_5::rt::mbox_t performer,
 		// Address of logger.
@@ -131,7 +151,8 @@ public :
 		,	m_name( std::move( name ) )
 		,	m_performer( std::move( performer ) )
 		,	m_logger( std::move( logger ) )
-		,	m_turn_pause( 100 )
+		,	m_turn_pause( 250 )
+		,	m_last_id( id_starting_point )
 	{}
 
 	virtual void
@@ -164,7 +185,7 @@ private :
 	const std::chrono::milliseconds m_turn_pause;
 
 	// Last generated ID for request.
-	int m_last_id = 0;
+	int m_last_id;
 
 	// Type of map from request ID to the request.
 	typedef std::map< int, request_smart_ptr_t > request_map_t;
@@ -175,11 +196,8 @@ private :
 	void
 	evt_next_turn()
 	{
-		// How many requests will be sent on this turn.
-		const auto requests = static_cast< unsigned int >( random( 1, 10 ) );
-
 		// Create new requests if there is a room in active_requests.
-		try_create_new_requests( requests );
+		try_create_new_requests( 7u );
 
 		// Active requests must be sent (for the first time or repeated).
 		send_active_requests();
@@ -208,7 +226,7 @@ private :
 		{
 			auto id = ++m_last_id;
 			m_active_requests[ id ] = request_smart_ptr_t(
-					new request( so_direct_mbox(), id, random( 10, 500 ) ) );
+					new request( so_direct_mbox(), id, random( 30, 100 ) ) );
 		}
 	}
 
@@ -327,17 +345,21 @@ init( so_5::rt::environment_t & env )
 			a_performer_t::next_performer{ p2->so_direct_mbox() },
 			logger->so_direct_mbox() );
 
-	// Generators will work on dedicated one_thread dispatcher.
-	auto generator_disp = so_5::disp::one_thread::create_private_disp();
+	// Generators will work on dedicated thread_pool dispatcher.
+	auto generator_disp = so_5::disp::thread_pool::create_private_disp( 2 );
+	auto generator_binding_params = so_5::disp::thread_pool::params_t{}
+			.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
 	coop->make_agent_with_binder< a_generator_t >(
-			generator_disp->binder(),
+			generator_disp->binder( generator_binding_params ),
 			"g1",
+			0,
 			p1->so_direct_mbox(),
 			logger->so_direct_mbox() );
 	coop->make_agent_with_binder< a_generator_t >(
-			generator_disp->binder(),
+			generator_disp->binder( generator_binding_params ),
 			"g2",
+			1000000,
 			p1->so_direct_mbox(),
 			logger->so_direct_mbox() );
 
