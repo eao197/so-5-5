@@ -6,6 +6,7 @@ path = 'test/so_5/message_limits'
 MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/subscr_without_limit/prj.ut.rb"
+	required_prj "#{path}/duplicate_limit/prj.ut.rb"
 	required_prj "#{path}/drop/prj.ut.rb"
 	required_prj "#{path}/drop_at_peaks/prj.ut.rb"
 	required_prj "#{path}/abort_app/mc_mbox/prj.ut.rb"

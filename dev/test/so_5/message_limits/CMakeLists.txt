@@ -1,3 +1,4 @@
+add_subdirectory(duplicate_limit)
 add_subdirectory(drop)
 add_subdirectory(drop_at_peaks)
 add_subdirectory(redirect_msg)

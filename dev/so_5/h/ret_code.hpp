@@ -169,9 +169,10 @@ const int rc_message_has_no_limit_defined = 48;
 
 /*!
  * \since v.5.5.4
- * \brief Message cannot be redirected to non-existent mbox.
+ * \brief An attempt to define several limits for one message type.
  */
-const int rc_empty_mbox_for_redirection = 49;
+const int rc_several_limits_for_one_message_type = 49;
+
 //! \}
 
 //! \name Error codes for mboxes.

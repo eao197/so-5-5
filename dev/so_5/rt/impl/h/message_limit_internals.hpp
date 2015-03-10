@@ -137,10 +137,21 @@ class info_storage_t
 								};
 						} );
 
+				// Result must be sorted.
 				sort( begin( result ), end( result ),
 						[]( const info_block_t & a, const info_block_t & b ) {
 							return a.m_msg_type < b.m_msg_type;
 						} );
+
+				// There must not be duplicates.
+				auto duplicate = adjacent_find( begin( result ), end( result ),
+						[]( const info_block_t & a, const info_block_t & b ) {
+							return a.m_msg_type == b.m_msg_type;
+						} );
+				if( duplicate != end( result ) )
+					SO_5_THROW_EXCEPTION( rc_several_limits_for_one_message_type,
+							std::string( "several limits are defined for message; "
+									"msg_type: " ) + duplicate->m_msg_type.name() );
 
 				return result;
 			}
