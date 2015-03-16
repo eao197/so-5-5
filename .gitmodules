@@ -1,4 +1,4 @@
 [submodule "dev/utest_helper_1"]
 	path = dev/utest_helper_1
-	url = git@github.com:masterspline/utest_helper_1.git
+	url = https://github.com/masterspline/utest_helper_1.git
 	branch = export
