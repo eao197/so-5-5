@@ -2,7 +2,7 @@
 	path = dev/utest_helper_1
 	url = https://github.com/masterspline/utest_helper_1.git
 	branch = export
-[submodule "timertt"]
-	path = timertt
+[submodule "dev/timertt"]
+	path = dev/timertt
 	url = https://github.com/masterspline/timertt.git
 	branch = export
