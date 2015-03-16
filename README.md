@@ -14,7 +14,7 @@ Building
 
 on Linux:
 ```
-  git clone https://github.com/masterspline/SObjectizer.git so
+  git clone --recursive https://github.com/masterspline/SObjectizer.git so
   mkdir build
   cd build
   cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../so/dev
