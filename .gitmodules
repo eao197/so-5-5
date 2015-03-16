@@ -6,3 +6,7 @@
 	path = dev/timertt
 	url = https://github.com/masterspline/timertt.git
 	branch = export
+[submodule "dev/various_helpers_1"]
+	path = dev/various_helpers_1
+	url = https://github.com/masterspline/various_helpers_1.git
+	branch = export
