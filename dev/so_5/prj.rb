@@ -27,13 +27,13 @@ MxxRu::Cpp::dll_target {
 	# Run-time.
 	sources_root( 'rt' ) {
 
-		cpp_source( 'nonempty_name.cpp' )
+		cpp_source 'nonempty_name.cpp'
 
-		cpp_source( 'message.cpp' )
+		cpp_source 'message.cpp'
 
 		cpp_source 'message_limit.cpp'
 
-		cpp_source( 'mbox.cpp' )
+		cpp_source 'mbox.cpp'
 
 		cpp_source 'event_queue.cpp'
 		cpp_source 'event_queue_proxy.cpp'
@@ -49,12 +49,12 @@ MxxRu::Cpp::dll_target {
 
 		cpp_source 'environment.cpp'
 
-		cpp_source( 'disp.cpp' )
-		cpp_source( 'disp_binder.cpp' )
+		cpp_source 'disp.cpp'
+		cpp_source 'disp_binder.cpp'
 
-		cpp_source( 'so_layer.cpp' )
+		cpp_source 'so_layer.cpp'
 
-		cpp_source( 'coop_listener.cpp' )
+		cpp_source 'coop_listener.cpp'
 
 		sources_root( 'impl' ) {
 			cpp_source 'subscription_storage_iface.cpp'
@@ -75,37 +75,42 @@ MxxRu::Cpp::dll_target {
 			cpp_source 'state_listener_controller.cpp'
 
 			sources_root( 'coop_dereg' ){
-				cpp_source( 'coop_dereg_executor_thread.cpp' )
-				cpp_source( 'dereg_demand_queue.cpp' )
+				cpp_source 'coop_dereg_executor_thread.cpp'
+				cpp_source 'dereg_demand_queue.cpp'
 			}
+		}
+
+		sources_root( 'stats' ) {
+			cpp_source 'controller.cpp'
 		}
 	}
 
 	sources_root( 'disp' ) {
 		sources_root( 'reuse' ) {
 			sources_root( 'work_thread' ) {
-				cpp_source( 'work_thread.cpp' )
+				cpp_source 'work_thread.cpp'
 			}
 		}
 
 		sources_root( 'one_thread' ) {
-			cpp_source( 'pub.cpp' )
+			cpp_source 'pub.cpp'
 		}
 
 		sources_root( 'active_obj' ) {
-			cpp_source( 'pub.cpp' )
+			cpp_source 'pub.cpp'
 		}
 
 		sources_root( 'active_group' ) {
-			cpp_source( 'pub.cpp' )
+			cpp_source 'pub.cpp'
 		}
 
 		sources_root( 'thread_pool' ) {
-			cpp_source( 'pub.cpp' )
+			cpp_source 'pub.cpp'
 		}
 
 		sources_root( 'adv_thread_pool' ) {
-			cpp_source( 'pub.cpp' )
+			cpp_source 'pub.cpp'
 		}
 	}
 }
+
