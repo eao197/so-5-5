@@ -82,6 +82,10 @@ MxxRu::Cpp::dll_target {
 
 		sources_root( 'stats' ) {
 			cpp_source 'controller.cpp'
+
+			sources_root( 'impl' ) {
+				cpp_source 'std_controller.cpp'
+			}
 		}
 	}
 
