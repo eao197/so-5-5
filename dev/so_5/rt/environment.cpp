@@ -11,6 +11,8 @@
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 
+#include <so_5/rt/stats/impl/h/std_controller.hpp>
+
 namespace so_5
 {
 
@@ -186,6 +188,12 @@ struct environment_t::internals_t
 	 */
 	std::atomic_uint_fast64_t m_autoname_counter = { 0 }; 
 
+	/*!
+	 * \since v.5.5.4
+	 * \brief A controller for run-time monitoring.
+	 */
+	stats::impl::std_controller_t m_stats_controller;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -207,6 +215,10 @@ struct environment_t::internals_t
 						params.so5__giveout_timer_thread_factory() ) )
 		,	m_exception_reaction( params.exception_reaction() )
 		,	m_autoshutdown_disabled( params.autoshutdown_disabled() )
+		,	m_stats_controller(
+				// A special mbox for distributing monitoring information
+				// must be created and passed to stats_controller.
+				m_mbox_core->create_local_mbox() )
 	{}
 };
 
@@ -380,7 +392,7 @@ environment_t::run()
 {
 	try
 	{
-		impl__run_layers_and_go_further();
+		impl__run_stats_controller_and_go_further();
 	}
 	catch( const so_5::exception_t & )
 	{
@@ -423,6 +435,12 @@ environment_t::error_logger() const
 	return *(m_impl->m_error_logger);
 }
 
+stats::controller_t &
+environment_t::stats_controller()
+{
+	return m_impl->m_stats_controller;
+}
+
 mbox_t
 environment_t::so5__create_mpsc_mbox(
 	agent_t * single_consumer,
@@ -451,6 +469,18 @@ environment_t::so5__final_deregister_coop(
 
 	if( !any_cooperation_alive && !m_impl->m_autoshutdown_disabled )
 		stop();
+}
+
+void
+environment_t::impl__run_stats_controller_and_go_further()
+{
+	impl__do_run_stage(
+			"run_layers",
+			[this] {
+				/* there is no need to turn_on controller automatically */
+			},
+			[this] { m_impl->m_stats_controller.turn_off(); },
+			[this] { impl__run_layers_and_go_further(); } );
 }
 
 void
