@@ -11,6 +11,7 @@
 #pragma once
 
 #include <so_5/rt/stats/h/controller.hpp>
+#include <so_5/rt/stats/h/repository.hpp>
 
 #include <condition_variable>
 #include <mutex>
@@ -33,24 +34,31 @@ namespace impl
  * \since v.5.5.4
  * \brief A standard implementation of controller for run-time monitoring.
  */
-class std_controller_t : public controller_t
+class std_controller_t
+	:	public controller_t
+	,	public repository_t
 	{
 	public :
 		std_controller_t(
 			mbox_t mbox );
 		~std_controller_t();
 
-		//! Get the mbox for receiving monitoring information.
+		// Implementation of controller_t interface.
 		virtual const mbox_t &
 		mbox() const override;
 
-		//! Turn the monitoring on.
 		virtual void
 		turn_on() override;
 
-		//! Turn the monitoring off.
 		virtual void
 		turn_off() override;
+
+		// Implementation of repository_t interface.
+		virtual void
+		add( source_t & what ) override;
+
+		virtual void
+		remove( source_t & what ) override;
 
 	private :
 		//! Mbox for sending monitoring data.
@@ -75,6 +83,18 @@ class std_controller_t : public controller_t
 		 * It is set to true in turn_off().
 		 */
 		bool m_shutdown_initiated;
+
+		/*!
+		 * \name Data sources-related part of controller's data.
+		 * \{
+		 */
+		//! Head of data sources list.
+		source_t * m_head = { nullptr };
+		//! Tail of data sources list.
+		source_t * m_tail = { nullptr };
+		/*!
+		 * \}
+		 */
 
 		//! Main body of data distribution thread.
 		void

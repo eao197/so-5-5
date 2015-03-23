@@ -79,6 +79,22 @@ std_controller_t::turn_off()
 	}
 
 void
+std_controller_t::add( source_t & what )
+	{
+		std::lock_guard< std::mutex > lock{ m_data_lock };
+
+		source_list_add( what, m_head, m_tail );
+	}
+
+void
+std_controller_t::remove( source_t & what )
+	{
+		std::lock_guard< std::mutex > lock{ m_data_lock };
+
+		source_list_remove( what, m_head, m_tail );
+	}
+
+void
 std_controller_t::body()
 	{
 //FIXME: it is just of skeleton for the future implementation

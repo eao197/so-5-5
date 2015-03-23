@@ -70,6 +70,31 @@ class SO_5_TYPE repository_t
 		//! Deregistration of previously registered data source.
 		virtual void
 		remove( source_t & what ) = 0;
+
+	protected :
+		//! Helper method for adding data source to existing list.
+		void
+		source_list_add(
+			//! A new data source to be added to the list.
+			source_t & what,
+			//! Marker of the list head.
+			//! Will be modified if the list is empty.
+			source_t *& head,
+			//! Marker of the list tail.
+			//! Will be modified.
+			source_t *& tail );
+
+		//! Helper method for removing data source from existing list.
+		void
+		source_list_remove(
+			//! An item to be removed.
+			source_t & what,
+			//! Marker of the list head.
+			//! Will be modified if the list becomes empty.
+			source_t *& head,
+			//! Marker of the list tail.
+			//! Will be modified if the item at the end of the list.
+			source_t *& tail );
 	};
 
 } /* namespace stats */
