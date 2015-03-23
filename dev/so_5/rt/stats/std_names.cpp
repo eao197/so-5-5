@@ -1,0 +1,52 @@
+/*
+ * SObjectizer-5
+ */
+
+/*!
+ * \since v.5.5.4
+ * \file
+ * \brief Standard data sources prefixes and suffixes used by SObjectizer.
+ */
+
+#include <so_5/rt/stats/h/std_names.hpp>
+
+namespace so_5 {
+
+namespace rt {
+
+namespace stats {
+
+SO_5_FUNC prefix_t
+prefix_coop_repository()
+	{
+		return prefix_t( "coop_repository" );
+	}
+
+//
+// --- suffixes ---
+//
+
+#define IMPL_SUFFIX(val) \
+static const char s[] = val;\
+return suffix_t{ s };
+
+SO_5_FUNC suffix_t
+suffix_coop_reg_count()
+	{
+		IMPL_SUFFIX( ".coop.reg.count" )
+	}
+
+SO_5_FUNC suffix_t
+suffix_coop_dereg_count()
+	{
+		IMPL_SUFFIX( ".coop.dereg.count" )
+	}
+
+#undef IMPL_SUFFIX
+
+} /* namespace stats */
+
+} /* namespace rt */
+
+} /* namespace so_5 */
+

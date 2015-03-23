@@ -6,4 +6,5 @@ path = 'test/so_5/internal_stats'
 MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/simple_turn_on/prj.ut.rb"
+	required_prj "#{path}/simple_coop_count/prj.ut.rb"
 }

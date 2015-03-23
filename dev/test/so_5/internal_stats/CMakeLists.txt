@@ -1,1 +1,2 @@
 add_subdirectory(simple_turn_on)
+add_subdirectory(simple_coop_count)

@@ -33,6 +33,7 @@
 #include <so_5/h/timers.hpp>
 
 #include <so_5/rt/stats/h/controller.hpp>
+#include <so_5/rt/stats/h/repository.hpp>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -1241,6 +1242,13 @@ class SO_5_TYPE environment_t
 		 */
 		stats::controller_t &
 		stats_controller();
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Access to repository of data sources for run-time monitoring.
+		 */
+		stats::repository_t &
+		stats_repository();
 
 		/*!
 		 * \name Methods for internal use inside SObjectizer.

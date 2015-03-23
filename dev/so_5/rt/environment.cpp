@@ -12,6 +12,7 @@
 #include <so_5/rt/impl/h/layer_core.hpp>
 
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
+#include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
 
 namespace so_5
 {
@@ -133,6 +134,24 @@ create_appropriate_timer_thread(
 		return create_timer_heap_thread( std::move( error_logger ) );
 }
 
+/*!
+ * \since v.5.5.4
+ * \brief A bunch of data sources for core objects.
+ */
+class core_data_sources_t
+	{
+	public :
+		core_data_sources_t(
+			so_5::rt::stats::repository_t & ds_repository,
+			so_5::rt::impl::agent_core_t & coop_repository )
+			:	m_coop_repository( ds_repository, coop_repository )
+			{}
+
+	private :
+		//! Data source for cooperations repository.
+		so_5::rt::stats::impl::ds_agent_core_stats_t m_coop_repository;
+	};
+
 } /* namespace anonymous */
 
 //
@@ -194,6 +213,16 @@ struct environment_t::internals_t
 	 */
 	stats::impl::std_controller_t m_stats_controller;
 
+	/*!
+	 * \since v.5.5.4
+	 * \brief Data sources for core objects.
+	 *
+	 * \attention This instance must be created after m_stats_controller
+	 * and destroyed before it. Because of that m_core_data_sources declared
+	 * after m_stats_controller and after all corresponding objects.
+	 */
+	core_data_sources_t m_core_data_sources;
+
 	//! Constructor.
 	internals_t(
 		environment_t & env,
@@ -219,6 +248,9 @@ struct environment_t::internals_t
 				// A special mbox for distributing monitoring information
 				// must be created and passed to stats_controller.
 				m_mbox_core->create_local_mbox() )
+		,	m_core_data_sources(
+				m_stats_controller,
+				m_agent_core )
 	{}
 };
 
@@ -437,6 +469,12 @@ environment_t::error_logger() const
 
 stats::controller_t &
 environment_t::stats_controller()
+{
+	return m_impl->m_stats_controller;
+}
+
+stats::repository_t &
+environment_t::stats_repository()
 {
 	return m_impl->m_stats_controller;
 }

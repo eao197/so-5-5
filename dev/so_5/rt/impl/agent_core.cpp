@@ -508,6 +508,17 @@ agent_core_t::environment()
 	return m_so_environment;
 }
 
+agent_core_stats_t
+agent_core_t::query_stats()
+{
+	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
+
+	return agent_core_stats_t{
+			m_registered_coop.size(),
+			m_deregistered_coop.size()
+	};
+}
+
 void
 agent_core_t::ensure_new_coop_name_unique(
 	const std::string & coop_name ) const

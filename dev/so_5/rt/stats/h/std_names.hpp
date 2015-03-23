@@ -1,0 +1,69 @@
+/*
+ * SObjectizer-5
+ */
+
+/*!
+ * \since v.5.5.4
+ * \file
+ * \brief Standard data sources prefixes and suffixes used by SObjectizer.
+ */
+
+#pragma once
+
+#include <so_5/rt/stats/h/prefix.hpp>
+
+#include <so_5/h/declspec.hpp>
+
+namespace so_5 {
+
+namespace rt {
+
+namespace stats {
+
+/*!
+ * \name Prefixes
+ * \{
+ */
+
+/*!
+ * \since v.5.5.4
+ * \brief Prefix of data sources with statistics for cooperations and
+ * agents repository.
+ */
+SO_5_FUNC prefix_t
+prefix_coop_repository();
+
+/*!
+ * \}
+ */
+
+/*!
+ * \name Suffixes
+ * \{
+ */
+
+/*!
+ * \since v.5.5.4
+ * \brief Suffix for data source with count of registered cooperations.
+ */
+SO_5_FUNC suffix_t
+suffix_coop_reg_count();
+
+/*!
+ * \since v.5.5.4
+ * \brief Suffix for data source with count of cooperations in the
+ * deregistration state.
+ */
+SO_5_FUNC suffix_t
+suffix_coop_dereg_count();
+
+/*!
+ * \}
+ */
+
+} /* namespace stats */
+
+} /* namespace rt */
+
+} /* namespace so_5 */
+

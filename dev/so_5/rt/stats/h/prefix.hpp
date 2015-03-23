@@ -74,10 +74,31 @@ class prefix_t
 			}
 
 		//! Is prefix empty?
-		bool
+		inline bool
 		empty() const
 			{
 				return 0 == m_value[ 0 ];
+			}
+
+		//! Is equal?
+		inline bool
+		operator==( const prefix_t & o ) const
+			{
+				return 0 == strcmp( c_str(), o.c_str() );
+			}
+
+		//! Is not equal?
+		inline bool
+		operator!=( const prefix_t & o ) const
+			{
+				return 0 != strcmp( c_str(), o.c_str() );
+			}
+
+		//! Is less than?
+		inline bool
+		operator<( const prefix_t & o ) const
+			{
+				return 0 < strcmp( c_str(), o.c_str() );
 			}
 
 	private :

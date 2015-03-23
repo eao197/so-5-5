@@ -81,6 +81,20 @@ repository_t::source_list_next(
 		return what.m_next;
 	}
 
+//
+// auto_registered_source_t
+//
+auto_registered_source_t::auto_registered_source_t( repository_t & repo )
+	:	m_repo( repo )
+	{
+		m_repo.add( *this );
+	}
+
+auto_registered_source_t::~auto_registered_source_t()
+	{
+		m_repo.remove( *this );
+	}
+
 } /* namespace stats */
 
 } /* namespace rt */

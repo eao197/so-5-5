@@ -103,6 +103,29 @@ class SO_5_TYPE repository_t
 			const source_t & what );
 	};
 
+//
+// auto_registered_source_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Version of data source with ability of automatic registration
+ * and deregistration of data source in the repository.
+ */
+class SO_5_TYPE auto_registered_source_t : public source_t
+	{
+	protected :
+		auto_registered_source_t( repository_t & repo );
+		~auto_registered_source_t();
+
+	public :
+		virtual void
+		distribute(
+			const mbox_t & distribution_mbox ) = 0;
+
+	private :
+		repository_t & m_repo;
+	};
+
 } /* namespace stats */
 
 } /* namespace rt */

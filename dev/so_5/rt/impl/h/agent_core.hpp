@@ -7,8 +7,7 @@
 	\brief A class for a part of the agent/environment functionality.
 */
 
-#if !defined( _SO_5__RT__IMPL__AGENT_CORE_HPP_ )
-#define _SO_5__RT__IMPL__AGENT_CORE_HPP_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -24,6 +23,8 @@
 #include <so_5/rt/h/coop_listener.hpp>
 
 #include <so_5/rt/impl/coop_dereg/h/coop_dereg_executor_thread.hpp>
+
+#include <so_5/rt/stats/h/repository.hpp>
 
 namespace so_5
 {
@@ -84,6 +85,24 @@ class agent_coop_private_iface_t
 			return coop.dereg_reason();
 		}
 };
+
+//
+// agent_core_stats_t
+//
+/*!
+ * \since 5.5.4
+ * \brief Statistical data for run-time monitoring.
+ */
+struct agent_core_stats_t
+	{
+		//! Count of registered cooperations.
+		std::size_t m_registered_coop_count;
+		//! Count of cooperations in the deregistration state.
+		std::size_t m_deregistered_coop_count;
+
+//FIXME: this statatic must be expanded with current agent counts
+//(in registered and deregistered cooperations).
+	};
 
 //
 // agent_core_t
@@ -182,6 +201,13 @@ class agent_core_t
 		 */
 		environment_t &
 		environment();
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get the current statistic for run-time monitoring.
+		 */
+		agent_core_stats_t
+		query_stats();
 
 	private:
 		//! Typedef for map from cooperation name to the cooperation.
@@ -370,5 +396,3 @@ class agent_core_t
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
