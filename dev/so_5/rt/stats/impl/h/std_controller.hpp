@@ -17,6 +17,7 @@
 #include <mutex>
 #include <thread>
 #include <memory>
+#include <chrono>
 
 namespace so_5
 {
@@ -92,6 +93,10 @@ class std_controller_t
 		source_t * m_head = { nullptr };
 		//! Tail of data sources list.
 		source_t * m_tail = { nullptr };
+
+		//! Data-distribution period.
+		std::chrono::steady_clock::duration m_distribution_period =
+				{ std::chrono::seconds{ 2 } };
 		/*!
 		 * \}
 		 */
@@ -99,6 +104,13 @@ class std_controller_t
 		//! Main body of data distribution thread.
 		void
 		body();
+
+		//! Initiates distribution of current values for all data sources.
+		/*!
+		 * \return A time spent for data distribution.
+		 */
+		std::chrono::steady_clock::duration
+		distribute_current_data();
 	};
 
 } /* namespace impl */

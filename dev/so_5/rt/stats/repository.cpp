@@ -74,6 +74,13 @@ repository_t::source_list_remove(
 			tail = what.m_prev;
 	}
 
+source_t *
+repository_t::source_list_next(
+	const source_t & what )
+	{
+		return what.m_next;
+	}
+
 } /* namespace stats */
 
 } /* namespace rt */

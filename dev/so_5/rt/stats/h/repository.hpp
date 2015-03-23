@@ -73,7 +73,7 @@ class SO_5_TYPE repository_t
 
 	protected :
 		//! Helper method for adding data source to existing list.
-		void
+		static void
 		source_list_add(
 			//! A new data source to be added to the list.
 			source_t & what,
@@ -85,7 +85,7 @@ class SO_5_TYPE repository_t
 			source_t *& tail );
 
 		//! Helper method for removing data source from existing list.
-		void
+		static void
 		source_list_remove(
 			//! An item to be removed.
 			source_t & what,
@@ -95,6 +95,12 @@ class SO_5_TYPE repository_t
 			//! Marker of the list tail.
 			//! Will be modified if the item at the end of the list.
 			source_t *& tail );
+
+		//! Helper method for accessing next data source in the list.
+		static source_t *
+		source_list_next(
+			//! The current item.
+			const source_t & what );
 	};
 
 } /* namespace stats */

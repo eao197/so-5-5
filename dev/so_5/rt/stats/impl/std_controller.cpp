@@ -97,8 +97,6 @@ std_controller_t::remove( source_t & what )
 void
 std_controller_t::body()
 	{
-//FIXME: it is just of skeleton for the future implementation
-//of data-distribution thread body.
 		while( true )
 			{
 				std::unique_lock< std::mutex > lock{ m_data_lock };
@@ -106,10 +104,30 @@ std_controller_t::body()
 				if( m_shutdown_initiated )
 					return;
 
-				m_wake_up_cond.wait_for(
-						lock,
-						std::chrono::milliseconds( 100 ) );
+				auto actual_duration = distribute_current_data();
+
+				if( actual_duration < m_distribution_period )
+					// There is some time to sleep.
+					m_wake_up_cond.wait_for(
+							lock,
+							m_distribution_period - actual_duration );
 			}
+	}
+
+std::chrono::steady_clock::duration
+std_controller_t::distribute_current_data()
+	{
+		auto started_at = std::chrono::steady_clock::now();
+
+		source_t * s = m_head;
+		while( s )
+			{
+				s->distribute( m_mbox );
+
+				s = source_list_next( *s );
+			}
+
+		return std::chrono::steady_clock::now() - started_at;
 	}
 
 } /* namespace impl */
