@@ -34,6 +34,13 @@ SO_5_FUNC prefix_t
 prefix_coop_repository();
 
 /*!
+ * \since v.5.5.4
+ * \brief Prefix of data sources with statistics for mboxes repository.
+ */
+SO_5_FUNC prefix_t
+prefix_mbox_repository();
+
+/*!
  * \}
  */
 
@@ -56,6 +63,13 @@ suffix_coop_reg_count();
  */
 SO_5_FUNC suffix_t
 suffix_coop_dereg_count();
+
+/*!
+ * \since v.5.5.4
+ * \brief Suffix for data source with count of named mboxes.
+ */
+SO_5_FUNC suffix_t
+suffix_named_mbox_count();
 
 /*!
  * \}

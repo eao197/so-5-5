@@ -50,6 +50,7 @@ repository_t::source_list_add(
 			}
 		else
 			{
+				tail->m_next = &what;
 				what.m_prev = tail;
 				what.m_next = nullptr;
 			}

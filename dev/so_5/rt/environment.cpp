@@ -12,6 +12,7 @@
 #include <so_5/rt/impl/h/layer_core.hpp>
 
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
+#include <so_5/rt/stats/impl/h/ds_mbox_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
 
 namespace so_5
@@ -143,11 +144,15 @@ class core_data_sources_t
 	public :
 		core_data_sources_t(
 			so_5::rt::stats::repository_t & ds_repository,
+			so_5::rt::impl::mbox_core_t & mbox_repository,
 			so_5::rt::impl::agent_core_t & coop_repository )
-			:	m_coop_repository( ds_repository, coop_repository )
+			:	m_mbox_repository( ds_repository, mbox_repository )
+			,	m_coop_repository( ds_repository, coop_repository )
 			{}
 
 	private :
+		//! Data source for mboxes repository.
+		so_5::rt::stats::impl::ds_mbox_core_stats_t m_mbox_repository;
 		//! Data source for cooperations repository.
 		so_5::rt::stats::impl::ds_agent_core_stats_t m_coop_repository;
 	};
@@ -250,6 +255,7 @@ struct environment_t::internals_t
 				m_mbox_core->create_local_mbox() )
 		,	m_core_data_sources(
 				m_stats_controller,
+				*m_mbox_core,
 				m_agent_core )
 	{}
 };

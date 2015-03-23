@@ -22,6 +22,12 @@ prefix_coop_repository()
 		return prefix_t( "coop_repository" );
 	}
 
+SO_5_FUNC prefix_t
+prefix_mbox_repository()
+	{
+		return prefix_t( "mbox_repository" );
+	}
+
 //
 // --- suffixes ---
 //
@@ -40,6 +46,12 @@ SO_5_FUNC suffix_t
 suffix_coop_dereg_count()
 	{
 		IMPL_SUFFIX( ".coop.dereg.count" )
+	}
+
+SO_5_FUNC suffix_t
+suffix_named_mbox_count()
+	{
+		IMPL_SUFFIX( ".named_mbox.count" )
 	}
 
 #undef IMPL_SUFFIX
