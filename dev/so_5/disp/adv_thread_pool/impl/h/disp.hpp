@@ -499,20 +499,20 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			}
 
 		virtual void
-		start()
+		start( so_5::rt::environment_t & /*env*/ ) override
 			{
 				for( auto & t : m_threads )
 					t->start();
 			}
 
 		virtual void
-		shutdown()
+		shutdown() override
 			{
 				m_queue.shutdown();
 			}
 
 		virtual void
-		wait()
+		wait() override
 			{
 				for( auto & t : m_threads )
 					t->join();

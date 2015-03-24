@@ -226,10 +226,18 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		/*!
 		 * Constructor creates a dispatcher instance and launces it.
 		 */
-		real_private_dispatcher_t( std::size_t thread_count )
+		real_private_dispatcher_t(
+			//! SObjectizer Environment to work in.
+			so_5::rt::environment_t & env,
+			//! Count of working threads.
+			std::size_t thread_count,
+			//! Value for creating names of data sources for
+			//! run-time monitoring.
+			const std::string & data_sources_name_base )
 			:	m_disp( new dispatcher_t( thread_count ) )
 			{
-				m_disp->start();
+				m_disp->set_data_sources_name_base( data_sources_name_base );
+				m_disp->start( env );
 			}
 
 		/*!
@@ -282,13 +290,22 @@ create_disp(
 //
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
-	std::size_t thread_count )
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env,
+	//! Count of working threads.
+	std::size_t thread_count,
+	//! Value for creating names of data sources for
+	//! run-time monitoring.
+	const std::string & data_sources_name_base )
 	{
 		if( !thread_count )
 			thread_count = default_thread_pool_size();
 
 		return private_dispatcher_handle_t(
-				new real_private_dispatcher_t( thread_count ) );
+				new real_private_dispatcher_t(
+						env,
+						thread_count,
+						data_sources_name_base ) );
 	}
 
 //

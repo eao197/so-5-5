@@ -34,19 +34,19 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 		virtual void
-		start()
+		start( so_5::rt::environment_t & /*env*/ ) override
 		{
 			m_work_thread.start();
 		}
 
 		virtual void
-		shutdown()
+		shutdown() override
 		{
 			m_work_thread.shutdown();
 		}
 
 		virtual void
-		wait()
+		wait() override
 		{
 			m_work_thread.wait();
 		}
@@ -198,10 +198,16 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		/*!
 		 * Constructor creates a dispatcher instance and launces it.
 		 */
-		real_private_dispatcher_t()
+		real_private_dispatcher_t(
+			//! SObjectizer Environment to work in.
+			so_5::rt::environment_t & env,
+			//! Value for creating names of data sources for
+			//! run-time monitoring.
+			const std::string & data_sources_name_base )
 			:	m_disp( new dispatcher_t() )
 			{
-				m_disp->start();
+				m_disp->set_data_sources_name_base( data_sources_name_base );
+				m_disp->start( env );
 			}
 
 		/*!
@@ -247,10 +253,13 @@ create_disp()
 // create_private_disp
 //
 SO_5_FUNC private_dispatcher_handle_t
-create_private_disp()
+create_private_disp(
+	so_5::rt::environment_t & env,
+	const std::string & data_sources_name_base )
 {
 	return private_dispatcher_handle_t(
-			new impl::real_private_dispatcher_t() );
+			new impl::real_private_dispatcher_t(
+					env, data_sources_name_base ) );
 }
 
 //
