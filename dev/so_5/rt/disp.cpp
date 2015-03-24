@@ -26,7 +26,7 @@ dispatcher_t::~dispatcher_t()
 
 void
 dispatcher_t::set_data_sources_name_base(
-	const std::string & name )
+	const std::string & /*name*/ )
 {
 }
 

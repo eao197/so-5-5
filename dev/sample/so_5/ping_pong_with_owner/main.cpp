@@ -161,7 +161,8 @@ public :
 				// working threads.
 				// active_obj dispatcher will be used as a primary
 				// dispatcher for that cooperation.
-				so_5::disp::active_obj::create_private_disp()->binder() );
+				so_5::disp::active_obj::create_private_disp(
+						so_environment() )->binder() );
 
 		// Filling the child cooperation.
 		auto a_pinger = coop->make_agent< pinger >( so_direct_mbox() );
