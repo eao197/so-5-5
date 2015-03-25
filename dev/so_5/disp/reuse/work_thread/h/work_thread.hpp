@@ -109,6 +109,13 @@ class demand_queue_t : public so_5::rt::event_queue_t
 		void
 		clear();
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get the count of demands in the queue.
+		 */
+		std::size_t
+		demands_count();
+
 	private:
 		//! Demand queue.
 		demand_container_t m_demands;
@@ -168,6 +175,13 @@ class work_thread_t
 		 */
 		so_5::rt::event_queue_t *
 		get_agent_binding();
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get the count of demands in the queue.
+		 */
+		std::size_t
+		demands_count();
 
 	protected:
 		//! Main working thread body.

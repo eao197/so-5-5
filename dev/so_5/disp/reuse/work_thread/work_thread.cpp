@@ -109,6 +109,14 @@ demand_queue_t::clear()
 	m_demands.clear();
 }
 
+std::size_t
+demand_queue_t::demands_count()
+{
+	queue_lock_guard_t lock( m_lock );
+
+	return m_demands.size();
+}
+
 //
 // work_thread_t
 //
@@ -147,6 +155,13 @@ so_5::rt::event_queue_t *
 work_thread_t::get_agent_binding()
 {
 	return &event_queue();
+}
+
+std::size_t
+work_thread_t::demands_count()
+{
+//FIXME: this temporary implementation.
+return m_queue.demands_count();
 }
 
 void

@@ -6,8 +6,17 @@
 
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/environment.hpp>
+#include <so_5/rt/h/send_functions.hpp>
+
+#include <so_5/rt/stats/h/repository.hpp>
+#include <so_5/rt/stats/h/messages.hpp>
+#include <so_5/rt/stats/h/std_names.hpp>
 
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
+
+#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+
+#include <so_5/details/h/rollback_on_exception.hpp>
 
 namespace so_5
 {
@@ -21,6 +30,9 @@ namespace one_thread
 namespace impl
 {
 
+namespace work_thread = so_5::disp::reuse::work_thread;
+namespace stats = so_5::rt::stats;
+
 //
 // dispatcher_t
 //
@@ -29,27 +41,44 @@ namespace impl
 	\brief A dispatcher with the single working thread and an event queue.
 */
 class dispatcher_t : public so_5::rt::dispatcher_t
-{
+	{
 	public:
+		dispatcher_t()
+			:	m_data_source( m_work_thread )
+			{}
+
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 		virtual void
-		start( so_5::rt::environment_t & /*env*/ ) override
-		{
-			m_work_thread.start();
-		}
+		start( so_5::rt::environment_t & env ) override
+			{
+				m_data_source.start( env );
+
+				so_5::details::do_with_rollback_on_exception(
+						[this] { m_work_thread.start(); },
+						[this] { m_data_source.stop(); } );
+			}
 
 		virtual void
 		shutdown() override
-		{
-			m_work_thread.shutdown();
-		}
+			{
+				m_work_thread.shutdown();
+			}
 
 		virtual void
 		wait() override
-		{
-			m_work_thread.wait();
-		}
+			{
+				m_work_thread.wait();
+
+				m_data_source.stop();
+			}
+
+		virtual void
+		set_data_sources_name_base(
+			const std::string & name_base ) override
+			{
+				m_data_source.set_data_sources_name_base( name_base, this );
+			}
 		//! \}
 
 		/*!
@@ -58,14 +87,106 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		 */
 		so_5::rt::event_queue_t *
 		get_agent_binding()
-		{
-			return m_work_thread.get_agent_binding();
-		}
+			{
+				return m_work_thread.get_agent_binding();
+			}
 
 	private:
+		/*!
+		 * \since v.5.5.4
+		 * \brief Type of data source for run-time monitoring.
+		 */
+		class data_source_t : public stats::source_t
+			{
+				//! SObjectizer Environment to work in.
+				so_5::rt::environment_t * m_env = { nullptr };
+
+				//! Prefix for dispatcher-related data.
+				stats::prefix_t m_base_prefix;
+				//! Prefix for working thread-related data.
+				stats::prefix_t m_work_thread_prefix;
+
+				//! Working thread of the dispatcher.
+				work_thread::work_thread_t & m_work_thread;
+
+			public :
+				data_source_t(
+					work_thread::work_thread_t & work_thread )
+					:	m_work_thread( work_thread )
+					{}
+
+				~data_source_t()
+					{
+						if( m_env )
+							stop();
+					}
+
+				virtual void
+				distribute( const so_5::rt::mbox_t & mbox )
+					{
+//FIXME: implement this actions.
+#if 0
+						so_5::send< messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								suffix_disp_agent_count(),
+								m_agent_count.load( std::memory_order_acquire ) );
+
+						so_5::send< messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								suffix_disp_thread_count(),
+								1u );
+#endif
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_work_thread_prefix,
+								stats::suffix_work_thread_queue_size(),
+								m_work_thread.demands_count() );
+					}
+
+				void
+				set_data_sources_name_base(
+					const std::string & name_base,
+					const void * disp_this_pointer )
+					{
+						using namespace so_5::disp::reuse;
+
+						m_base_prefix = make_disp_prefix(
+								"ot", // ot -- one_thread
+								name_base,
+								disp_this_pointer );
+
+						m_work_thread_prefix = make_disp_working_thread_prefix(
+								m_base_prefix,
+								0 );
+					}
+
+				void
+				start(
+					so_5::rt::environment_t & env )
+					{
+						env.stats_repository().add( *this );
+						m_env = &env;
+					}
+
+				void
+				stop()
+					{
+						m_env->stats_repository().remove( *this );
+						m_env = nullptr;
+					}
+			};
+
 		//! Working thread for the dispatcher.
-		so_5::disp::reuse::work_thread::work_thread_t m_work_thread;
-};
+		work_thread::work_thread_t m_work_thread;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Data source for run-time monitoring.
+		 */
+		data_source_t m_data_source;
+	};
 
 //
 // disp_binder_t

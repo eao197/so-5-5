@@ -39,19 +39,25 @@ return suffix_t{ s };
 SO_5_FUNC suffix_t
 suffix_coop_reg_count()
 	{
-		IMPL_SUFFIX( ".coop.reg.count" )
+		IMPL_SUFFIX( "/coop.reg.count" )
 	}
 
 SO_5_FUNC suffix_t
 suffix_coop_dereg_count()
 	{
-		IMPL_SUFFIX( ".coop.dereg.count" )
+		IMPL_SUFFIX( "/coop.dereg.count" )
 	}
 
 SO_5_FUNC suffix_t
 suffix_named_mbox_count()
 	{
-		IMPL_SUFFIX( ".named_mbox.count" )
+		IMPL_SUFFIX( "/named_mbox.count" )
+	}
+
+SO_5_FUNC suffix_t
+suffix_work_thread_queue_size()
+	{
+		IMPL_SUFFIX( "/demands.count" )
 	}
 
 #undef IMPL_SUFFIX
