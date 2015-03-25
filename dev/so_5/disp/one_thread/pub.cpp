@@ -14,9 +14,12 @@
 
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
 
+#include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
 
 #include <so_5/details/h/rollback_on_exception.hpp>
+
+#include <atomic>
 
 namespace so_5
 {
@@ -44,7 +47,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
 		dispatcher_t()
-			:	m_data_source( m_work_thread )
+			:	m_data_source( m_work_thread, m_agents_bound )
 			{}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
@@ -91,6 +94,26 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				return m_work_thread.get_agent_binding();
 			}
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Inform dispatcher about binding of yet another agent.
+		 */
+		void
+		agent_bound()
+			{
+				++m_agents_bound;
+			}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Inform dispatcher abount unbinding of yet another agent.
+		 */
+		void
+		agent_unbound()
+			{
+				--m_agents_bound;
+			}
+
 	private:
 		/*!
 		 * \since v.5.5.4
@@ -109,10 +132,15 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				//! Working thread of the dispatcher.
 				work_thread::work_thread_t & m_work_thread;
 
+				//! Count of agents bound to the dispatcher.
+				std::atomic< std::size_t > & m_agents_bound;
+
 			public :
 				data_source_t(
-					work_thread::work_thread_t & work_thread )
+					work_thread::work_thread_t & work_thread,
+					std::atomic< std::size_t > & agents_bound )
 					:	m_work_thread( work_thread )
+					,	m_agents_bound( agents_bound )
 					{}
 
 				~data_source_t()
@@ -124,20 +152,12 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				virtual void
 				distribute( const so_5::rt::mbox_t & mbox )
 					{
-//FIXME: implement this actions.
-#if 0
-						so_5::send< messages::quantity< std::size_t > >(
+						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								m_base_prefix,
-								suffix_disp_agent_count(),
-								m_agent_count.load( std::memory_order_acquire ) );
+								stats::suffix_disp_agent_count(),
+								m_agents_bound.load( std::memory_order_acquire ) );
 
-						so_5::send< messages::quantity< std::size_t > >(
-								mbox,
-								m_base_prefix,
-								suffix_disp_thread_count(),
-								1u );
-#endif
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								m_work_thread_prefix,
@@ -183,6 +203,12 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 		/*!
 		 * \since v.5.5.4
+		 * \brief Count of agents bound to this dispatcher.
+		 */
+		std::atomic< std::size_t > m_agents_bound = { 0 };
+
+		/*!
+		 * \since v.5.5.4
 		 * \brief Data source for run-time monitoring.
 		 */
 		data_source_t m_data_source;
@@ -218,9 +244,15 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 
 		virtual void
 		unbind_agent(
-			so_5::rt::environment_t & /*env*/,
+			so_5::rt::environment_t & env,
 			so_5::rt::agent_ref_t /*agent_ref*/ ) override
 		{
+			if( m_disp_name.empty() )
+				return unbind_agent_from_disp(
+						&( env.query_default_dispatcher() ) );
+			else
+				return unbind_agent_from_disp( 
+					env.query_named_dispatcher( m_disp_name ).get() );
 		}
 
 	private:
@@ -239,22 +271,43 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 			so_5::rt::dispatcher_t * disp,
 			so_5::rt::agent_ref_t agent )
 		{
-			// If the dispatcher is found then the object should be bound to it.
-			if( !disp )
-				SO_5_THROW_EXCEPTION( rc_named_disp_not_found,
-						"dispatcher with name \"" + m_disp_name + "\" not found" );
+			using namespace so_5::rt;
+			using namespace so_5::disp::reuse;
 
-			// It should be exactly our dispatcher.
-			dispatcher_t * d = dynamic_cast< dispatcher_t * >( disp );
+			return do_with_dispatcher_of_type<
+						disp_binding_activator_t,
+						dispatcher_t >(
+					disp,
+					m_disp_name,
+					[agent]( dispatcher_t & d ) -> disp_binding_activator_t {
+						auto result = [agent, &d]() {
+							agent->so_bind_to_dispatcher( *(d.get_agent_binding()) );
+						};
 
-			if( nullptr == d )
-				SO_5_THROW_EXCEPTION( rc_disp_type_mismatch,
-					"disp type mismatch for disp \"" + m_disp_name +
-							"\", expected one_thread disp" );
+						// Dispatcher must know about yet another agent bound.
+						d.agent_bound();
 
-			return [agent, d]() {
-				agent->so_bind_to_dispatcher( *(d->get_agent_binding()) );
-			};
+						return result;
+					} );
+		}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Unbind agent from the dispatcher specified.
+		 */
+		void
+		unbind_agent_from_disp(
+			so_5::rt::dispatcher_t * disp )
+		{
+			using namespace so_5::disp::reuse;
+
+			do_with_dispatcher_of_type< void, dispatcher_t >(
+					disp,
+					m_disp_name,
+					[]( dispatcher_t & d ) {
+						// Dispatcher must know about yet another agent bound.
+						d.agent_unbound();
+					} );
 		}
 };
 

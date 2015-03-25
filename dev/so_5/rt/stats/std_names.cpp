@@ -55,6 +55,12 @@ suffix_named_mbox_count()
 	}
 
 SO_5_FUNC suffix_t
+suffix_disp_agent_count()
+	{
+		IMPL_SUFFIX( "/agent.count" )
+	}
+
+SO_5_FUNC suffix_t
 suffix_work_thread_queue_size()
 	{
 		IMPL_SUFFIX( "/demands.count" )

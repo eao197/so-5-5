@@ -27,6 +27,31 @@ namespace reuse
 {
 
 /*!
+ * \since v.5.5.4
+ * \brief A helper method for casing dispatcher to the specified type
+ * and performing some action with it.
+ */
+template< class RESULT, class DISPATCHER, class ACTION > 
+RESULT
+do_with_dispatcher_of_type(
+	so_5::rt::dispatcher_t * disp_pointer,
+	const std::string & disp_name,
+	ACTION action )
+	{
+		// It should be our dispatcher.
+		DISPATCHER * disp = dynamic_cast< DISPATCHER * >(
+				disp_pointer );
+
+		if( nullptr == disp )
+			SO_5_THROW_EXCEPTION(
+					rc_disp_type_mismatch,
+					"type of dispatcher with name '" + disp_name +
+					"' is not '" + typeid(DISPATCHER).name() + "'" );
+
+		return action( *disp );
+	}
+
+/*!
  * \since v.5.4.0
  * \brief A helper method for extracting dispatcher by name,
  * checking its type and to some action.
