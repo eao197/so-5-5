@@ -215,11 +215,48 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	};
 
 //
+// binding_actions_mixin_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Implementation of binding actions to be reused
+ * in various binder implementation.
+ */
+class binding_actions_mixin_t
+	{
+	protected :
+		inline static so_5::rt::disp_binding_activator_t
+		do_bind(
+			dispatcher_t & disp,
+			so_5::rt::agent_ref_t agent )
+			{
+				auto result = [agent, &disp]() {
+					agent->so_bind_to_dispatcher( *(disp.get_agent_binding()) );
+				};
+
+				// Dispatcher must know about yet another agent bound.
+				disp.agent_bound();
+
+				return result;
+			}
+
+		inline static void
+		do_unbind(
+			dispatcher_t & disp )
+			{
+				// Dispatcher must know about yet another agent bound.
+				disp.agent_unbound();
+			}
+	};
+
+//
 // disp_binder_t
 //
 
 //! Agent dispatcher binder.
-class disp_binder_t : public so_5::rt::disp_binder_t
+class disp_binder_t
+	:	public so_5::rt::disp_binder_t
+	,	private binding_actions_mixin_t
 {
 	public:
 		explicit disp_binder_t(
@@ -279,14 +316,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 					m_disp_name,
 					[agent]( dispatcher_t & d )
 					{
-						disp_binding_activator_t result = [agent, &d]() {
-							agent->so_bind_to_dispatcher( *(d.get_agent_binding()) );
-						};
-
-						// Dispatcher must know about yet another agent bound.
-						d.agent_bound();
-
-						return result;
+						return do_bind( d, agent );
 					} );
 		}
 
@@ -304,8 +334,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 					disp,
 					m_disp_name,
 					[]( dispatcher_t & d ) {
-						// Dispatcher must know about yet another agent bound.
-						d.agent_unbound();
+						do_unbind( d );
 					} );
 		}
 };
@@ -318,7 +347,9 @@ class disp_binder_t : public so_5::rt::disp_binder_t
  * \since v.5.5.4
  * \brief A binder for the private %one_thread dispatcher.
  */
-class private_dispatcher_binder_t : public so_5::rt::disp_binder_t
+class private_dispatcher_binder_t
+	:	public so_5::rt::disp_binder_t
+	,	private binding_actions_mixin_t
 	{
 	public:
 		explicit private_dispatcher_binder_t(
@@ -336,17 +367,16 @@ class private_dispatcher_binder_t : public so_5::rt::disp_binder_t
 			so_5::rt::environment_t & /* env */,
 			so_5::rt::agent_ref_t agent ) override
 			{
-				return [agent, this]() {
-					agent->so_bind_to_dispatcher(
-							*(m_instance.get_agent_binding()) );
-				};
+				return do_bind( m_instance, std::move( agent ) );
 			}
 
 		virtual void
 		unbind_agent(
 			so_5::rt::environment_t & /*env*/,
 			so_5::rt::agent_ref_t /*agent_ref*/ ) override
-			{}
+			{
+				do_unbind( m_instance );
+			}
 
 	private:
 		//! A handle for private dispatcher.
