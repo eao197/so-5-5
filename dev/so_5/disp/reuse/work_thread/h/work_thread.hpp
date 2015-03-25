@@ -223,6 +223,15 @@ class work_thread_t
 		 * \attention Receive the value only after start of thread body.
 		 */
 		so_5::current_thread_id_t m_thread_id;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief A counter for calculating count of demands in
+		 * the queue.
+		 *
+		 * \note Will be used for run-time monitoring.
+		 */
+		std::atomic< std::size_t > m_demands_count = { 0 };
 };
 
 /*!
