@@ -284,7 +284,7 @@ class disp_binder_t
 				using so_5::rt::disp_binding_activator_t;
 				using namespace so_5::disp::reuse;
 
-				return do_with_dispatcher< disp_binding_activator_t, dispatcher_t >(
+				return do_with_dispatcher< dispatcher_t >(
 					env,
 					m_disp_name,
 					[agent]( dispatcher_t & disp )
@@ -300,7 +300,7 @@ class disp_binder_t
 			{
 				using namespace so_5::disp::reuse;
 
-				do_with_dispatcher< void, dispatcher_t >( env, m_disp_name,
+				do_with_dispatcher< dispatcher_t >( env, m_disp_name,
 					[agent]( dispatcher_t & disp )
 					{
 						do_unbind( disp, std::move( agent ) );

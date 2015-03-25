@@ -274,13 +274,12 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 			using namespace so_5::rt;
 			using namespace so_5::disp::reuse;
 
-			return do_with_dispatcher_of_type<
-						disp_binding_activator_t,
-						dispatcher_t >(
+			return do_with_dispatcher_of_type< dispatcher_t >(
 					disp,
 					m_disp_name,
-					[agent]( dispatcher_t & d ) -> disp_binding_activator_t {
-						auto result = [agent, &d]() {
+					[agent]( dispatcher_t & d )
+					{
+						disp_binding_activator_t result = [agent, &d]() {
 							agent->so_bind_to_dispatcher( *(d.get_agent_binding()) );
 						};
 
@@ -301,7 +300,7 @@ class disp_binder_t : public so_5::rt::disp_binder_t
 		{
 			using namespace so_5::disp::reuse;
 
-			do_with_dispatcher_of_type< void, dispatcher_t >(
+			do_with_dispatcher_of_type< dispatcher_t >(
 					disp,
 					m_disp_name,
 					[]( dispatcher_t & d ) {
