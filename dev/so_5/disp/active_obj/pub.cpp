@@ -35,6 +35,7 @@ namespace active_obj
 namespace impl
 {
 
+namespace work_thread = so_5::disp::reuse::work_thread;
 namespace stats = so_5::rt::stats;
 
 namespace
@@ -68,7 +69,6 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 		//! \name Implemetation of so_5::rt::dispatcher methods.
 		//! \{
-
 		virtual void
 		start( so_5::rt::environment_t & env ) override;
 
@@ -92,19 +92,19 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		destroy_thread_for_agent( const so_5::rt::agent_t & agent );
 
 	private:
-		friend class data_source_t;
+		friend class disp_data_source_t;
 
 		//! Typedef for mapping from agents to their working threads.
 		typedef std::map<
 				const so_5::rt::agent_t *,
-				so_5::disp::reuse::work_thread::work_thread_shptr_t >
+				work_thread::work_thread_shptr_t >
 			agent_thread_map_t;
 
 		/*!
 		 * \since v.5.5.4
-		 * \brief Data source for run-time monitoring.
+		 * \brief Data source for run-time monitoring of whole dispatcher.
 		 */
-		class data_source_t : public stats::source_t
+		class disp_data_source_t : public stats::source_t
 			{
 				so_5::rt::environment_t * m_env = { nullptr };
 
@@ -113,11 +113,11 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				stats::prefix_t m_base_prefix;
 
 			public :
-				data_source_t( dispatcher_t & disp )
+				disp_data_source_t( dispatcher_t & disp )
 					:	m_dispatcher( disp )
 					{}
 
-				~data_source_t()
+				~disp_data_source_t()
 					{
 						if( m_env )
 							stop();
@@ -134,13 +134,11 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								stats::suffix_disp_agent_count(),
 								m_dispatcher.m_agent_threads.size() );
 
-#if 0
-						so_5::send< stats::messages::quantity< std::size_t > >(
-								mbox,
-								m_work_thread_prefix,
-								stats::suffix_work_thread_queue_size(),
-								m_work_thread.demands_count() );
-#endif
+						for( const auto & p : m_dispatcher.m_agent_threads )
+							distribute_value_for_work_thread(
+									mbox,
+									p.first,
+									*p.second );
 					}
 
 				void
@@ -170,6 +168,29 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						m_env = nullptr;
 					}
 
+
+			private:
+				void
+				distribute_value_for_work_thread(
+					const so_5::rt::mbox_t & mbox,
+					const so_5::rt::agent_t * agent,
+					work_thread::work_thread_t & wt )
+					{
+						auto ptrdiff = []( const so_5::rt::agent_t * a ) {
+							return reinterpret_cast< const char * >(a) -
+									static_cast< const char * >(nullptr);
+						};
+
+						std::ostringstream ss;
+						ss << m_base_prefix.c_str() << "/wt-0x"
+								<< ptrdiff( agent );
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								stats::prefix_t{ ss.str() },
+								stats::suffix_work_thread_queue_size(),
+								wt.demands_count() );
+					}
 			};
 
 		//! A map from agents to single thread dispatchers.
@@ -185,7 +206,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		 * \since v.5.5.4
 		 * \brief Data source for run-time monitoring.
 		 */
-		data_source_t m_data_source;
+		disp_data_source_t m_data_source;
 
 		/*!
 		 * \since v.5.5.4
