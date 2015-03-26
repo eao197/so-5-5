@@ -3,6 +3,7 @@
  * from all types of standard dispatchers.
  */
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <exception>

@@ -36,6 +36,34 @@ class rollbacker_t
 		inline void commit() { m_commited = true; }
 	};
 
+template< typename RESULT, typename MAIN_ACTION, typename ROLLBACK_ACTION >
+struct executor
+	{
+		static RESULT
+		exec(
+			MAIN_ACTION main_action,
+			rollbacker_t< ROLLBACK_ACTION > & rollback )
+			{
+				auto r = main_action();
+				rollback.commit();
+
+				return r;
+			}
+	};
+
+template< typename MAIN_ACTION, typename ROLLBACK_ACTION >
+struct executor< void, MAIN_ACTION, ROLLBACK_ACTION >
+	{
+		static void
+		exec( 
+			MAIN_ACTION main_action,
+			rollbacker_t< ROLLBACK_ACTION > & rollback )
+			{
+				main_action();
+				rollback.commit();
+			}
+	};
+
 } /* namespace rollback_on_exception_details */
 
 /*!
@@ -47,17 +75,20 @@ class rollbacker_t
  * \tparam ROLLBACK_ACTION type of lambda with rollback action.
  */
 template< typename MAIN_ACTION, typename ROLLBACK_ACTION >
-void
+auto
 do_with_rollback_on_exception(
 	MAIN_ACTION main_action,
 	ROLLBACK_ACTION rollback_action )
+	-> decltype(main_action())
 	{
+		using result_type = decltype(main_action());
+
 		using namespace rollback_on_exception_details;
 
 		rollbacker_t< ROLLBACK_ACTION > rollbacker{ rollback_action };
 
-		main_action();
-		rollbacker.commit();
+		return executor< result_type, MAIN_ACTION, ROLLBACK_ACTION >::exec(
+				main_action, rollbacker );
 	}
 
 } /* namespace details */

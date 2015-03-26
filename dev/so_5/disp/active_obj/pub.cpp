@@ -314,15 +314,9 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 	work_thread_shptr_t thread( new work_thread_t() );
 
 	thread->start();
-	try
-	{
-		m_agent_threads[ &agent ] = thread;
-	}
-	catch( ... )
-	{
-		shutdown_and_wait( *thread );
-		throw;
-	}
+	so_5::details::do_with_rollback_on_exception(
+			[&] { m_agent_threads[ &agent ] = thread; },
+			[&thread] { shutdown_and_wait( *thread ); } );
 
 	return thread->get_agent_binding();
 }
@@ -374,21 +368,17 @@ class binding_actions_t
 			{
 				auto ctx = disp.create_thread_for_agent( *agent );
 
-				try
-					{
-						so_5::rt::disp_binding_activator_t activator =
-							[agent, ctx]() {
-								agent->so_bind_to_dispatcher( *ctx );
-							};
-
-						return activator;
-					}
-				catch( ... )
-				{
-					// Dispatcher for the agent should be removed.
-					disp.destroy_thread_for_agent( *agent );
-					throw;
-				}
+				return so_5::details::do_with_rollback_on_exception(
+						[&] {
+							return so_5::rt::disp_binding_activator_t{
+								[agent, ctx]() {
+									agent->so_bind_to_dispatcher( *ctx );
+								} };
+						},
+						[&] {
+							// Dispatcher for the agent should be removed.
+							disp.destroy_thread_for_agent( *agent );
+						} );
 			}
 
 		static void
