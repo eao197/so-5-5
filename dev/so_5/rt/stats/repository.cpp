@@ -96,6 +96,33 @@ auto_registered_source_t::~auto_registered_source_t()
 		m_repo.remove( *this );
 	}
 
+//
+// manually_registered_source_t
+//
+manually_registered_source_t::manually_registered_source_t()
+	:	m_repo{ nullptr }
+	{}
+
+manually_registered_source_t::~manually_registered_source_t()
+	{
+		if( m_repo )
+			stop();
+	}
+
+void
+manually_registered_source_t::start( repository_t & repo )
+	{
+		repo.add( *this );
+		m_repo = &repo;
+	}
+
+void
+manually_registered_source_t::stop()
+	{
+		m_repo->remove( *this );
+		m_repo = nullptr;
+	}
+
 } /* namespace stats */
 
 } /* namespace rt */

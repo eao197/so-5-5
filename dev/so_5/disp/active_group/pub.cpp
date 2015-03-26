@@ -134,14 +134,8 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		 * \since v.5.5.4
 		 * \brief Data source for run-time monitoring of whole dispatcher.
 		 */
-		class disp_data_source_t : public stats::source_t
+		class disp_data_source_t : public stats::manually_registered_source_t
 			{
-				//! SObjectizer Environment to work in.
-				/*!
-				 * Receives actual value only after successful start.
-				 */
-				so_5::rt::environment_t * m_env = { nullptr };
-
 				//! Dispatcher to work with.
 				dispatcher_t & m_dispatcher;
 
@@ -152,12 +146,6 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				disp_data_source_t( dispatcher_t & disp )
 					:	m_dispatcher( disp )
 					{}
-
-				~disp_data_source_t()
-					{
-						if( m_env )
-							stop();
-					}
 
 				virtual void
 				distribute( const so_5::rt::mbox_t & mbox )
@@ -199,22 +187,6 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								name_base,
 								&m_dispatcher );
 					}
-
-				void
-				start(
-					so_5::rt::environment_t & env )
-					{
-						env.stats_repository().add( *this );
-						m_env = &env;
-					}
-
-				void
-				stop()
-					{
-						m_env->stats_repository().remove( *this );
-						m_env = nullptr;
-					}
-
 
 			private:
 				void
@@ -292,7 +264,7 @@ dispatcher_t::start( so_5::rt::environment_t & env )
 	{
 		std::lock_guard< std::mutex > lock( m_lock );
 
-		m_data_source.start( env );
+		m_data_source.start( env.stats_repository() );
 
 		so_5::details::do_with_rollback_on_exception(
 			[this] { m_shutdown_started = false; },

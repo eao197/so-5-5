@@ -126,6 +126,39 @@ class SO_5_TYPE auto_registered_source_t : public source_t
 		repository_t & m_repo;
 	};
 
+//
+// manually_registered_source_t
+//
+/*!
+ * \since v.5.5.4
+ * \brief Version of data source for the case when the registration
+ * and deregistration of data source in the repository must be performed
+ * manually.
+ *
+ * \note Destructor automatically calls stop() if start() was called.
+ */
+class SO_5_TYPE manually_registered_source_t : public source_t
+	{
+	protected :
+		manually_registered_source_t();
+		~manually_registered_source_t();
+
+	public :
+		virtual void
+		distribute(
+			const mbox_t & distribution_mbox ) = 0;
+
+		void
+		start( repository_t & repo );
+
+		void
+		stop();
+
+	private :
+		//! Receives actual value only after successful start.
+		repository_t * m_repo;
+	};
+
 } /* namespace stats */
 
 } /* namespace rt */
