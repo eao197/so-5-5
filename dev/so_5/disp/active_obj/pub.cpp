@@ -10,9 +10,18 @@
 
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/event_queue.hpp>
+#include <so_5/rt/h/send_functions.hpp>
+
+#include <so_5/details/h/rollback_on_exception.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+
 #include <so_5/disp/reuse/work_thread/h/work_thread.hpp>
+
+#include <so_5/rt/stats/h/repository.hpp>
+#include <so_5/rt/stats/h/messages.hpp>
+#include <so_5/rt/stats/h/std_names.hpp>
 
 namespace so_5
 {
@@ -25,6 +34,8 @@ namespace active_obj
 
 namespace impl
 {
+
+namespace stats = so_5::rt::stats;
 
 namespace
 {
@@ -50,9 +61,7 @@ shutdown_and_wait( T & w )
 /*!
 	\brief Active objects dispatcher.
 */
-class dispatcher_t
-	:
-		public so_5::rt::dispatcher_t
+class dispatcher_t : public so_5::rt::dispatcher_t
 {
 	public:
 		dispatcher_t();
@@ -69,6 +78,9 @@ class dispatcher_t
 		virtual void
 		wait() override;
 
+		virtual void
+		set_data_sources_name_base(
+			const std::string & name_base ) override;
 		//! \}
 
 		//! Creates a new thread for the agent specified.
@@ -80,11 +92,85 @@ class dispatcher_t
 		destroy_thread_for_agent( const so_5::rt::agent_t & agent );
 
 	private:
+		friend class data_source_t;
+
 		//! Typedef for mapping from agents to their working threads.
 		typedef std::map<
 				const so_5::rt::agent_t *,
 				so_5::disp::reuse::work_thread::work_thread_shptr_t >
 			agent_thread_map_t;
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Data source for run-time monitoring.
+		 */
+		class data_source_t : public stats::source_t
+			{
+				so_5::rt::environment_t * m_env = { nullptr };
+
+				dispatcher_t & m_dispatcher;
+
+				stats::prefix_t m_base_prefix;
+
+			public :
+				data_source_t( dispatcher_t & disp )
+					:	m_dispatcher( disp )
+					{}
+
+				~data_source_t()
+					{
+						if( m_env )
+							stop();
+					}
+
+				virtual void
+				distribute( const so_5::rt::mbox_t & mbox )
+					{
+						std::lock_guard< std::mutex > lock{ m_dispatcher.m_lock };
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								stats::suffix_disp_agent_count(),
+								m_dispatcher.m_agent_threads.size() );
+
+#if 0
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_work_thread_prefix,
+								stats::suffix_work_thread_queue_size(),
+								m_work_thread.demands_count() );
+#endif
+					}
+
+				void
+				set_data_sources_name_base(
+					const std::string & name_base )
+					{
+						using namespace so_5::disp::reuse;
+
+						m_base_prefix = make_disp_prefix(
+								"ao", // ao -- active_objects
+								name_base,
+								&m_dispatcher );
+					}
+
+				void
+				start(
+					so_5::rt::environment_t & env )
+					{
+						env.stats_repository().add( *this );
+						m_env = &env;
+					}
+
+				void
+				stop()
+					{
+						m_env->stats_repository().remove( *this );
+						m_env = nullptr;
+					}
+
+			};
 
 		//! A map from agents to single thread dispatchers.
 		agent_thread_map_t m_agent_threads;
@@ -97,6 +183,12 @@ class dispatcher_t
 
 		/*!
 		 * \since v.5.5.4
+		 * \brief Data source for run-time monitoring.
+		 */
+		data_source_t m_data_source;
+
+		/*!
+		 * \since v.5.5.4
 		 * \brief Helper function for searching and erasing agent's
 		 * thread from map of active threads.
 		 *
@@ -105,17 +197,33 @@ class dispatcher_t
 		so_5::disp::reuse::work_thread::work_thread_shptr_t
 		search_and_remove_agent_from_map(
 			const so_5::rt::agent_t & agent );
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Just a helper method for getting reference to itself.
+		 */
+		dispatcher_t &
+		self()
+			{
+				return *this;
+			}
 };
 
 dispatcher_t::dispatcher_t()
+	:	m_data_source( self() )
 {
 }
 
 void
-dispatcher_t::start( so_5::rt::environment_t & /*env*/ )
+dispatcher_t::start( so_5::rt::environment_t & env )
 {
 	std::lock_guard< std::mutex > lock( m_lock );
-	m_shutdown_started = false;
+
+	m_data_source.start( env );
+
+	so_5::details::do_with_rollback_on_exception(
+		[this] { m_shutdown_started = false; },
+		[this] { m_data_source.stop(); } );
 }
 
 template< class T >
@@ -153,7 +261,16 @@ dispatcher_t::wait()
 		m_agent_threads.begin(),
 		m_agent_threads.end(),
 		call_wait< agent_thread_map_t::value_type > );
+
+	m_data_source.stop();
 }
+
+void
+dispatcher_t::set_data_sources_name_base(
+	const std::string & name_base )
+	{
+		m_data_source.set_data_sources_name_base( name_base );
+	}
 
 so_5::rt::event_queue_t *
 dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )

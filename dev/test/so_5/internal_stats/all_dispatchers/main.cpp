@@ -109,6 +109,7 @@ class a_controller_t : public so_5::rt::agent_t
 
 				create_children_on_default_disp( *coop, workers );
 				create_children_on_one_thread_disp( *coop, workers );
+				create_children_on_active_obj_disp( *coop, workers );
 
 				connect_workers( workers );
 
@@ -134,10 +135,32 @@ class a_controller_t : public so_5::rt::agent_t
 				auto disp = so_5::disp::one_thread::create_private_disp(
 						so_environment() );
 
+				create_children_on( coop, workers,
+						[disp] { return disp->binder(); } );
+			}
+
+		void
+		create_children_on_active_obj_disp(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers )
+			{
+				auto disp = so_5::disp::active_obj::create_private_disp(
+						so_environment() );
+
+				create_children_on( coop, workers,
+						[disp] { return disp->binder(); } );
+			}
+
+		template< typename LAMBDA >
+		void
+		create_children_on(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers,
+			LAMBDA binder )
+			{
 				for( int i = 0; i != 5; ++i )
 					workers.push_back(
-							coop.make_agent_with_binder< a_worker_t >(
-									disp->binder() ) );
+							coop.make_agent_with_binder< a_worker_t >( binder() ) );
 			}
 
 		void
