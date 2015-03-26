@@ -183,6 +183,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 						std::ostringstream ss;
 						ss << m_base_prefix.c_str() << "/wt-0x"
+								<< std::hex
 								<< ptrdiff( agent );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
