@@ -61,6 +61,12 @@ suffix_disp_agent_count()
 	}
 
 SO_5_FUNC suffix_t
+suffix_disp_active_group_count()
+	{
+		IMPL_SUFFIX( "/group.count" )
+	}
+
+SO_5_FUNC suffix_t
 suffix_work_thread_queue_size()
 	{
 		IMPL_SUFFIX( "/demands.count" )

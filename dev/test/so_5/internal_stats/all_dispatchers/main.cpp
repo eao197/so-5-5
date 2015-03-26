@@ -111,6 +111,7 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on_default_disp( *coop, workers );
 				create_children_on_one_thread_disp( *coop, workers );
 				create_children_on_active_obj_disp( *coop, workers );
+				create_children_on_active_group_disp( *coop, workers );
 
 				connect_workers( workers );
 
@@ -150,6 +151,23 @@ class a_controller_t : public so_5::rt::agent_t
 
 				create_children_on( coop, workers,
 						[disp] { return disp->binder(); } );
+			}
+
+		void
+		create_children_on_active_group_disp(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers )
+			{
+				auto disp = so_5::disp::active_group::create_private_disp(
+						so_environment() );
+
+				unsigned int group_no = 0;
+
+				create_children_on( coop, workers,
+						[disp, &group_no] {
+							return disp->binder( "group#" +
+									std::to_string( ++group_no ) );
+						} );
 			}
 
 		template< typename LAMBDA >

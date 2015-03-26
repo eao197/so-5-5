@@ -80,6 +80,14 @@ suffix_disp_agent_count();
 
 /*!
  * \since v.5.5.4
+ * \brief Suffix for data source with count of active groups in
+ * an active_group dispatcher.
+ */
+SO_5_FUNC suffix_t
+suffix_disp_active_group_count();
+
+/*!
+ * \since v.5.5.4
  * \brief Suffix for data source with count of demands in a working thread event queue.
  */
 SO_5_FUNC suffix_t
