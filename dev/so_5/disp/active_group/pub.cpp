@@ -406,21 +406,17 @@ class binding_actions_t
 			{
 				auto ctx = disp.query_thread_for_group( m_group_name );
 
-				try
-				{
-					so_5::rt::disp_binding_activator_t activator =
-						[agent, ctx]() {
-							agent->so_bind_to_dispatcher( *ctx );
-						};
-
-					return activator;
-				}
-				catch( ... )
-				{
-					// Dispatcher for the agent should be removed.
-					disp.release_thread_for_group( m_group_name );
-					throw;
-				}
+				return so_5::details::do_with_rollback_on_exception(
+						[&] {
+							return so_5::rt::disp_binding_activator_t {
+								[agent, ctx]() {
+									agent->so_bind_to_dispatcher( *ctx );
+								} };
+						},
+						[&] {
+							// Dispatcher for the agent should be removed.
+							disp.release_thread_for_group( m_group_name );
+						} );
 			}
 
 		void
