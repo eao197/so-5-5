@@ -154,15 +154,9 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 					const so_5::rt::agent_t * agent,
 					work_thread::work_thread_t & wt )
 					{
-						auto ptrdiff = []( const so_5::rt::agent_t * a ) {
-							return reinterpret_cast< const char * >(a) -
-									static_cast< const char * >(nullptr);
-						};
-
 						std::ostringstream ss;
-						ss << m_base_prefix.c_str() << "/wt-0x"
-								<< std::hex
-								<< ptrdiff( agent );
+						ss << m_base_prefix.c_str() << "/wt-"
+								<< so_5::disp::reuse::ios_helpers::pointer{ agent };
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,

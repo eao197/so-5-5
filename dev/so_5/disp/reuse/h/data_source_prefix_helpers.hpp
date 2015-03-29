@@ -20,6 +20,67 @@ namespace disp {
 
 namespace reuse {
 
+namespace ios_helpers {
+
+/*!
+ * \since v.5.5.4
+ * \brief Helper for showing only part of long string.
+ */
+struct length_limited_string
+	{
+		const std::string & m_what;
+		const std::size_t m_limit;
+
+		length_limited_string(
+			const std::string & what,
+			std::size_t limit )
+			:	m_what( what )
+			,	m_limit( limit )
+			{}
+	};
+
+inline std::ostream &
+operator<<( std::ostream & to, const length_limited_string & v )
+	{
+		if( v.m_what.size() > v.m_limit )
+			{
+				const std::size_t median = v.m_limit / 2;
+
+				to << v.m_what.substr( 0, median )
+					<< "..."
+					<< v.m_what.substr( v.m_what.size() - median + 3 );
+			}
+		else
+			to << v.m_what;
+
+		return to;
+	}
+
+/*!
+ * \since v.5.5.4
+ * \brief Helper for showing pointer value.
+ */
+struct pointer
+	{
+		const void * m_what;
+
+		pointer( const void * what ) : m_what{ what } {}
+	};
+
+inline std::ostream &
+operator<<( std::ostream & to, const pointer & v )
+	{
+		auto oldf = to.setf( std::ios_base::hex, std::ios_base::basefield );
+		to << "0x" << std::ptrdiff_t{
+				reinterpret_cast< const char * >(v.m_what) -
+				static_cast< const char * >(nullptr)};
+		to.setf( oldf, std::ios_base::basefield );
+
+		return to;
+	}
+
+} /* namespace ios_helpers */
+
 /*!
  * \since v.5.5.4
  * \brief Create basic prefix for dispatcher data source names.
@@ -39,25 +100,11 @@ make_disp_prefix(
 
 		ss << "disp/" << disp_type << "/";
 		if( !data_sources_name_base.empty() )
-			{
-				if( data_sources_name_base.size() > max_name_base_fragment )
-					{
-						const std::size_t median = max_name_base_fragment / 2;
-
-						ss << data_sources_name_base.substr( 0, median )
-							<< "..."
-							<< data_sources_name_base.substr(
-								data_sources_name_base.size() - median + 3 );
-					}
-				else
-					ss << data_sources_name_base;
-			}
+			ss << ios_helpers::length_limited_string{
+					data_sources_name_base,
+					max_name_base_fragment };
 		else
-			{
-				const char * z = nullptr;
-				auto t = reinterpret_cast< const char * >(disp_this_pointer);
-				ss << "0x" << std::hex << (t - z);
-			}
+			ss << ios_helpers::pointer{ disp_this_pointer };
 
 		return so_5::rt::stats::prefix_t{ ss.str() };
 	}

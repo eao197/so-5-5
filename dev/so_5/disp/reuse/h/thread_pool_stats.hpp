@@ -100,9 +100,10 @@ make_queue_desc_holder(
 	{
 		queue_description_holder_ref_t result( new queue_description_holder_t() );
 
-//FIXME: normal name must be created!
 		std::ostringstream ss;
-		ss << prefix.c_str() << "/cq/" << coop_name;
+		ss << prefix.c_str() << "/cq/"
+				<< so_5::disp::reuse::ios_helpers::length_limited_string{
+						coop_name, 16 };
 
 		result->m_desc.m_prefix = stats::prefix_t{ ss.str() };
 		result->m_desc.m_agent_count = agent_count;
@@ -124,9 +125,9 @@ make_queue_desc_holder(
 	{
 		queue_description_holder_ref_t result( new queue_description_holder_t() );
 
-//FIXME: normal name must be created!
 		std::ostringstream ss;
-		ss << prefix.c_str() << "/aq/" << agent;
+		ss << prefix.c_str() << "/aq/"
+				<< so_5::disp::reuse::ios_helpers::pointer{ agent };
 
 		result->m_desc.m_prefix = stats::prefix_t{ ss.str() };
 		result->m_desc.m_agent_count = 1;
