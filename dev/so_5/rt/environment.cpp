@@ -520,7 +520,7 @@ void
 environment_t::impl__run_stats_controller_and_go_further()
 {
 	impl__do_run_stage(
-			"run_layers",
+			"run_stats_controller",
 			[this] {
 				/* there is no need to turn_on controller automatically */
 			},

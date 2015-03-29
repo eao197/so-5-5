@@ -347,18 +347,19 @@ class dispatcher_t
 				 * \since v.5.5.4
 				 * \brief Description of that queue for run-time monitoring.
 				 */
-				tp_stats::queue_description_holder_ref_t
-						m_queue_desc;
+				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
 				cooperation_data_t(
 					agent_queue_shptr_t queue,
 					std::size_t agents,
-					const stats::prefix_t & data_source_name_prefix )
+					const stats::prefix_t & data_source_name_prefix,
+					const std::string & coop_name )
 					:	m_queue( std::move( queue ) )
 					,	m_agents( agents )
 					,	m_queue_desc(
 							tp_stats::make_queue_desc_holder(
 									data_source_name_prefix,
+									coop_name,
 									agents ) )
 					{}
 
@@ -388,18 +389,58 @@ class dispatcher_t
 				 */
 				agent_queue_shptr_t m_queue;
 
-				//! Cooperation FIFO flag.
 				/*!
-				 * Set to 'true' if agent uses cooperation FIFO.
+				 * \since v.5.5.4
+				 * \brief Description of that queue for run-time monitoring.
+				 *
+				 * \note This description is created only if agent
+				 * uses individual FIFO.
 				 */
-				bool m_cooperation_fifo;
+				tp_stats::queue_description_holder_ref_t m_queue_desc;
 
+				//! Constructor for the case when agent uses cooperation FIFO.
+				agent_data_t(
+					agent_queue_shptr_t queue )
+					:	m_queue( std::move( queue ) )
+					{}
+
+				//! Constructor for the case when agent uses individual FIFO.
+				/*!
+				 * In this case a queue_description object must be created.
+				 */
 				agent_data_t(
 					agent_queue_shptr_t queue,
-					bool cooperation_fifo )
+					const stats::prefix_t & data_source_name_prefix,
+					const so_5::rt::agent_t * agent_ptr )
 					:	m_queue( std::move( queue ) )
-					,	m_cooperation_fifo( cooperation_fifo )
+					,	m_queue_desc(
+							tp_stats::make_queue_desc_holder(
+									data_source_name_prefix,
+									agent_ptr ) )
 					{}
+
+				/*!
+				 * \since v.5.5.4
+				 * \brief Does agent use cooperation FIFO?
+				 */
+				bool
+				cooperation_fifo() const
+					{
+						return !m_queue_desc;
+					}
+
+				/*!
+				 * \since v.5.5.4
+				 * \brief Update queue description with current information.
+				 *
+				 * \attention Must be called only if !cooperation_fifo().
+				 */
+				void
+				update_queue_stats()
+					{
+						m_queue_desc->m_desc.m_agent_count = 1;
+						m_queue_desc->m_desc.m_queue_size = m_queue->size();
+					}
 			};
 
 		//! Map from agent pointer to the agent data.
@@ -483,7 +524,7 @@ class dispatcher_t
 				auto it = m_agents.find( agent.get() );
 				if( it != m_agents.end() )
 					{
-						if( it->second.m_cooperation_fifo )
+						if( it->second.cooperation_fifo() )
 							{
 								auto it_coop = m_cooperations.find(
 										agent->so_coop_name() );
@@ -543,8 +584,12 @@ class dispatcher_t
 			{
 				agent_queue_shptr_t queue = make_new_agent_queue( params );
 
-				m_agents.emplace( agent.get(),
-						agent_data_t( queue, false ) );
+				m_agents.emplace(
+						agent.get(),
+						agent_data_t{
+								queue,
+								m_data_source.prefix(),
+								agent.get() } );
 
 				return queue.get();
 			}
@@ -566,7 +611,8 @@ class dispatcher_t
 							cooperation_data_t(
 									make_new_agent_queue( params ),
 									1,
-									m_data_source.prefix() ) )
+									m_data_source.prefix(),
+									agent->so_coop_name() ) )
 							.first;
 				else
 					it->second.m_agents += 1;
@@ -574,7 +620,7 @@ class dispatcher_t
 				try
 					{
 						m_agents.emplace( agent.get(),
-								agent_data_t( it->second.m_queue, true ) );
+								agent_data_t( it->second.m_queue ) );
 					}
 				catch( ... )
 					{
@@ -614,7 +660,7 @@ class dispatcher_t
 		 * \brief Implementation of stats_supplier-related stuff.
 		 */
 		virtual void
-		supply( tp_stats::stats_consumer_t & consumer )
+		supply( tp_stats::stats_consumer_t & consumer ) override
 			{
 				// Statics must be collected on locked object.
 				std::lock_guard< spinlock_t > lock( m_lock );
@@ -624,13 +670,19 @@ class dispatcher_t
 				for( auto & q : m_cooperations )
 					{
 						auto & s = q.second;
-
 						s.update_queue_stats();
-
 						consumer.add_queue( s.m_queue_desc );
 					}
 
-//FIXME: implement supplying of queue-related information.
+				for( auto & a : m_agents )
+					{
+						auto & s = a.second;
+						if( !s.cooperation_fifo() )
+							{
+								s.update_queue_stats();
+								consumer.add_queue( s.m_queue_desc );
+							}
+					}
 			}
 	};
 

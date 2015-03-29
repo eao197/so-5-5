@@ -95,13 +95,41 @@ using queue_description_holder_ref_t =
 inline queue_description_holder_ref_t
 make_queue_desc_holder(
 	const stats::prefix_t & prefix,
+	const std::string & coop_name,
 	std::size_t agent_count )
 	{
 		queue_description_holder_ref_t result( new queue_description_holder_t() );
 
 //FIXME: normal name must be created!
-		result->m_desc.m_prefix = prefix;
+		std::ostringstream ss;
+		ss << prefix.c_str() << "/cq/" << coop_name;
+
+		result->m_desc.m_prefix = stats::prefix_t{ ss.str() };
 		result->m_desc.m_agent_count = agent_count;
+		result->m_desc.m_queue_size = 0;
+
+		return result;
+	}
+
+/*!
+ * \since v.5.5.4
+ * \brief Helper function for creating queue_description_holder object.
+ *
+ * Must be used for the case when agent uses individual FIFO.
+ */
+inline queue_description_holder_ref_t
+make_queue_desc_holder(
+	const stats::prefix_t & prefix,
+	const void * agent )
+	{
+		queue_description_holder_ref_t result( new queue_description_holder_t() );
+
+//FIXME: normal name must be created!
+		std::ostringstream ss;
+		ss << prefix.c_str() << "/aq/" << agent;
+
+		result->m_desc.m_prefix = stats::prefix_t{ ss.str() };
+		result->m_desc.m_agent_count = 1;
 		result->m_desc.m_queue_size = 0;
 
 		return result;
@@ -232,13 +260,14 @@ class data_source_t : public stats::manually_registered_source_t
 				~collector_t()
 					{
 						// Chain of queue data sources must be cleaned up.
-						intrusive_ptr_t< queue_description_holder_t > holder =
-								std::move( m_queue_desc_head );
+						auto holder = m_queue_desc_head;
+						m_queue_desc_head.reset();
+
 						while( holder )
 							{
-								queue_description_holder_t * p = holder.get();
+								auto current = holder;
 								holder = holder->m_next;
-								p->m_next.reset();
+								current->m_next.reset();
 							}
 
 						m_queue_desc_tail.reset();

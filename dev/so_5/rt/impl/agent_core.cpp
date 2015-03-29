@@ -511,6 +511,8 @@ agent_core_t::environment()
 agent_core_stats_t
 agent_core_t::query_stats()
 {
+//FIXME: there can be deadlock on this mutex!
+//agent_core stats must be obtained without locking of that mutex!
 	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
 	return agent_core_stats_t{
