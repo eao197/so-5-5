@@ -253,6 +253,12 @@ class agent_core_t
 			{}
 
 			info_for_dereg_notification_t(
+				const info_for_dereg_notification_t & info )
+				:	m_reason( info.m_reason )
+				,	m_notificators( info.m_notificators )
+			{}
+
+			info_for_dereg_notification_t(
 				info_for_dereg_notification_t && info )
 				:	m_reason( std::move( info.m_reason ) )
 				,	m_notificators( std::move( info.m_notificators ) )
