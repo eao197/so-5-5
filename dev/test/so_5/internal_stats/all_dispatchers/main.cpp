@@ -112,6 +112,7 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on_one_thread_disp( *coop, workers );
 				create_children_on_active_obj_disp( *coop, workers );
 				create_children_on_active_group_disp( *coop, workers );
+				create_children_on_thread_pool_disp_1( *coop, workers );
 
 				connect_workers( workers );
 
@@ -167,6 +168,21 @@ class a_controller_t : public so_5::rt::agent_t
 						[disp, &group_no] {
 							return disp->binder( "group#" +
 									std::to_string( ++group_no ) );
+						} );
+			}
+
+		void
+		create_children_on_thread_pool_disp_1(
+			so_5::rt::agent_coop_t & coop,
+			workers_vector_t & workers )
+			{
+				auto disp = so_5::disp::thread_pool::create_private_disp(
+						so_environment() );
+
+				create_children_on( coop, workers,
+						[disp] {
+								return disp->binder(
+									so_5::disp::thread_pool::params_t{} );
 						} );
 			}
 

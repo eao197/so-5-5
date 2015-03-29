@@ -94,6 +94,13 @@ SO_5_FUNC suffix_t
 suffix_work_thread_queue_size();
 
 /*!
+ * \since v.5.5.4
+ * \brief Suffix for data source with count of work threads for dispatcher.
+ */
+SO_5_FUNC suffix_t
+suffix_disp_thread_count();
+
+/*!
  * \}
  */
 

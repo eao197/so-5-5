@@ -16,11 +16,13 @@
 #include <memory>
 #include <map>
 #include <iostream>
+#include <atomic>
 
 #include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/disp.hpp>
 
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
+#include <so_5/disp/reuse/h/thread_pool_stats.hpp>
 
 namespace so_5
 {
@@ -37,6 +39,9 @@ namespace impl
 using spinlock_t = so_5::default_spinlock_t;
 
 class agent_queue_t;
+
+namespace stats = so_5::rt::stats;
+namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
 // dispatcher_queue_t
@@ -99,6 +104,8 @@ class agent_queue_t : public so_5::rt::event_queue_t
 
 				m_tail->m_next = tail_demand.release();
 				m_tail = m_tail->m_next;
+
+				++m_size;
 
 				if( was_empty )
 					m_disp_queue.schedule( this );
@@ -169,6 +176,16 @@ class agent_queue_t : public so_5::rt::event_queue_t
 					}
 			}
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Get the current size of the queue.
+		 */
+		std::size_t
+		size() const
+			{
+				return m_size.load( std::memory_order_acquire );
+			}
+
 	private :
 		//! Dispatcher queue for scheduling processing of events from
 		//! this queue.
@@ -192,12 +209,20 @@ class agent_queue_t : public so_5::rt::event_queue_t
 		 */
 		demand_t * m_tail;
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Current size of the queue.
+		 */
+		std::atomic< std::size_t > m_size = { 0 };
+
 		//! Helper method for deleting queue's head object.
 		inline void
 		delete_head()
 			{
 				auto to_be_deleted = m_head.m_next;
 				m_head.m_next = m_head.m_next->m_next;
+
+				--m_size;
 
 				delete to_be_deleted;
 			}
@@ -300,7 +325,9 @@ class work_thread_t
  * \since v.5.4.0
  * \brief An implementation of thread pool dispatcher.
  */
-class dispatcher_t : public so_5::rt::dispatcher_t
+class dispatcher_t
+	:	public so_5::rt::dispatcher_t
+	,	public tp_stats::stats_supplier_t
 	{
 	private :
 		//! Data for one cooperation.
@@ -316,12 +343,35 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				 */
 				std::size_t m_agents;
 
+				/*!
+				 * \since v.5.5.4
+				 * \brief Description of that queue for run-time monitoring.
+				 */
+				tp_stats::queue_description_holder_ref_t
+						m_queue_desc;
+
 				cooperation_data_t(
 					agent_queue_shptr_t queue,
-					std::size_t agents )
+					std::size_t agents,
+					const stats::prefix_t & data_source_name_prefix )
 					:	m_queue( std::move( queue ) )
 					,	m_agents( agents )
+					,	m_queue_desc(
+							tp_stats::make_queue_desc_holder(
+									data_source_name_prefix,
+									agents ) )
 					{}
+
+				/*!
+				 * \since v.5.5.4
+				 * \brief Update queue information for run-time monitoring.
+				 */
+				void
+				update_queue_stats()
+					{
+						m_queue_desc->m_desc.m_agent_count = m_agents;
+						m_queue_desc->m_desc.m_queue_size = m_queue->size();
+					}
 			};
 
 		//! Map from cooperation name to the cooperation data.
@@ -340,7 +390,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 				//! Cooperation FIFO flag.
 				/*!
-				 * Set to 'true' if agent is used cooperation FIFO.
+				 * Set to 'true' if agent uses cooperation FIFO.
 				 */
 				bool m_cooperation_fifo;
 
@@ -364,6 +414,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		dispatcher_t(
 			std::size_t thread_count )
 			:	m_thread_count( thread_count )
+			,	m_data_source( stats_supplier() )
 			{
 				m_threads.reserve( thread_count );
 
@@ -373,8 +424,10 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			}
 
 		virtual void
-		start( so_5::rt::environment_t & /*env*/ ) override
+		start( so_5::rt::environment_t & env ) override
 			{
+				m_data_source.start( env.stats_repository() );
+
 				for( auto & t : m_threads )
 					t->start();
 			}
@@ -390,6 +443,18 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				for( auto & t : m_threads )
 					t->join();
+
+				m_data_source.stop();
+			}
+
+		virtual void
+		set_data_sources_name_base(
+			const std::string & name_base ) override
+			{
+				m_data_source.set_data_sources_name_base(
+						"tp", // thread-pool
+						name_base,
+						this );
 			}
 
 		//! Bind agent to the dispatcher.
@@ -464,6 +529,12 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		//! Information of agents.
 		agent_map_t m_agents;
 
+		/*!
+		 * \since v.5.5.4
+		 * \brief Data source for the run-time monitoring.
+		 */
+		tp_stats::data_source_t m_data_source;
+
 		//! Creation event queue for an agent with individual FIFO.
 		so_5::rt::event_queue_t *
 		bind_agent_with_inidividual_fifo(
@@ -494,7 +565,8 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 							agent->so_coop_name(),
 							cooperation_data_t(
 									make_new_agent_queue( params ),
-									1 ) )
+									1,
+									m_data_source.prefix() ) )
 							.first;
 				else
 					it->second.m_agents += 1;
@@ -525,6 +597,40 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						new agent_queue_t(
 								m_queue,
 								params.query_max_demands_at_once() ) );
+			}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Helper method for casting to stats_supplier-object.
+		 */
+		tp_stats::stats_supplier_t &
+		stats_supplier()
+			{
+				return *this;
+			}
+
+		/*!
+		 * \since v.5.5.4
+		 * \brief Implementation of stats_supplier-related stuff.
+		 */
+		virtual void
+		supply( tp_stats::stats_consumer_t & consumer )
+			{
+				// Statics must be collected on locked object.
+				std::lock_guard< spinlock_t > lock( m_lock );
+
+				consumer.set_thread_count( m_threads.size() );
+
+				for( auto & q : m_cooperations )
+					{
+						auto & s = q.second;
+
+						s.update_queue_stats();
+
+						consumer.add_queue( s.m_queue_desc );
+					}
+
+//FIXME: implement supplying of queue-related information.
 			}
 	};
 

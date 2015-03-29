@@ -326,5 +326,3 @@ create_disp_binder(
 
 } /* namespace so_5 */
 
-
-

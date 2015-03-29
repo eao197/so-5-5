@@ -72,6 +72,12 @@ suffix_work_thread_queue_size()
 		IMPL_SUFFIX( "/demands.count" )
 	}
 
+SO_5_FUNC suffix_t
+suffix_disp_thread_count()
+	{
+		IMPL_SUFFIX( "/threads.count" )
+	}
+
 #undef IMPL_SUFFIX
 
 } /* namespace stats */
