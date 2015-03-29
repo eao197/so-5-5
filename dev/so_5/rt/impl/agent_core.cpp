@@ -413,14 +413,14 @@ bool
 agent_core_t::final_deregister_coop(
 	const std::string coop_name )
 {
-	info_for_dereg_notification_t notification_info;
+	final_remove_result_t remove_result;
 
 	bool need_signal_dereg_finished;
 	bool ret_value = false;
 	{
 		std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
-		notification_info = finaly_remove_cooperation_info( coop_name );
+		remove_result = finaly_remove_cooperation_info( coop_name );
 
 		// If we are inside shutdown process and this is the last
 		// cooperation then a special flag should be set.
@@ -431,12 +431,15 @@ agent_core_t::final_deregister_coop(
 				!m_deregistered_coop.empty();
 	}
 
+	// Cooperation must be destroyed.
+	remove_result.m_coop.reset();
+
 	if( need_signal_dereg_finished )
 		m_deregistration_finished_cond.notify_one();
 
 	do_coop_dereg_notification_if_necessary(
 			coop_name,
-			notification_info );
+			remove_result.m_notifications );
 
 	return ret_value;
 }
@@ -611,17 +614,18 @@ agent_core_t::next_coop_reg_step__parent_child_relation(
 	}
 }
 
-agent_core_t::info_for_dereg_notification_t
+agent_core_t::final_remove_result_t
 agent_core_t::finaly_remove_cooperation_info(
 	const std::string & coop_name )
 {
-	info_for_dereg_notification_t ret_value;
-
 	auto it = m_deregistered_coop.find( coop_name );
 	if( it != m_deregistered_coop.end() )
 	{
+		agent_coop_ref_t removed_coop = it->second;
+		m_deregistered_coop.erase( it );
+
 		agent_coop_t * parent =
-				agent_coop_private_iface_t::parent_coop_ptr( *(it->second) );
+				agent_coop_private_iface_t::parent_coop_ptr( *removed_coop );
 		if( parent )
 		{
 			m_parent_child_relations.erase(
@@ -632,16 +636,16 @@ agent_core_t::finaly_remove_cooperation_info(
 			agent_coop_t::decrement_usage_count( *parent );
 		}
 
-		ret_value = info_for_dereg_notification_t(
-				agent_coop_private_iface_t::dereg_reason(
-						*(it->second) ),
-				agent_coop_private_iface_t::dereg_notificators(
-						*(it->second) ) );
-
-		m_deregistered_coop.erase( it );
+		return final_remove_result_t{
+				removed_coop,
+				info_for_dereg_notification_t{
+						agent_coop_private_iface_t::dereg_reason(
+								*removed_coop ),
+						agent_coop_private_iface_t::dereg_notificators(
+								*removed_coop ) } };
 	}
-
-	return ret_value;
+	else
+		return final_remove_result_t{};
 }
 
 void
