@@ -78,6 +78,19 @@ std_controller_t::turn_off()
 			}
 	}
 
+std::chrono::steady_clock::duration
+std_controller_t::set_distribution_period(
+	std::chrono::steady_clock::duration period )
+	{
+		std::lock_guard< std::mutex > lock{ m_data_lock };
+		
+		auto ret_value = m_distribution_period;
+
+		m_distribution_period = period;
+
+		return ret_value;
+	}
+
 void
 std_controller_t::add( source_t & what )
 	{

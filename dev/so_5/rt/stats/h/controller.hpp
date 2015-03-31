@@ -14,6 +14,8 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
+#include <chrono>
+
 namespace so_5
 {
 
@@ -44,6 +46,15 @@ class SO_5_TYPE controller_t
 		//! Turn the monitoring off.
 		virtual void
 		turn_off() = 0;
+
+		//! Set distribution period.
+		/*!
+		 * \return Old distribution period value.
+		 */
+		virtual std::chrono::steady_clock::duration
+		set_distribution_period(
+			//! New period value.
+			std::chrono::steady_clock::duration period ) = 0;
 	};
 
 } /* namespace stats */

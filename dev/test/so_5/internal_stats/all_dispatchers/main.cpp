@@ -76,6 +76,8 @@ class a_controller_t : public so_5::rt::agent_t
 			{
 				create_child_coops();
 
+				so_environment().stats_controller().set_distribution_period(
+						std::chrono::milliseconds(500) );
 				so_environment().stats_controller().turn_on();
 
 				so_5::send_delayed_to_agent< finish >( *this,

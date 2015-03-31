@@ -54,6 +54,10 @@ class std_controller_t
 		virtual void
 		turn_off() override;
 
+		virtual std::chrono::steady_clock::duration
+		set_distribution_period(
+			std::chrono::steady_clock::duration period ) override;
+
 		// Implementation of repository_t interface.
 		virtual void
 		add( source_t & what ) override;
