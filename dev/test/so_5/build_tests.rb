@@ -81,6 +81,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "test/so_5/svc/build_tests.rb" )
 
+	required_prj( "test/so_5/internal_stats/build_tests.rb" )
+
 	required_prj( "test/so_5/bench/ping_pong/prj.rb" )
 	required_prj( "test/so_5/bench/same_msg_in_different_states/prj.rb" )
 	required_prj( "test/so_5/bench/parallel_send_to_same_mbox/prj.rb" )

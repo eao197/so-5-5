@@ -16,6 +16,8 @@
 #include <so_5/disp/reuse/h/mpmc_ptr_queue.hpp>
 #include <so_5/disp/reuse/h/thread_pool_stats.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5 {
 
 namespace disp {
@@ -338,22 +340,19 @@ class dispatcher_t
 				else
 					it->second.m_agents += 1;
 
-//FIXME: must be changed to do_with_rollback_on_exception
-				try
-					{
-						m_agents.emplace( agent.get(),
-								agent_data_t( it->second.m_queue ) );
-					}
-				catch( ... )
-					{
-						// Rollback m_cooperations modification.
-						if( 0 == --(it->second.m_agents) )
-							m_cooperations.erase( it );
-						throw;
-					}
+				so_5::details::do_with_rollback_on_exception(
+						[&] {
+							m_agents.emplace(
+									agent.get(),
+									agent_data_t{ it->second.m_queue } );
+						},
+						[&] {
+							// Rollback m_cooperations modification.
+							if( 0 == --(it->second.m_agents) )
+								m_cooperations.erase( it );
+						} );
 
 				return it->second.m_queue.get();
-
 			}
 
 		//! Helper method for creating event queue for agents/cooperations.
