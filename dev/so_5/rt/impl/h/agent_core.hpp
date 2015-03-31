@@ -100,8 +100,13 @@ struct agent_core_stats_t
 		//! Count of cooperations in the deregistration state.
 		std::size_t m_deregistered_coop_count;
 
-//FIXME: this statatic must be expanded with current agent counts
-//(in registered and deregistered cooperations).
+		//! Count of registered agents.
+		/*!
+		 * This quantity includes quantity of agents in registered
+		 * cooperations as well as quantity of agents in cooperations
+		 * in the deregistration state.
+		 */
+		std::size_t m_total_agent_count;
 	};
 
 //
@@ -362,6 +367,12 @@ class agent_core_t
 
 		//! Map of cooperations being deregistered.
 		coop_map_t m_deregistered_coop;
+
+		//! Total count of agents.
+		/*!
+		 * \since v.5.5.4
+		 */
+		std::size_t m_total_agent_count;
 
 		//! Cooperation deregistration thread.
 		coop_dereg::coop_dereg_executor_thread_t m_coop_dereg_executor;

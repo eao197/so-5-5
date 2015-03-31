@@ -8,6 +8,8 @@
 
 #include <so_5/rt/h/environment.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -272,10 +274,10 @@ deregistration_processor_t::initiate_abort_on_exception(
 agent_core_t::agent_core_t(
 	environment_t & so_environment,
 	coop_listener_unique_ptr_t coop_listener )
-	:
-		m_so_environment( so_environment ),
-		m_deregistration_started( false ),
-		m_coop_listener( std::move( coop_listener ) )
+	:	m_so_environment( so_environment )
+	,	m_deregistration_started( false )
+	,	m_total_agent_count{ 0 }
+	,	m_coop_listener( std::move( coop_listener ) )
 {
 }
 
@@ -476,11 +478,9 @@ agent_core_t::deregister_all_coop()
 {
 	std::lock_guard< std::mutex > lock( m_coop_operations_lock );
 
-	for( auto it = m_registered_coop.begin(), it_end = m_registered_coop.end();
-			it != it_end;
-			++it )
+	for( auto & info : m_registered_coop )
 		agent_coop_private_iface_t::do_deregistration_specific_actions(
-				*(it->second),
+				*(info.second),
 				coop_dereg_reason_t( dereg_reason::shutdown ) );
 			
 	m_deregistered_coop.insert(
@@ -514,14 +514,13 @@ agent_core_t::environment()
 agent_core_stats_t
 agent_core_t::query_stats()
 {
-//FIXME: there can be deadlock on this mutex!
-//agent_core stats must be obtained without locking of that mutex!
 	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
 	return agent_core_stats_t{
 			m_registered_coop.size(),
-			m_deregistered_coop.size()
-	};
+			m_deregistered_coop.size(),
+			m_total_agent_count
+		};
 }
 
 void
@@ -566,19 +565,20 @@ agent_core_t::next_coop_reg_step__update_registered_coop_map(
 	agent_coop_t * parent_coop_ptr )
 {
 	m_registered_coop[ coop_ref->query_coop_name() ] = coop_ref;
+	m_total_agent_count += coop_ref->query_agent_count();
 
 	// In case of error cooperation info should be removed
 	// from m_registered_coop.
-	try
-	{
-		next_coop_reg_step__parent_child_relation( coop_ref, parent_coop_ptr );
-	}
-	catch( const std::exception & )
-	{
-		m_registered_coop.erase( coop_ref->query_coop_name() );
-
-		throw;
-	}
+	so_5::details::do_with_rollback_on_exception(
+		[&] {
+			next_coop_reg_step__parent_child_relation(
+					coop_ref,
+					parent_coop_ptr );
+		},
+		[&] {
+			m_total_agent_count -= coop_ref->query_agent_count();
+			m_registered_coop.erase( coop_ref->query_coop_name() );
+		} );
 }
 
 void
@@ -586,32 +586,28 @@ agent_core_t::next_coop_reg_step__parent_child_relation(
 	const agent_coop_ref_t & coop_ref,
 	agent_coop_t * parent_coop_ptr )
 {
+	auto do_actions = [&] {
+			coop_ref->do_registration_specific_actions( parent_coop_ptr );
+		};
+
 	if( parent_coop_ptr )
 	{
-		m_parent_child_relations.insert(
-			parent_child_coop_names_t(
+		const parent_child_coop_names_t names{
 				parent_coop_ptr->query_coop_name(),
-				coop_ref->query_coop_name() ) );
-	}
+				coop_ref->query_coop_name() };
 
-	// In case of error cooperation relation info should be removed
-	// from m_parent_child_relations.
-	try
-	{
-		coop_ref->do_registration_specific_actions( parent_coop_ptr );
-	}
-	catch( const std::exception & )
-	{
-		if( parent_coop_ptr )
-		{
-			m_parent_child_relations.erase(
-				parent_child_coop_names_t(
-					parent_coop_ptr->query_coop_name(),
-					coop_ref->query_coop_name() ) );
-		}
+		m_parent_child_relations.insert( names );
 
-		throw;
+		// In case of error cooperation relation info should be removed
+		// from m_parent_child_relations.
+		so_5::details::do_with_rollback_on_exception(
+			[&] { do_actions(); },
+			[&] { m_parent_child_relations.erase( names ); } );
 	}
+	else
+		// It is a very simple case. There is no need for additional
+		// actions and rollback on exceptions.
+		do_actions();
 }
 
 agent_core_t::final_remove_result_t
@@ -623,6 +619,7 @@ agent_core_t::finaly_remove_cooperation_info(
 	{
 		agent_coop_ref_t removed_coop = it->second;
 		m_deregistered_coop.erase( it );
+		m_total_agent_count -= removed_coop->query_agent_count();
 
 		agent_coop_t * parent =
 				agent_coop_private_iface_t::parent_coop_ptr( *removed_coop );

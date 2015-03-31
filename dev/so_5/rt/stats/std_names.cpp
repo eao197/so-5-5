@@ -55,7 +55,7 @@ suffix_named_mbox_count()
 	}
 
 SO_5_FUNC suffix_t
-suffix_disp_agent_count()
+suffix_agent_count()
 	{
 		IMPL_SUFFIX( "/agent.count" )
 	}

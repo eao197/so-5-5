@@ -221,7 +221,7 @@ class data_source_t : public stats::manually_registered_source_t
 				so_5::send< stats::messages::quantity< std::size_t > >(
 						mbox,
 						m_prefix,
-						stats::suffix_disp_agent_count(),
+						stats::suffix_agent_count(),
 						collector.agent_count() );
 
 				collector.for_each_queue(
@@ -229,7 +229,7 @@ class data_source_t : public stats::manually_registered_source_t
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								queue.m_prefix,
-								stats::suffix_disp_agent_count(),
+								stats::suffix_agent_count(),
 								queue.m_agent_count );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(

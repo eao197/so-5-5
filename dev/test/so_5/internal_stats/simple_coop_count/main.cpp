@@ -77,9 +77,21 @@ class a_test_t : public so_5::rt::agent_t
 								else
 									++m_actual_values;
 							}
+						else if( stats::suffix_agent_count() == evt.m_suffix )
+							{
+								// Count of registered agents could be
+								// 11 or 12 (it depends of deregistration of
+								// the special autoshutdown-guard cooperation).
+								if( 11 != evt.m_value && 12 != evt.m_value )
+									throw std::runtime_error( "unexpected count of "
+											"registered agents: " +
+											std::to_string( evt.m_value ) );
+								else
+									++m_actual_values;
+							}
 					}
 
-				if( 2 == m_actual_values )
+				if( 3 == m_actual_values )
 					so_deregister_agent_coop_normally();
 			}
 

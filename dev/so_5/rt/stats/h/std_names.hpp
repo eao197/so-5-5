@@ -73,10 +73,10 @@ suffix_named_mbox_count();
 
 /*!
  * \since v.5.5.4
- * \brief Suffix for data source with count of agents bound to a dispatcher.
+ * \brief Suffix for data source with count of agents bound to some entity.
  */
 SO_5_FUNC suffix_t
-suffix_disp_agent_count();
+suffix_agent_count();
 
 /*!
  * \since v.5.5.4

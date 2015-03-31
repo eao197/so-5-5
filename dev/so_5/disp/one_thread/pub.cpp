@@ -155,7 +155,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								m_base_prefix,
-								stats::suffix_disp_agent_count(),
+								stats::suffix_agent_count(),
 								m_agents_bound.load( std::memory_order_acquire ) );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
