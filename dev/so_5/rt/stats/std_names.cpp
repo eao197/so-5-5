@@ -28,6 +28,12 @@ prefix_mbox_repository()
 		return prefix_t( "mbox_repository" );
 	}
 
+SO_5_FUNC prefix_t
+prefix_timer_thread()
+	{
+		return prefix_t( "timer_thread" );
+	}
+
 //
 // --- suffixes ---
 //
@@ -76,6 +82,18 @@ SO_5_FUNC suffix_t
 suffix_disp_thread_count()
 	{
 		IMPL_SUFFIX( "/threads.count" )
+	}
+
+SO_5_FUNC suffix_t
+suffix_timer_single_shot_count()
+	{
+		IMPL_SUFFIX( "/single_shot.count" )
+	}
+
+SO_5_FUNC suffix_t
+suffix_timer_periodic_count()
+	{
+		IMPL_SUFFIX( "/periodic.count" )
 	}
 
 #undef IMPL_SUFFIX

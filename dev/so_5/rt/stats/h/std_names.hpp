@@ -41,6 +41,12 @@ SO_5_FUNC prefix_t
 prefix_mbox_repository();
 
 /*!
+ * \since v.5.5.4
+ * \brief Prefix of data sources with statistics for timer thread.
+ */
+SO_5_FUNC prefix_t
+prefix_timer_thread();
+/*!
  * \}
  */
 
@@ -99,6 +105,20 @@ suffix_work_thread_queue_size();
  */
 SO_5_FUNC suffix_t
 suffix_disp_thread_count();
+
+/*!
+ * \since v.5.5.4
+ * \brief Suffix for data source with count of single-shot timers.
+ */
+SO_5_FUNC suffix_t
+suffix_timer_single_shot_count();
+
+/*!
+ * \since v.5.5.4
+ * \brief Suffix for data source with count of periodic timers.
+ */
+SO_5_FUNC suffix_t
+suffix_timer_periodic_count();
 
 /*!
  * \}

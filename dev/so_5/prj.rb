@@ -90,6 +90,7 @@ MxxRu::Cpp::dll_target {
 
 				cpp_source 'ds_agent_core_stats.cpp'
 				cpp_source 'ds_mbox_core_stats.cpp'
+				cpp_source 'ds_timer_thread_stats.cpp'
 			}
 		}
 	}

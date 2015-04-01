@@ -8,6 +8,7 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/simple_turn_on/prj.ut.rb"
 	required_prj "#{path}/simple_coop_count/prj.ut.rb"
 	required_prj "#{path}/simple_named_mbox_count/prj.ut.rb"
+	required_prj "#{path}/simple_timer_thread/prj.ut.rb"
 
 	required_prj "#{path}/all_dispatchers/prj.rb"
 }
