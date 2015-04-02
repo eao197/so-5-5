@@ -132,6 +132,7 @@ public :
 		:	so_5::rt::agent_t( ctx )
 		,	m_logger( std::move( logger ) )
 		,	m_workers( std::move( workers ) )
+		,	m_turn_pause( 600 )
 	{}
 
 	virtual void
@@ -159,7 +160,7 @@ private :
 	const std::vector< so_5::rt::mbox_t > m_workers;
 
 	// Pause between working turns.
-	const std::chrono::milliseconds m_turn_pause = { 600 };
+	const std::chrono::milliseconds m_turn_pause;
 
 	void
 	evt_next_turn()
@@ -258,7 +259,7 @@ init( so_5::rt::environment_t & env )
 	env.register_coop( std::move( coop ) );
 
 	// Take some time to work.
-	std::this_thread::sleep_for( std::chrono::seconds(5) );
+	std::this_thread::sleep_for( std::chrono::seconds(50) );
 
 	env.stop();
 }
