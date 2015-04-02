@@ -12,6 +12,7 @@
 
 #include <string>
 #include <cstring>
+#include <ostream>
 
 namespace so_5
 {
@@ -108,6 +109,16 @@ class prefix_t
 
 /*!
  * \since v.5.5.4
+ * \brief Just a helper operator.
+ */
+inline std::ostream &
+operator<<( std::ostream & to, const prefix_t & what )
+	{
+		return (to << what.c_str());
+	}
+
+/*!
+ * \since v.5.5.4
  * \brief A type for representing the suffix of data_source name.
  *
  * \note This is just a wrapper around `const char *`.
@@ -153,6 +164,16 @@ class suffix_t
 		//! Actual value.
 		const char * m_value;
 	};
+
+/*!
+ * \since v.5.5.4
+ * \brief Just a helper operator.
+ */
+inline std::ostream &
+operator<<( std::ostream & to, const suffix_t & what )
+	{
+		return (to << what.c_str());
+	}
 
 } /* namespace stats */
 
