@@ -7,6 +7,7 @@ MxxRu::Cpp::composite_target( MxxRu::BUILD_ROOT ) {
 
 	if 'gcc' == toolset.name || 'clang' == toolset.name
 		global_linker_option '-pthread'
+		global_compiler_option '-Werror'
 	end
 
 	# If there is local options file then use it.

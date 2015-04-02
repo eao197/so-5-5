@@ -283,7 +283,7 @@ class data_source_t : public stats::manually_registered_source_t
 
 				virtual void
 				add_queue(
-					const intrusive_ptr_t< queue_description_holder_t > & info )
+					const intrusive_ptr_t< queue_description_holder_t > & info ) override
 					{
 						m_agent_count += info->m_desc.m_agent_count;
 

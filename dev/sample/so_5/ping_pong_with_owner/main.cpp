@@ -149,7 +149,7 @@ public :
 		st_first_result_got.event( &parent::evt_second_result );
 	}
 
-	virtual void so_evt_start() {
+	virtual void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
 		auto coop = so_5::rt::create_child_coop(
 				// Parent of the new cooperation.
