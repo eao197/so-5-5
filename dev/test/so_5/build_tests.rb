@@ -91,4 +91,6 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/bench/thread_pool_disp/prj.rb" )
 	required_prj( "test/so_5/bench/no_workload/prj.rb" )
 	required_prj( "test/so_5/bench/agent_ring/prj.rb" )
+
+	required_prj( "test/so_5/samples_as_unit_tests/build_tests.rb" )
 }
