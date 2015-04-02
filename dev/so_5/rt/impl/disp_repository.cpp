@@ -11,6 +11,8 @@
 
 #include <so_5/disp/one_thread/h/pub.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -89,16 +91,12 @@ disp_repository_t::add_dispatcher_if_not_exists(
 	dispatcher_ref_t new_dispatcher = disp_factory();
 	auto insert_result = m_named_dispatcher_map.emplace(
 			disp_name, new_dispatcher );
-	try
-	{
-		new_dispatcher->set_data_sources_name_base( disp_name );
-		new_dispatcher->start( m_env );
-	}
-	catch( ... )
-	{
-		m_named_dispatcher_map.erase( insert_result.first );
-		throw;
-	}
+	so_5::details::do_with_rollback_on_exception(
+		[&] {
+			new_dispatcher->set_data_sources_name_base( disp_name );
+			new_dispatcher->start( m_env );
+		},
+		[&] { m_named_dispatcher_map.erase( insert_result.first ); } );
 
 	return new_dispatcher;
 }

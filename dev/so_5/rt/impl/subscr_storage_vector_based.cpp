@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -191,19 +193,16 @@ storage_t::create_event_subscription(
 						is_same_mbox_msg{ mbox_id, msg_type } ) )
 					{
 						// Mbox must create subscription.
-						try
-							{
+						so_5::details::do_with_rollback_on_exception(
+							[&] {
 								mbox->subscribe_event_handler(
 										msg_type,
 										limit,
 										owner() );
-							}
-						catch( ... )
-							{
-								// Rollback agent's subscription.
+							},
+							[&] {
 								m_events.pop_back();
-								throw;
-							}
+							} );
 					}
 			}
 	}

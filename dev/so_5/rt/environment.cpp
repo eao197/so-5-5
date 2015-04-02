@@ -16,6 +16,8 @@
 #include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_timer_thread_stats.hpp>
 
+#include <so_5/details/h/rollback_on_exception.hpp>
+
 namespace so_5
 {
 
@@ -612,30 +614,29 @@ namespace autoshutdown_guard
 void
 environment_t::impl__run_user_supplied_init_and_wait_for_stop()
 {
-	try
-	{
-		// init method must be protected from autoshutdown feature.
-		autoshutdown_guard::register_init_guard_cooperation(
-				*this,
-				m_impl->m_autoshutdown_disabled );
+	so_5::details::do_with_rollback_on_exception(
+		[this]
+		{
+			// init method must be protected from autoshutdown feature.
+			autoshutdown_guard::register_init_guard_cooperation(
+					*this,
+					m_impl->m_autoshutdown_disabled );
 
-		// Initilizing environment.
-		init();
+			// Initilizing environment.
+			init();
 
-		// Protection is no more needed.
-		autoshutdown_guard::deregistr_init_guard_cooperation(
-				*this,
-				m_impl->m_autoshutdown_disabled );
+			// Protection is no more needed.
+			autoshutdown_guard::deregistr_init_guard_cooperation(
+					*this,
+					m_impl->m_autoshutdown_disabled );
 
-		m_impl->m_agent_core.wait_for_start_deregistration();
-	}
-	catch( const std::exception & )
-	{
-		stop();
-		m_impl->m_agent_core.wait_for_start_deregistration();
-
-		throw;
-	}
+			m_impl->m_agent_core.wait_for_start_deregistration();
+		},
+		[this]
+		{
+			stop();
+			m_impl->m_agent_core.wait_for_start_deregistration();
+		} );
 }
 
 void
