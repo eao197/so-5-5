@@ -51,10 +51,10 @@ set(SO_5_SRC exception.cpp
 	rt/stats/repository.cpp
 	rt/stats/std_names.cpp
 
-	rt/stats/imp/std_controller.cpp
-	rt/stats/imp/ds_agent_core_stats.cpp
-	rt/stats/imp/ds_mbox_core_stats.cpp
-	rt/stats/imp/ds_timer_thread_stats.cpp
+	rt/stats/impl/std_controller.cpp
+	rt/stats/impl/ds_agent_core_stats.cpp
+	rt/stats/impl/ds_mbox_core_stats.cpp
+	rt/stats/impl/ds_timer_thread_stats.cpp
 	
 	disp/reuse/work_thread/work_thread.cpp
 	disp/one_thread/pub.cpp
