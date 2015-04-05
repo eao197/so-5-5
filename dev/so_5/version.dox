@@ -2,7 +2,11 @@
 
 \page so_5__version so_5: Version History
 
-\section so_5__5_4 5.5.4
+\section so_5__5_4 5.5.4 "Koshtan-Tau"
+
+	A possibility to receive run-time statistics from SObjectizer's internals
+	are introduced. See \ref so_5_5__in_depth_runtime_monitoring for more
+	details.
 
 	Message limits are supported now. See \ref so_5_5_4__message_limits for more
 	details.
@@ -18,6 +22,10 @@
 	so_5::rt::agent_coop_t::make_agent() and
 	so_5::rt::agent_coop_t::make_agent_with_binder() have been
 	introduced. See \ref so_5_5_4__make_agent_methods for more details.
+
+	Switching to timertt-1.1.1.
+
+	Switching to utest_helpers-1.0.2.
 
 \section so_5__5_3 5.5.3 "Pik Pushkin"
 
