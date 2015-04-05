@@ -25,7 +25,7 @@ on Linux:
 For more detailed info about cmake build system for SObjectizer and avalable params
 see dev/cmake/CmakeQuickHowto.txt
 
-NOTE. cmake is experimental building solution for SObjectizer, not supported 
+NOTE. cmake is experimental building solution for SObjectizer, partly supported 
 by SObjectizer developers.
 The project files for CMake are contributed by users. Official building tool is
 Mxx_ru. For more info see README (without .md) file.
@@ -35,7 +35,7 @@ For more detailed info about cmake build system for SObjectizer see
 dev/cmake/CmakeQuickHowto.txt
 ```
 
-When 'make install' finished './installed_files' will contain two subfolders
+When 'make install' finishes './installed_files' will contain two subfolders
 './bin' with samples and './lib' with shared libso.5.x.x.so
 
 CMake build system currently supports this options:
@@ -63,6 +63,5 @@ If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
 License
 =======
-
-SObjectizer is distributed under 3-clause BSD license. For license information
+SObjectizer distributed under 3-clause BSD license. For license information
 please see LICENSE file.
