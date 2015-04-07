@@ -5,7 +5,7 @@ SObjectizer is a framework for agent-oriented (a.k.a. actor model) programming
 SObjectizer is a set of rules and principles for designing programms in
 agent-oriented style. Also it provides set of C++ classes for implementing
 agents, mailboxes for message exchange, different dispatcher types for running
-agents and working environment. 
+agents and working environment.
 
 Supported platforms: Linux, Windows, FreeBSD.
 
@@ -15,6 +15,10 @@ Building
 on Linux:
 ```
   git clone --recursive https://github.com/masterspline/SObjectizer.git so
+  cd so
+  git submodule init
+  git submodule update
+  cd ..
   mkdir build
   cd build
   cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../so/dev
