@@ -45,21 +45,7 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "test/so_5/state/change_state/prj.ut.rb" )
 
-	required_prj( "test/so_5/coop/duplicate_name/prj.ut.rb" )
-	required_prj( "test/so_5/coop/reg_some_and_stop_1/prj.ut.rb" )
-	required_prj( "test/so_5/coop/reg_some_and_stop_2/prj.ut.rb" )
-	required_prj( "test/so_5/coop/reg_some_and_stop_3/prj.ut.rb" )
-	required_prj( "test/so_5/coop/throw_on_define_agent/prj.ut.rb" )
-	required_prj( "test/so_5/coop/throw_on_bind_to_disp/prj.ut.rb" )
-	required_prj( "test/so_5/coop/throw_on_bind_to_disp_2/prj.ut.rb" )
-	required_prj( "test/so_5/coop/coop_notify_1/prj.ut.rb" )
-	required_prj( "test/so_5/coop/coop_notify_2/prj.ut.rb" )
-	required_prj( "test/so_5/coop/coop_notify_3/prj.ut.rb" )
-	required_prj( "test/so_5/coop/parent_child_1/prj.ut.rb" )
-	required_prj( "test/so_5/coop/parent_child_2/prj.ut.rb" )
-	required_prj( "test/so_5/coop/parent_child_3/prj.ut.rb" )
-	required_prj( "test/so_5/coop/parent_child_4/prj.ut.rb" )
-	required_prj( "test/so_5/coop/user_resource/prj.ut.rb" )
+	required_prj( "test/so_5/coop/build_tests.rb" )
 
 	required_prj( "test/so_5/mbox/subscribe_when_deregistered/prj.ut.rb" )
 	required_prj( "test/so_5/mbox/drop_subscription/prj.ut.rb" )

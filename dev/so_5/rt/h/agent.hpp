@@ -233,7 +233,7 @@ class subscription_bind_t
 		subscription_bind_t &
 		event(
 			//! Signal indicator.
-			signal_indicator_t< MESSAGE > indicator(),
+			signal_indicator_t< MESSAGE >(),
 			//! Event handling lambda.
 			LAMBDA lambda,
 			//! Thread safety of the event handler.
@@ -2039,15 +2039,7 @@ state_t::event( ARGS&&... args ) const
 
 template< typename... ARGS >
 const state_t &
-state_t::event( mbox_t & from, ARGS&&... args ) const
-{
-	return this->subscribe_message_handler( from,
-			std::forward< ARGS >(args)... );
-}
-
-template< typename... ARGS >
-const state_t &
-state_t::event( const mbox_t & from, ARGS&&... args ) const
+state_t::event( mbox_t from, ARGS&&... args ) const
 {
 	return this->subscribe_message_handler( from,
 			std::forward< ARGS >(args)... );
@@ -2064,16 +2056,7 @@ state_t::event( ARGS&&... args ) const
 
 template< typename SIGNAL, typename... ARGS >
 const state_t &
-state_t::event( mbox_t & from, ARGS&&... args ) const
-{
-	return this->subscribe_signal_handler< SIGNAL >(
-			from,
-			std::forward< ARGS >(args)... );
-}
-
-template< typename SIGNAL, typename... ARGS >
-const state_t &
-state_t::event( const mbox_t & from, ARGS&&... args ) const
+state_t::event( mbox_t from, ARGS&&... args ) const
 {
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
