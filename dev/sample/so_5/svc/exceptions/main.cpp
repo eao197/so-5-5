@@ -97,7 +97,7 @@ void
 init(
 	so_5::rt::environment_t & env )
 	{
-		env.build_coop(
+		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[]( so_5::rt::agent_coop_t & coop ) {
 					auto a_service = coop.make_agent< a_convert_service_t >();

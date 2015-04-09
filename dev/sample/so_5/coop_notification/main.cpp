@@ -93,7 +93,7 @@ class a_parent_t
 		{
 			using namespace so_5::rt;
 
-			build_child_coop( *this, "child",
+			introduce_child_coop( *this, "child",
 				[this]( agent_coop_t & coop )
 				{
 					coop.add_reg_notificator(

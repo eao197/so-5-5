@@ -258,7 +258,7 @@ init(
 	so_5::rt::environment_t & env,
 	int meetings )
 	{
-		env.build_coop( "chameneos",
+		env.introduce_coop( "chameneos",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[meetings]( so_5::rt::agent_coop_t & coop )
 				{

@@ -344,7 +344,7 @@ init( so_5::rt::environment_t & env )
 {
 	using namespace so_5::disp::thread_pool;
 
-	env.build_coop(
+	env.introduce_coop(
 		create_private_disp( env, 3 )->binder(
 				params_t{}.fifo( fifo_t::individual ) ),
 		[]( so_5::rt::agent_coop_t & c ) {

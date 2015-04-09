@@ -54,7 +54,7 @@ class a_vector_summator_t : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Create a helper agent which will work in child cooperation.
-				so_5::rt::build_child_coop(
+				so_5::rt::introduce_child_coop(
 						*this,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
 						[&]( so_5::rt::agent_coop_t & coop )
@@ -145,7 +145,7 @@ class a_runner_t : public so_5::rt::agent_t
 		void
 		create_summator_coop()
 			{
-				so_5::rt::build_child_coop(
+				so_5::rt::introduce_child_coop(
 					*this,
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ),
 					[this]( so_5::rt::agent_coop_t & coop ) {
@@ -189,7 +189,7 @@ main( int argc, char ** argv )
 							const std::size_t ITERATIONS = 2 == argc ?
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
-							env.build_coop(
+							env.introduce_coop(
 									so_5::disp::active_obj::create_disp_binder(
 											"active_obj" ),
 									[&]( so_5::rt::agent_coop_t & coop ) {

@@ -1259,21 +1259,21 @@ class SO_5_TYPE environment_t
 			\code
 			// For the case when name for new coop will be generated automatically.
 			// And default dispatcher will be used for binding.
-			env.build_coop( []( so_5::rt::agent_coop_t & coop ) {
+			env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
 				coop->make_agent< first_agent >(...);
 				coop->make_agent< second_agent >(...);
 			});
 
 			// For the case when name is specified.
 			// Default dispatcher will be used for binding.
-			env.build_coop( "main-coop", []( so_5::rt::agent_coop_t & coop ) {
+			env.introduce_coop( "main-coop", []( so_5::rt::agent_coop_t & coop ) {
 				coop->make_agent< first_agent >(...);
 				coop->make_agent< second_agent >(...);
 			});
 
 			// For the case when name is automatically generated and
 			// dispatcher binder is specified.
-			env.build_coop(
+			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[]( so_5::rt::agent_coop_t & coop ) {
 					coop->make_agent< first_agent >(...);
@@ -1282,7 +1282,7 @@ class SO_5_TYPE environment_t
 
 			// For the case when name is explicitly defined and
 			// dispatcher binder is specified.
-			env.build_coop(
+			env.introduce_coop(
 				"main-coop",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[]( so_5::rt::agent_coop_t & coop ) {
@@ -1293,7 +1293,7 @@ class SO_5_TYPE environment_t
 		 */
 		template< typename... ARGS >
 		void
-		build_coop( ARGS &&... args );
+		introduce_coop( ARGS &&... args );
 
 		/*!
 		 * \name Methods for internal use inside SObjectizer.
@@ -1457,16 +1457,16 @@ namespace details
  * \since v.5.5.5
  * \brief Helper class for building and registering new cooperation.
  */
-class coop_builder_helper_t
+class introduce_coop_helper_t
 {
 public :
 	//! Constructor for the case of creation a cooperation without parent.
-	coop_builder_helper_t( environment_t & env )
+	introduce_coop_helper_t( environment_t & env )
 		:	m_env( env )
 		,	m_parent_coop_name( nullptr )
 	{}
 	//! Constructor for the case of creation of child cooperation.
-	coop_builder_helper_t(
+	introduce_coop_helper_t(
 		environment_t & env,
 		const std::string & parent_coop_name )
 		:	m_env( env )
@@ -1480,7 +1480,7 @@ public :
 	 */
 	template< typename L >
 	void
-	build( L && lambda )
+	introduce( L && lambda )
 	{
 		build_and_register_coop(
 				so_5::autoname,
@@ -1495,7 +1495,7 @@ public :
 	 */
 	template< typename L >
 	void
-	build( autoname_indicator_t(), L && lambda )
+	introduce( autoname_indicator_t(), L && lambda )
 	{
 		build_and_register_coop(
 				so_5::autoname,
@@ -1510,7 +1510,7 @@ public :
 	 */
 	template< typename L >
 	void
-	build( disp_binder_unique_ptr_t binder, L && lambda )
+	introduce( disp_binder_unique_ptr_t binder, L && lambda )
 	{
 		build_and_register_coop(
 				so_5::autoname,
@@ -1525,7 +1525,7 @@ public :
 	 */
 	template< typename L >
 	void
-	build(
+	introduce(
 		autoname_indicator_t(),
 		disp_binder_unique_ptr_t binder,
 		L && lambda )
@@ -1543,7 +1543,7 @@ public :
 	 */
 	template< typename L >
 	void
-	build( const std::string & name, L && lambda )
+	introduce( const std::string & name, L && lambda )
 	{
 		build_and_register_coop(
 				name,
@@ -1558,7 +1558,7 @@ public :
 	 */
 	template< typename L >
 	void
-	build(
+	introduce(
 		const std::string & name,
 		disp_binder_unique_ptr_t binder,
 		L && lambda )
@@ -1597,10 +1597,10 @@ private :
 
 template< typename... ARGS >
 void
-environment_t::build_coop( ARGS &&... args )
+environment_t::introduce_coop( ARGS &&... args )
 {
-	details::coop_builder_helper_t helper{ *this };
-	helper.build( std::forward< ARGS >( args )... );
+	details::introduce_coop_helper_t helper{ *this };
+	helper.introduce( std::forward< ARGS >( args )... );
 }
 
 /*!
@@ -1660,21 +1660,21 @@ create_child_coop(
 	\endcode
 
  * \note This function is just a tiny wrapper around
- * so_5::rt::environment_t::build_coop() helper method. For more
- * examples with usage of build_coop() please see description of
+ * so_5::rt::environment_t::introduce_coop() helper method. For more
+ * examples with usage of introduce_coop() please see description of
  * that method.
  */
 template< typename... ARGS >
 void
-build_child_coop(
+introduce_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
-	//! Arguments for the environment_t::build_coop() method.
+	//! Arguments for the environment_t::introduce_coop() method.
 	ARGS&&... args )
 {
-	details::coop_builder_helper_t{
+	details::introduce_coop_helper_t{
 			owner.so_environment(),
-			owner.so_coop_name() }.build( std::forward< ARGS >(args)... );
+			owner.so_coop_name() }.introduce( std::forward< ARGS >(args)... );
 }
 
 } /* namespace rt */

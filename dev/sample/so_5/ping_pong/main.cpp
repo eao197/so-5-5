@@ -98,7 +98,7 @@ run_sample(
 				struct msg_ping : public so_5::rt::signal_t {};
 				struct msg_pong : public so_5::rt::signal_t {};
 
-				env.build_coop(
+				env.introduce_coop(
 					// Agents will be active or passive.
 					// It depends on sample arguments.
 					cfg.m_active_objects ?

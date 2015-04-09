@@ -120,9 +120,10 @@ void
 init(
 	so_5::rt::environment_t & env )
 	{
-		env.build_coop(
+		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[&env]( so_5::rt::agent_coop_t & coop ) {
+				[&env]( so_5::rt::agent_coop_t & coop )
+				{
 					auto svc_mbox = env.create_local_mbox();
 
 					define_hello_service( coop, svc_mbox );

@@ -151,7 +151,7 @@ public :
 
 	virtual void so_evt_start() override {
 		// Creation of child cooperation with pinger and ponger.
-		so_5::rt::build_child_coop(
+		so_5::rt::introduce_child_coop(
 				// Parent of the new cooperation.
 				*this,
 				// Cooperation name.

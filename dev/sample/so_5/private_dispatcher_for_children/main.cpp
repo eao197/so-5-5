@@ -74,7 +74,7 @@ private :
 	void
 	create_child_coop()
 	{
-		so_5::rt::build_child_coop(
+		so_5::rt::introduce_child_coop(
 				*this,
 				// Name will be generated automatically.
 				so_5::autoname,
@@ -130,7 +130,7 @@ private :
 		// The private dispatcher for the family of child cooperations.
 		auto disp = so_5::disp::active_obj::create_private_disp(
 				so_environment() );
-		so_5::rt::build_child_coop(
+		so_5::rt::introduce_child_coop(
 				// This agent will be parent for new cooperation.
 				*this,
 				// Name for the cooperation will be generated automatically.

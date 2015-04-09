@@ -293,7 +293,7 @@ init( so_5::rt::environment_t & env )
 {
 	std::srand( std::time(nullptr) );
 
-	env.build_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
 		// Logger will work on the default dispatcher.
 		auto logger = coop.make_agent< a_logger_t >();
 

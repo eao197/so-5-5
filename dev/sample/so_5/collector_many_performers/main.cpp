@@ -379,7 +379,7 @@ create_processing_coops( so_5::rt::environment_t & env )
 	int i = 0;
 	for( auto c : capacities )
 	{
-		env.build_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+		env.introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
 			// There must be a dedicated dispatcher for performer from
 			// that cooperation.
 			auto performer_disp = create_private_disp( env, concurrent_performers );
@@ -414,7 +414,7 @@ init( so_5::rt::environment_t & env )
 	// A private dispatcher for generators cooperation.
 	auto generators_disp = so_5::disp::thread_pool::create_private_disp( env, 3 );
 	// Registration of generator will start example.
-	env.build_coop(
+	env.introduce_coop(
 			generators_disp->binder(
 					[]( so_5::disp::thread_pool::params_t & p ) {
 						p.fifo( so_5::disp::thread_pool::fifo_t::individual );

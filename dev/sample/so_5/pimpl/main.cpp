@@ -120,7 +120,7 @@ main()
 		so_5::launch( []( so_5::rt::environment_t & env )
 			{
 				// All agents of example must be active agents.
-				env.build_coop(
+				env.introduce_coop(
 					// Agents will be bound to private active_obj dispatcher.
 					so_5::disp::active_obj::create_private_disp( env )->binder(),
 					[]( so_5::rt::agent_coop_t & coop ) {
