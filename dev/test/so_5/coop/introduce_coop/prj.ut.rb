@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/coop/build_coop'
+path = 'test/so_5/coop/introduce_coop'
 
 MxxRu::setup_target(
 	MxxRu::BinaryUnittestTarget.new(

@@ -57,7 +57,7 @@ add_subdirectory(coop/parent_child_2)
 add_subdirectory(coop/parent_child_3)
 add_subdirectory(coop/parent_child_4)
 add_subdirectory(coop/user_resource)
-add_subdirectory(coop/build_coop)
+add_subdirectory(coop/introduce_coop)
 
 add_subdirectory(mbox/subscribe_when_deregistered)
 add_subdirectory(mbox/drop_subscription)
