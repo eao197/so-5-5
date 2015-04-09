@@ -60,11 +60,38 @@ init( so_5::rt::environment_t & env )
 {
 	using namespace so_5::rt;
 
-	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 1 ) );
+	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 6 ) );
 
 	env.build_coop( [&env]( agent_coop_t & coop ) {
-		define_agent( env, coop );
-	} );
+			define_agent( env, coop );
+		} );
+
+	env.build_coop(
+		so_5::disp::active_obj::create_private_disp( env )->binder(),
+		[&env]( agent_coop_t & coop ) {
+			define_agent( env, coop );
+		} );
+
+	env.build_coop( so_5::autoname, [&env]( agent_coop_t & coop ) {
+			define_agent( env, coop );
+		} );
+
+	env.build_coop(
+		so_5::autoname,
+		so_5::disp::active_obj::create_private_disp( env )->binder(),
+		[&env]( agent_coop_t & coop ) {
+			define_agent( env, coop );
+		} );
+
+	env.build_coop( "test-1", [&env]( agent_coop_t & coop ) {
+			define_agent( env, coop );
+		} );
+
+	env.build_coop( "test-2",
+		so_5::disp::one_thread::create_private_disp( env )->binder(),
+		[&env]( agent_coop_t & coop ) {
+			define_agent( env, coop );
+		} );
 }
 
 int
