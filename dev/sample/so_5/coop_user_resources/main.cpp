@@ -131,16 +131,14 @@ class a_parent_t
 		void
 		register_child_coop()
 		{
-			auto coop = so_5::rt::create_child_coop( *this, "child" );
-
-			for( size_t i = 0; i != m_child_count; ++i )
-			{
-				coop->make_agent< a_child_t >(
-						"a_child_" + std::to_string(i+1),
-						so_direct_mbox(), m_logger );
-			}
-
-			so_environment().register_coop( std::move( coop ) );
+			so_5::rt::build_child_coop( *this, "child",
+				[this]( so_5::rt::agent_coop_t & coop ) 
+				{
+					for( size_t i = 0; i != m_child_count; ++i )
+						coop.make_agent< a_child_t >(
+								"a_child_" + std::to_string(i+1),
+								so_direct_mbox(), m_logger );
+				} );
 		}
 };
 

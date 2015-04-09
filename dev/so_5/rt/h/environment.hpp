@@ -1460,7 +1460,18 @@ namespace details
 class coop_builder_helper_t
 {
 public :
-	coop_builder_helper_t( environment_t & env ) : m_env( env ) {}
+	//! Constructor for the case of creation a cooperation without parent.
+	coop_builder_helper_t( environment_t & env )
+		:	m_env( env )
+		,	m_parent_coop_name( nullptr )
+	{}
+	//! Constructor for the case of creation of child cooperation.
+	coop_builder_helper_t(
+		environment_t & env,
+		const std::string & parent_coop_name )
+		:	m_env( env )
+		,	m_parent_coop_name( &parent_coop_name )
+	{}
 
 	/*!
 	 * For the case:
@@ -1559,7 +1570,13 @@ public :
 	}
 
 private :
+	//! Environment for creation of cooperation.
 	environment_t & m_env;
+	//! Optional name of parent cooperation.
+	/*!
+	 * Value nullptr means that there is no parent.
+	 */
+	const std::string * m_parent_coop_name;
 
 	template< typename COOP_NAME, typename LAMBDA >
 	void
@@ -1569,6 +1586,8 @@ private :
 		LAMBDA && lambda )
 	{
 		auto coop = m_env.create_coop( name, std::move( binder ) );
+		if( m_parent_coop_name )
+			coop->set_parent_coop_name( *m_parent_coop_name );
 		lambda( *coop );
 		m_env.register_coop( std::move( coop ) );
 	}
@@ -1618,6 +1637,44 @@ create_child_coop(
 	coop->set_parent_coop_name( owner.so_coop_name() );
 
 	return coop;
+}
+
+/*!
+ * \since v.5.5.5
+ * \brief A simple way for creating and registering child cooperation.
+ *
+ * \par Usage sample
+	\code
+	class owner : public so_5::rt::agent_t
+	{
+	public :
+		...
+		virtual void
+		so_evt_start() override
+		{
+			so_5::rt::build_child_coop( *this, []( so_5::rt::agent_coop_t & coop ) {
+				coop.make_agent< worker >();
+			} );
+		}
+	};
+	\endcode
+
+ * \note This function is just a tiny wrapper around
+ * so_5::rt::environment_t::build_coop() helper method. For more
+ * examples with usage of build_coop() please see description of
+ * that method.
+ */
+template< typename... ARGS >
+void
+build_child_coop(
+	//! Owner of the cooperation.
+	agent_t & owner,
+	//! Arguments for the environment_t::build_coop() method.
+	ARGS&&... args )
+{
+	details::coop_builder_helper_t{
+			owner.so_environment(),
+			owner.so_coop_name() }.build( std::forward< ARGS >(args)... );
 }
 
 } /* namespace rt */

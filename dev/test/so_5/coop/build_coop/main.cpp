@@ -55,12 +55,65 @@ define_agent(
 	} );
 }
 
+class a_child_owner_t : public so_5::rt::agent_t
+{
+public :
+	a_child_owner_t( context_t ctx )
+		:	so_5::rt::agent_t( ctx )
+	{}
+
+	virtual void
+	so_evt_start() override
+	{
+		using namespace so_5::rt;
+
+		auto & env = so_environment();
+
+		build_child_coop( *this, [&env]( agent_coop_t & coop ) {
+				define_agent( env, coop );
+			} );
+
+		build_child_coop( *this,
+			so_5::disp::active_obj::create_private_disp( env )->binder(),
+			[&env]( agent_coop_t & coop ) {
+				define_agent( env, coop );
+			} );
+
+		build_child_coop( *this,
+			so_5::autoname,
+			[&env]( agent_coop_t & coop ) {
+				define_agent( env, coop );
+			} );
+
+		build_child_coop( *this,
+			so_5::autoname,
+			so_5::disp::active_obj::create_private_disp( env )->binder(),
+			[&env]( agent_coop_t & coop ) {
+				define_agent( env, coop );
+			} );
+
+		build_child_coop( *this,
+			"child-test-1",
+			[&env]( agent_coop_t & coop ) {
+				define_agent( env, coop );
+			} );
+
+		build_child_coop( *this,
+			"child-test-2",
+			so_5::disp::one_thread::create_private_disp( env )->binder(),
+			[&env]( agent_coop_t & coop ) {
+				define_agent( env, coop );
+			} );
+	}
+};
+
 void
 init( so_5::rt::environment_t & env )
 {
 	using namespace so_5::rt;
 
-	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 6 ) );
+	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12 ) );
+	env.register_agent_as_coop( "parent", env.make_agent< a_child_owner_t >() );
 
 	env.build_coop( [&env]( agent_coop_t & coop ) {
 			define_agent( env, coop );
