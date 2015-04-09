@@ -218,45 +218,43 @@ init( so_5::rt::environment_t & env )
 {
 	std::srand( std::time(nullptr) );
 
-	auto coop = env.create_coop( so_5::autoname );
+	env.build_coop( [&env]( so_5::rt::agent_coop_t & coop ) {
+		// Logger will work on the default dispatcher.
+		auto logger = coop.make_agent< a_logger_t >();
 
-	// Logger will work on the default dispatcher.
-	auto logger = coop->make_agent< a_logger_t >();
+		// Run-time stats listener will work on a dedicated
+		// one-thread dispatcher.
+		coop.make_agent_with_binder< a_stats_listener_t >(
+				so_5::disp::one_thread::create_private_disp(
+						env, "stats_listener" )->binder(),
+				logger->so_direct_mbox() );
 
-	// Run-time stats listener will work on a dedicated
-	// one-thread dispatcher.
-	coop->make_agent_with_binder< a_stats_listener_t >(
-			so_5::disp::one_thread::create_private_disp(
-					env, "stats_listener" )->binder(),
-			logger->so_direct_mbox() );
+		// Bunch of workers.
+		// Must work on dedicated thread_pool dispatcher.
+		auto worker_disp = so_5::disp::thread_pool::create_private_disp(
+				env,
+				3, // Count of working threads.
+				"workers" ); // Name of dispatcher (for convience of monitoring).
+		const auto worker_binding_params = so_5::disp::thread_pool::params_t{}
+				.fifo( so_5::disp::thread_pool::fifo_t::individual );
 
-	// Bunch of workers.
-	// Must work on dedicated thread_pool dispatcher.
-	auto worker_disp = so_5::disp::thread_pool::create_private_disp(
-			env,
-			3, // Count of working threads.
-			"workers" ); // Name of dispatcher (for convience of monitoring).
-	const auto worker_binding_params = so_5::disp::thread_pool::params_t{}
-			.fifo( so_5::disp::thread_pool::fifo_t::individual );
+		std::vector< so_5::rt::mbox_t > workers;
+		for( int i = 0; i != 5; ++i )
+		{
+			auto w = coop.make_agent_with_binder< a_worker_t >(
+					worker_disp->binder( worker_binding_params ) );
+			workers.push_back( w->so_direct_mbox() );
+		}
 
-	std::vector< so_5::rt::mbox_t > workers;
-	for( int i = 0; i != 5; ++i )
-	{
-		auto w = coop->make_agent_with_binder< a_worker_t >(
-				worker_disp->binder( worker_binding_params ) );
-		workers.push_back( w->so_direct_mbox() );
-	}
+		// Generators will work on dedicated active_obj dispatcher.
+		auto generator_disp = so_5::disp::active_obj::create_private_disp(
+				env, "generator" );
 
-	// Generators will work on dedicated active_obj dispatcher.
-	auto generator_disp = so_5::disp::active_obj::create_private_disp(
-			env, "generator" );
-
-	coop->make_agent_with_binder< a_generator_t >(
-			generator_disp->binder(),
-			logger->so_direct_mbox(),
-			std::move( workers ) );
-
-	env.register_coop( std::move( coop ) );
+		coop.make_agent_with_binder< a_generator_t >(
+				generator_disp->binder(),
+				logger->so_direct_mbox(),
+				std::move( workers ) );
+	});
 
 	// Take some time to work.
 	std::this_thread::sleep_for( std::chrono::seconds(50) );

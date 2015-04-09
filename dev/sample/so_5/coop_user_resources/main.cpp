@@ -148,11 +148,10 @@ class a_parent_t
 void
 init( so_5::rt::environment_t & env )
 {
-	auto coop = env.create_coop( "parent" );
-	auto logger = coop->take_under_control( new logger_t() );
-	coop->make_agent< a_parent_t >( *logger, 2 );
-
-	env.register_coop( std::move( coop ) );
+	env.build_coop( []( so_5::rt::agent_coop_t & coop ) {
+		auto logger = coop.take_under_control( new logger_t() );
+		coop.make_agent< a_parent_t >( *logger, 2 );
+	} );
 }
 
 int

@@ -193,14 +193,12 @@ main( int argc, char ** argv )
 							const std::size_t ITERATIONS = 2 == argc ?
 									static_cast< std::size_t >(std::atoi( argv[1] )) :
 									10u;
-							auto coop = env.create_coop(
-									"test_coop",
+							env.build_coop(
 									so_5::disp::active_obj::create_disp_binder(
-											"active_obj" ) );
-
-							coop->make_agent< a_runner_t >( ITERATIONS );
-
-							env.register_coop( std::move( coop ) );
+											"active_obj" ),
+									[&]( so_5::rt::agent_coop_t & coop ) {
+										coop.make_agent< a_runner_t >( ITERATIONS );
+									} );
 						},
 						[]( so_5::rt::environment_params_t & p ) {
 							p.add_named_dispatcher(
