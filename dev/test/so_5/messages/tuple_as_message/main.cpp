@@ -22,25 +22,25 @@ create_coop(
 	using bye = tuple_as_message_t< integral_constant< int, 1 >, string, string >;
 	using repeat = tuple_as_message_t< integral_constant< int, 2 >, int, int >;
 
+	auto & env = coop.environment();
 	auto agent = coop.define_agent();
-	agent.on_start( [agent] {
-			send< hello >( agent.direct_mbox(), "Hello" );
-		} );
-	agent.event( agent.direct_mbox(), [agent]( const hello & evt ) {
+	auto mb = agent.direct_mbox();
+	agent.on_start( [mb] {
+			send< hello >( mb, "Hello" );
+		} )
+		.event( mb, [mb]( const hello & evt ) {
 			cout << "hello: " << get<0>( evt ) << endl;
-			send< repeat >( agent.direct_mbox(), 0, 3 );
-		} );
-	agent.event( agent.direct_mbox(), [agent]( const repeat & evt ) {
+			send< repeat >( mb, 0, 3 );
+		} )
+		.event( mb, [mb]( const repeat & evt ) {
 			cout << "repetition: " << get<0>( evt ) << endl;
 			auto next = get<0>( evt ) + 1;
 			if( next < get<1>( evt ) )
-				send< repeat >( agent.direct_mbox(), next, get<1>( evt ) );
+				send< repeat >( mb, next, get<1>( evt ) );
 			else
-				send< bye >( agent.direct_mbox(), "Good", "Bye" );
-		} );
-
-	auto & env = coop.environment();
-	agent.event( agent.direct_mbox(), [&env]( const bye & evt ) {
+				send< bye >( mb, "Good", "Bye" );
+		} )
+		.event( mb, [&env]( const bye & evt ) {
 			cout << "bye: " << get<0>( evt ) << " " << get<1>( evt ) << endl;
 			env.stop();
 		} );
