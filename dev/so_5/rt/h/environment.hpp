@@ -353,7 +353,6 @@ class SO_5_TYPE environment_params_t
  * \brief Old name for compatibility with previous versions.
  * \deprecated Obsolete in 5.5.0
  */
-SO_5_DEPRECATED_ATTR("use name so_5::rt::environment_params_t instead")
 typedef environment_params_t so_environment_params_t;
 
 //
@@ -913,7 +912,6 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		so_5::timer_id_t
 		schedule_timer(
@@ -973,7 +971,6 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		so_5::timer_id_t
 		schedule_timer(
@@ -1026,7 +1023,6 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		void
 		single_timer(
@@ -1072,7 +1068,6 @@ class SO_5_TYPE environment_t
 		 * \deprecated Obsolete in v.5.5.0. Use versions with
 		 * std::chrono::steady_clock::duration parameters.
 		 */
-		SO_5_DEPRECATED_ATTR("use version with std::chrono::steady_clock::duration parameters")
 		template< class MESSAGE >
 		void
 		single_timer(
@@ -1447,7 +1442,6 @@ class SO_5_TYPE environment_t
  * \brief Old name for compatibility with previous versions.
  * \deprecated Obsolete in 5.5.0
  */
-SO_5_DEPRECATED_ATTR("use name so_5::rt::environment_t instead")
 typedef environment_t so_environment_t;
 
 namespace details

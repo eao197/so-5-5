@@ -28,9 +28,3 @@
 
 #endif
 
-#if __cplusplus > 201103L
-	#define SO_5_DEPRECATED_ATTR(msg) [[deprecated(msg)]]
-#else
-	#define SO_5_DEPRECATED_ATTR(msg)
-#endif
-

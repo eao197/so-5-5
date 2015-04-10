@@ -69,9 +69,18 @@ public :
 
 		auto & env = so_environment();
 
+#if __cplusplus < 201402
 		introduce_child_coop( *this, [&env]( agent_coop_t & coop ) {
+				std::cout << "introduce_child_coop in C++11" << std::endl;
 				define_agent( env, coop );
 			} );
+#else
+		// Special check for C++14
+		introduce_child_coop( *this, [&env]( auto & coop ) {
+				std::cout << "introduce_child_coop in C++14" << std::endl;
+				define_agent( env, coop );
+			} );
+#endif
 
 		introduce_child_coop( *this,
 			so_5::disp::active_obj::create_private_disp( env )->binder(),
@@ -115,9 +124,17 @@ init( so_5::rt::environment_t & env )
 	env.register_agent_as_coop( "main", env.make_agent< a_manager_t >( 12 ) );
 	env.register_agent_as_coop( "parent", env.make_agent< a_child_owner_t >() );
 
+#if __cplusplus < 201402
 	env.introduce_coop( [&env]( agent_coop_t & coop ) {
+			std::cout << "introduce_coop in C++11" << std::endl;
 			define_agent( env, coop );
 		} );
+#else
+	env.introduce_coop( [&env]( auto & coop ) {
+			std::cout << "introduce_coop in C++14" << std::endl;
+			define_agent( env, coop );
+		} );
+#endif
 
 	env.introduce_coop(
 		so_5::disp::active_obj::create_private_disp( env )->binder(),
