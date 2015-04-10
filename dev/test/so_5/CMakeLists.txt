@@ -39,6 +39,7 @@ add_subdirectory(event_handler/exception_reaction_inheritance)
 add_subdirectory(messages/three_messages)
 add_subdirectory(messages/resend_message)
 add_subdirectory(messages/store_and_resend_later)
+add_subdirectory(messages/tuple_as_message)
 
 add_subdirectory(state/change_state)
 

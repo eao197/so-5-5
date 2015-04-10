@@ -26,5 +26,9 @@
 		#define SO_5_STD_FUTURE_WAIT_FOR_ALWAYS_DEFFERED
 	#endif
 
+	// Visual C++ 2013 doesn't support defaults for move-constructors
+	// and move-operators.
+	#define SO_5_NO_DEFAULTS_FOR_MOVE_CONSTRUCTOR
+
 #endif
 

@@ -39,9 +39,7 @@ MxxRu::Cpp::composite_target {
 	required_prj( "test/so_5/event_handler/ignore_exception/prj.ut.rb" )
 	required_prj( "test/so_5/event_handler/exception_reaction_inheritance/prj.ut.rb" )
 
-	required_prj( "test/so_5/messages/three_messages/prj.ut.rb" )
-	required_prj( "test/so_5/messages/resend_message/prj.ut.rb" )
-	required_prj( "test/so_5/messages/store_and_resend_later/prj.ut.rb" )
+	required_prj( "test/so_5/messages/build_tests.rb" )
 
 	required_prj( "test/so_5/state/change_state/prj.ut.rb" )
 
