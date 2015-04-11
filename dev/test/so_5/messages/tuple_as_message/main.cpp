@@ -18,9 +18,9 @@ create_coop(
 	using namespace so_5::rt;
 	using namespace std;
 
-	using hello = tuple_as_message_t< integral_constant< int, 0 >, string >;
-	using bye = tuple_as_message_t< integral_constant< int, 1 >, string, string >;
-	using repeat = tuple_as_message_t< integral_constant< int, 2 >, int, int >;
+	using hello = tuple_as_message_t< mtag< 0 >, string >;
+	using bye = tuple_as_message_t< mtag< 1 >, string, string >;
+	using repeat = tuple_as_message_t< mtag< 2 >, int, int >;
 
 	auto & env = coop.environment();
 	auto agent = coop.define_agent();

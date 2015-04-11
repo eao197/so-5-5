@@ -115,6 +115,42 @@ struct tuple_as_message_t
 	{}
 };
 
+//
+// mtag
+//
+/*!
+ * \since v.5.5.5
+ * \brief A helper template for simplification of defining unique message tags
+ * for tuple_as_message.
+ *
+ * \par Usage sample:
+	\code
+	using namespace std;
+	using namespace so_5::rt;
+
+	// Defining domain specific messages as tuples.
+	using process_range = tuple_as_message_t< mtag<0>, string, string >;
+	using success_result = tuple_as_message_t< mtag<1>, string >;
+	using processing_failes = tuple_as_message_t< mtag<2>, int, string >;
+	\endcode
+ *
+ * This is a short equivalent of:
+	\code
+	using namespace std;
+	using namespace so_5::rt;
+
+	// Defining domain specific messages as tuples.
+	using process_range = tuple_as_message_t<
+		integral_constant<0>, string, string >;
+	using success_result = tuple_as_message_t<
+		integral_constant<1>, string >;
+	using processing_failes = tuple_as_message_t<
+		integral_constant<2>, int, string >;
+	\endcode
+ */
+template< int N >
+using mtag = std::integral_constant< int, N >;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
