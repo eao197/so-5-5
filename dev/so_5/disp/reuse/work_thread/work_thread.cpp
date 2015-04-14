@@ -27,6 +27,7 @@ namespace work_thread
 // demand_queue
 //
 demand_queue_t::demand_queue_t()
+	:	m_in_service( false )
 {
 }
 
@@ -120,6 +121,10 @@ demand_queue_t::demands_count()
 //
 // work_thread_t
 //
+work_thread_t::work_thread_t()
+{
+	m_continue_work = WORK_THREAD_STOP;
+}
 
 void
 work_thread_t::start()
