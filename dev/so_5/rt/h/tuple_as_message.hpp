@@ -151,6 +151,54 @@ struct tuple_as_message_t
 template< int N >
 using mtag = std::integral_constant< int, N >;
 
+//
+// typed_mtag
+//
+/*!
+ * \since v.5.5.5
+ * \brief A helper template for simplification of defining unique message tags
+ * for tuple as message.
+ *
+ * Very similar to so_5::rt::mtag but allows to define message tags for
+ * different modules.
+ *
+ * \par Usage sample:
+	\code
+	using namespace std;
+	using namespace so_5::rt;
+
+	// The first module.
+	namespace first_module {
+
+	// Type unique for that module.
+	struct tag {};
+
+	// Messages for that module.
+	using process_range = tuple_as_message_t< typed_mtag<tag, 0>, string, string >;
+	using success_result = tuple_as_message_t< typed_mtag<tag, 1>, string >;
+	using processing_failes = tuple_as_message_t< typed_mtag<tag, 2>, int, string >;
+	} // namespace first_module.
+
+	// The second module.
+	namespace second_module {
+
+	// Type unique for that module.
+	struct tag {};
+
+	// Messages for that module.
+	using process_range = tuple_as_message_t< typed_mtag<tag, 0>, string, string >;
+	using success_result = tuple_as_message_t< typed_mtag<tag, 1>, string >;
+	using processing_failes = tuple_as_message_t< typed_mtag<tag, 2>, int, string >;
+
+	} // namespace second_module
+	\endcode
+ * By the help of typed_mtag messages first_module::process_range and
+ * second_module::process_range will be different and will have different
+ * typeid.
+ */
+template< typename T, int N >
+struct typed_mtag {};
+
 } /* namespace rt */
 
 } /* namespace so_5 */
