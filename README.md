@@ -1,3 +1,5 @@
+[![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
+
 This is unofficial SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.
 Project documentation http://sourceforge.net/p/sobjectizer/wiki/Home/
 
