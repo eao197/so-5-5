@@ -118,7 +118,7 @@ limitless_mpsc_mbox_t::set_delivery_filter(
 void
 limitless_mpsc_mbox_t::drop_delivery_filter(
 	const std::type_index & /*msg_type*/,
-	agent_t * /*subscriber*/ )
+	agent_t & /*subscriber*/ )
 {
 	SO_5_THROW_EXCEPTION(
 			rc_delivery_filter_cannot_be_used_on_mpsc_mbox,

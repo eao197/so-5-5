@@ -92,7 +92,7 @@ class named_local_mbox_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t * subscriber ) override;
+			agent_t & subscriber ) override;
 
 	private:
 		//! Mbox name.
