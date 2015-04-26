@@ -172,6 +172,23 @@ local_mbox_t::do_deliver_service_request(
 		} );
 }
 
+void
+local_mbox_t::set_delivery_filter(
+	const std::type_index & msg_type,
+	const delivery_filter_t & filter,
+	agent_t & subscriber )
+{
+//FIXME: implement this!
+}
+
+void
+local_mbox_t::drop_delivery_filter(
+	const std::type_index & msg_type,
+	agent_t * subscriber )
+{
+//FIXME: implement this!
+}
+
 } /* namespace impl */
 
 } /* namespace rt */

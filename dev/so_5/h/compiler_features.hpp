@@ -32,3 +32,8 @@
 
 #endif
 
+#if !(__cplusplus >= 201103L)
+	// There is no noexcept keyword
+	#define noexcept
+#endif
+
