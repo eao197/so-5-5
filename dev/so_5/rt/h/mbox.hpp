@@ -526,7 +526,7 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) = 0;
+			agent_t & subscriber ) noexcept = 0;
 		/*!
 		 * \}
 		 */

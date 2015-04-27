@@ -103,7 +103,7 @@ class limitless_mpsc_mbox_t : public abstract_message_box_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) override;
+			agent_t & subscriber ) noexcept override;
 
 	protected :
 		/*!
