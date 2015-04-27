@@ -1731,8 +1731,10 @@ agent_t::so_set_delivery_filter(
 		do_set_delivery_filter(
 				mbox,
 				typeid(message_type),
-				new lambda_as_filter_t< LAMBDA, message_type >(
-						std::move( lambda ) ) );
+				delivery_filter_unique_ptr_t{ 
+					new lambda_as_filter_t< LAMBDA, message_type >(
+							std::move( lambda ) )
+				} );
 	}
 
 //
