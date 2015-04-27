@@ -6,4 +6,5 @@ path = 'test/so_5/mbox/delivery_filters'
 MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/simple/prj.ut.rb"
+	required_prj "#{path}/filter_no_subscriptions/prj.ut.rb"
 }

@@ -1,1 +1,2 @@
 add_subdirectory(simple)
+add_subdirectory(filter_no_subscriptions)
