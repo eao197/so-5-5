@@ -261,7 +261,7 @@ class SO_5_TYPE delivery_filter_t
 			//! Receiver of the message.
 			const agent_t & receiver,
 			//! Message itself.
-			const message_t & msg ) const noexcept = 0;
+			const message_t & msg ) const SO_5_NOEXCEPT = 0;
 	};
 
 //
@@ -526,7 +526,7 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & msg_type,
-			agent_t & subscriber ) noexcept = 0;
+			agent_t & subscriber ) SO_5_NOEXCEPT = 0;
 		/*!
 		 * \}
 		 */

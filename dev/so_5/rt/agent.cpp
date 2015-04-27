@@ -746,7 +746,7 @@ agent_t::ensure_operation_is_on_working_thread(
 }
 
 void
-agent_t::drop_all_delivery_filters() noexcept
+agent_t::drop_all_delivery_filters() SO_5_NOEXCEPT
 {
 	if( m_delivery_filters )
 	{
@@ -776,7 +776,7 @@ agent_t::do_set_delivery_filter(
 void
 agent_t::do_drop_delivery_filter(
 	const mbox_t & mbox,
-	const std::type_index & msg_type ) noexcept
+	const std::type_index & msg_type ) SO_5_NOEXCEPT
 {
 	ensure_operation_is_on_working_thread( "set_delivery_filter" );
 

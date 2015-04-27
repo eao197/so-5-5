@@ -1260,7 +1260,7 @@ class SO_5_TYPE agent_t
 		so_drop_delivery_filter(
 			//! Message box to which delivery filter was set.
 			//! This must be MPMC-mbox.
-			const mbox_t & mbox ) noexcept
+			const mbox_t & mbox ) SO_5_NOEXCEPT
 			{
 				do_drop_delivery_filter( mbox, typeid(MESSAGE) );
 			}
@@ -1643,7 +1643,7 @@ class SO_5_TYPE agent_t
 		 * \brief Drops all delivery filters.
 		 */
 		void
-		drop_all_delivery_filters() noexcept;
+		drop_all_delivery_filters() SO_5_NOEXCEPT;
 
 		/*!
 		 * \since v.5.5.5
@@ -1662,7 +1662,7 @@ class SO_5_TYPE agent_t
 		void
 		do_drop_delivery_filter(
 			const mbox_t & mbox,
-			const std::type_index & msg_type ) noexcept;
+			const std::type_index & msg_type ) SO_5_NOEXCEPT;
 };
 
 /*!
@@ -1692,7 +1692,7 @@ class lambda_as_filter_t : public delivery_filter_t
 		virtual bool
 		check(
 			const agent_t & receiver,
-			const message_t & msg ) const noexcept override
+			const message_t & msg ) const SO_5_NOEXCEPT override
 			{
 				return so_5::details::do_with_rollback_on_exception(
 					[&] {

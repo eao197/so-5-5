@@ -237,7 +237,7 @@ class SO_5_TYPE msg_service_request_base_t : public message_t
 		 * \brief Access to param of service_request.
 		 */
 		virtual const message_t &
-		query_param() const noexcept = 0;
+		query_param() const SO_5_NOEXCEPT = 0;
 
 		/*!
 		 * \since v.5.5.4
@@ -301,7 +301,7 @@ struct msg_service_request_t : public msg_service_request_base_t
 			}
 
 		virtual const message_t &
-		query_param() const noexcept override
+		query_param() const SO_5_NOEXCEPT override
 			{
 				return *m_param;
 			}

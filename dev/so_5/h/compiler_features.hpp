@@ -34,6 +34,8 @@
 
 #if !(__cplusplus >= 201103L)
 	// There is no noexcept keyword
-	#define noexcept
+	#define SO_5_NOEXCEPT
+#else
+	#define SO_5_NOEXCEPT noexcept
 #endif
 
