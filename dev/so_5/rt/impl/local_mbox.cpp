@@ -166,8 +166,12 @@ local_mbox_t::do_deliver_service_request(
 						so_5::rc_more_than_one_svc_handler,
 						"more than one service handler found" );
 
+			const auto & svc_request_param =
+				dynamic_cast< msg_service_request_base_t * >( message.get() )
+						->query_param();
+
 			auto & a = it->second.front();
-			if( a.must_be_delivered( *(message.get()) ) )
+			if( a.must_be_delivered( svc_request_param ) )
 				try_to_deliver_to_agent< invocation_type_t::service_request >(
 						a.subscriber(),
 						a.limit(),
