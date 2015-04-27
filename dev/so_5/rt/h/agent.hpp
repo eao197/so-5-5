@@ -92,6 +92,8 @@ class mpsc_mbox_t;
 
 struct event_handler_data_t;
 
+class delivery_filter_storage_t;
+
 } /* namespace impl */
 
 class state_t;
@@ -1194,6 +1196,43 @@ class SO_5_TYPE agent_t
 		void
 		so_deregister_agent_coop_normally();
 
+		/*!
+		 * \name Methods for dealing with message delivery filters.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.5
+		 * \brief Set a delivery filter.
+		 */
+		template< typename MESSAGE >
+		void
+		so_set_delivery_filter(
+			//! Message box from which message is expected.
+			//! This must be MPMC-mbox.
+			const mbox_t & mbox,
+			//! Delivery filter instance.
+			delivery_filter_unique_ptr_t filter )
+			{
+				do_set_delivery_filter( mbox, typeid(MESSAGE), std::move(filter) );
+			}
+
+		/*!
+		 * \since v.5.5.5
+		 * \brief Drop a delivery filter.
+		 */
+		template< typename MESSAGE >
+		void
+		so_drop_delivery_filter(
+			//! Message box to which delivery filter was set.
+			//! This must be MPMC-mbox.
+			const mbox_t & mbox ) noexcept
+			{
+				do_drop_delivery_filter( mbox, typeid(MESSAGE) );
+			}
+		/*!
+		 * \}
+		 */
+
 	protected :
 		/*!
 		 * \name Helpers for state object creation.
@@ -1315,6 +1354,14 @@ class SO_5_TYPE agent_t
 
 		//! Is the cooperation deregistration in progress?
 		bool m_is_coop_deregistered;
+
+		/*!
+		 * \since v.5.5.5
+		 * \brief Delivery filters for that agents.
+		 *
+		 * \note Storage is created only when necessary.
+		 */
+		std::unique_ptr< impl::delivery_filter_storage_t > m_delivery_filters;
 
 		//! Make an agent reference.
 		/*!
@@ -1555,6 +1602,32 @@ class SO_5_TYPE agent_t
 		void
 		ensure_operation_is_on_working_thread(
 			const char * operation_name ) const;
+
+		/*!
+		 * \since v.5.5.0
+		 * \brief Drops all delivery filters.
+		 */
+		void
+		drop_all_delivery_filters() noexcept;
+
+		/*!
+		 * \since v.5.5.5
+		 * \brief Set a delivery filter.
+		 */
+		void
+		do_set_delivery_filter(
+			const mbox_t & mbox,
+			const std::type_index & msg_type,
+			delivery_filter_unique_ptr_t filter );
+
+		/*!
+		 * \since v.5.5.5
+		 * \brief Drop a delivery filter.
+		 */
+		void
+		do_drop_delivery_filter(
+			const mbox_t & mbox,
+			const std::type_index & msg_type ) noexcept;
 };
 
 //
