@@ -257,7 +257,11 @@ class SO_5_TYPE delivery_filter_t
 		 * \retval false message must be descarded.
 		 */
 		virtual bool
-		check( const message_t & msg ) const noexcept = 0;
+		check(
+			//! Receiver of the message.
+			const agent_t & receiver,
+			//! Message itself.
+			const message_t & msg ) const noexcept = 0;
 	};
 
 //

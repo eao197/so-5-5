@@ -246,7 +246,8 @@ class local_mbox_t : public abstract_message_box_t
 
 			//! Must a message be delivered to the subscriber?
 			bool
-			must_be_delivered( const message_t & msg ) const
+			must_be_delivered(
+				const message_t & msg ) const
 			{
 				// For the case when there are actual subscriptions.
 				// We assume that will be in 99.9% cases.
@@ -258,7 +259,7 @@ class local_mbox_t : public abstract_message_box_t
 					need_deliver = false;
 				else if( state_t::subscriptions_and_filter == m_state )
 					// Delivery must be checked by delivery filter.
-					need_deliver = m_filter->check( msg );
+					need_deliver = m_filter->check( subscriber(), msg );
 
 				return need_deliver;
 			}
