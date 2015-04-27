@@ -1,2 +1,3 @@
 add_subdirectory(simple)
 add_subdirectory(filter_no_subscriptions)
+add_subdirectory(filter_on_mpsc_mbox)

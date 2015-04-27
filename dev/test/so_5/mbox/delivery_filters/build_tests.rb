@@ -7,4 +7,5 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/simple/prj.ut.rb"
 	required_prj "#{path}/filter_no_subscriptions/prj.ut.rb"
+	required_prj "#{path}/filter_on_mpsc_mbox/prj.ut.rb"
 }
