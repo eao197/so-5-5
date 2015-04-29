@@ -20,8 +20,8 @@ struct msg_second_part : public signal_t {};
 struct msg_shutdown : public signal_t {};
 
 // Main example agent.
-// Ordirary agent is necessary because a delivery filter can be set
-// only by ordirary agent.
+// Ordinary agent is necessary because a delivery filter can be set
+// only by ordinary agent.
 class a_example_t : public agent_t
 {
 public :
