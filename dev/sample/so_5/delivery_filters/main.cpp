@@ -71,7 +71,7 @@ public :
 		// Drop the subscription.
 		so_drop_subscription< msg_sample >( m_mbox );
 		// Sending several messages...
-		// No one of them will stored to the agent's queue nor handled.
+		// No one of them will be stored to the agent's queue nor handled.
 		send< msg_sample >( m_mbox, 0, "only-filter" );
 		send< msg_sample >( m_mbox, 1, "only-filter" );
 
