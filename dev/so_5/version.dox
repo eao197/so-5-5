@@ -4,6 +4,9 @@
 
 \section so_5__5_5 5.5.5
 
+	A mechanism of message delivery filters is introduced.
+	See \ref so_5_5__in_depth_message_delivery_filters for more details.
+
 	New templates so_5::rt::tuple_as_message_t, so_5::rt::mtag and
 	so_5::rt::typed_mtag added. See \ref so_5_5_5__tuple_as_message for more
 	details.
