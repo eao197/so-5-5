@@ -2,6 +2,8 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__6_0 5.6.0
+
 \section so_5__5_6 5.5.6
 
 	A small refactoring of SObjectizer-5 to guarantee that `std::abort` will be
