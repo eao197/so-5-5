@@ -1,7 +1,7 @@
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
 
 This is unofficial SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.
-Project documentation http://sourceforge.net/p/sobjectizer/wiki/Home/
+Project documentation in wiki https://github.com/masterspline/SObjectizer/wiki
 
 SObjectizer is a framework for agent-oriented (a.k.a. actor model) programming
  in C++ (like Theron or C++ Actor Framework (CAF) for C++ and Akka for Java).
