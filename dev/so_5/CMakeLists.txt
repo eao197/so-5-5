@@ -62,6 +62,7 @@ set(SO_5_SRC exception.cpp
 	disp/active_group/pub.cpp
 	disp/thread_pool/pub.cpp
 	disp/adv_thread_pool/pub.cpp
+	disp/prio/common_thread/pub.cpp
 )
 
 add_library(so.${SO_5_VERSION} SHARED ${SO_5_SRC})
