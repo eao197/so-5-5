@@ -20,7 +20,6 @@ define_receiver_agent(
 			.event< msg_hello >(
 				common_mbox,
 				[priority, &sequence] {
-std::cout << "hello at priority: " << static_cast< std::size_t >( priority ) << std::endl;
 					sequence += std::to_string(
 						static_cast< std::size_t >( priority ) );
 				} );
@@ -35,8 +34,6 @@ define_main_agent(
 		auto sequence = std::make_shared< std::string >();
 
 		coop.define_agent( disp.binder( so_5::disp::prio::p0 ) )
-			.on_start(
-				[common_mbox] { so_5::send< msg_hello >( common_mbox ); } )
 			.event< msg_hello >(
 				common_mbox,
 				[&coop, sequence] {
@@ -52,26 +49,48 @@ define_main_agent(
 	}
 
 void
-fill_coop( so_5::rt::agent_coop_t & coop )
+define_starter_agent(
+	so_5::rt::agent_coop_t & coop,
+	so_5::disp::prio::common_thread::private_dispatcher_t & disp )
 	{
-		using namespace so_5::disp::prio;
+		coop.define_agent( disp.binder( so_5::disp::prio::p0 ) )
+			.on_start( [&coop, &disp] {
+				auto common_mbox = coop.environment().create_local_mbox();
+
+				coop.environment().introduce_coop(
+					[&]( so_5::rt::agent_coop_t & child )
+					{
+						using namespace so_5::disp::prio;
+						std::string & sequence = define_main_agent(
+								child, disp, common_mbox );
+						define_receiver_agent(
+								child, disp, p1, common_mbox, sequence );
+						define_receiver_agent(
+								child, disp, p2, common_mbox, sequence );
+						define_receiver_agent(
+								child, disp, p3, common_mbox, sequence );
+						define_receiver_agent(
+								child, disp, p4, common_mbox, sequence );
+						define_receiver_agent(
+								child, disp, p5, common_mbox, sequence );
+						define_receiver_agent(
+								child, disp, p6, common_mbox, sequence );
+						define_receiver_agent(
+								child, disp, p7, common_mbox, sequence );
+					} );
+
+				so_5::send< msg_hello >( common_mbox );
+			} );
+	}
+
+void
+fill_coop(
+	so_5::rt::agent_coop_t & coop )
+	{
 		using namespace so_5::disp::prio::common_thread;
 
-		auto disp = create_private_disp( coop.environment() );
-
-		auto common_mbox = coop.environment().create_local_mbox();
-
-		std::string & sequence = define_main_agent( coop, *disp, common_mbox );
-
-		define_receiver_agent( coop, *disp, p1, common_mbox, sequence );
-		define_receiver_agent( coop, *disp, p2, common_mbox, sequence );
-		define_receiver_agent( coop, *disp, p3, common_mbox, sequence );
-		define_receiver_agent( coop, *disp, p4, common_mbox, sequence );
-		define_receiver_agent( coop, *disp, p5, common_mbox, sequence );
-		define_receiver_agent( coop, *disp, p6, common_mbox, sequence );
-#if 0
-		define_receiver_agent( coop, *disp, p7, common_mbox, sequence );
-#endif
+		define_starter_agent( coop,
+			*(create_private_disp(coop.environment())) );
 	}
 
 int
