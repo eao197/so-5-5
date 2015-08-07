@@ -209,7 +209,8 @@ class demand_queue_t
 		queue_for_one_priority_t * m_current_priority = nullptr;
 
 		//! Subqueues for priorities.
-		queue_for_one_priority_t m_priorities[ priority_t::p_max ];
+		queue_for_one_priority_t m_priorities[
+				static_cast< std::size_t >( priority_t::p_max ) ];
 
 		//! Destroy all demands in the queue specified.
 		void

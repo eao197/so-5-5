@@ -44,7 +44,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 		virtual void
-		start( so_5::rt::environment_t & env ) override
+		start( so_5::rt::environment_t & /*env*/ ) override
 			{
 //FIXME: data source must be started here!
 //				m_data_source.start( env );
@@ -74,7 +74,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 
 		virtual void
 		set_data_sources_name_base(
-			const std::string & name_base ) override
+			const std::string & /*name_base*/ ) override
 			{
 //FIXME: base part of data source name must be set here!
 //				m_data_source.set_data_sources_name_base( name_base, this );
@@ -132,7 +132,7 @@ class binding_actions_mixin_t
 
 		inline static void
 		do_unbind(
-			dispatcher_t & disp )
+			dispatcher_t & /*disp*/ )
 			{
 //FIXME: uncomment this when run-time data stats will be implemented.
 #if 0
