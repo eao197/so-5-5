@@ -92,7 +92,7 @@ class demand_queue_t
 
 	public :
 		//! This exception is thrown when pop is called after stop.
-		class shutdown_ex_t : public std::runtime_error
+		class shutdown_ex_t : public std::exception
 			{};
 
 		demand_queue_t()
@@ -190,10 +190,13 @@ class demand_queue_t
 		so_5::rt::event_queue_t &
 		event_queue_by_priority( priority_t priority )
 			{
-				return m_priorities[ priority ];
+				return m_priorities[ to_size_t(priority) ];
 			}
 
 	private :
+		//! Queue lock.
+		so_5::disp::reuse::locks::combined_queue_lock_t m_lock;
+
 		//! Shutdown flag.
 		bool m_shutdown = false;
 

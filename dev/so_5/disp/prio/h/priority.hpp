@@ -50,6 +50,12 @@ const priority_t p7 = priority_t::p7;
  * \}
  */
 
+inline std::size_t
+to_size_t( priority_t priority )
+	{
+		return static_cast< std::size_t >( priority );
+	}
+
 } /* namespace prio */
 
 } /* namespace disp */

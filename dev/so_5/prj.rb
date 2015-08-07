@@ -121,6 +121,12 @@ MxxRu::Cpp::dll_target {
 		sources_root( 'adv_thread_pool' ) {
 			cpp_source 'pub.cpp'
 		}
+
+		sources_root( 'prio' ) {
+			sources_root( 'common_thread' ) {
+				cpp_source 'pub.cpp'
+			}
+		}
 	}
 }
 
