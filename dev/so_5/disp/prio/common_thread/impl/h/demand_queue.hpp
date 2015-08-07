@@ -14,6 +14,7 @@
 #include <memory>
 
 #include <so_5/rt/h/execution_demand.hpp>
+#include <so_5/rt/h/event_queue.hpp>
 
 #include <so_5/disp/prio/h/priority.hpp>
 
@@ -66,14 +67,27 @@ using demand_unique_ptr_t = std::unique_ptr< demand_t >;
 class demand_queue_t
 	{
 		//! Description of queue for one priority.
-		struct priority_queue_info_t
+		struct queue_for_one_priority_t
+			:	public so_5::rt::event_queue_t
 			{
+				//! Pointer to main demand queue.
+				demand_queue_t * m_demand_queue = nullptr;
+
 				//! Head of the queue.
 				/*! Null if queue is empty. */
 				demand_t * m_head = nullptr;
 				//! Tail of the queue.
 				/*! Null if queue is empty. */
 				demand_t * m_tail = nullptr;
+
+				virtual void
+				push( so_5::rt::execution_demand_t exec_demand ) override
+					{
+						demand_unique_ptr_t what{ new demand_t{
+								std::move( exec_demand ) } };
+
+						m_demand_queue->push( this, std::move( what ) );
+					}
 			};
 
 	public :
@@ -82,7 +96,11 @@ class demand_queue_t
 			{};
 
 		demand_queue_t()
-			{}
+			{
+				// Every subqueue must have a valid pointer to main demand queue.
+				for( auto & q : m_priorities )
+					q.m_demand_queue = this;
+			}
 		~demand_queue_t()
 			{
 				for( auto & q : m_priorities )
@@ -103,32 +121,30 @@ class demand_queue_t
 					lock.notify_one();
 			}
 
+//FIXME: this method must be accessible only from
+//queue_for_one_priority_t::push() method.
 		//! Push a new demand to the queue.
 		void
 		push(
-			//! Priority for the demand.
-			so_5::disp::prio::priority_t priority,
+			//! Subqueue for the demand.
+			queue_for_one_priority_t * subqueue,
 			//! Demand to be pushed.
-			execution_demand_t && demand )
+			demand_unique_ptr_t demand )
 			{
-				// Create a new demand before queue object will be locked.
-				demand_unique_ptr_t new_demand{ new demand_t{ std::move(demand) } };
-
 				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
 
-				auto & queue_to_push = queue_by_priority( priority );
-				add_demand_to_queue( queue_to_push, std::move( new_demand ) );
+				add_demand_to_queue( *subqueue, std::move( demand ) );
 
 				if( !m_current_priority )
 					{
 						// Queue was empty. A sleeping working thread must
 						// be notified.
-						m_current_priority = &queue_to_push;
+						m_current_priority = subqueue;
 						lock.notify_one();
 					}
-				else if( m_current_priority < &queue_to_push )
+				else if( m_current_priority < subqueue )
 					// New demand has greater priority than the previous.
-					m_current_priority = &queue_to_push;
+					m_current_priority = subqueue;
 			}
 
 		//! Pop demand from the queue.
@@ -170,10 +186,31 @@ class demand_queue_t
 				return result;
 			}
 
+		//! Get queue for the priority specified.
+		so_5::rt::event_queue_t &
+		event_queue_by_priority( priority_t priority )
+			{
+				return m_priorities[ priority ];
+			}
+
 	private :
+		//! Shutdown flag.
+		bool m_shutdown = false;
+
+		//! Pointer to the current subqueue.
+		/*!
+		 * This pointer will point to the non-empty subqueue with the
+		 * highest priority demand. If there is no such demand then
+		 * this pointer will be nullptr.
+		 */
+		queue_for_one_priority_t * m_current_priority = nullptr;
+
+		//! Subqueues for priorities.
+		queue_for_one_priority_t m_priorities[ priority_t::p_max ];
+
 		//! Destroy all demands in the queue specified.
 		void
-		cleanup_queue( priority_queue_info_t & queue_info )
+		cleanup_queue( queue_for_one_priority_t & queue_info )
 			{
 				auto h = queue_info.m_head;
 				while( h )
@@ -183,17 +220,10 @@ class demand_queue_t
 					}
 			};
 
-		//! Get queue for the priority specified.
-		priority_queue_info_t &
-		queue_by_priority( so_5::disp::prio::priority_t priority )
-			{
-				return m_priorities[ priority ];
-			}
-
 		//! Add a new demand to the tail of the queue specified.
 		void
 		add_demand_to_queue(
-			priority_queue_info_t & queue,
+			queue_for_one_priority_t & queue,
 			demand_unique_ptr_t demand )
 			{
 				if( queue.m_tail )
