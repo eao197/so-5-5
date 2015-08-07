@@ -1,0 +1,102 @@
+/*
+ * A test of simple sequence of messages for prio::common_thread dispatcher.
+ */
+
+#include <so_5/all.hpp>
+
+#include <various_helpers_1/time_limited_execution.hpp>
+
+struct msg_hello : public so_5::rt::signal_t {};
+
+void
+define_receiver_agent(
+	so_5::rt::agent_coop_t & coop,
+	so_5::disp::prio::common_thread::private_dispatcher_t & disp,
+	so_5::disp::prio::priority_t priority,
+	const so_5::rt::mbox_t & common_mbox,
+	std::string & sequence )
+	{
+		coop.define_agent( disp.binder( priority ) )
+			.event< msg_hello >(
+				common_mbox,
+				[priority, &sequence] {
+std::cout << "hello at priority: " << static_cast< std::size_t >( priority ) << std::endl;
+					sequence += std::to_string(
+						static_cast< std::size_t >( priority ) );
+				} );
+	}
+
+std::string &
+define_main_agent(
+	so_5::rt::agent_coop_t & coop,
+	so_5::disp::prio::common_thread::private_dispatcher_t & disp,
+	const so_5::rt::mbox_t & common_mbox )
+	{
+		auto sequence = std::make_shared< std::string >();
+
+		coop.define_agent( disp.binder( so_5::disp::prio::p0 ) )
+			.on_start(
+				[common_mbox] { so_5::send< msg_hello >( common_mbox ); } )
+			.event< msg_hello >(
+				common_mbox,
+				[&coop, sequence] {
+					*sequence += "0";
+					if( "76543210" != *sequence )
+						throw std::runtime_error( "Unexpected value of sequence: " +
+								*sequence );
+					else
+						coop.environment().stop();
+				} );
+
+		return *sequence;
+	}
+
+void
+fill_coop( so_5::rt::agent_coop_t & coop )
+	{
+		using namespace so_5::disp::prio;
+		using namespace so_5::disp::prio::common_thread;
+
+		auto disp = create_private_disp( coop.environment() );
+
+		auto common_mbox = coop.environment().create_local_mbox();
+
+		std::string & sequence = define_main_agent( coop, *disp, common_mbox );
+
+		define_receiver_agent( coop, *disp, p1, common_mbox, sequence );
+		define_receiver_agent( coop, *disp, p2, common_mbox, sequence );
+		define_receiver_agent( coop, *disp, p3, common_mbox, sequence );
+		define_receiver_agent( coop, *disp, p4, common_mbox, sequence );
+		define_receiver_agent( coop, *disp, p5, common_mbox, sequence );
+		define_receiver_agent( coop, *disp, p6, common_mbox, sequence );
+#if 0
+		define_receiver_agent( coop, *disp, p7, common_mbox, sequence );
+#endif
+	}
+
+int
+main()
+{
+	try
+	{
+		run_with_time_limit(
+			[]()
+			{
+				so_5::launch(
+					[]( so_5::rt::environment_t & env )
+					{
+						env.introduce_coop( fill_coop );
+					} );
+			},
+			5,
+			"simple sequence prio::common_thread dispatcher test" );
+	}
+	catch( const std::exception & ex )
+	{
+		std::cerr << "Error: " << ex.what() << std::endl;
+		return 1;
+	}
+
+	return 0;
+}
+

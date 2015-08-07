@@ -17,13 +17,13 @@ class a_test_t : public so_5::rt::agent_t
 		{}
 
 		virtual void
-		so_define_agent()
+		so_define_agent() override
 		{
 			so_subscribe_self().event< msg_hello >( &a_test_t::evt_hello );
 		}
 
 		virtual void
-		so_evt_start()
+		so_evt_start() override
 		{
 			so_direct_mbox()->deliver_signal< msg_hello >();
 		}
