@@ -179,7 +179,9 @@ class local_mbox_t : public abstract_message_box_t
 				auto p1 = m_agent->so_priority();
 				auto p2 = o.m_agent->so_priority();
 
-				return ( p1 < p2 || (p1 == p2 && m_agent < o.m_agent) );
+				// NOTE: there should be inversion -- agent with higher
+				// priority must be first.
+				return ( p1 > p2 || (p1 == p2 && m_agent < o.m_agent) );
 			}
 
 			bool
