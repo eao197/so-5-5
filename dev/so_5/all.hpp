@@ -18,5 +18,6 @@
 #include <so_5/disp/active_group/h/pub.hpp>
 #include <so_5/disp/thread_pool/h/pub.hpp>
 #include <so_5/disp/adv_thread_pool/h/pub.hpp>
-#include <so_5/disp/prio/common_thread/h/pub.hpp>
+//FIXME: commented util the complete move pririties to different namespace.
+//#include <so_5/disp/prio/common_thread/h/pub.hpp>
 

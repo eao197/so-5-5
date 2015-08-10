@@ -54,6 +54,12 @@ const priority_t p7 = priority_t::p7;
  * \}
  */
 
+/*!
+ * \since v.5.5.8
+ * \brief Default priority value.
+ */
+const priority_t default_priority = p0;
+
 } /* namespace prio */
 
 } /* namespace so_5 */

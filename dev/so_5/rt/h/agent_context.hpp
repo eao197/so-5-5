@@ -175,6 +175,15 @@ operator+(
 		ctx.options().message_limits( std::move( limit ) );
 		return std::move( ctx );
 	};
+
+inline agent_context_t
+operator+(
+	agent_context_t ctx,
+	so_5::priority_t agent_priority )
+	{
+		ctx.options().priority( agent_priority );
+		return std::move( ctx );
+	}
 /*!
  * \}
  */

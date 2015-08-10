@@ -182,6 +182,7 @@ agent_t::agent_t(
 	,	m_working_thread_id( so_5::query_current_thread_id() )
 	,	m_agent_coop( 0 )
 	,	m_is_coop_deregistered( false )
+	,	m_priority( ctx.options().query_priority() )
 {
 }
 
