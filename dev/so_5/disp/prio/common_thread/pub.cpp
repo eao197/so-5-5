@@ -113,12 +113,11 @@ class binding_actions_mixin_t
 		inline static so_5::rt::disp_binding_activator_t
 		do_bind(
 			dispatcher_t & disp,
-			so_5::rt::agent_ref_t agent,
-			priority_t priority )
+			so_5::rt::agent_ref_t agent )
 			{
-				auto result = [agent, &disp, priority]() {
+				auto result = [agent, &disp]() {
 					agent->so_bind_to_dispatcher(
-							*(disp.get_agent_binding( priority )) );
+							*(disp.get_agent_binding( agent->so_priority() )) );
 				};
 
 //FIXME: uncomment this when run-time data stats will be implemented.
@@ -155,10 +154,8 @@ class disp_binder_t
 	{
 	public:
 		disp_binder_t(
-			std::string disp_name,
-			priority_t priority )
+			std::string disp_name )
 			:	m_disp_name( std::move( disp_name ) )
-			,	m_priority( priority )
 			{}
 
 		virtual so_5::rt::disp_binding_activator_t
@@ -173,7 +170,7 @@ class disp_binder_t
 					m_disp_name,
 					[this, agent]( dispatcher_t & disp )
 					{
-						return do_bind( disp, std::move( agent ), m_priority );
+						return do_bind( disp, std::move( agent ) );
 					} );
 			}
 
@@ -194,8 +191,6 @@ class disp_binder_t
 	private:
 		//! Name of the dispatcher to be bound to.
 		const std::string m_disp_name;
-		//! Priority to be used for binding.
-		const priority_t m_priority;
 	};
 
 //
@@ -216,12 +211,9 @@ class private_dispatcher_binder_t
 			//! It is necessary to manage lifetime of the dispatcher instance.
 			private_dispatcher_handle_t handle,
 			//! A dispatcher instance to work with.
-			dispatcher_t & instance,
-			//! A priority to be used during binding.
-			priority_t priority )
+			dispatcher_t & instance )
 			:	m_handle( std::move( handle ) )
 			,	m_instance( instance )
-			,	m_priority( priority )
 			{}
 
 		virtual so_5::rt::disp_binding_activator_t
@@ -229,7 +221,7 @@ class private_dispatcher_binder_t
 			so_5::rt::environment_t & /* env */,
 			so_5::rt::agent_ref_t agent ) override
 			{
-				return do_bind( m_instance, std::move( agent ), m_priority );
+				return do_bind( m_instance, std::move( agent ) );
 			}
 
 		virtual void
@@ -248,9 +240,6 @@ class private_dispatcher_binder_t
 		private_dispatcher_handle_t m_handle;
 		//! A dispatcher instance to work with.
 		dispatcher_t & m_instance;
-
-		//! A priority to be used during binding.
-		const priority_t m_priority;
 	};
 
 //
@@ -288,13 +277,11 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
-		binder( priority_t priority ) override
+		binder() override
 			{
 				return so_5::rt::disp_binder_unique_ptr_t(
 						new private_dispatcher_binder_t(
-								private_dispatcher_handle_t( this ),
-								*m_disp,
-								priority ) );
+								private_dispatcher_handle_t( this ), *m_disp ) );
 			}
 
 	private :
@@ -337,11 +324,10 @@ create_private_disp(
 //
 SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder(
-	const std::string & disp_name,
-	priority_t priority )
+	const std::string & disp_name )
 	{
 		return so_5::rt::disp_binder_unique_ptr_t( 
-			new impl::disp_binder_t( disp_name, priority ) );
+			new impl::disp_binder_t( disp_name ) );
 	}
 
 } /* namespace common_thread */
