@@ -11,9 +11,8 @@ struct msg_hello : public so_5::rt::signal_t {};
 class a_test_t : public so_5::rt::agent_t
 {
 	public:
-		a_test_t(
-			so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+		a_test_t( context_t ctx )
+			:	so_5::rt::agent_t( ctx + so_5::prio::p7 )
 		{}
 
 		virtual void
@@ -50,8 +49,7 @@ main()
 								"test",
 								new a_test_t( env ),
 								so_5::disp::prio::common_thread::create_disp_binder(
-										"prio_dispatcher",
-										so_5::disp::prio::p1 ) );
+										"prio_dispatcher" ) );
 					},
 					[]( so_5::rt::environment_params_t & params )
 					{
