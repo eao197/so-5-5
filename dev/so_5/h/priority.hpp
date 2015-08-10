@@ -12,10 +12,6 @@
 
 namespace so_5 {
 
-namespace disp {
-
-namespace prio {
-
 /*!
  * \since v.5.5.8
  * \brief Definition of supported priorities.
@@ -34,6 +30,14 @@ enum class priority_t : unsigned char
 		p_max = p7
 	};
 
+inline std::size_t
+to_size_t( priority_t priority )
+	{
+		return static_cast< std::size_t >( priority );
+	}
+
+namespace prio {
+
 /*!
  * \name Constants with priority values.
  * \{
@@ -50,15 +54,7 @@ const priority_t p7 = priority_t::p7;
  * \}
  */
 
-inline std::size_t
-to_size_t( priority_t priority )
-	{
-		return static_cast< std::size_t >( priority );
-	}
-
 } /* namespace prio */
-
-} /* namespace disp */
 
 } /* namespace so_5 */
 

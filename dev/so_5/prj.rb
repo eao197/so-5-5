@@ -122,11 +122,12 @@ MxxRu::Cpp::dll_target {
 			cpp_source 'pub.cpp'
 		}
 
-		sources_root( 'prio' ) {
-			sources_root( 'common_thread' ) {
-				cpp_source 'pub.cpp'
-			}
-		}
+# Temporary disabled
+#		sources_root( 'prio' ) {
+#			sources_root( 'common_thread' ) {
+#				cpp_source 'pub.cpp'
+#			}
+#		}
 	}
 }
 
