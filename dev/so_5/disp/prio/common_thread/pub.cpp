@@ -15,6 +15,13 @@
 #include <so_5/disp/prio/common_thread/impl/h/work_thread.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
+#include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
+
+#include <so_5/rt/stats/h/repository.hpp>
+#include <so_5/rt/stats/h/messages.hpp>
+#include <so_5/rt/stats/h/std_names.hpp>
+
+#include <so_5/rt/h/send_functions.hpp>
 
 namespace so_5 {
 
@@ -25,6 +32,8 @@ namespace prio {
 namespace common_thread {
 
 namespace impl {
+
+namespace stats = so_5::rt::stats;
 
 //
 // dispatcher_t
@@ -39,22 +48,19 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	public:
 		dispatcher_t()
 			:	m_work_thread{ m_demand_queue }
+			,	m_data_source{ self() }
 			{}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
 		virtual void
-		start( so_5::rt::environment_t & /*env*/ ) override
+		start( so_5::rt::environment_t & env ) override
 			{
-//FIXME: data source must be started here!
-//				m_data_source.start( env );
+				m_data_source.start( env.stats_repository() );
 
 				so_5::details::do_with_rollback_on_exception(
 						[this] { m_work_thread.start(); },
-						[this] {
-//FIXME: data source must be stopped here!
-// m_data_source.stop();
-						} );
+						[this] { m_data_source.stop(); } );
 			}
 
 		virtual void
@@ -68,16 +74,14 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				m_work_thread.join();
 
-//FIXME: data source must be stopped here!
-//				m_data_source.stop();
+				m_data_source.stop();
 			}
 
 		virtual void
 		set_data_sources_name_base(
-			const std::string & /*name_base*/ ) override
+			const std::string & name_base ) override
 			{
-//FIXME: base part of data source name must be set here!
-//				m_data_source.set_data_sources_name_base( name_base, this );
+				m_data_source.set_data_sources_name_base( name_base );
 			}
 		//! \}
 
@@ -91,12 +95,118 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				return &m_demand_queue.event_queue_by_priority( priority );
 			}
 
+		//! Notification about binding of yet another agent.
+		void
+		agent_bound( priority_t priority )
+			{
+				m_demand_queue.agent_bound( priority );
+			}
+
+		//! Notification about unbinding of an agent.
+		void
+		agent_unbound( priority_t priority )
+			{
+				m_demand_queue.agent_unbound( priority );
+			}
+
 	private:
+		/*!
+		 * \since v.5.5.8
+		 * \brief Data source for run-time monitoring of whole dispatcher.
+		 */
+		class disp_data_source_t : public stats::manually_registered_source_t
+			{
+				//! Dispatcher to work with.
+				dispatcher_t & m_dispatcher;
+
+				//! Basic prefix for data sources.
+				stats::prefix_t m_base_prefix;
+
+			public :
+				disp_data_source_t( dispatcher_t & disp )
+					:	m_dispatcher( disp )
+					{}
+
+				virtual void
+				distribute( const so_5::rt::mbox_t & mbox )
+					{
+						std::size_t agents_count = 0;
+
+						m_dispatcher.m_demand_queue.handle_stats_for_each_prio(
+							[&]( const demand_queue_t::queue_stats_t & stat ) {
+								distribute_value_for_priority(
+									mbox,
+									stat.m_priority,
+									stat.m_agents_count,
+									stat.m_demands_count );
+
+								agents_count += stat.m_agents_count;
+							} );
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								m_base_prefix,
+								stats::suffixes::agent_count(),
+								agents_count );
+					}
+
+				void
+				set_data_sources_name_base(
+					const std::string & name_base )
+					{
+						using namespace so_5::disp::reuse;
+
+						m_base_prefix = make_disp_prefix(
+//FIXME: a good name musy be created.
+								"p-ct",
+								name_base,
+								&m_dispatcher );
+					}
+
+			private:
+				void
+				distribute_value_for_priority(
+					const so_5::rt::mbox_t & mbox,
+					priority_t priority,
+					std::size_t agents_count,
+					std::size_t demands_count )
+					{
+						std::ostringstream ss;
+						ss << m_base_prefix.c_str() << "/p" << to_size_t(priority);
+
+						const stats::prefix_t prefix{ ss.str() };
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								prefix,
+								stats::suffixes::agent_count(),
+								agents_count );
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								prefix,
+								stats::suffixes::work_thread_queue_size(),
+								demands_count );
+					}
+			};
+
 		//! Demand queue for the dispatcher.
 		demand_queue_t m_demand_queue;
 
 		//! Working thread for the dispatcher.
 		work_thread_t m_work_thread;
+
+		//! Data source for run-time monitoring.
+		disp_data_source_t m_data_source;
+
+		/*!
+		 * \brief Just a helper method for getting reference to itself.
+		 */
+		dispatcher_t &
+		self()
+			{
+				return *this;
+			}
 	};
 
 //
@@ -120,24 +230,19 @@ class binding_actions_mixin_t
 							*(disp.get_agent_binding( agent->so_priority() )) );
 				};
 
-//FIXME: uncomment this when run-time data stats will be implemented.
-#if 0
 				// Dispatcher must know about yet another agent bound.
-				disp.agent_bound();
-#endif
+				disp.agent_bound( agent->so_priority() );
 
 				return result;
 			}
 
 		inline static void
 		do_unbind(
-			dispatcher_t & /*disp*/ )
+			dispatcher_t & disp,
+			so_5::rt::agent_ref_t agent )
 			{
-//FIXME: uncomment this when run-time data stats will be implemented.
-#if 0
 				// Dispatcher must know about yet another agent bound.
-				disp.agent_unbound();
-#endif
+				disp.agent_unbound( agent->so_priority() );
 			}
 	};
 
@@ -184,7 +289,7 @@ class disp_binder_t
 				do_with_dispatcher< dispatcher_t >( env, m_disp_name,
 					[agent]( dispatcher_t & disp )
 					{
-						do_unbind( disp );
+						do_unbind( disp, std::move( agent ) );
 					} );
 			}
 
@@ -227,9 +332,9 @@ class private_dispatcher_binder_t
 		virtual void
 		unbind_agent(
 			so_5::rt::environment_t & /*env*/,
-			so_5::rt::agent_ref_t /*agent_ref*/ ) override
+			so_5::rt::agent_ref_t agent ) override
 			{
-				do_unbind( m_instance );
+				do_unbind( m_instance, std::move( agent ) );
 			}
 
 	private:

@@ -12,6 +12,7 @@
 #pragma once
 
 #include <memory>
+#include <atomic>
 
 #include <so_5/rt/h/execution_demand.hpp>
 #include <so_5/rt/h/event_queue.hpp>
@@ -80,6 +81,18 @@ class demand_queue_t
 				/*! Null if queue is empty. */
 				demand_t * m_tail = nullptr;
 
+				/*!
+				 * \name Information for run-time monitoring.
+				 * \{
+				 */
+				//! Count of agents attached to that queue.
+				std::atomic< std::size_t > m_agents_count = { 0 };
+				//! Count of demands in the queue.
+				std::atomic< std::size_t > m_demands_count = { 0 };
+				/*!
+				 * \}
+				 */
+
 				virtual void
 				push( so_5::rt::execution_demand_t exec_demand ) override
 					{
@@ -94,6 +107,14 @@ class demand_queue_t
 		//! This exception is thrown when pop is called after stop.
 		class shutdown_ex_t : public std::exception
 			{};
+
+		//! Statistic about one subqueue.
+		struct queue_stats_t
+			{
+				priority_t m_priority;
+				std::size_t m_agents_count;
+				std::size_t m_demands_count;
+			};
 
 		demand_queue_t()
 			{
@@ -166,6 +187,7 @@ class demand_queue_t
 
 				m_current_priority->m_head = result->m_next;
 				result->m_next = nullptr;
+				--(m_current_priority->m_demands_count);
 
 				if( !m_current_priority->m_head )
 					{
@@ -191,6 +213,38 @@ class demand_queue_t
 		event_queue_by_priority( priority_t priority )
 			{
 				return m_priorities[ to_size_t(priority) ];
+			}
+
+		//! Notification about attachment of yet another agent to the queue.
+		void
+		agent_bound( priority_t priority )
+			{
+				++(m_priorities[ to_size_t(priority) ].m_agents_count);
+			}
+
+		//! Notification about detachment of an agent from the queue.
+		void
+		agent_unbound( priority_t priority )
+			{
+				--(m_priorities[ to_size_t(priority) ].m_agents_count);
+			}
+
+		//! A special method for handling statistical data for
+		//! every subqueue.
+		template< class LAMBDA >
+		void
+		handle_stats_for_each_prio( LAMBDA handler )
+			{
+				using namespace so_5::prio;
+				static priority_t values[] = { p0, p1, p2, p3, p4, p5, p6, p7 };
+
+				for( auto p : values )
+					{
+						const auto & subqueue = m_priorities[ to_size_t(p) ];
+						handler( queue_stats_t{ p,
+								subqueue.m_agents_count.load( std::memory_order_relaxed ),
+								subqueue.m_demands_count.load( std::memory_order_relaxed ) } );
+					}
 			}
 
 	private :
@@ -239,6 +293,8 @@ class demand_queue_t
 						queue.m_head = demand.release();
 						queue.m_tail = queue.m_head;
 					}
+
+				++(queue.m_demands_count);
 			}
 	};
 
