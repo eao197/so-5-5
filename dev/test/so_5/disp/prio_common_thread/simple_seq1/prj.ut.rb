@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/disp/prio_common_thread/simple_seq'
+path = 'test/so_5/disp/prio_common_thread/simple_seq1'
 
 Mxx_ru::setup_target(
 	Mxx_ru::Binary_unittest_target.new(

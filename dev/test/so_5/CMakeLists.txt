@@ -32,6 +32,8 @@ add_subdirectory(disp/adv_thread_pool)
 
 add_subdirectory(disp/private_dispatchers)
 
+add_subdirectory(disp/prio_common_thread)
+
 add_subdirectory(event_handler/subscribe_errors)
 add_subdirectory(event_handler/ignore_exception)
 add_subdirectory(event_handler/exception_reaction_inheritance)

@@ -38,7 +38,7 @@ class SO_5_TYPE adhoc_agent_wrapper_t
 	:	public agent_t
 	{
 	public :
-		adhoc_agent_wrapper_t( environment_t & env );
+		adhoc_agent_wrapper_t( agent_context_t ctx );
 		virtual ~adhoc_agent_wrapper_t();
 
 		//! Set function for reaction on work start.

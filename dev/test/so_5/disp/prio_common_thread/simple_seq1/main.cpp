@@ -12,11 +12,11 @@ void
 define_receiver_agent(
 	so_5::rt::agent_coop_t & coop,
 	so_5::disp::prio::common_thread::private_dispatcher_t & disp,
-	so_5::disp::prio::priority_t priority,
+	so_5::priority_t priority,
 	const so_5::rt::mbox_t & common_mbox,
 	std::string & sequence )
 	{
-		coop.define_agent( disp.binder( priority ) )
+		coop.define_agent( coop.make_agent_context() + priority, disp.binder() )
 			.event< msg_hello >(
 				common_mbox,
 				[priority, &sequence] {
@@ -33,7 +33,7 @@ define_main_agent(
 	{
 		auto sequence = std::make_shared< std::string >();
 
-		coop.define_agent( disp.binder( so_5::disp::prio::p0 ) )
+		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
 			.event< msg_hello >(
 				common_mbox,
 				[&coop, sequence] {
@@ -53,14 +53,15 @@ define_starter_agent(
 	so_5::rt::agent_coop_t & coop,
 	so_5::disp::prio::common_thread::private_dispatcher_t & disp )
 	{
-		coop.define_agent( disp.binder( so_5::disp::prio::p0 ) )
+		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
 			.on_start( [&coop, &disp] {
 				auto common_mbox = coop.environment().create_local_mbox();
 
 				coop.environment().introduce_coop(
 					[&]( so_5::rt::agent_coop_t & child )
 					{
-						using namespace so_5::disp::prio;
+						using namespace so_5::prio;
+
 						std::string & sequence = define_main_agent(
 								child, disp, common_mbox );
 						define_receiver_agent(
@@ -98,17 +99,24 @@ main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				so_5::launch(
-					[]( so_5::rt::environment_t & env )
-					{
-						env.introduce_coop( fill_coop );
-					} );
-			},
-			5,
-			"simple sequence prio::common_thread dispatcher test" );
+		// Do several iterations to increase probability of errors detection.
+		std::cout << "runing iterations" << std::flush;
+		for( int i = 0; i != 100; ++i )
+		{
+			run_with_time_limit(
+				[]()
+				{
+					so_5::launch(
+						[]( so_5::rt::environment_t & env )
+						{
+							env.introduce_coop( fill_coop );
+						} );
+				},
+				5,
+				"simple sequence prio::common_thread dispatcher test" );
+			std::cout << "." << std::flush;
+		}
+		std::cout << "done" << std::endl;
 	}
 	catch( const std::exception & ex )
 	{

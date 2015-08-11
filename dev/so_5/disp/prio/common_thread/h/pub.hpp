@@ -18,7 +18,7 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
 
-#include <so_5/disp/prio/h/priority.hpp>
+#include <so_5/h/priority.hpp>
 
 namespace so_5 {
 
@@ -43,9 +43,7 @@ class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 
 		//! Create a binder for that private dispatcher.
 		virtual so_5::rt::disp_binder_unique_ptr_t
-		binder(
-			//! Priority of agent to be bound.
-			priority_t agent_priority ) = 0;
+		binder() = 0;
 	};
 
 /*!
@@ -72,8 +70,7 @@ auto common_thread_disp = so_5::disp::prio::common_thread::create_private_disp(
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private common_thread dispatcher.
-	// Main binder will use the lowest priority for agents.
-	common_thread_disp->binder( so_5::disp::prio::p0 ) );
+	common_thread_disp->binder() );
 \endcode
  */
 SO_5_FUNC private_dispatcher_handle_t
@@ -95,8 +92,7 @@ auto common_thread_disp = so_5::disp::prio::common_thread::create_private_disp( 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private common_thread dispatcher.
-	// Main binder will use the lowest priority for agents.
-	common_thread_disp->binder( so_5::disp::prio::p0 ) );
+	common_thread_disp->binder() );
 \endcode
  */
 inline private_dispatcher_handle_t
@@ -109,9 +105,7 @@ create_private_disp( so_5::rt::environment_t & env )
 SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
 create_disp_binder(
 	//! Name of the dispatcher to be bound to.
-	const std::string & disp_name,
-	//! Priority for agents to be bound.
-	priority_t priority );
+	const std::string & disp_name );
 
 } /* namespace common_thread */
 

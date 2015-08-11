@@ -1269,6 +1269,23 @@ class SO_5_TYPE agent_t
 		 * \}
 		 */
 
+		/*!
+		 * \name Dealing with priority.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.8
+		 * \brief Get the priority of the agent.
+		 */
+		priority_t
+		so_priority() const
+			{
+				return m_priority;
+			}
+		/*!
+		 * \}
+		 */
+
 	protected :
 		/*!
 		 * \name Helpers for state object creation.
@@ -1398,6 +1415,12 @@ class SO_5_TYPE agent_t
 		 * \note Storage is created only when necessary.
 		 */
 		std::unique_ptr< impl::delivery_filter_storage_t > m_delivery_filters;
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Priority of the agent.
+		 */
+		const priority_t m_priority;
 
 		//! Make an agent reference.
 		/*!
