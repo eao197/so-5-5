@@ -285,8 +285,11 @@ class demand_queue_t
 			demand_unique_ptr_t demand )
 			{
 				if( queue.m_tail )
-					// Queue is not empty. Tail will be modified.
-					queue.m_tail->m_next = demand.release();
+					{
+						// Queue is not empty. Tail will be modified.
+						queue.m_tail->m_next = demand.release();
+						queue.m_tail = queue.m_tail->m_next;
+					}
 				else
 					{
 						// Queue is empty. The whole description will be modified.

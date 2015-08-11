@@ -128,7 +128,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 					{}
 
 				virtual void
-				distribute( const so_5::rt::mbox_t & mbox )
+				distribute( const so_5::rt::mbox_t & mbox ) override
 					{
 						std::size_t agents_count = 0;
 
