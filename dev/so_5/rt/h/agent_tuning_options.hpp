@@ -40,7 +40,7 @@ class agent_tuning_options_t
 			const agent_tuning_options_t & o )
 			:	m_subscription_storage_factory( o.m_subscription_storage_factory )
 			,	m_message_limits( o.m_message_limits )
-			,	m_priority( so_5::prio::default_priority )
+			,	m_priority( o.m_priority )
 			{}
 		agent_tuning_options_t(
 			agent_tuning_options_t && o )
@@ -130,7 +130,7 @@ class agent_tuning_options_t
 
 		//! Priority for agent.
 		/*! \since v.5.5.8 */
-		so_5::priority_t m_priority;
+		so_5::priority_t m_priority = so_5::prio::default_priority;
 	};
 
 } /* namespace rt */
