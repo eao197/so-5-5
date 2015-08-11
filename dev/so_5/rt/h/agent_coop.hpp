@@ -937,6 +937,17 @@ class SO_5_TYPE agent_coop_t
 			//! Deregistration reason.
 			coop_dereg_reason_t dereg_reason );
 
+		/*!
+		 * \since v.5.5.8
+		 * \brief Rearrangement of agents in agents storage with
+		 * respect to its priorities.
+		 *
+		 * This step is necessary to handle agents with high priorities
+		 * before agents with low priorities.
+		 */
+		void
+		reorder_agents_with_respect_to_priorities();
+
 		//! Bind agents to the cooperation.
 		void
 		bind_agents_to_coop();

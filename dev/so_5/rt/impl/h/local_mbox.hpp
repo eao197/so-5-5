@@ -21,6 +21,8 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
 
+#include <so_5/rt/impl/h/agent_ptr_compare.hpp>
+
 namespace so_5
 {
 
@@ -176,12 +178,7 @@ class local_mbox_t : public abstract_message_box_t
 			bool
 			operator<( const subscriber_info_t & o ) const
 			{
-				auto p1 = m_agent->so_priority();
-				auto p2 = o.m_agent->so_priority();
-
-				// NOTE: there should be inversion -- agent with higher
-				// priority must be first.
-				return ( p1 > p2 || (p1 == p2 && m_agent < o.m_agent) );
+				return special_agent_ptr_compare( *m_agent, *o.m_agent );
 			}
 
 			bool

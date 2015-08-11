@@ -3,6 +3,7 @@
 */
 
 #include <exception>
+#include <algorithm>
 
 #include <so_5/h/exception.hpp>
 
@@ -11,6 +12,8 @@
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/h/agent_coop.hpp>
+
+#include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -250,6 +253,7 @@ void
 agent_coop_t::do_registration_specific_actions(
 	agent_coop_t * parent_coop )
 {
+	reorder_agents_with_respect_to_priorities();
 	bind_agents_to_coop();
 	define_all_agents();
 
@@ -271,6 +275,17 @@ agent_coop_t::do_deregistration_specific_actions(
 	m_dereg_reason = std::move( dereg_reason );
 
 	shutdown_all_agents();
+}
+
+void
+agent_coop_t::reorder_agents_with_respect_to_priorities()
+{
+	std::sort( std::begin(m_agent_array), std::end(m_agent_array),
+		[]( const agent_with_disp_binder_t & a,
+			const agent_with_disp_binder_t & b ) -> bool {
+			return impl::special_agent_ptr_compare(
+					*a.m_agent_ref, *b.m_agent_ref );
+		} );
 }
 
 void
