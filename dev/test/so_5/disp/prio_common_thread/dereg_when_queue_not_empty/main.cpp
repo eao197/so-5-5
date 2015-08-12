@@ -32,7 +32,7 @@ fill_coop(
 			} )
 		.event< send_next >( m, [m] {
 				so_5::send< send_next >( m );
-//				so_5::send< send_next >( m );
+				so_5::send< send_next >( m );
 			} )
 		.event< stop >( m, [&coop] {
 				coop.environment().deregister_coop(
