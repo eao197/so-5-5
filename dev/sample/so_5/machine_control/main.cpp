@@ -39,6 +39,35 @@ struct machine_status : public so_5::rt::message_t
 	{}
 };
 
+// Type of reaction to be performed on machine.
+enum class attention_type_t 
+{
+	none,
+	engine_cooling_done,
+	engine_cooling_needed,
+	engine_overheat_detected
+};
+
+// Notification about machine which needs some attention.
+struct machine_needs_attention : public so_5::rt::message_t
+{
+	const std::string m_id;
+	const attention_type_t m_attention;
+	const engine_state_t m_engine_status;
+	const cooler_state_t m_cooler_status;
+
+	machine_needs_attention(
+		std::string id,
+		attention_type_t attention,
+		engine_state_t engine_status,
+		cooler_state_t cooler_status )
+		:	m_id( std::move(id) )
+		,	m_attention( attention )
+		,	m_engine_status( engine_status )
+		,	m_cooler_status( cooler_status )
+	{}
+};
+
 // Agent for representing a machine.
 class a_machine_t : public so_5::rt::agent_t
 {
@@ -275,6 +304,224 @@ private :
 	const dictionary_type_t m_dictionary;
 };
 
+// Agent which does analyzing of machine statuses and produces
+// machine_needs_attention messages.
+class a_statuses_analyzer_t : public so_5::rt::agent_t
+{
+public :
+	a_statuses_analyzer_t(
+		context_t ctx,
+		so_5::rt::mbox_t status_distribution_mbox,
+		float safe_temperature,
+		float warn_temperature,
+		float high_temperature)
+		:	so_5::rt::agent_t( ctx )
+		,	m_status_distribution_mbox( std::move( status_distribution_mbox ) )
+		,	m_safe_temperature( safe_temperature )
+		,	m_warn_temperature( warn_temperature )
+		,	m_high_temperature( high_temperature )
+	{}
+
+	virtual void so_define_agent() override
+	{
+		so_subscribe( m_status_distribution_mbox ).event(
+				&a_statuses_analyzer_t::evt_machine_status );
+	}
+
+private :
+	const so_5::rt::mbox_t m_status_distribution_mbox;
+
+	const float m_safe_temperature;
+	const float m_warn_temperature;
+	const float m_high_temperature;
+
+	// Info about last known machine status.
+	struct last_machine_info_t
+	{
+		attention_type_t m_attention;
+		float m_engine_temperature;
+	};
+
+	// Map from machine ID to last known status.
+	using last_info_map_t = std::map< std::string, last_machine_info_t >;
+
+	last_info_map_t m_last_infos;
+
+	void evt_machine_status( const machine_status & status )
+	{
+		auto it = m_last_infos.find( status.m_id );
+		if( it == m_last_infos.end() )
+			// There is no information about this machine yet.
+			// It must be added.
+			it = m_last_infos.insert( last_info_map_t::value_type {
+					status.m_id,
+					last_machine_info_t {
+						attention_type_t::none,
+						status.m_engine_temperature
+					} } ).first;
+
+		handle_new_status( status, it->second );
+	}
+
+	void handle_new_status(
+		const machine_status & status,
+		last_machine_info_t & last_info ) const
+	{
+		const auto fresh_info = last_machine_info_t {
+				detect_attention_needed( status, last_info ),
+				status.m_engine_temperature
+			};
+
+		if( last_info.m_attention != fresh_info.m_attention )
+			// Machine needs some new attention.
+			so_5::send< machine_needs_attention >(
+					m_status_distribution_mbox,
+					status.m_id,
+					fresh_info.m_attention,
+					status.m_engine_status,
+					status.m_cooler_status );
+
+		last_info = fresh_info;
+	}
+
+	attention_type_t detect_attention_needed(
+		const machine_status & status,
+		const last_machine_info_t & last ) const
+	{
+		if( last.m_engine_temperature < status.m_engine_temperature )
+		{
+			// Engine is warming.
+			if( status.m_engine_temperature > m_high_temperature )
+			{
+				if( attention_type_t::engine_overheat_detected != last.m_attention )
+					return attention_type_t::engine_overheat_detected;
+			}
+			else if( status.m_engine_temperature > m_warn_temperature )
+			{
+				if( attention_type_t::engine_cooling_needed != last.m_attention )
+					return attention_type_t::engine_cooling_needed;
+			}
+		}
+		else
+		{
+			// Engine is cooling.
+			if( status.m_engine_temperature < m_safe_temperature )
+				if( attention_type_t::none != last.m_attention &&
+						attention_type_t::engine_cooling_done != last.m_attention )
+					return attention_type_t::engine_cooling_done;
+		}
+
+		// Attention need not to be changed.
+		return last.m_attention;
+	}
+};
+
+// A base class for machine controllers.
+class a_machine_controller_t : public so_5::rt::agent_t
+{
+public :
+	using filter_t = std::function< bool(const machine_needs_attention &) >;
+	using actor_t = std::function<
+		void(const machine_dictionary_t &, const machine_needs_attention &) >;
+
+	a_machine_controller_t(
+		context_t ctx,
+		so_5::priority_t priority,
+		so_5::rt::mbox_t status_distribution_mbox,
+		const machine_dictionary_t & machines,
+		filter_t filter,
+		actor_t actor )
+		:	so_5::rt::agent_t( ctx + priority )
+		,	m_status_distribution_mbox( std::move( status_distribution_mbox ) )
+		,	m_machines( machines )
+		,	m_filter( std::move( filter ) )
+		,	m_actor( std::move( actor ) )
+	{}
+
+	virtual void so_define_agent() override
+	{
+		so_set_delivery_filter( m_status_distribution_mbox,
+			[this]( const machine_needs_attention & msg ) { return m_filter( msg ); } );
+
+		so_subscribe( m_status_distribution_mbox )
+			.event( [this]( const machine_needs_attention & evt ) {
+					m_actor( m_machines, evt );
+				} );
+	}
+
+private :
+	const so_5::rt::mbox_t m_status_distribution_mbox;
+
+	const machine_dictionary_t & m_machines;
+
+	const filter_t m_filter;
+	const actor_t m_actor;
+};
+
+//
+// Implementation of engine stopper.
+//
+bool engine_stopper_filter( const machine_needs_attention & msg )
+{
+	return msg.m_attention == attention_type_t::engine_overheat_detected;
+}
+
+void engine_stopper_action(
+	const machine_dictionary_t & machines,
+	const machine_needs_attention & evt )
+{
+	so_5::send< turn_engine_off >( machines.find_mbox( evt.m_id ) );
+}
+
+//
+// Implementation of engine starter.
+//
+bool engine_starter_filter( const machine_needs_attention & msg )
+{
+	return msg.m_attention == attention_type_t::engine_cooling_done &&
+			msg.m_engine_status == engine_state_t::off;
+}
+
+void engine_starter_action(
+	const machine_dictionary_t & machines,
+	const machine_needs_attention & evt )
+{
+	so_5::send< turn_engine_on >( machines.find_mbox( evt.m_id ) );
+}
+
+//
+// Implementation of cooler starter.
+//
+bool cooler_starter_filter( const machine_needs_attention & msg )
+{
+	return (msg.m_attention == attention_type_t::engine_overheat_detected ||
+			msg.m_attention == attention_type_t::engine_cooling_needed) &&
+			msg.m_cooler_status == cooler_state_t::off;
+}
+
+void cooler_starter_action(
+	const machine_dictionary_t & machines,
+	const machine_needs_attention & evt )
+{
+	so_5::send< turn_cooler_on >( machines.find_mbox( evt.m_id ) );
+}
+
+//
+// Implementation of cooler stopper.
+//
+bool cooler_stopper_filter( const machine_needs_attention & msg )
+{
+	return msg.m_attention == attention_type_t::engine_cooling_done &&
+			msg.m_cooler_status == cooler_state_t::on;
+}
+
+void cooler_stopper_action(
+	const machine_dictionary_t & machines,
+	const machine_needs_attention & evt )
+{
+	so_5::send< turn_cooler_off >( machines.find_mbox( evt.m_id ) );
+}
+
 // Helper for creation of machine agent and adding its info into
 // machine dictionary.
 template< typename... ARGS >
@@ -329,6 +576,36 @@ void create_starter_agent(
 		} );
 }
 
+void create_machine_controllers(
+	so_5::rt::agent_coop_t & coop,
+	const so_5::rt::mbox_t status_distrib_mbox,
+	const machine_dictionary_t & machines )
+{
+	// There must be a priority-respected dispatcher.
+	auto disp = so_5::disp::prio::common_thread::create_private_disp(
+			coop.environment() );
+
+	// A helper lambda to reduce code repetition.
+	auto maker = [&]( so_5::priority_t priority,
+			a_machine_controller_t::filter_t filter,
+			a_machine_controller_t::actor_t actor )
+		{
+			coop.make_agent_with_binder< a_machine_controller_t >(
+					disp->binder(),
+					priority,
+					status_distrib_mbox,
+					machines,
+					std::move( filter ),
+					std::move( actor ) );
+		};
+
+	// Creation of controllers.
+	maker( so_5::prio::p4, engine_stopper_filter, engine_stopper_action );
+	maker( so_5::prio::p3, cooler_starter_filter, cooler_starter_action );
+	maker( so_5::prio::p2, engine_starter_filter, engine_starter_action );
+	maker( so_5::prio::p1, cooler_stopper_filter, cooler_stopper_action );
+}
+
 void fill_coop( so_5::rt::agent_coop_t & coop )
 {
 	// Common mbox for information distribution.
@@ -341,6 +618,18 @@ void fill_coop( so_5::rt::agent_coop_t & coop )
 			so_5::disp::one_thread::create_private_disp(
 					coop.environment() )->binder(),
 			status_distrib_mbox );
+
+	// Status analyzer will work on its own dedicated thread.
+	coop.make_agent_with_binder< a_statuses_analyzer_t >(
+			so_5::disp::one_thread::create_private_disp(
+					coop.environment() )->binder(),
+			status_distrib_mbox,
+			50.0f, // Safe temperature.
+			70.0f, // Warn temperature (cooler must be turned on)
+			95.0f  // Critical temperature (engine must be turned off).
+		);
+
+	create_machine_controllers( coop, status_distrib_mbox, machine_dict );
 
 	// Special agent which will start machines.
 	create_starter_agent( coop, machine_dict );
