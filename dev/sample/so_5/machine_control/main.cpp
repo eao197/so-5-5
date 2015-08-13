@@ -85,8 +85,6 @@ public :
 				*this,
 				std::chrono::milliseconds(0),
 				std::chrono::milliseconds(200) );
-
-so_5::send_to_agent< turn_engine_on >( *this );
 	}
 
 private :
@@ -205,7 +203,7 @@ private :
 	};
 
 	// Type of map from machine ID to machine state.
-	typedef std::map< std::string, one_machine_status_t > machine_status_map_t;
+	using machine_status_map_t = std::map< std::string, one_machine_status_t >;
 
 	// Current statues of machines.
 	machine_status_map_t m_machine_statuses;
@@ -247,34 +245,108 @@ private :
 	}
 };
 
-void
-fill_coop( so_5::rt::agent_coop_t & coop )
+// A dictionary to get machine's mbox from machine name.
+class machine_dictionary_t
 {
-	// Common mbox for information distribution.
-	auto status_distrib_mbox = coop.environment().create_local_mbox();
+public :
+	using dictionary_type_t = std::map< std::string, so_5::rt::mbox_t >;
+
+	machine_dictionary_t( dictionary_type_t values )
+		:	m_dictionary( std::move( values ) )
+	{}
+
+	so_5::rt::mbox_t find_mbox( const std::string & name ) const
+	{
+		auto r = m_dictionary.find( name );
+		if( r == m_dictionary.end() )
+			throw std::runtime_error( "machine not found: " + name );
+
+		return r->second;
+	}
+
+	template< typename L >
+	void for_each( L lambda ) const
+	{
+		for( const auto m : m_dictionary )
+			lambda( m.first, m.second );
+	}
+
+private :
+	const dictionary_type_t m_dictionary;
+};
+
+// Helper for creation of machine agent and adding its info into
+// machine dictionary.
+template< typename... ARGS >
+void make_machine(
+	so_5::rt::agent_coop_t & coop,
+	machine_dictionary_t::dictionary_type_t & dict,
+	const so_5::disp::one_thread::private_dispatcher_handle_t & disp,
+	const std::string & name,
+	ARGS &&... args )
+{
+	auto machine = coop.make_agent_with_binder< a_machine_t >(
+			disp->binder(),
+			name, std::forward<ARGS>(args)... );
+	dict[ name ] = machine->so_direct_mbox();
+}
+
+// Helper for creation of machine agents.
+const machine_dictionary_t & create_machines(
+	so_5::rt::agent_coop_t & coop,
+	const so_5::rt::mbox_t & status_distrib_mbox )
+{
+	// Data for machine dictionary.
+	machine_dictionary_t::dictionary_type_t dict_data;
 
 	// All machines will work on dedicated working thread.
 	auto machine_disp = so_5::disp::one_thread::create_private_disp(
 			coop.environment() );
 
-	coop.make_agent_with_binder< a_machine_t >( machine_disp->binder(),
+	make_machine( coop, dict_data, machine_disp,
 			"Mch01", status_distrib_mbox, 20.0f, 0.3f, 0.2f );
-	coop.make_agent_with_binder< a_machine_t >( machine_disp->binder(),
+	make_machine( coop, dict_data, machine_disp,
 			"Mch02", status_distrib_mbox, 20.0f, 0.45f, 0.2f );
-	coop.make_agent_with_binder< a_machine_t >( machine_disp->binder(),
+	make_machine( coop, dict_data, machine_disp,
 			"Mch03", status_distrib_mbox, 20.0f, 0.25f, 0.3f );
-	coop.make_agent_with_binder< a_machine_t >( machine_disp->binder(),
+	make_machine( coop, dict_data, machine_disp,
 			"Mch04", status_distrib_mbox, 20.0f, 0.26f, 0.27f );
+
+	// Machine dictionary could be created at that point.
+	return *( coop.take_under_control(
+			new machine_dictionary_t( std::move( dict_data ) ) ) );
+}
+
+void create_starter_agent(
+	so_5::rt::agent_coop_t & coop,
+	const machine_dictionary_t & dict )
+{
+	coop.define_agent().on_start( [&dict] {
+			dict.for_each(
+				[]( const std::string &, const so_5::rt::mbox_t & mbox ) {
+					so_5::send< turn_engine_on >( mbox );
+				} );
+		} );
+}
+
+void fill_coop( so_5::rt::agent_coop_t & coop )
+{
+	// Common mbox for information distribution.
+	auto status_distrib_mbox = coop.environment().create_local_mbox();
+
+	const auto & machine_dict = create_machines( coop, status_distrib_mbox );
 
 	// Machine dashboard will work on its own dedicated thread.
 	coop.make_agent_with_binder< a_total_status_dashboard_t >(
 			so_5::disp::one_thread::create_private_disp(
 					coop.environment() )->binder(),
 			status_distrib_mbox );
+
+	// Special agent which will start machines.
+	create_starter_agent( coop, machine_dict );
 }
 
-void
-init( so_5::rt::environment_t & env )
+void init( so_5::rt::environment_t & env )
 {
 	env.introduce_coop( fill_coop );
 }
