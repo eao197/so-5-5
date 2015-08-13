@@ -578,7 +578,7 @@ void create_starter_agent(
 
 void create_machine_controllers(
 	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_t status_distrib_mbox,
+	const so_5::rt::mbox_t & status_distrib_mbox,
 	const machine_dictionary_t & machines )
 {
 	// There must be a priority-respected dispatcher.
