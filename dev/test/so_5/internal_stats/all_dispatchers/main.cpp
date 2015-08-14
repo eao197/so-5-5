@@ -118,7 +118,7 @@ class a_controller_t : public so_5::rt::agent_t
 				create_children_on_thread_pool_disp_2( *coop, workers );
 				create_children_on_adv_thread_pool_disp_1( *coop, workers );
 				create_children_on_adv_thread_pool_disp_2( *coop, workers );
-				create_children_on_prio_common_thread_disp( *coop, workers );
+				create_children_on_prio_ot_strictly_ordered_disp( *coop, workers );
 
 				connect_workers( workers );
 
@@ -240,12 +240,12 @@ class a_controller_t : public so_5::rt::agent_t
 			}
 
 		void
-		create_children_on_prio_common_thread_disp(
+		create_children_on_prio_ot_strictly_ordered_disp(
 			so_5::rt::agent_coop_t & coop,
 			workers_vector_t & workers )
 			{
-				auto disp = so_5::disp::prio::common_thread::create_private_disp(
-						so_environment() );
+				auto disp = so_5::disp::prio_one_thread::strictly_ordered::
+					create_private_disp( so_environment() );
 
 				create_children_on( coop, workers,
 						[disp] { return disp->binder(); } );

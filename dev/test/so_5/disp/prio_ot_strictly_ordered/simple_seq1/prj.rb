@@ -4,7 +4,7 @@ MxxRu::Cpp::exe_target {
 
 	required_prj 'so_5/prj.rb'
 
-	target '_unit.test.disp.prio_common_thread.simple_seq1'
+	target '_unit.test.disp.prio_ot_strictly_ordered.simple_seq1'
 
 	cpp_source 'main.cpp'
 }

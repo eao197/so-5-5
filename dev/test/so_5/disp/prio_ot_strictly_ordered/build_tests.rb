@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby
 require 'mxx_ru/cpp'
 
-path = 'test/so_5/disp/prio_common_thread'
+path = 'test/so_5/disp/prio_ot_strictly_ordered'
 
 MxxRu::Cpp::composite_target {
 

@@ -52,7 +52,7 @@ main()
 				so_5::launch(
 					[]( so_5::rt::environment_t & env )
 					{
-						using namespace so_5::disp::prio::common_thread;
+						using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
 						env.introduce_coop(
 								create_private_disp( env )->binder(),
@@ -60,7 +60,7 @@ main()
 					} );
 			},
 			5,
-			"deregistration of coop on prio::common_thread dispatcher test" );
+			"deregistration of coop on prio_one_thread::strictly_ordered dispatcher test" );
 	}
 	catch( const std::exception & ex )
 	{

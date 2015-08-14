@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/disp/prio_common_thread/dereg_when_queue_not_empty'
+path = 'test/so_5/disp/prio_ot_strictly_ordered/dereg_when_queue_not_empty'
 
 Mxx_ru::setup_target(
 	Mxx_ru::Binary_unittest_target.new(

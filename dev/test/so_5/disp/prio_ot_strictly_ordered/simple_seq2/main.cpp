@@ -1,6 +1,7 @@
 /*
- * A test of simple sequence of messages for prio::common_thread dispatcher.
- * A starting msg_hello is sent from on_start() action from the same coop.
+ * A test of simple sequence of messages for prio_one_thread::strictly_ordered
+ * dispatcher.  A starting msg_hello is sent from on_start() action from the
+ * same coop.
  */
 
 #include <so_5/all.hpp>
@@ -82,14 +83,14 @@ main()
 					so_5::launch(
 						[]( so_5::rt::environment_t & env )
 						{
-							using namespace so_5::disp::prio::common_thread;
+							using namespace so_5::disp::prio_one_thread::strictly_ordered;
 							env.introduce_coop(
 								create_private_disp( env )->binder(),
 								fill_coop );
 						} );
 				},
 				5,
-				"simple sequence prio::common_thread dispatcher test" );
+				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
 			std::cout << "." << std::flush;
 		}
 		std::cout << "done" << std::endl;

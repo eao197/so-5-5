@@ -1,5 +1,6 @@
 /*
- * A test of simple sequence of messages for prio::common_thread dispatcher.
+ * A test of simple sequence of messages for
+ * prio_one_thread::strictly_ordered dispatcher.
  */
 
 #include <so_5/all.hpp>
@@ -11,7 +12,7 @@ struct msg_hello : public so_5::rt::signal_t {};
 void
 define_receiver_agent(
 	so_5::rt::agent_coop_t & coop,
-	so_5::disp::prio::common_thread::private_dispatcher_t & disp,
+	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp,
 	so_5::priority_t priority,
 	const so_5::rt::mbox_t & common_mbox,
 	std::string & sequence )
@@ -28,7 +29,7 @@ define_receiver_agent(
 std::string &
 define_main_agent(
 	so_5::rt::agent_coop_t & coop,
-	so_5::disp::prio::common_thread::private_dispatcher_t & disp,
+	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp,
 	const so_5::rt::mbox_t & common_mbox )
 	{
 		auto sequence = std::make_shared< std::string >();
@@ -51,7 +52,7 @@ define_main_agent(
 void
 define_starter_agent(
 	so_5::rt::agent_coop_t & coop,
-	so_5::disp::prio::common_thread::private_dispatcher_t & disp )
+	so_5::disp::prio_one_thread::strictly_ordered::private_dispatcher_t & disp )
 	{
 		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
 			.on_start( [&coop, &disp] {
@@ -88,7 +89,7 @@ void
 fill_coop(
 	so_5::rt::agent_coop_t & coop )
 	{
-		using namespace so_5::disp::prio::common_thread;
+		using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
 		define_starter_agent( coop,
 			*(create_private_disp(coop.environment())) );
@@ -113,7 +114,7 @@ main()
 						} );
 				},
 				5,
-				"simple sequence prio::common_thread dispatcher test" );
+				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
 			std::cout << "." << std::flush;
 		}
 		std::cout << "done" << std::endl;

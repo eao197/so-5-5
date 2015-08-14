@@ -1,5 +1,5 @@
 /*
- * A simple test for prio::common_thread dispatcher.
+ * A simple test for prio_one_thread::strictly_ordered dispatcher.
  */
 
 #include <so_5/all.hpp>
@@ -48,18 +48,18 @@ main()
 						env.register_agent_as_coop(
 								"test",
 								new a_test_t( env ),
-								so_5::disp::prio::common_thread::create_disp_binder(
+								so_5::disp::prio_one_thread::strictly_ordered::create_disp_binder(
 										"prio_dispatcher" ) );
 					},
 					[]( so_5::rt::environment_params_t & params )
 					{
 						params.add_named_dispatcher(
 								"prio_dispatcher",
-								so_5::disp::prio::common_thread::create_disp() );
+								so_5::disp::prio_one_thread::strictly_ordered::create_disp() );
 					} );
 			},
 			5,
-			"simple prio::common_thread dispatcher test" );
+			"simple prio_one_thread::strictly_ordered dispatcher test" );
 	}
 	catch( const std::exception & ex )
 	{

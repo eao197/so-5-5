@@ -1,7 +1,7 @@
 /*
- * A test of simple sequence of messages for prio::common_thread dispatcher.
- * A starting msg_hello is sent from outside of prio::common_thread workin
- * thread.
+ * A test of simple sequence of messages for prio_one_thread::strictly_ordered
+ * dispatcher.  A starting msg_hello is sent from outside of
+ * prio_one_thread::strictly_ordered workin thread.
  */
 
 #include <so_5/all.hpp>
@@ -80,7 +80,7 @@ main()
 					so_5::launch(
 						[]( so_5::rt::environment_t & env )
 						{
-							using namespace so_5::disp::prio::common_thread;
+							using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
 							auto common_mbox = env.create_local_mbox();
 							env.introduce_coop(
@@ -93,7 +93,7 @@ main()
 						} );
 				},
 				5,
-				"simple sequence prio::common_thread dispatcher test" );
+				"simple sequence prio_one_thread::strictly_ordered dispatcher test" );
 			std::cout << "." << std::flush;
 		}
 		std::cout << "done" << std::endl;
