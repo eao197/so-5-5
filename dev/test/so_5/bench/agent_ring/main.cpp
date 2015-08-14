@@ -16,7 +16,7 @@ enum class dispatcher_type_t
 {
 	one_thread,
 	thread_pool,
-	prio_common_thread
+	prio_ot_strictly_ordered
 };
 
 struct	cfg_t
@@ -49,7 +49,7 @@ try_parse_cmdline(
 							"-r, --rounds         count of full rounds around the ring\n"
 							"-d, --direct-mboxes  use direct(mpsc) mboxes for agents\n"
 							"-D, --dispatcher     type of dispatcher to be used:\n"
-							"                     one_thread, thread_pool, prio_common_thread"
+							"                     one_thread, thread_pool, prio_ot_strictly_ordered"
 							"-h, --help           show this help"
 							<< std::endl;
 					std::exit( 1 );
@@ -74,8 +74,8 @@ try_parse_cmdline(
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::one_thread;
 					else if( "thread_pool" == name )
 						tmp_cfg.m_dispatcher_type = dispatcher_type_t::thread_pool;
-					else if( "prio_common_thread" == name )
-						tmp_cfg.m_dispatcher_type = dispatcher_type_t::prio_common_thread;
+					else if( "prio_ot_strictly_ordered" == name )
+						tmp_cfg.m_dispatcher_type = dispatcher_type_t::prio_ot_strictly_ordered;
 					else
 						throw std::runtime_error( "unsupported dispatcher type: " + name );
 				}
@@ -177,7 +177,7 @@ dispatcher_type_name( dispatcher_type_t t )
 		else if( dispatcher_type_t::thread_pool == t )
 			return "thread_pool";
 		else
-			return "prio_common_thread";
+			return "prio_ot_strictly_ordered";
 	}
 
 void
@@ -231,7 +231,7 @@ create_disp_binder(
 						p.fifo( thread_pool::fifo_t::individual );
 					} );
 		else
-			return prio::common_thread::create_private_disp( env )->binder();
+			return prio_one_thread::strictly_ordered::create_private_disp( env )->binder();
 	}
 
 void

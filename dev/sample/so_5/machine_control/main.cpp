@@ -577,8 +577,8 @@ void create_machine_controllers(
 	const machine_dictionary_t & machines )
 {
 	// There must be a priority-respected dispatcher.
-	auto disp = so_5::disp::prio::common_thread::create_private_disp(
-			coop.environment() );
+	auto disp = so_5::disp::prio_one_thread::strictly_ordered::
+			create_private_disp( coop.environment() );
 
 	coop.make_agent_with_binder< a_machine_controller_t< engine_stopper_t > >(
 			disp->binder(),

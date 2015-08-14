@@ -9,10 +9,10 @@
  * with priority support.
  */
 
-#include <so_5/disp/prio/common_thread/h/pub.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/h/pub.hpp>
 
-#include <so_5/disp/prio/common_thread/impl/h/demand_queue.hpp>
-#include <so_5/disp/prio/common_thread/impl/h/work_thread.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/demand_queue.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/work_thread.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
@@ -27,9 +27,9 @@ namespace so_5 {
 
 namespace disp {
 
-namespace prio {
+namespace prio_one_thread {
 
-namespace common_thread {
+namespace strictly_ordered {
 
 namespace impl {
 
@@ -304,7 +304,7 @@ class disp_binder_t
 
 /*!
  * \since v.5.5.8
- * \brief A binder for the private %common_thread dispatcher.
+ * \brief A binder for the private %strictly_ordered dispatcher.
  */
 class private_dispatcher_binder_t
 	:	public so_5::rt::disp_binder_t
@@ -435,9 +435,9 @@ create_disp_binder(
 			new impl::disp_binder_t( disp_name ) );
 	}
 
-} /* namespace common_thread */
+} /* namespace strictly_ordered */
 
-} /* namespace prio */
+} /* namespace prio_one_thread */
 
 } /* namespace disp */
 

@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <so_5/disp/prio/common_thread/impl/h/demand_queue.hpp>
+#include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/demand_queue.hpp>
 
 #include <so_5/h/current_thread_id.hpp>
 
@@ -21,9 +21,9 @@ namespace so_5 {
 
 namespace disp {
 
-namespace prio {
+namespace prio_one_thread {
 
-namespace common_thread {
+namespace strictly_ordered {
 
 namespace impl {
 
@@ -93,9 +93,9 @@ class work_thread_t
 
 } /* namespace impl */
 
-} /* namespace common_thread */
+} /* namespace strictly_ordered */
 
-} /* namespace prio */
+} /* namespace prio_one_thread */
 
 } /* namespace disp */
 

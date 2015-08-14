@@ -24,9 +24,9 @@ namespace so_5 {
 
 namespace disp {
 
-namespace prio {
+namespace prio_one_thread {
 
-namespace common_thread {
+namespace strictly_ordered {
 
 //
 // private_dispatcher_t
@@ -34,7 +34,7 @@ namespace common_thread {
 
 /*!
  * \since v.5.5.8
- * \brief An interface for %common_thread private dispatcher.
+ * \brief An interface for %strictly_ordered private dispatcher.
  */
 class SO_5_TYPE private_dispatcher_t : public so_5::atomic_refcounted_t
 	{
@@ -59,17 +59,17 @@ create_disp();
 
 /*!
  * \since v.5.5.8
- * \brief Create a private %common_thread dispatcher.
+ * \brief Create a private %strictly_ordered dispatcher.
  *
  * \par Usage sample
 \code
-auto common_thread_disp = so_5::disp::prio::common_thread::create_private_disp(
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
 	env,
 	"request_processor" );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private common_thread dispatcher.
+	// private strictly_ordered dispatcher.
 	common_thread_disp->binder() );
 \endcode
  */
@@ -83,15 +83,15 @@ create_private_disp(
 
 /*!
  * \since v.5.5.8
- * \brief Create a private %common_thread dispatcher.
+ * \brief Create a private %strictly_ordered dispatcher.
  *
  * \par Usage sample
 \code
-auto common_thread_disp = so_5::disp::prio::common_thread::create_private_disp( env );
+auto common_thread_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp( env );
 
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
-	// private common_thread dispatcher.
+	// private strictly_ordered dispatcher.
 	common_thread_disp->binder() );
 \endcode
  */
@@ -107,9 +107,9 @@ create_disp_binder(
 	//! Name of the dispatcher to be bound to.
 	const std::string & disp_name );
 
-} /* namespace common_thread */
+} /* namespace strictly_ordered */
 
-} /* namespace prio */
+} /* namespace prio_one_thread */
 
 } /* namespace disp */
 

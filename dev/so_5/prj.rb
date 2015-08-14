@@ -122,8 +122,8 @@ MxxRu::Cpp::dll_target {
 			cpp_source 'pub.cpp'
 		}
 
-		sources_root( 'prio' ) {
-			sources_root( 'common_thread' ) {
+		sources_root( 'prio_one_thread' ) {
+			sources_root( 'strictly_ordered' ) {
 				cpp_source 'pub.cpp'
 			}
 		}

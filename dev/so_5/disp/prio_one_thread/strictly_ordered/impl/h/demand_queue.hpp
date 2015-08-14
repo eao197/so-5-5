@@ -25,9 +25,9 @@ namespace so_5 {
 
 namespace disp {
 
-namespace prio {
+namespace prio_one_thread {
 
-namespace common_thread {
+namespace strictly_ordered {
 
 namespace impl {
 
@@ -303,9 +303,9 @@ class demand_queue_t
 
 } /* namespace impl */
 
-} /* namespace common_thread */
+} /* namespace strictly_ordered */
 
-} /* namespace prio */
+} /* namespace prio_one_thread */
 
 } /* namespace disp */
 
