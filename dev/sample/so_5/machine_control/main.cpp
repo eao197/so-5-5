@@ -529,22 +529,6 @@ struct cooler_stopper_t
 	}
 };
 
-// Helper for creation of machine agent and adding its info into
-// machine dictionary.
-template< typename... ARGS >
-void make_machine(
-	so_5::rt::agent_coop_t & coop,
-	machine_dictionary_t::dictionary_type_t & dict,
-	const so_5::disp::one_thread::private_dispatcher_handle_t & disp,
-	const std::string & name,
-	ARGS &&... args )
-{
-	auto machine = coop.make_agent_with_binder< a_machine_t >(
-			disp->binder(),
-			name, std::forward<ARGS>(args)... );
-	dict[ name ] = machine->so_direct_mbox();
-}
-
 // Helper for creation of machine agents.
 const machine_dictionary_t & create_machines(
 	so_5::rt::agent_coop_t & coop,
@@ -557,14 +541,22 @@ const machine_dictionary_t & create_machines(
 	auto machine_disp = so_5::disp::one_thread::create_private_disp(
 			coop.environment() );
 
-	make_machine( coop, dict_data, machine_disp,
-			"Mch01", status_distrib_mbox, 20.0f, 0.3f, 0.2f );
-	make_machine( coop, dict_data, machine_disp,
-			"Mch02", status_distrib_mbox, 20.0f, 0.45f, 0.2f );
-	make_machine( coop, dict_data, machine_disp,
-			"Mch03", status_distrib_mbox, 20.0f, 0.25f, 0.3f );
-	make_machine( coop, dict_data, machine_disp,
-			"Mch04", status_distrib_mbox, 20.0f, 0.26f, 0.27f );
+	// Helper for creation of machine agent and adding its info into
+	// machine dictionary.
+	auto make_machine = [&]( const std::string & name,
+			float initial, float warming_step, float cooling_step )
+			{
+				auto machine = coop.make_agent_with_binder< a_machine_t >(
+						machine_disp->binder(),
+						name, status_distrib_mbox,
+						initial, warming_step, cooling_step );
+				dict_data[ name ] = machine->so_direct_mbox();
+			};
+
+	make_machine( "Mch01", 20.0f, 0.3f, 0.2f );
+	make_machine( "Mch02", 20.0f, 0.45f, 0.2f );
+	make_machine( "Mch03", 20.0f, 0.25f, 0.3f );
+	make_machine( "Mch04", 20.0f, 0.26f, 0.27f );
 
 	// Machine dictionary could be created at that point.
 	return *( coop.take_under_control(
