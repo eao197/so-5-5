@@ -1,0 +1,2 @@
+add_subdirectory(simple)
+add_subdirectory(dereg_when_queue_not_empty)

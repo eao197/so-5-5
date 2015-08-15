@@ -176,9 +176,9 @@ class demand_queue_t
 				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
 
 				add_demand_to_queue( *subqueue, std::move( demand ) );
-				auto old_demands_count = m_total_demands_count++;
+				++m_total_demands_count;
 
-				if( !old_demands_count )
+				if( 1 == m_total_demands_count )
 					// Queue was empty. A sleeping working thread must
 					// be notified.
 					lock.notify_one();
@@ -209,12 +209,16 @@ class demand_queue_t
 				demand_unique_ptr_t result{ m_current_priority->m_head };
 
 				m_current_priority->m_head = result->m_next;
+				if( !m_current_priority->m_head )
+					m_current_priority->m_tail = nullptr;
+
 				result->m_next = nullptr;
 
 				--(m_current_priority->m_demands_count);
 				--m_total_demands_count;
 
-				++m_current_priority->m_demands_processed;
+				++(m_current_priority->m_demands_processed);
+
 				if( m_current_priority->m_demands_processed >=
 						m_current_priority->m_quote )
 					{
@@ -316,7 +320,7 @@ class demand_queue_t
 		void
 		switch_to_lower_priority()
 			{
-				if( m_current_priority != &m_priorities[ 0 ] )
+				if( m_current_priority > &m_priorities[ 0 ] )
 					--m_current_priority;
 				else
 					// Start new iteration from the highest priority.

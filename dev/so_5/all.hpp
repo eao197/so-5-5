@@ -19,4 +19,5 @@
 #include <so_5/disp/thread_pool/h/pub.hpp>
 #include <so_5/disp/adv_thread_pool/h/pub.hpp>
 #include <so_5/disp/prio_one_thread/strictly_ordered/h/pub.hpp>
+#include <so_5/disp/prio_one_thread/quoted_round_robin/h/pub.hpp>
 
