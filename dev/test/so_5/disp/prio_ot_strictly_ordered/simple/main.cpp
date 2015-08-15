@@ -42,6 +42,9 @@ main()
 		run_with_time_limit(
 			[]()
 			{
+				static_assert( 8 == so_5::prio::total_priorities_count,
+						"total_priorities_count must be 8" );
+
 				so_5::launch(
 					[]( so_5::rt::environment_t & env )
 					{

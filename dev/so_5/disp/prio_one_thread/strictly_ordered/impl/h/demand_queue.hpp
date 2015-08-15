@@ -235,16 +235,12 @@ class demand_queue_t
 		void
 		handle_stats_for_each_prio( LAMBDA handler )
 			{
-				using namespace so_5::prio;
-				static priority_t values[] = { p0, p1, p2, p3, p4, p5, p6, p7 };
-
-				for( auto p : values )
-					{
+				so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
 						const auto & subqueue = m_priorities[ to_size_t(p) ];
 						handler( queue_stats_t{ p,
 								subqueue.m_agents_count.load( std::memory_order_relaxed ),
 								subqueue.m_demands_count.load( std::memory_order_relaxed ) } );
-					}
+					} );
 			}
 
 	private :

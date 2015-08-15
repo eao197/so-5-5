@@ -10,6 +10,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 namespace so_5 {
 
 /*!
@@ -59,6 +61,69 @@ const priority_t p7 = priority_t::p7;
  * \brief Default priority value.
  */
 const priority_t default_priority = p0;
+
+/*!
+ * \since v.5.5.8
+ * \brief Total count of priorities.
+ */
+const unsigned int total_priorities_count =
+	static_cast< unsigned int >( p7 ) -
+	static_cast< unsigned int >( p0 ) + 1;
+
+/*!
+ * \since v.5.5.8
+ * \brief Get the next priority value.
+ *
+ * \return next priority value if \a p is less than priority_t::p_max or
+ * priority_t::p_max instead.
+ */
+inline priority_t
+next( priority_t p )
+	{
+		using ut = std::underlying_type< priority_t >::type;
+		return p < priority_t::p_max ?
+				(static_cast< priority_t >( static_cast< ut >(p) + 1))
+				: priority_t::p_max;
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief Get the previous priority value.
+ *
+ * \return previous priority value if \a p is greater than priority_t::p_min or
+ * priority_t::p_min instead.
+ */
+inline priority_t
+prev( priority_t p )
+	{
+		using ut = std::underlying_type< priority_t >::type;
+		return p > priority_t::p_min ?
+				(static_cast< priority_t >(static_cast< ut >(p) - 1 ))
+				: priority_t::p_min;
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief Does enumeration of all priorities.
+ *
+ * \note Performs enumeration from priority_t::p_min to priority_t::p_max
+ * (inclusive).
+ *
+ * \tparam LAMBDA a lambda with the prototype:
+ * \code
+	return_type lambda(so_5::priority_t);
+ * \endcode
+ */
+template< typename LAMBDA >
+void
+for_each_priority( LAMBDA l )
+	{
+		using ut = std::underlying_type< priority_t >::type;
+		const auto min = static_cast< ut >( priority_t::p_min );
+		const auto max = static_cast< ut >( priority_t::p_max );
+		for( auto i = min; i <= max; ++i )
+			l( static_cast< priority_t >( i ) );
+	}
 
 } /* namespace prio */
 
