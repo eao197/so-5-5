@@ -12,7 +12,7 @@
 #include <so_5/disp/prio_one_thread/strictly_ordered/h/pub.hpp>
 
 #include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/demand_queue.hpp>
-#include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/work_thread.hpp>
+#include <so_5/disp/prio_one_thread/reuse/h/work_thread.hpp>
 
 #include <so_5/disp/reuse/h/disp_binder_helpers.hpp>
 #include <so_5/disp/reuse/h/data_source_prefix_helpers.hpp>
@@ -194,7 +194,8 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		demand_queue_t m_demand_queue;
 
 		//! Working thread for the dispatcher.
-		work_thread_t m_work_thread;
+		so_5::disp::prio_one_thread::reuse::work_thread_t< demand_queue_t >
+				m_work_thread;
 
 		//! Data source for run-time monitoring.
 		disp_data_source_t m_data_source;

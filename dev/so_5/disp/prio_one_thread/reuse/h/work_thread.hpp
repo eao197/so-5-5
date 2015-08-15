@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <so_5/disp/prio_one_thread/strictly_ordered/impl/h/demand_queue.hpp>
-
 #include <so_5/h/current_thread_id.hpp>
 
 #include <thread>
@@ -23,9 +21,7 @@ namespace disp {
 
 namespace prio_one_thread {
 
-namespace strictly_ordered {
-
-namespace impl {
+namespace reuse {
 
 //
 // work_thread_t
@@ -35,11 +31,12 @@ namespace impl {
  * \brief A working thread for dispatcher with one common working
  * thread and support of demands priority.
  */
+template< typename DEMAND_QUEUE >
 class work_thread_t
 	{
 	public :
 		//! Initializing constructor.
-		work_thread_t( demand_queue_t & queue )
+		work_thread_t( DEMAND_QUEUE & queue )
 			:	m_queue( queue )
 			{}
 
@@ -57,7 +54,7 @@ class work_thread_t
 
 	private :
 		//! Demands queue to work for.
-		demand_queue_t & m_queue;
+		DEMAND_QUEUE & m_queue;
 
 		//! Thread ID to be passed to event handlers.
 		/*!
@@ -76,24 +73,19 @@ class work_thread_t
 				try
 					{
 						for(;;)
-							process_demand( m_queue.pop() );
-					}
-				catch( const demand_queue_t::shutdown_ex_t & )
-					{}
-			}
-
-		void
-		process_demand( demand_unique_ptr_t demand )
-			{
+							{
+								auto d = m_queue.pop();
 //FIXME: it could rewritten as:
-// demand->call_handler( m_thread_id );
-				(*(demand->m_demand_handler))( m_thread_id, *demand );
+// d->call_handler( m_thread_id );
+								(*(d->m_demand_handler))( m_thread_id, *d );
+							}
+					}
+				catch( const typename DEMAND_QUEUE::shutdown_ex_t & )
+					{}
 			}
 	};
 
-} /* namespace impl */
-
-} /* namespace strictly_ordered */
+} /* namespace reuse */
 
 } /* namespace prio_one_thread */
 
