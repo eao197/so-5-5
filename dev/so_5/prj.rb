@@ -126,6 +126,9 @@ MxxRu::Cpp::dll_target {
 			sources_root( 'strictly_ordered' ) {
 				cpp_source 'pub.cpp'
 			}
+			sources_root( 'quoted_round_robin' ) {
+				cpp_source 'pub.cpp'
+			}
 		}
 	}
 }

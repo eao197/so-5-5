@@ -108,9 +108,13 @@ auto coop = env.create_coop( so_5::autoname,
 \endcode
  */
 inline private_dispatcher_handle_t
-create_private_disp( so_5::rt::environment_t & env )
+create_private_disp(
+	//! SObjectizer Environment to work in.
+	so_5::rt::environment_t & env,
+	//! Quotes for every priority.
+	const quotes_t & quotes )
 	{
-		return create_private_disp( env, std::string() );
+		return create_private_disp( env, quotes, std::string() );
 	}
 
 //! Create a dispatcher binder object.

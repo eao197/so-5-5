@@ -131,7 +131,8 @@ class demand_queue_t
 			};
 
 		demand_queue_t( const quotes_t & quotes )
-			:	m_current_priority( &m_priorities[ so_5::priority_t::p_max ] )
+			:	m_current_priority(
+					&m_priorities[ to_size_t( so_5::priority_t::p_max ) ] )
 			{
 				so_5::prio::for_each_priority( [&]( priority_t p ) {
 						auto & q = m_priorities[ to_size_t(p) ];
@@ -310,6 +311,17 @@ class demand_queue_t
 					}
 
 				++(queue.m_demands_count);
+			}
+
+		void
+		switch_to_lower_priority()
+			{
+				if( m_current_priority != &m_priorities[ 0 ] )
+					--m_current_priority;
+				else
+					// Start new iteration from the highest priority.
+					m_current_priority = &m_priorities[
+							to_size_t( so_5::priority_t::p_max ) ];
 			}
 	};
 
