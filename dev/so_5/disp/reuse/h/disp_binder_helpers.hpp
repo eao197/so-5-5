@@ -18,6 +18,7 @@
 #include <functional>
 #include <type_traits>
 #include <utility>
+#include <string>
 
 namespace so_5
 {
@@ -81,6 +82,67 @@ do_with_dispatcher(
 				disp_name,
 				action );
 	}
+
+//
+// binder_for_public_disp_template_t
+//
+/*!
+ * \since v.5.5.8
+ * \brief A template of binder for a named dispatcher.
+ *
+ * \tparam DISPATCHER type of a dispatcher.
+ * \tparam BINDER_MIXIN type of a mixin with implementation of
+ * do_bind and do_unbind methods.
+ * \tparam BINDER_MIXIN_ARGS arguments for constructor of BINDER_MIXIN class.
+ */
+template<
+	typename DISPATCHER,
+	typename BINDER_MIXIN,
+	typename... BINDER_MIXIN_ARGS >
+class binder_for_public_disp_template_t
+	:	public so_5::rt::disp_binder_t
+	,	protected BINDER_MIXIN
+	{
+	public:
+		binder_for_public_disp_template_t(
+			std::string disp_name,
+			BINDER_MIXIN_ARGS... args )
+			:	BINDER_MIXIN( std::move(args)... )
+			,	m_disp_name( std::move( disp_name ) )
+			{}
+
+		virtual so_5::rt::disp_binding_activator_t
+		bind_agent(
+			so_5::rt::environment_t & env,
+			so_5::rt::agent_ref_t agent ) override
+			{
+				return do_with_dispatcher< DISPATCHER >(
+					env,
+					m_disp_name,
+					[this, agent]( DISPATCHER & disp )
+					{
+						return this->do_bind( disp, std::move( agent ) );
+					} );
+			}
+
+		virtual void
+		unbind_agent(
+			so_5::rt::environment_t & env,
+			so_5::rt::agent_ref_t agent ) override
+			{
+				using namespace so_5::disp::reuse;
+
+				do_with_dispatcher< DISPATCHER >( env, m_disp_name,
+					[this, agent]( DISPATCHER & disp )
+					{
+						this->do_unbind( disp, std::move( agent ) );
+					} );
+			}
+
+	private:
+		//! Name of the dispatcher to be bound to.
+		const std::string m_disp_name;
+	};
 
 } /* namespace reuse */
 

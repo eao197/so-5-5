@@ -113,53 +113,8 @@ class binding_actions_t
  * \since v.5.4.0
  * \brief An actual dispatcher binder for thread pool dispatcher.
  */
-class disp_binder_t
-	:	public so_5::rt::disp_binder_t
-	,	protected binding_actions_t
-	{
-	public :
-		//! Constructor.
-		disp_binder_t(
-			std::string disp_name,
-			params_t params )
-			:	binding_actions_t( std::move( params ) )
-			,	m_disp_name( std::move( disp_name ) )
-			{}
-
-		virtual disp_binding_activator_t
-		bind_agent(
-			environment_t & env,
-			agent_ref_t agent )
-			{
-				using namespace so_5::disp::reuse;
-
-				return do_with_dispatcher< dispatcher_t >(
-					env,
-					m_disp_name,
-					[this, agent]( dispatcher_t & disp )
-					{
-						return do_bind( disp, std::move( agent ) );
-					} );
-			}
-
-		virtual void
-		unbind_agent(
-			environment_t & env,
-			agent_ref_t agent )
-			{
-				using namespace so_5::disp::reuse;
-
-				do_with_dispatcher< dispatcher_t >( env, m_disp_name,
-					[this, agent]( dispatcher_t & disp )
-					{
-						do_unbind( disp, std::move( agent ) );
-					} );
-			}
-
-	private :
-		//! Name of dispatcher to bind agents to.
-		const std::string m_disp_name;
-	};
+using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
+		dispatcher_t, binding_actions_t, params_t >;
 
 //
 // private_dispatcher_binder_t

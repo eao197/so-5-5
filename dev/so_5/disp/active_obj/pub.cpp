@@ -333,7 +333,7 @@ dispatcher_t::search_and_remove_agent_from_map(
 class binding_actions_t
 	{
 	protected :
-		static so_5::rt::disp_binding_activator_t
+		so_5::rt::disp_binding_activator_t
 		do_bind(
 			dispatcher_t & disp,
 			so_5::rt::agent_ref_t agent )
@@ -353,7 +353,7 @@ class binding_actions_t
 						} );
 			}
 
-		static void
+		void
 		do_unbind(
 			dispatcher_t & disp,
 			so_5::rt::agent_ref_t agent )
@@ -367,51 +367,8 @@ class binding_actions_t
 //
 
 //! Agent dispatcher binder.
-class disp_binder_t
-	:	public so_5::rt::disp_binder_t
-	,	protected binding_actions_t
-	{
-	public:
-		disp_binder_t(
-			const std::string & disp_name )
-			:	m_disp_name( disp_name )
-			{}
-
-		virtual so_5::rt::disp_binding_activator_t
-		bind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				using so_5::rt::disp_binding_activator_t;
-				using namespace so_5::disp::reuse;
-
-				return do_with_dispatcher< dispatcher_t >(
-					env,
-					m_disp_name,
-					[agent]( dispatcher_t & disp )
-					{
-						return do_bind( disp, std::move( agent ) );
-					} );
-			}
-
-		virtual void
-		unbind_agent(
-			so_5::rt::environment_t & env,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				using namespace so_5::disp::reuse;
-
-				do_with_dispatcher< dispatcher_t >( env, m_disp_name,
-					[agent]( dispatcher_t & disp )
-					{
-						do_unbind( disp, std::move( agent ) );
-					} );
-			}
-
-	private:
-		//! Name of the dispatcher to be bound to.
-		const std::string m_disp_name;
-	};
+using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
+		dispatcher_t, binding_actions_t >;
 
 //
 // private_dispatcher_binder_t
