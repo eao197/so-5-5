@@ -7,5 +7,6 @@ MxxRu::Cpp::composite_target {
 
 	required_prj "#{path}/simple/prj.ut.rb"
 	required_prj "#{path}/simple_seq1/prj.ut.rb"
+	required_prj "#{path}/simple_quote/prj.ut.rb"
 	required_prj "#{path}/dereg_when_queue_not_empty/prj.ut.rb"
 }

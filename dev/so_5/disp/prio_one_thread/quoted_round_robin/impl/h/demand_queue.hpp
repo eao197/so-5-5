@@ -224,7 +224,6 @@ class demand_queue_t
 					{
 						// Processing of this priority on the current
 						// iteration is finished.
-						m_current_priority->m_demands_processed = 0;
 						switch_to_lower_priority();
 					}
 
@@ -320,6 +319,11 @@ class demand_queue_t
 		void
 		switch_to_lower_priority()
 			{
+				// Iteration on the current priority is finished.
+				// Count of processed demands must be started from zero.
+				m_current_priority->m_demands_processed = 0;
+
+				// Try to find next subqueue.
 				if( m_current_priority > &m_priorities[ 0 ] )
 					--m_current_priority;
 				else
