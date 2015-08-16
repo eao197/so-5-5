@@ -74,6 +74,7 @@ class quotes_t
 			{
 				ensure_quote_not_zero( quote );
 				m_quotes[ to_size_t( prio ) ] = quote;
+				return *this;
 			}
 
 		//! Get the quote for a priority.
