@@ -499,11 +499,8 @@ agent_core_t::wait_all_coop_to_deregister()
 
 	// Must wait for a signal is there are cooperations in
 	// the deregistration process.
-	if( !m_deregistered_coop.empty() )
-	{
-		// Wait for the deregistration finish.
-		m_deregistration_finished_cond.wait( lock );
-	}
+	m_deregistration_finished_cond.wait( lock,
+			[this] { return m_deregistered_coop.empty(); } );
 }
 
 environment_t &
