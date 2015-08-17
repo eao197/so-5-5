@@ -124,49 +124,11 @@ using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
  * \since v.5.5.4
  * \brief A binder for the private %thread_pool dispatcher.
  */
-class private_dispatcher_binder_t
-	:	public so_5::rt::disp_binder_t
-	,	protected binding_actions_t
-	{
-	public:
-		explicit private_dispatcher_binder_t(
-			//! A handle for private dispatcher.
-			//! It is necessary to manage lifetime of the dispatcher instance.
-			private_dispatcher_handle_t handle,
-			//! A dispatcher instance to work with.
-			dispatcher_t & instance,
-			//! Binding parameters for the agent.
-			params_t params )
-			:	binding_actions_t( std::move( params ) )
-			,	m_handle( std::move( handle ) )
-			,	m_instance( instance )
-			{}
-
-		virtual so_5::rt::disp_binding_activator_t
-		bind_agent(
-			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				return do_bind( m_instance, std::move( agent ) );
-			}
-
-		virtual void
-		unbind_agent(
-			so_5::rt::environment_t & /* env */,
-			so_5::rt::agent_ref_t agent ) override
-			{
-				do_unbind( m_instance, std::move( agent ) );
-			}
-
-	private:
-		//! A handle for private dispatcher.
-		/*!
-		 * It is necessary to manage lifetime of the dispatcher instance.
-		 */
-		private_dispatcher_handle_t m_handle;
-		//! A dispatcher instance to work with.
-		dispatcher_t & m_instance;
-	};
+using private_dispatcher_binder_t =
+	so_5::disp::reuse::binder_for_private_disp_template_t<
+		private_dispatcher_handle_t,
+		dispatcher_t,
+		binding_actions_t >;
 
 //
 // real_private_dispatcher_t
