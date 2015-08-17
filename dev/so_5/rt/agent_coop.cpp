@@ -226,6 +226,12 @@ agent_coop_t::exception_reaction() const
 }
 
 void
+agent_coop_t::deregister( int reason )
+{
+	environment().deregister_coop( query_coop_name(), reason );
+}
+
+void
 agent_coop_t::do_add_agent(
 	const agent_ref_t & agent_ref )
 {

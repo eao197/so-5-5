@@ -747,6 +747,49 @@ class SO_5_TYPE agent_coop_t
 		{
 			return m_agent_array.size();
 		}
+		
+		/*!
+		 * \since v.5.5.8
+		 * \brief Deregister the cooperation with the specified reason.
+		 *
+		 * \par Usage example:
+			\code
+			so_5::rt::environment_t & env = ...;
+			env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+					coop.define_agent()
+						.event< some_signal >( some_mbox, [&coop] {
+							...
+							coop.deregister( so_4::rt::dereg_reason::user_defined_reason + 100 );
+						} );
+				} );
+			\endcode
+		 *
+		 * \note This method is just a shorthand for:
+			\code
+			so_5::rt::agent_coop_t & coop = ...;
+			coop.environment().deregister_coop( coop.query_coop_name(), reason );
+			\endcode
+		 */
+		void
+		deregister(
+			//! Reason of cooperation deregistration.
+			int reason );
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief Deregistr the cooperation normally.
+		 *
+		 * \note This method is just a shorthand for:
+			\code
+			so_5::rt::agent_coop_t & coop = ...;
+			coop.deregister( so_5::rt::dereg_reason::normal );
+			\endcode
+		 */
+		inline void
+		deregister_normally()
+			{
+				this->deregister( dereg_reason::normal );
+			}
 
 	private:
 		//! Information about agent and its dispatcher binding.
