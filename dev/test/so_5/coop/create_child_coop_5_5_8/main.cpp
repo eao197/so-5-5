@@ -22,8 +22,7 @@ init( so_5::rt::environment_t & env )
 					} );
 					parent.environment().register_coop( std::move(child) );
 				} )
-			.event< msg_started >( a.direct_mbox(),
-				[&parent] { parent.deregister_normally(); } );
+			.event< msg_started >( a, [&parent] { parent.deregister_normally(); } );
 		} );
 
 	// Second cooperation.
@@ -37,8 +36,7 @@ init( so_5::rt::environment_t & env )
 							} );
 						} );
 				} )
-			.event< msg_started >( a.direct_mbox(),
-				[&parent] { parent.deregister_normally(); } );
+			.event< msg_started >( a, [&parent] { parent.deregister_normally(); } );
 		} );
 }
 

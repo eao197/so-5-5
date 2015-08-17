@@ -33,19 +33,19 @@ make_coop( so_5::rt::environment_t & env, DISPATCHER_HANDLE disp )
 
 			a1.on_start( [a2] { so_5::send< msg_hello >( a2.direct_mbox() ); } );
 
-			a1.event< msg_hello >( a1.direct_mbox(), [a2] {
+			a1.event< msg_hello >( a1, [a2] {
 					so_5::send< msg_hello >( a2.direct_mbox() ); } );
-			a2.event< msg_hello >( a2.direct_mbox(), [a3] {
+			a2.event< msg_hello >( a2, [a3] {
 					so_5::send< msg_hello >( a3.direct_mbox() ); } );
-			a3.event< msg_hello >( a3.direct_mbox(), [a4] {
+			a3.event< msg_hello >( a3, [a4] {
 					so_5::send< msg_hello >( a4.direct_mbox() ); } );
-			a4.event< msg_hello >( a4.direct_mbox(), [a5] {
+			a4.event< msg_hello >( a4, [a5] {
 					so_5::send< msg_hello >( a5.direct_mbox() ); } );
-			a5.event< msg_hello >( a5.direct_mbox(), [a6] {
+			a5.event< msg_hello >( a5, [a6] {
 					so_5::send< msg_hello >( a6.direct_mbox() ); } );
-			a6.event< msg_hello >( a6.direct_mbox(), [a7] {
+			a6.event< msg_hello >( a6, [a7] {
 					so_5::send< msg_hello >( a7.direct_mbox() ); } );
-			a7.event< msg_hello >( a7.direct_mbox(), [a1] {
+			a7.event< msg_hello >( a7, [a1] {
 					so_5::send< msg_hello >( a1.direct_mbox() ); } );
 		} );
 }
@@ -57,10 +57,10 @@ make_stopper( so_5::rt::environment_t & env )
 			struct msg_stop : public so_5::rt::signal_t {};
 
 			auto a1 = coop.define_agent();
-			a1.on_start( [&coop, a1] { so_5::send< msg_stop >(
-					a1.direct_mbox() );
+			a1.on_start( [&coop, a1] {
+					so_5::send< msg_stop >( a1.direct_mbox() );
 				} )
-				.event< msg_stop >( a1.direct_mbox(), [&coop] {
+				.event< msg_stop >( a1, [&coop] {
 					coop.environment().stop();
 				} );
 
