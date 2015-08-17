@@ -2,6 +2,7 @@ project(tests)
 
 if( NOT CYGWIN )
   add_subdirectory(spinlocks/llvm_inspired_test)
+  add_subdirectory(spinlocks/combined_queue_lock)
 endif()
 
 add_subdirectory(environment/moveable_params)
