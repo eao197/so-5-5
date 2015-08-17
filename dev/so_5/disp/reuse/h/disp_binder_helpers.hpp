@@ -97,17 +97,17 @@ do_with_dispatcher(
  */
 template<
 	typename DISPATCHER,
-	typename BINDER_MIXIN,
-	typename... BINDER_MIXIN_ARGS >
+	typename BINDER_MIXIN >
 class binder_for_public_disp_template_t
 	:	public so_5::rt::disp_binder_t
 	,	protected BINDER_MIXIN
 	{
 	public:
+		template< typename... BINDER_MIXIN_ARGS >
 		binder_for_public_disp_template_t(
 			std::string disp_name,
-			BINDER_MIXIN_ARGS... args )
-			:	BINDER_MIXIN( std::move(args)... )
+			BINDER_MIXIN_ARGS &&... args )
+			:	BINDER_MIXIN( std::forward<BINDER_MIXIN_ARGS>(args)... )
 			,	m_disp_name( std::move( disp_name ) )
 			{}
 

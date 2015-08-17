@@ -442,7 +442,7 @@ class binding_actions_t
 
 //! Agent dispatcher binder interface.
 using disp_binder_t = so_5::disp::reuse::binder_for_public_disp_template_t<
-		dispatcher_t, binding_actions_t, std::string >;
+		dispatcher_t, binding_actions_t >;
 
 //
 // private_dispatcher_binder_t
