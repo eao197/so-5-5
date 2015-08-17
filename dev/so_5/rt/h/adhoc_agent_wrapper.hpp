@@ -235,6 +235,16 @@ class adhoc_agent_definition_proxy_t
 				return m_agent->so_direct_mbox();
 			}
 
+		/*!
+		 * \since v.5.5.8
+		 * \brief Access to agent's environment.
+		 */
+		inline environment_t &
+		environment() const
+			{
+				return m_agent->so_environment();
+			}
+
 	private :
 		adhoc_agent_wrapper_t * m_agent;
 	};
