@@ -470,8 +470,8 @@ agent_core_t::wait_for_start_deregistration()
 {
 	std::unique_lock< std::mutex > lock( m_coop_operations_lock );
 
-	if( !m_deregistration_started )
-		m_deregistration_started_cond.wait( lock );
+	m_deregistration_started_cond.wait( lock,
+			[this] { return m_deregistration_started; } );
 }
 
 void
