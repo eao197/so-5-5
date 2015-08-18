@@ -26,6 +26,15 @@ random_value( unsigned int left, unsigned int right )
 			( std::mt19937{ std::random_device{}() } );
 	}
 
+// Imitation of some hard-working.
+// Blocks the current thread for random amount of time.
+void
+imitate_hard_work()
+	{
+		std::this_thread::sleep_for(
+				std::chrono::milliseconds{ random_value( 25, 125 ) } );
+	}
+
 // Type of clock to work with time values.
 using clock_type = std::chrono::system_clock;
 
@@ -281,6 +290,9 @@ define_news_receiver_agent(
 							"new story published, id=" + std::to_string( story_id ) +
 							", title=" + evt.m_title );
 
+					// Take some time for processing.
+					imitate_hard_work();
+
 					// Send reply to story-sender.
 					so_5::send< msg_publish_story_resp >(
 							evt.m_reply_to,
@@ -317,6 +329,9 @@ define_news_directory_agent(
 							"board.directory",
 							"request for updates received, last_id=" +
 								std::to_string( req.m_last_id ) );
+
+					// Take some time for processing.
+					imitate_hard_work();
 
 					// Searching for new stories for that request
 					// and building result list.
@@ -359,6 +374,9 @@ define_story_extractor_agent(
 							"board.extractor",
 							"request for story content received, id=" +
 								std::to_string( req.m_id ) );
+
+					// Take some time for processing.
+					imitate_hard_work();
 
 					auto it = board_data.m_stories.find( req.m_id );
 					if( it != board_data.m_stories.end() )
