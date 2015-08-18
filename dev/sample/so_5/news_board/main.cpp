@@ -6,10 +6,34 @@
 #include <iostream>
 #include <chrono>
 #include <ctime>
+#include <random>
 
 #include <so_5/all.hpp>
 
+// Helper function to generate a random integer in the specified range.
+unsigned int
+random_value( unsigned int left, unsigned int right )
+	{
+		return std::uniform_int_distribution< unsigned int >{ left, right }
+			( std::mt19937{ std::random_device{}() } );
+	}
+
+// Type of clock to work with time values.
 using clock_type = std::chrono::system_clock;
+
+// A helper function to calculate difference between to time points.
+std::uint64_t
+ms_from_time( const clock_type::time_point & previous_point )
+	{
+		using namespace std::chrono;
+
+		const auto t = clock_type::now();
+		if( t > previous_point )
+			return duration_cast< milliseconds >(
+					clock_type::now() - previous_point ).count();
+		else
+			return 0;
+	}
 
 // A message for logging something.
 struct msg_log : public so_5::rt::message_t
@@ -22,6 +46,16 @@ struct msg_log : public so_5::rt::message_t
 			,	m_what( std::move(what) )
 			{}
 	};
+
+// A helper for logging simplification.
+void
+log(
+	const so_5::rt::mbox_t & logger_mbox,
+	std::string who,
+	std::string what )
+	{
+		so_5::send< msg_log >( logger_mbox, std::move(who), std::move(what) );
+	}
 
 // Builder of logger agent.
 so_5::rt::mbox_t
@@ -147,8 +181,7 @@ define_news_receiver_agent(
 							news_board_data::story_info{ evt.m_title, evt.m_content } );
 
 					// Log this fact.
-					so_5::send< msg_log >(
-							logger_mbox,
+					log( logger_mbox,
 							"news_receiver",
 							"new story published, id=" + std::to_string( story_id ) +
 							", title=" + evt.m_title );
@@ -164,8 +197,7 @@ define_news_receiver_agent(
 						{
 							auto removed_id = board_data.m_stories.begin()->first;
 							board_data.m_stories.erase( board_data.m_stories.begin() );
-							so_5::send< msg_log >(
-									logger_mbox,
+							log( logger_mbox,
 									"news_receiver",
 									"old story removed, id=" + std::to_string( removed_id ) );
 						}
@@ -258,27 +290,82 @@ class story_publisher : public so_5::rt::agent_t
 		void
 		initiate_time_for_new_story_signal()
 			{
-//FIXME: implement this!
+				so_5::send_delayed_to_agent< msg_time_for_new_story >(
+						*this,
+						std::chrono::milliseconds{ random_value( 100, 1500 ) } );
 			}
 
 		void
 		evt_time_for_new_story()
 			{
-//FIXME: implement this!
+				// Create new story.
+				auto story_number = ++m_stories_counter;
+				std::string title = "A story from " + m_name + " #" +
+						std::to_string( story_number );
+				std::string content = "This is a content from a story '" +
+						title + "' provided by " + m_name;
+
+				log( m_logger_mbox, m_name, "Publish new story: " + title );
+
+				// Publishing the story.
+				so_5::send< msg_publish_story_req >( m_board_mbox,
+						clock_type::now(),
+						so_direct_mbox(),
+						std::move(title),
+						std::move(content) );
+
+				// Waiting a response.
+				this >>= st_await_publish_response;
 			}
 
 		void
 		evt_publish_response( const msg_publish_story_resp & resp )
 			{
-//FIXME: implement this!
+				log( m_logger_mbox, m_name, "Publish finished, id=" +
+						std::to_string( resp.m_id ) + ", publish took " +
+						std::to_string( ms_from_time( resp.m_timestamp ) ) + "ms" );
+
+				// Waiting for a time for next story.
+				this >>= st_await_new_story;
+				initiate_time_for_new_story_signal();
 			}
 	};
+
+void
+create_publisher_coop(
+	so_5::rt::environment_t & env,
+	const so_5::rt::mbox_t & board_mbox,
+	const so_5::rt::mbox_t & logger_mbox )
+	{
+		// All publishers will work on the same working thread.
+		env.introduce_coop(
+			so_5::disp::one_thread::create_private_disp( env )->binder(),
+			[&]( so_5::rt::agent_coop_t & coop )
+			{
+				for( int i = 0; i != 5; ++i )
+					coop.make_agent< story_publisher >(
+							"publisher" + std::to_string(i+1),
+							board_mbox,
+							logger_mbox );
+			} );
+	}
+
+void
+init( so_5::rt::environment_t & env )
+	{
+		auto logger_mbox = create_logger_coop( env );
+		auto board_mbox = create_board_coop( env, logger_mbox );
+
+		create_publisher_coop( env, board_mbox, logger_mbox );
+	}
 
 int
 main()
 	{
 		try
 			{
+				so_5::launch( init );
+
 				return 0;
 			}
 		catch( const std::exception & x )
