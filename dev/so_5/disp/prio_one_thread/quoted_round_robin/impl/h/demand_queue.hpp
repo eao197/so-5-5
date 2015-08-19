@@ -72,6 +72,8 @@ using demand_unique_ptr_t = std::unique_ptr< demand_t >;
  */
 class demand_queue_t
 	{
+		friend struct queue_for_one_priority_t;
+
 		//! Description of queue for one priority.
 		struct queue_for_one_priority_t
 			:	public so_5::rt::event_queue_t
@@ -126,6 +128,7 @@ class demand_queue_t
 		struct queue_stats_t
 			{
 				priority_t m_priority;
+				std::size_t m_quote;
 				std::size_t m_agents_count;
 				std::size_t m_demands_count;
 			};
@@ -160,27 +163,6 @@ class demand_queue_t
 				if( !m_total_demands_count )
 					// There could be a sleeping working thread.
 					// It must be notified.
-					lock.notify_one();
-			}
-
-//FIXME: this method must be accessible only from
-//queue_for_one_priority_t::push() method.
-		//! Push a new demand to the queue.
-		void
-		push(
-			//! Subqueue for the demand.
-			queue_for_one_priority_t * subqueue,
-			//! Demand to be pushed.
-			demand_unique_ptr_t demand )
-			{
-				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
-
-				add_demand_to_queue( *subqueue, std::move( demand ) );
-				++m_total_demands_count;
-
-				if( 1 == m_total_demands_count )
-					// Queue was empty. A sleeping working thread must
-					// be notified.
 					lock.notify_one();
 			}
 
@@ -260,6 +242,7 @@ class demand_queue_t
 				so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
 						const auto & subqueue = m_priorities[ to_size_t(p) ];
 						handler( queue_stats_t{ p,
+								subqueue.m_quote,
 								subqueue.m_agents_count.load( std::memory_order_relaxed ),
 								subqueue.m_demands_count.load( std::memory_order_relaxed ) } );
 					} );
@@ -293,6 +276,25 @@ class demand_queue_t
 						h = h->m_next;
 					}
 			};
+
+		//! Push a new demand to the queue.
+		void
+		push(
+			//! Subqueue for the demand.
+			queue_for_one_priority_t * subqueue,
+			//! Demand to be pushed.
+			demand_unique_ptr_t demand )
+			{
+				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
+
+				add_demand_to_queue( *subqueue, std::move( demand ) );
+				++m_total_demands_count;
+
+				if( 1 == m_total_demands_count )
+					// Queue was empty. A sleeping working thread must
+					// be notified.
+					lock.notify_one();
+			}
 
 		//! Add a new demand to the tail of the queue specified.
 		void

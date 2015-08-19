@@ -75,9 +75,7 @@ class work_thread_t
 						for(;;)
 							{
 								auto d = m_queue.pop();
-//FIXME: it could rewritten as:
-// d->call_handler( m_thread_id );
-								(*(d->m_demand_handler))( m_thread_id, *d );
+								d->call_handler( m_thread_id );
 							}
 					}
 				catch( const typename DEMAND_QUEUE::shutdown_ex_t & )

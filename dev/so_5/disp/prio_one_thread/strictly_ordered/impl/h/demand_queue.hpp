@@ -67,6 +67,8 @@ using demand_unique_ptr_t = std::unique_ptr< demand_t >;
  */
 class demand_queue_t
 	{
+		friend struct queue_for_one_priority_t;
+
 		//! Description of queue for one priority.
 		struct queue_for_one_priority_t
 			:	public so_5::rt::event_queue_t
@@ -140,32 +142,6 @@ class demand_queue_t
 					// There could be a sleeping working thread.
 					// It must be notified.
 					lock.notify_one();
-			}
-
-//FIXME: this method must be accessible only from
-//queue_for_one_priority_t::push() method.
-		//! Push a new demand to the queue.
-		void
-		push(
-			//! Subqueue for the demand.
-			queue_for_one_priority_t * subqueue,
-			//! Demand to be pushed.
-			demand_unique_ptr_t demand )
-			{
-				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
-
-				add_demand_to_queue( *subqueue, std::move( demand ) );
-
-				if( !m_current_priority )
-					{
-						// Queue was empty. A sleeping working thread must
-						// be notified.
-						m_current_priority = subqueue;
-						lock.notify_one();
-					}
-				else if( m_current_priority < subqueue )
-					// New demand has greater priority than the previous.
-					m_current_priority = subqueue;
 			}
 
 		//! Pop demand from the queue.
@@ -272,6 +248,30 @@ class demand_queue_t
 						h = h->m_next;
 					}
 			};
+
+		//! Push a new demand to the queue.
+		void
+		push(
+			//! Subqueue for the demand.
+			queue_for_one_priority_t * subqueue,
+			//! Demand to be pushed.
+			demand_unique_ptr_t demand )
+			{
+				so_5::disp::reuse::locks::combined_queue_lock_guard_t lock{ m_lock };
+
+				add_demand_to_queue( *subqueue, std::move( demand ) );
+
+				if( !m_current_priority )
+					{
+						// Queue was empty. A sleeping working thread must
+						// be notified.
+						m_current_priority = subqueue;
+						lock.notify_one();
+					}
+				else if( m_current_priority < subqueue )
+					// New demand has greater priority than the previous.
+					m_current_priority = subqueue;
+			}
 
 		//! Add a new demand to the tail of the queue specified.
 		void

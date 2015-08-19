@@ -392,7 +392,7 @@ agent_t::so_create_execution_hint(
 				d,
 				[]( execution_demand_t & demand,
 					current_thread_id_t thread_id ) {
-					demand.m_demand_handler( thread_id, demand );
+					demand.call_handler( thread_id );
 				},
 				not_thread_safe );
 }

@@ -138,6 +138,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								distribute_value_for_priority(
 									mbox,
 									stat.m_priority,
+									stat.m_quote,
 									stat.m_agents_count,
 									stat.m_demands_count );
 
@@ -168,6 +169,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				distribute_value_for_priority(
 					const so_5::rt::mbox_t & mbox,
 					priority_t priority,
+					std::size_t quote,
 					std::size_t agents_count,
 					std::size_t demands_count )
 					{
@@ -175,6 +177,12 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						ss << m_base_prefix.c_str() << "/p" << to_size_t(priority);
 
 						const stats::prefix_t prefix{ ss.str() };
+
+						so_5::send< stats::messages::quantity< std::size_t > >(
+								mbox,
+								prefix,
+								stats::suffixes::demand_quote(),
+								quote );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
@@ -187,7 +195,6 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								prefix,
 								stats::suffixes::work_thread_queue_size(),
 								demands_count );
-//FIXME: priority quotes should be distributed too.
 					}
 			};
 

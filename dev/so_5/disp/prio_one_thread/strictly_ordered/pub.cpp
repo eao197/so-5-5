@@ -157,8 +157,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						using namespace so_5::disp::reuse;
 
 						m_base_prefix = make_disp_prefix(
-//FIXME: a good name musy be created.
-								"p-ct",
+								"pot-so",
 								name_base,
 								&m_dispatcher );
 					}
