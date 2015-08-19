@@ -39,17 +39,18 @@ imitate_hard_work()
 using clock_type = std::chrono::system_clock;
 
 // A helper function to calculate difference between to time points.
-std::uint64_t
+// The result is converted to string.
+std::string
 ms_from_time( const clock_type::time_point & previous_point )
 	{
 		using namespace std::chrono;
 
 		const auto t = clock_type::now();
 		if( t > previous_point )
-			return duration_cast< milliseconds >(
-					clock_type::now() - previous_point ).count();
+			return std::to_string( duration_cast< milliseconds >(
+					clock_type::now() - previous_point ).count() ) + "ms";
 		else
-			return 0;
+			return "0ms";
 	}
 
 // A message for logging something.
@@ -108,11 +109,14 @@ create_logger_coop( so_5::rt::environment_t & env )
 // Messages for interaction with news board.
 //
 
+// Type of story ID.
 using story_id_type = unsigned long;
 
 // Base class for all messages. It stores timestamp.
 struct news_board_message_base : public so_5::rt::message_t
 	{
+		// Time at which an operation was started.
+		// This time will be used for calculation of operation duration.
 		const clock_type::time_point m_timestamp;
 
 		news_board_message_base( clock_type::time_point timestamp )
@@ -123,6 +127,8 @@ struct news_board_message_base : public so_5::rt::message_t
 // Base class for all request messages. It stores reply_to value.
 struct news_board_request_base : public news_board_message_base
 	{
+		// Mbox of request initiator.
+		// Response will be sent to that mbox.
 		const so_5::rt::mbox_t m_reply_to;
 
 		news_board_request_base(
@@ -229,7 +235,7 @@ struct msg_story_content_resp_ack : public news_board_message_base
 	};
 
 // Negative response to a request for story content.
-// This message is used when story is removed from the board.
+// This message is used when story was removed from the board.
 struct msg_story_content_resp_nack : public news_board_message_base
 	{
 		msg_story_content_resp_nack(
@@ -273,8 +279,10 @@ define_news_receiver_agent(
 	const so_5::rt::mbox_t & board_mbox,
 	const so_5::rt::mbox_t & logger_mbox )
 	{
-		// Publisher should have lowest priority among board-related agents.
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p1 )
+		coop.define_agent(
+				// This agent should have lowest priority among
+				// board-related agents.
+				coop.make_agent_context() + so_5::prio::p1 )
 			// It handles just one message.
 			.event( board_mbox,
 				[&board_data, logger_mbox]( const msg_publish_story_req & evt )
@@ -319,8 +327,9 @@ define_news_directory_agent(
 	const so_5::rt::mbox_t & board_mbox,
 	const so_5::rt::mbox_t & logger_mbox )
 	{
-		// Publisher should have priority higher that news_receiver agent.
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p2 )
+		coop.define_agent(
+				// This agent should have priority higher than news_receiver.
+				coop.make_agent_context() + so_5::prio::p2 )
 			// It handles just one message.
 			.event( board_mbox,
 				[&board_data, logger_mbox]( const msg_updates_req & req )
@@ -364,8 +373,9 @@ define_story_extractor_agent(
 	const so_5::rt::mbox_t & board_mbox,
 	const so_5::rt::mbox_t & logger_mbox )
 	{
-		// Publisher should have priority higher that news_directory agent.
-		coop.define_agent( coop.make_agent_context() + so_5::prio::p3 )
+		coop.define_agent(
+				// This agent should have priority higher that news_directory.
+				coop.make_agent_context() + so_5::prio::p3 )
 			// It handles just one message.
 			.event( board_mbox,
 				[&board_data, logger_mbox]( const msg_story_content_req & req )
@@ -527,7 +537,7 @@ class story_publisher : public so_5::rt::agent_t
 			{
 				log( m_logger_mbox, m_name, "Publish finished, id=" +
 						std::to_string( resp.m_id ) + ", publish took " +
-						std::to_string( ms_from_time( resp.m_timestamp ) ) + "ms" );
+						ms_from_time( resp.m_timestamp ) );
 
 				// Waiting for a time for next story.
 				this >>= st_await_new_story;
@@ -637,8 +647,7 @@ class news_reader : public so_5::rt::agent_t
 						m_name,
 						std::to_string( resp.m_updates.size() ) +
 							" updates received, took " +
-							std::to_string( ms_from_time( resp.m_timestamp ) ) +
-							"ms" );
+							ms_from_time( resp.m_timestamp ) );
 
 				if( resp.m_updates.empty() )
 					{
@@ -669,8 +678,7 @@ class news_reader : public so_5::rt::agent_t
 						m_name,
 						"read story {" + std::to_string( id ) + "} '" +
 							title + "': \"" + resp.m_content + "\", took " +
-							std::to_string( ms_from_time( resp.m_timestamp ) ) +
-							"ms" );
+							ms_from_time( resp.m_timestamp ) );
 
 				remove_current_story_and_read_next();
 			}
@@ -684,9 +692,7 @@ class news_reader : public so_5::rt::agent_t
 				log( m_logger_mbox,
 						m_name,
 						"unable to read story {" + std::to_string( id ) + "} '" +
-							title + "', took " +
-							std::to_string( ms_from_time( resp.m_timestamp ) ) +
-							"ms" );
+							title + "', took " + ms_from_time( resp.m_timestamp ) );
 
 				remove_current_story_and_read_next();
 			}
