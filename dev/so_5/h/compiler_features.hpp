@@ -32,11 +32,11 @@
 
 #endif
 
-#if !(__cplusplus >= 201103L)
-	// There is no noexcept keyword
-	#define SO_5_NOEXCEPT
-#else
+#if (__cplusplus >= 201103L) || (defined(_MSC_VER) && (_MSC_VER >= 1900)) 
 	#define SO_5_NOEXCEPT noexcept
 	#define SO_5_HAVE_NOEXCEPT 1
+#else
+	// There is no noexcept keyword
+	#define SO_5_NOEXCEPT
 #endif
 
