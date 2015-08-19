@@ -22,6 +22,10 @@
 
 #include <so_5/rt/h/send_functions.hpp>
 
+#include <so_5/details/h/invoke_noexcept_code.hpp>
+
+#include <algorithm>
+
 namespace so_5 {
 
 namespace disp {
@@ -33,6 +37,7 @@ namespace one_per_prio {
 namespace impl {
 
 namespace stats = so_5::rt::stats;
+using work_thread_t = so_5::disp::reuse::work_thread::work_thread_t;
 
 //
 // dispatcher_t
@@ -56,16 +61,21 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 //FIXME: implement this!
 #if 0
 				m_data_source.start( env.stats_repository() );
+#endif
 
 				so_5::details::do_with_rollback_on_exception(
-						[this] { m_work_thread.start(); },
-						[this] { m_data_source.stop(); } );
-#endif
+						[this] { launch_work_threads(); },
+//FIXME: implement this!
+						[this] { /*m_data_source.stop();*/ } );
 			}
 
 		virtual void
 		shutdown() override
 			{
+				so_5::details::invoke_noexcept_code( [this] {
+						for( auto & t : m_threads )
+							t.shutdown();
+					} );
 //FIXME: implement this!
 #if 0
 				m_demand_queue.stop();
@@ -75,10 +85,12 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		virtual void
 		wait() override
 			{
+				so_5::details::invoke_noexcept_code( [this] {
+						for( auto & t : m_threads )
+							t.wait();
+					} );
 //FIXME: implement this!
 #if 0
-				m_work_thread.join();
-
 				m_data_source.stop();
 #endif
 			}
@@ -101,11 +113,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		so_5::rt::event_queue_t *
 		get_agent_binding( priority_t priority )
 			{
-//FIXME: implement this!
-#if 0
-				return &m_demand_queue.event_queue_by_priority( priority );
-#endif
-return nullptr;
+				return m_threads[ to_size_t( priority ) ].get_agent_binding();
 			}
 
 		//! Notification about binding of yet another agent.
@@ -213,6 +221,9 @@ return nullptr;
 		disp_data_source_t m_data_source;
 #endif
 
+		//! Working threads for every priority.
+		work_thread_t m_threads[ so_5::prio::total_priorities_count ];
+
 		/*!
 		 * \brief Just a helper method for getting reference to itself.
 		 */
@@ -220,6 +231,46 @@ return nullptr;
 		self()
 			{
 				return *this;
+			}
+
+		//! Start all working threads.
+		void
+		launch_work_threads()
+			{
+				using namespace std;
+				using namespace so_5::details;
+				using namespace so_5::prio;
+
+				// This helper vector will be used for shutdown of
+				// started threads in the case of an exception.
+				work_thread_t * started_threads[ total_priorities_count ];
+				// Initially all items must be NULL.
+				fill( begin(started_threads), end(started_threads), nullptr );
+
+				do_with_rollback_on_exception( [&] {
+						for( std::size_t i = 0; i != total_priorities_count; ++i )
+							{
+								m_threads[ i ].start();
+
+								// Thread successfully started. Pointer to it
+								// must be used on rollback.
+								started_threads[ i ] = &m_threads[ i ];
+							}
+					},
+					[&] {
+						invoke_noexcept_code( [&] {
+							// Shutdown all started threads.
+							for( auto t : started_threads )
+								if( t )
+									{
+										t->shutdown();
+										t->wait();
+									}
+								else
+									// No more started threads.
+									break;
+						} );
+					} );
 			}
 	};
 
