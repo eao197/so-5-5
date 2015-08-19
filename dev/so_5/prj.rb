@@ -130,6 +130,12 @@ MxxRu::Cpp::dll_target {
 				cpp_source 'pub.cpp'
 			}
 		}
+
+		sources_root( 'prio_dedicated_threads' ) {
+			sources_root( 'one_per_prio' ) {
+				cpp_source 'pub.cpp'
+			}
+		}
 	}
 }
 
