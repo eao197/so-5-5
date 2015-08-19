@@ -43,4 +43,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/delivery_filters/prj.rb'
 	required_prj 'sample/so_5/make_pipeline/prj.rb'
 	required_prj 'sample/so_5/machine_control/prj.rb'
+	required_prj 'sample/so_5/news_board/prj.rb'
 }

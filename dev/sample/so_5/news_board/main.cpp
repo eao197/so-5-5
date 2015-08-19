@@ -3,6 +3,10 @@
  * different types of clients: news-writers and news-readers.
  */
 
+#if defined( _MSC_VER )
+	#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include <algorithm>
 #include <chrono>
 #include <ctime>
@@ -22,8 +26,9 @@
 unsigned int
 random_value( unsigned int left, unsigned int right )
 	{
-		return std::uniform_int_distribution< unsigned int >{ left, right }
-			( std::mt19937{ std::random_device{}() } );
+		std::random_device rd;
+		std::mt19937 gen{ rd() };
+		return std::uniform_int_distribution< unsigned int >{left, right}(gen);
 	}
 
 // Imitation of some hard-working.
