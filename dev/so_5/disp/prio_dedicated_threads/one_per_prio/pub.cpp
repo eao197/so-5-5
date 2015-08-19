@@ -51,6 +51,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
 		dispatcher_t()
+			:	m_data_source{ self() }
 			{}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
@@ -58,15 +59,11 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		virtual void
 		start( so_5::rt::environment_t & env ) override
 			{
-//FIXME: implement this!
-#if 0
 				m_data_source.start( env.stats_repository() );
-#endif
 
 				so_5::details::do_with_rollback_on_exception(
 						[this] { launch_work_threads(); },
-//FIXME: implement this!
-						[this] { /*m_data_source.stop();*/ } );
+						[this] { m_data_source.stop(); } );
 			}
 
 		virtual void
@@ -76,10 +73,6 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						for( auto & t : m_threads )
 							t.shutdown();
 					} );
-//FIXME: implement this!
-#if 0
-				m_demand_queue.stop();
-#endif
 			}
 
 		virtual void
@@ -88,21 +81,16 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				so_5::details::invoke_noexcept_code( [this] {
 						for( auto & t : m_threads )
 							t.wait();
+
+						m_data_source.stop();
 					} );
-//FIXME: implement this!
-#if 0
-				m_data_source.stop();
-#endif
 			}
 
 		virtual void
 		set_data_sources_name_base(
 			const std::string & name_base ) override
 			{
-//FIXME: implement this!
-#if 0
 				m_data_source.set_data_sources_name_base( name_base );
-#endif
 			}
 		//! \}
 
@@ -120,24 +108,19 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		void
 		agent_bound( priority_t priority )
 			{
-//FIXME: implement this!
-#if 0
-				m_demand_queue.agent_bound( priority );
-#endif
+				m_agents_per_priority[ to_size_t(priority) ] += 1;
 			}
 
 		//! Notification about unbinding of an agent.
 		void
 		agent_unbound( priority_t priority )
 			{
-//FIXME: implement this!
-#if 0
-				m_demand_queue.agent_unbound( priority );
-#endif
+				m_agents_per_priority[ to_size_t(priority) ] -= 1;
 			}
 
 	private:
-#if 0
+		friend class disp_data_source_t;
+
 		/*!
 		 * \since v.5.5.8
 		 * \brief Data source for run-time monitoring of whole dispatcher.
@@ -160,15 +143,17 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 					{
 						std::size_t agents_count = 0;
 
-						m_dispatcher.m_demand_queue.handle_stats_for_each_prio(
-							[&]( const demand_queue_t::queue_stats_t & stat ) {
-								distribute_value_for_priority(
-									mbox,
-									stat.m_priority,
-									stat.m_agents_count,
-									stat.m_demands_count );
+						so_5::prio::for_each_priority( [&]( priority_t p ) {
+								auto agents = m_dispatcher.m_agents_per_priority[
+										to_size_t(p) ].load( std::memory_order_acquire );
 
-								agents_count += stat.m_agents_count;
+								agents_count += agents;
+
+								distribute_value_for_work_thread(
+										mbox,
+										p,
+										agents,
+										m_dispatcher.m_threads[ to_size_t(p) ] );
 							} );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
@@ -185,44 +170,46 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 						using namespace so_5::disp::reuse;
 
 						m_base_prefix = make_disp_prefix(
-								"pot-so",
+								"pdt-opp",
 								name_base,
 								&m_dispatcher );
 					}
 
 			private:
 				void
-				distribute_value_for_priority(
+				distribute_value_for_work_thread(
 					const so_5::rt::mbox_t & mbox,
 					priority_t priority,
 					std::size_t agents_count,
-					std::size_t demands_count )
+					work_thread_t & wt )
 					{
 						std::ostringstream ss;
-						ss << m_base_prefix.c_str() << "/p" << to_size_t(priority);
+						ss << m_base_prefix.c_str() << "/wt-p" << to_size_t(priority);
 
 						const stats::prefix_t prefix{ ss.str() };
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								prefix,
-								stats::suffixes::agent_count(),
-								agents_count );
+								stats::suffixes::work_thread_queue_size(),
+								wt.demands_count() );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
 								mbox,
 								prefix,
-								stats::suffixes::work_thread_queue_size(),
-								demands_count );
+								stats::suffixes::agent_count(),
+								agents_count );
 					}
 			};
 
 		//! Data source for run-time monitoring.
 		disp_data_source_t m_data_source;
-#endif
 
 		//! Working threads for every priority.
 		work_thread_t m_threads[ so_5::prio::total_priorities_count ];
+
+		//! Counters for agent count for every priority.
+		std::atomic< std::size_t > m_agents_per_priority[ so_5::prio::total_priorities_count ];
 
 		/*!
 		 * \brief Just a helper method for getting reference to itself.
@@ -250,6 +237,9 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 				do_with_rollback_on_exception( [&] {
 						for( std::size_t i = 0; i != total_priorities_count; ++i )
 							{
+								m_agents_per_priority[ i ].store( 0,
+										std::memory_order_release );
+
 								m_threads[ i ].start();
 
 								// Thread successfully started. Pointer to it
@@ -295,7 +285,6 @@ class binding_actions_mixin_t
 							*(disp.get_agent_binding( agent->so_priority() )) );
 				};
 
-//FIXME: Is this call really needed?
 				// Dispatcher must know about yet another agent bound.
 				disp.agent_bound( agent->so_priority() );
 
@@ -307,8 +296,7 @@ class binding_actions_mixin_t
 			dispatcher_t & disp,
 			so_5::rt::agent_ref_t agent )
 			{
-//FIXME: Is this call really needed?
-				// Dispatcher must know about yet another agent bound.
+				// Dispatcher must know about yet another agent unbound.
 				disp.agent_unbound( agent->so_priority() );
 			}
 	};
