@@ -115,6 +115,8 @@ struct generation_rejected : public so_5::rt::message_t
 //
 class request_generator : public so_5::rt::agent_t
 	{
+		struct produce_next : public so_5::rt::signal_t {};
+
 	public :
 		request_generator(
 			context_t ctx,
@@ -126,6 +128,9 @@ class request_generator : public so_5::rt::agent_t
 		virtual void
 		so_define_agent() override
 			{
+				so_subscribe_self()
+					.event< produce_next >( &request_generator::evt_produce_next );
+
 				so_subscribe( m_interaction_mbox )
 					.event( &request_generator::evt_generation_result )
 					.event( &request_generator::evt_generation_rejected );
@@ -134,22 +139,66 @@ class request_generator : public so_5::rt::agent_t
 		virtual void
 		so_evt_start() override
 			{
-//FIXME: initiate requests generation.
+				so_5::send_to_agent< produce_next >( *this );
 			}
 
 	private :
 		const so_5::rt::mbox_t m_interaction_mbox;
 
+		unsigned int m_last_id = 0;
+
+		void
+		evt_produce_next()
+			{
+				auto id = ++m_last_id;
+				auto dimension = random_value( 100, 10000 );
+
+				auto metadata = std::make_shared< request_metadata >();
+				metadata->m_generated_at = clock_type::now();
+
+				so_5::send< generation_request >( m_interaction_mbox,
+						id, dimension, std::move( metadata ) );
+
+				std::cout << "generated {" << id << "}, dimension: "
+						<< dimension << std::endl;
+
+				so_5::send_delayed_to_agent< produce_next >( *this,
+						std::chrono::milliseconds( random_value( 0, 100 ) ) );
+			}
+
 		void
 		evt_generation_result( const generation_result & evt )
 			{
-//FIXME: implement this!
+				auto ms =
+					[]( const clock_type::time_point a,
+						const clock_type::time_point b )
+					{
+						return std::to_string( std::chrono::duration_cast<
+								std::chrono::milliseconds >( b - a ).count() ) + "ms";
+					};
+
+				const auto & meta = *evt.m_metadata;
+
+				const auto & d1 = ms( meta.m_generated_at, meta.m_queued_at );
+				const auto & d2 = ms( meta.m_queued_at,
+						meta.m_processing_started_at );
+				const auto & d3 = ms( meta.m_processing_started_at,
+						meta.m_processing_finished_at );
+
+				std::cout << "result {" << evt.m_id << "}: "
+						<< "in route: " << d1 << ", waiting(p"
+						<< so_5::to_size_t( meta.m_queue_prio )
+						<< "): " << d2
+						<< ", processing("
+						<< so_5::to_size_t( meta.m_processor_prio )
+						<< "): " << d3 
+						<< std::endl;
 			}
 
 		void
 		evt_generation_rejected( const generation_rejected & evt )
 			{
-//FIXME: implement this!
+				std::cout << "*** REJECTION: " << evt.m_id << std::endl;
 			}
 	};
 
@@ -336,7 +385,7 @@ class request_scheduler : public so_5::rt::agent_t
 						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 1 )
 						// Just one ask_for_work is necessary.
 						// All other instances could be skipped.
-						+ so_5::rt::agent_t::limit_then_drop< ask_for_work >( 1 ) );
+						+ so_5::rt::agent_t::limit_then_drop< wakeup_for_work >( 1 ) );
 
 				// Mbox of processor must be stored to be used later.
 				m_data.m_processors[ so_5::to_size_t( priority ) ].m_processor =
@@ -367,6 +416,30 @@ class request_scheduler : public so_5::rt::agent_t
 void
 init( so_5::rt::environment_t & env )
 	{
+		// All top-level agents belong to the same coop,
+		// but work on different dispacthers.
+		using namespace so_5::disp;
+		env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+				auto mbox = coop.environment().create_local_mbox();
+
+				// Request scheduler and accepter stuff.
+
+				// A special dispatcher.
+				auto prio_disp = prio_one_thread::strictly_ordered::
+						create_private_disp( coop.environment() );
+
+				// Common data for both agents. Will be controlled by the coop.
+				auto data = coop.take_under_control(
+						new request_scheduling_data{} );
+
+				coop.make_agent_with_binder< request_scheduler >(
+						prio_disp->binder(), mbox, *data );
+				coop.make_agent_with_binder< request_acceptor >(
+						prio_disp->binder(), mbox, *data );
+
+				// Requests generator.
+				coop.make_agent< request_generator >( mbox );
+			} );
 	}
 
 int
