@@ -15,7 +15,9 @@
 
 	// Visual C++ 2012 and 2013 have very slow std::this_thread::get_id()
 	// implementation.
-	#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
+	#if _MSC_VER < 1900
+		#define SO_5_MSVC_NEEDS_OWN_CURRENT_THREAD_ID
+	#endif
 
 	#if _MSC_VER == 1700
 		// Please see details at:
