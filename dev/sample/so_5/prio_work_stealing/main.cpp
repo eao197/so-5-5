@@ -434,15 +434,16 @@ class request_scheduler : public so_5::rt::agent_t
 			}
 
 		void
-		try_schedule_work_to( so_5::priority_t free_priority )
+		try_schedule_work_to( so_5::priority_t priority )
 			{
 				auto & free_processor_info = m_data.m_processors[
-						so_5::to_size_t( free_priority ) ];
+						so_5::to_size_t( priority ) ];
 
-				auto prio = free_priority;
+				// Should dive no more than three levels deep;
+				auto deep = 0;
 				do
 				{
-					auto & info = m_data.m_processors[ so_5::to_size_t(prio) ];
+					auto & info = m_data.m_processors[ so_5::to_size_t(priority) ];
 					if( !info.m_requests.empty() )
 						{
 							// There is a work for processor.
@@ -453,16 +454,23 @@ class request_scheduler : public so_5::rt::agent_t
 							// for new work.
 							free_processor_info.m_processor->deliver_message( req );
 							free_processor_info.m_processor_is_free = false;
-std::cerr << "work sent to: " << so_5::to_size_t(free_priority) << ", ("
-<< so_5::to_size_t(prio) << ")" << std::endl;
+							break;
 						}
 					else
-						// There is no more work. Try to stole it from
-						// more higher priority.
-						prio = so_5::prio::next( prio );
+						{
+							// There is no more work. Try to stole it from
+							// lower priority.
+							if( priority != so_5::priority_t::p_min )
+								{
+									priority = so_5::prio::prev( priority );
+									++deep;
+								}
+							else
+								// There is no more priorities to look.
+								break;
+						}
 				}
-				while( free_processor_info.m_processor_is_free
-						&& prio != so_5::priority_t::p_max );
+				while( deep < 3 );
 			}
 	};
 
