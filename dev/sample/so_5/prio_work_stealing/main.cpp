@@ -147,11 +147,16 @@ class request_generator : public so_5::rt::agent_t
 
 		unsigned int m_last_id = 0;
 
+		// Values for make distribution in the proportion 60%/30%/10%.
+		unsigned int m_x = 60;
+		unsigned int m_y = 30;
+		unsigned int m_z = 10;
+
 		void
 		evt_produce_next()
 			{
 				auto id = ++m_last_id;
-				auto dimension = random_value( 100, 10000 );
+				auto dimension = generate_next_dimension();
 
 				auto metadata = std::make_shared< request_metadata >();
 				metadata->m_generated_at = clock_type::now();
@@ -199,6 +204,38 @@ class request_generator : public so_5::rt::agent_t
 		evt_generation_rejected( const generation_rejected & evt )
 			{
 				std::cout << "*** REJECTION: " << evt.m_id << std::endl;
+			}
+
+		unsigned int
+		generate_next_dimension()
+			{
+				unsigned int result = 0;
+
+				auto v = random_value( 0, m_x + m_y + m_z );
+				if( v < m_x )
+					{
+						m_x -= 1;
+						result = random_value( 100, 2999 );
+					}
+				else if( v < m_x + m_y )
+					{
+						m_y -= 1;
+						result = random_value( 3000, 7999 );
+					}
+				else
+					{
+						m_z -= 1;
+						result = random_value( 8000, 10000 );
+					}
+
+				if( 0 == m_x + m_y + m_z )
+					{
+						m_x = 60;
+						m_y = 30;
+						m_z = 10;
+					}
+
+				return result;
 			}
 	};
 
