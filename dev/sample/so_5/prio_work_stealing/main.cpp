@@ -216,6 +216,9 @@ struct request_scheduling_data
 
 				// List of pending requests for that priority.
 				request_queue m_requests;
+
+				// Is processor free or busy.
+				bool m_processor_is_free = true;
 			};
 
 		// Processors and queues for them.
@@ -226,8 +229,17 @@ struct request_scheduling_data
 // Messages and signals for interaction between request acceptor and processor.
 //
 
-// Signal about presence of new request.
-struct wakeup_for_work : public so_5::rt::signal_t {};
+// An information about a possibility to schedule request to
+// a free processor.
+struct processor_can_be_loaded : public so_5::rt::message_t
+	{
+		// Priority of the processor.
+		so_5::priority_t m_priority;
+
+		processor_can_be_loaded( so_5::priority_t priority )
+			:	m_priority( priority )
+			{}
+	};
 
 // Ask for next request to be processed.
 struct ask_for_work : public so_5::rt::message_t
@@ -284,7 +296,7 @@ class request_acceptor : public so_5::rt::agent_t
 				using namespace so_5::prio;
 
 				// Detecting priority for that request.
-				auto step = double{ max_dimension } / total_priorities_count;
+				auto step = double{ max_dimension + 1 } / total_priorities_count;
 				// Requests with lowest dimensions must have highest priority.
 				auto pos = so_5::to_size_t( so_5::priority_t::p_max ) -
 						static_cast< std::size_t >( evt->m_dimension / step );
@@ -295,9 +307,12 @@ class request_acceptor : public so_5::rt::agent_t
 				// Defense for overloading.
 				if( info.m_requests.size() < 100 )
 					{
-						// If queue was empty then processort must be
-						// informed about new task for it.
-						bool queue_was_empty = info.m_requests.empty();
+						if( info.m_requests.empty() && info.m_processor_is_free )
+							// A work for that processor can be scheduled.
+							so_5::send< processor_can_be_loaded >(
+									m_interaction_mbox,
+//FIXME: there should be an appropriate method in so_5::prio namespace!
+									static_cast< so_5::priority_t >( pos ) );
 
 						info.m_requests.push( evt.make_reference() );
 
@@ -306,10 +321,6 @@ class request_acceptor : public so_5::rt::agent_t
 //FIXME: there should be an appropriate method in so_5::prio namespace!
 						evt->m_metadata->m_queue_prio =
 								static_cast< so_5::priority_t >( pos );
-
-						if( queue_was_empty )
-							// Processor need to be awakened.
-							so_5::send< wakeup_for_work >( info.m_processor );
 					}
 				else
 					// Request cannot be processed.
@@ -339,6 +350,7 @@ class request_scheduler : public so_5::rt::agent_t
 		so_define_agent() override
 			{
 				so_subscribe( m_interaction_mbox )
+					.event( &request_scheduler::evt_processor_can_be_loaded )
 					.event( &request_scheduler::evt_ask_for_work );
 			}
 
@@ -365,37 +377,27 @@ class request_scheduler : public so_5::rt::agent_t
 		request_scheduling_data & m_data;
 
 		void
+		evt_processor_can_be_loaded( const processor_can_be_loaded & evt )
+			{
+				auto & info = m_data.m_processors[
+						so_5::to_size_t(evt.m_priority) ];
+
+				// Processor was free when message was sent.
+				// But it state could be changed since then.
+				// So we need to check it and do scheduling only if
+				// processor is still free.
+				if( info.m_processor_is_free )
+					try_schedule_work_to( evt.m_priority );
+			}
+
+		void
 		evt_ask_for_work( const ask_for_work & evt )
 			{
-				auto prio = evt.m_priority;
+				// Processor must be marked as free.
+				m_data.m_processors[ so_5::to_size_t(evt.m_priority) ]
+						.m_processor_is_free = true;
 
-				// We must remember the free processor.
-				const auto free_processor = m_data.m_processors[
-						so_5::to_size_t(prio) ].m_processor;
-
-				bool work_sent = false;
-				do
-				{
-					auto & info = m_data.m_processors[ so_5::to_size_t(prio) ];
-					if( !info.m_requests.empty() )
-						{
-							// There is a work for processor.
-							auto req = info.m_requests.front();
-							info.m_requests.pop();
-
-							// Message must be delivered to processor who asks
-							// for new work.
-							free_processor->deliver_message( req );
-							work_sent = true;
-std::cerr << "work sent to: " << so_5::to_size_t(evt.m_priority) << ", ("
-<< so_5::to_size_t(prio) << ")" << std::endl;
-						}
-					else
-						// There is no more work. Try to stole it from
-						// more higher priority.
-						prio = so_5::prio::next( prio );
-				}
-				while( !work_sent && prio != so_5::priority_t::p_max );
+				try_schedule_work_to( evt.m_priority );
 			}
 
 		void
@@ -404,19 +406,13 @@ std::cerr << "work sent to: " << so_5::to_size_t(evt.m_priority) << ", ("
 			so_5::priority_t priority )
 			{
 				auto a = coop.define_agent( coop.make_agent_context() + priority
-						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 3 )
-						// Just one ask_for_work is necessary.
-						// All other instances could be skipped.
-						+ so_5::rt::agent_t::limit_then_drop< wakeup_for_work >( 1 ) );
+						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 1 ) );
 
 				// Mbox of processor must be stored to be used later.
 				m_data.m_processors[ so_5::to_size_t( priority ) ].m_processor =
 						a.direct_mbox();
 
-				// Subscriptions for messages.
-				a.event< wakeup_for_work >( a, [this, priority] {
-						so_5::send< ask_for_work >( m_interaction_mbox, priority );
-					} );
+				// Subscriptions for message.
 				a.event( a, [this, priority]( const generation_request & evt ) {
 						evt.m_metadata->m_processing_started_at = clock_type::now();
 						evt.m_metadata->m_processor_prio = priority;
@@ -435,6 +431,38 @@ std::cerr << "work sent to: " << so_5::to_size_t(evt.m_priority) << ", ("
 						// Processor is free to get next request for processing.
 						so_5::send< ask_for_work >( m_interaction_mbox, priority );
 					} );
+			}
+
+		void
+		try_schedule_work_to( so_5::priority_t free_priority )
+			{
+				auto & free_processor_info = m_data.m_processors[
+						so_5::to_size_t( free_priority ) ];
+
+				auto prio = free_priority;
+				do
+				{
+					auto & info = m_data.m_processors[ so_5::to_size_t(prio) ];
+					if( !info.m_requests.empty() )
+						{
+							// There is a work for processor.
+							auto req = info.m_requests.front();
+							info.m_requests.pop();
+
+							// Message must be delivered to processor who asks
+							// for new work.
+							free_processor_info.m_processor->deliver_message( req );
+							free_processor_info.m_processor_is_free = false;
+std::cerr << "work sent to: " << so_5::to_size_t(free_priority) << ", ("
+<< so_5::to_size_t(prio) << ")" << std::endl;
+						}
+					else
+						// There is no more work. Try to stole it from
+						// more higher priority.
+						prio = so_5::prio::next( prio );
+				}
+				while( free_processor_info.m_processor_is_free
+						&& prio != so_5::priority_t::p_max );
 			}
 	};
 
