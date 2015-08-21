@@ -11,6 +11,8 @@
 #pragma once
 
 #include <type_traits>
+#include <stdexcept>
+#include <string>
 
 namespace so_5 {
 
@@ -32,10 +34,32 @@ enum class priority_t : unsigned char
 		p_max = p7
 	};
 
+/*!
+ * \since v.5.5.8
+ * \brief Helper function for conversion from priority to size_t.
+ */
 inline std::size_t
 to_size_t( priority_t priority )
 	{
 		return static_cast< std::size_t >( priority );
+	}
+
+/*!
+ * \since v.5.5.8
+ * \brief Helper function for conversion from size_t to priority.
+ *
+ * \throw std::invalid_argument if \a v is out of range.
+ */
+inline priority_t
+to_priority_t( std::size_t v )
+	{
+		if( !( v >= to_size_t(priority_t::p_min) &&
+				v <= to_size_t(priority_t::p_max) ) )
+			throw std::invalid_argument( "value to be converted to "
+					"priority_t is out of range: " +
+					std::to_string( v ) );
+
+		return static_cast< priority_t >( v );
 	}
 
 namespace prio {
@@ -72,6 +96,13 @@ const unsigned int total_priorities_count =
 
 /*!
  * \since v.5.5.8
+ * \brief Is there higher priority?
+ */
+inline bool
+has_next( priority_t p ) { return p != priority_t::p_max; }
+
+/*!
+ * \since v.5.5.8
  * \brief Get the next priority value.
  *
  * \return next priority value if \a p is less than priority_t::p_max or
@@ -85,6 +116,13 @@ next( priority_t p )
 				(static_cast< priority_t >( static_cast< ut >(p) + 1))
 				: priority_t::p_max;
 	}
+
+/*!
+ * \since v.5.5.8
+ * \brief Is there lower priority?
+ */
+inline bool
+has_prev( priority_t p ) { return p != priority_t::p_min; }
 
 /*!
  * \since v.5.5.8
