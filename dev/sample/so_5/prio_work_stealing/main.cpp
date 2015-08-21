@@ -189,7 +189,7 @@ class request_generator : public so_5::rt::agent_t
 						<< "in route: " << d1 << ", waiting(p"
 						<< so_5::to_size_t( meta.m_queue_prio )
 						<< "): " << d2
-						<< ", processing("
+						<< ", processing(p"
 						<< so_5::to_size_t( meta.m_processor_prio )
 						<< "): " << d3 
 						<< std::endl;
@@ -291,18 +291,30 @@ class request_acceptor : public so_5::rt::agent_t
 
 				// Store request to the queue.
 				auto & info = m_data.m_processors[ pos ];
-				bool queue_was_empty = info.m_requests.empty();
 
-				info.m_requests.push( evt.make_reference() );
+				// Defense for overloading.
+				if( info.m_requests.size() < 100 )
+					{
+						// If queue was empty then processort must be
+						// informed about new task for it.
+						bool queue_was_empty = info.m_requests.empty();
 
-				// Update request information.
-				evt->m_metadata->m_queued_at = clock_type::now();
+						info.m_requests.push( evt.make_reference() );
+
+						// Update request information.
+						evt->m_metadata->m_queued_at = clock_type::now();
 //FIXME: there should be an appropriate method in so_5::prio namespace!
-				evt->m_metadata->m_queue_prio = static_cast< so_5::priority_t >( pos );
+						evt->m_metadata->m_queue_prio =
+								static_cast< so_5::priority_t >( pos );
 
-				if( queue_was_empty )
-					// Processor need to be awakened.
-					so_5::send< wakeup_for_work >( info.m_processor );
+						if( queue_was_empty )
+							// Processor need to be awakened.
+							so_5::send< wakeup_for_work >( info.m_processor );
+					}
+				else
+					// Request cannot be processed.
+					so_5::send< generation_rejected >( m_interaction_mbox,
+							evt->m_id );
 			}
 	};
 
@@ -356,6 +368,11 @@ class request_scheduler : public so_5::rt::agent_t
 		evt_ask_for_work( const ask_for_work & evt )
 			{
 				auto prio = evt.m_priority;
+
+				// We must remember the free processor.
+				const auto free_processor = m_data.m_processors[
+						so_5::to_size_t(prio) ].m_processor;
+				bool work_sent = false;
 				do
 				{
 					auto & info = m_data.m_processors[ so_5::to_size_t(prio) ];
@@ -365,14 +382,17 @@ class request_scheduler : public so_5::rt::agent_t
 							auto req = info.m_requests.front();
 							info.m_requests.pop();
 
-							info.m_processor->deliver_message( req );
+							// Message must be delivered to processor who asks
+							// for new work.
+							free_processor->deliver_message( req );
+							work_sent = true;
 						}
 					else
 						// There is no more work. Try to stole it from
 						// more higher priority.
 						prio = so_5::prio::next( prio );
 				}
-				while( prio != so_5::priority_t::p_max );
+				while( !work_sent && prio != so_5::priority_t::p_max );
 			}
 
 		void
@@ -381,8 +401,10 @@ class request_scheduler : public so_5::rt::agent_t
 			so_5::priority_t priority )
 			{
 				auto a = coop.define_agent( coop.make_agent_context() + priority
-						// This agent could have just one pending request.
-						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 1 )
+						// There can't be more pending requests than priority
+						// of the agent (plus one because priority starts from 0).
+						+ so_5::rt::agent_t::limit_then_abort< generation_request >(
+								static_cast< unsigned int >(priority) + 3 )
 						// Just one ask_for_work is necessary.
 						// All other instances could be skipped.
 						+ so_5::rt::agent_t::limit_then_drop< wakeup_for_work >( 1 ) );
