@@ -372,6 +372,7 @@ class request_scheduler : public so_5::rt::agent_t
 				// We must remember the free processor.
 				const auto free_processor = m_data.m_processors[
 						so_5::to_size_t(prio) ].m_processor;
+
 				bool work_sent = false;
 				do
 				{
@@ -386,6 +387,8 @@ class request_scheduler : public so_5::rt::agent_t
 							// for new work.
 							free_processor->deliver_message( req );
 							work_sent = true;
+std::cerr << "work sent to: " << so_5::to_size_t(evt.m_priority) << ", ("
+<< so_5::to_size_t(prio) << ")" << std::endl;
 						}
 					else
 						// There is no more work. Try to stole it from
@@ -401,10 +404,7 @@ class request_scheduler : public so_5::rt::agent_t
 			so_5::priority_t priority )
 			{
 				auto a = coop.define_agent( coop.make_agent_context() + priority
-						// There can't be more pending requests than priority
-						// of the agent (plus one because priority starts from 0).
-						+ so_5::rt::agent_t::limit_then_abort< generation_request >(
-								static_cast< unsigned int >(priority) + 3 )
+						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 3 )
 						// Just one ask_for_work is necessary.
 						// All other instances could be skipped.
 						+ so_5::rt::agent_t::limit_then_drop< wakeup_for_work >( 1 ) );
@@ -431,6 +431,9 @@ class request_scheduler : public so_5::rt::agent_t
 						so_5::send< generation_result >( m_interaction_mbox,
 								evt.m_id,
 								evt.m_metadata );
+
+						// Processor is free to get next request for processing.
+						so_5::send< ask_for_work >( m_interaction_mbox, priority );
 					} );
 			}
 	};
