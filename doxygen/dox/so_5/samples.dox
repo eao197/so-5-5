@@ -162,4 +162,12 @@
  * \example so_5/machine_control/main.cpp
  */
 
+/*!
+ * \example so_5/news_board/main.cpp
+ */
+
+/*!
+ * \example so_5/prio_work_stealing/main.cpp
+ */
+
 // vim:ft=cpp.doxygen

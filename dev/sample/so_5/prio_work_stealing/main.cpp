@@ -348,16 +348,13 @@ class request_acceptor : public so_5::rt::agent_t
 							// A work for that processor can be scheduled.
 							so_5::send< processor_can_be_loaded >(
 									m_interaction_mbox,
-//FIXME: there should be an appropriate method in so_5::prio namespace!
-									static_cast< so_5::priority_t >( pos ) );
+									so_5::to_priority_t( pos ) );
 
 						info.m_requests.push( evt.make_reference() );
 
 						// Update request information.
 						evt->m_metadata->m_queued_at = clock_type::now();
-//FIXME: there should be an appropriate method in so_5::prio namespace!
-						evt->m_metadata->m_queue_prio =
-								static_cast< so_5::priority_t >( pos );
+						evt->m_metadata->m_queue_prio = so_5::to_priority_t( pos );
 					}
 				else
 					// Request cannot be processed.
@@ -476,7 +473,8 @@ class request_scheduler : public so_5::rt::agent_t
 				auto & free_processor_info = m_data.m_processors[
 						so_5::to_size_t( priority ) ];
 
-				// Should dive no more than three levels deep;
+				// Should dive no more than several levels deep;
+				const auto max_deep = 5;
 				auto deep = 0;
 				do
 				{
@@ -497,7 +495,7 @@ class request_scheduler : public so_5::rt::agent_t
 						{
 							// There is no more work. Try to stole it from
 							// lower priority.
-							if( priority != so_5::priority_t::p_min )
+							if( so_5::prio::has_prev( priority ) )
 								{
 									priority = so_5::prio::prev( priority );
 									++deep;
@@ -507,7 +505,7 @@ class request_scheduler : public so_5::rt::agent_t
 								break;
 						}
 				}
-				while( deep < 3 );
+				while( deep < max_deep );
 			}
 	};
 
