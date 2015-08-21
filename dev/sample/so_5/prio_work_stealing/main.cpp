@@ -1,6 +1,37 @@
 /*
  * An example for demonstration of prio_dedicated_threads::one_per_prio
  * dispatcher.
+ *
+ * There is a request generator agent. It randomly sends request for
+ * creating images. Every request contains ID, dimension of the image
+ * to be generated and some metadata. It is supposed that time for
+ * image creation depends from image dimension -- big dimension leads
+ * to big amount of time for image creation.
+ *
+ * Requests are processed by several agents.
+ *
+ * First of all there are two managers. One of them (request_acceptor)
+ * receives new requests, calculates priorities for them and stores
+ * requests in queues (one queue for each priority).
+ *
+ * Second manager (request_scheduler) schedules requests from queues to
+ * actual processor agents.
+ *
+ * Request_acceptor and request_scheduler works on the same
+ * prio_one_thread::strictly_ordered dispatcher. Request_acceptor agent
+ * has lower priority than request_scheduler agent. It means that
+ * messages for scheduling requests to processor agents are processed before
+ * messages about new requests.
+ *
+ * There are several processor agents: one for each priority. All processor
+ * agents are bound to prio_dedicated_threads::one_per_prio dispatcher.
+ * It means that every processor works on separate thread.
+ *
+ * Request_scheduler implements work stealing mechanism.
+ * When a processor with priority P tells that it is free and ready for
+ * processing new image then request_scheduler tries to find next request of
+ * the same priority P.  If there is no such requests then request_scheduler
+ * triest to find a request for lower priority (P-1) and so on.
  */
 
 #include <algorithm>
@@ -115,6 +146,8 @@ struct generation_rejected : public so_5::rt::message_t
 //
 class request_generator : public so_5::rt::agent_t
 	{
+		// Signal which agent sends to itself with random delays.
+		// A new request will be produced for every occurrence of that signal.
 		struct produce_next : public so_5::rt::signal_t {};
 
 	public :
@@ -139,18 +172,21 @@ class request_generator : public so_5::rt::agent_t
 		virtual void
 		so_evt_start() override
 			{
+				// Will start requests generation immediately.
 				so_5::send_to_agent< produce_next >( *this );
 			}
 
 	private :
+		// Mbox for sending new requests and receiving responses.
 		const so_5::rt::mbox_t m_interaction_mbox;
 
+		// Counter for request ID generation.
 		unsigned int m_last_id = 0;
 
 		// Values for make distribution in the proportion 60%/30%/10%.
-		unsigned int m_x = 60;
-		unsigned int m_y = 30;
-		unsigned int m_z = 10;
+		unsigned int m_x = 0;
+		unsigned int m_y = 0;
+		unsigned int m_z = 0;
 
 		void
 		evt_produce_next()
@@ -206,36 +242,36 @@ class request_generator : public so_5::rt::agent_t
 				std::cout << "*** REJECTION: " << evt.m_id << std::endl;
 			}
 
+		/*
+		 * Generation of new dimension.
+		 *
+		 * Implements algorithm for the following value distrubution:
+		 * 60% of values in range [100,3000)
+		 * 30% of values in range [3000, 8000)
+		 * 10% of values in range [8000, 10000]
+		 */
 		unsigned int
 		generate_next_dimension()
 			{
-				unsigned int result = 0;
-
-				auto v = random_value( 0, m_x + m_y + m_z );
-				if( v < m_x )
-					{
-						m_x -= 1;
-						result = random_value( 100, 2999 );
-					}
-				else if( v < m_x + m_y )
-					{
-						m_y -= 1;
-						result = random_value( 3000, 7999 );
-					}
-				else
-					{
-						m_z -= 1;
-						result = random_value( 8000, 10000 );
-					}
-
 				if( 0 == m_x + m_y + m_z )
 					{
-						m_x = 60;
-						m_y = 30;
-						m_z = 10;
+						// Distribution params must be reinitialized.
+						m_x = 60; m_y = 30; m_z = 10;
 					}
 
-				return result;
+				auto make_result =
+					[this]( unsigned int & param, unsigned int l, unsigned int r ) {
+							param -= 1;
+							return random_value( l, r );
+					};
+
+				const auto v = random_value( 0, m_x + m_y + m_z );
+				if( v < m_x )
+					return make_result( m_x, 100, 2999 );
+				else if( v < m_x + m_y )
+					return make_result( m_y, 3000, 7999 );
+				else
+					return make_result( m_z, 8000, 10000 );
 			}
 	};
 
@@ -244,6 +280,7 @@ class request_generator : public so_5::rt::agent_t
 //
 struct request_scheduling_data
 	{
+		// Type of queue for storing pending requests.
 		using request_queue = std::queue< generation_request_shptr >;
 
 		struct priority_data
@@ -260,6 +297,13 @@ struct request_scheduling_data
 
 		// Processors and queues for them.
 		priority_data m_processors[ so_5::prio::total_priorities_count ];
+
+		// Helper for access information for the specified priority.
+		priority_data &
+		info_at( so_5::priority_t p )
+			{
+				return m_processors[ so_5::to_size_t(p) ];
+			}
 	};
 
 //
@@ -413,11 +457,10 @@ class request_scheduler : public so_5::rt::agent_t
 		void
 		evt_processor_can_be_loaded( const processor_can_be_loaded & evt )
 			{
-				auto & info = m_data.m_processors[
-						so_5::to_size_t(evt.m_priority) ];
+				auto & info = m_data.info_at( evt.m_priority );
 
 				// Processor was free when message was sent.
-				// But it state could be changed since then.
+				// But its state could have been changed since then.
 				// So we need to check it and do scheduling only if
 				// processor is still free.
 				if( info.m_processor_is_free )
@@ -428,8 +471,7 @@ class request_scheduler : public so_5::rt::agent_t
 		evt_ask_for_work( const ask_for_work & evt )
 			{
 				// Processor must be marked as free.
-				m_data.m_processors[ so_5::to_size_t(evt.m_priority) ]
-						.m_processor_is_free = true;
+				m_data.info_at( evt.m_priority ).m_processor_is_free = true;
 
 				try_schedule_work_to( evt.m_priority );
 			}
@@ -443,8 +485,7 @@ class request_scheduler : public so_5::rt::agent_t
 						+ so_5::rt::agent_t::limit_then_abort< generation_request >( 1 ) );
 
 				// Mbox of processor must be stored to be used later.
-				m_data.m_processors[ so_5::to_size_t( priority ) ].m_processor =
-						a.direct_mbox();
+				m_data.info_at( priority ).m_processor = a.direct_mbox();
 
 				// Subscriptions for message.
 				a.event( a, [this, priority]( const generation_request & evt ) {
@@ -470,15 +511,14 @@ class request_scheduler : public so_5::rt::agent_t
 		void
 		try_schedule_work_to( so_5::priority_t priority )
 			{
-				auto & free_processor_info = m_data.m_processors[
-						so_5::to_size_t( priority ) ];
+				auto & free_processor_info = m_data.info_at( priority );
 
 				// Should dive no more than several levels deep;
 				const auto max_deep = 5;
 				auto deep = 0;
 				do
 				{
-					auto & info = m_data.m_processors[ so_5::to_size_t(priority) ];
+					auto & info = m_data.info_at( priority );
 					if( !info.m_requests.empty() )
 						{
 							// There is a work for processor.
