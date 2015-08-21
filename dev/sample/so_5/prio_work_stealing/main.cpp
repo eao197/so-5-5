@@ -395,8 +395,8 @@ class request_scheduler : public so_5::rt::agent_t
 				// It will use prio_dedicated_threads::one_per_prio dispacther.
 				so_5::rt::introduce_child_coop(
 					*this,
-					so_5::disp::prio_dedicated_threads::one_per_prio::
-						create_private_disp( so_environment() )->binder(),
+					so_5::disp::prio_dedicated_threads::one_per_prio::create_private_disp(
+							so_environment() )->binder(),
 					[this]( so_5::rt::agent_coop_t & coop )
 					{
 						so_5::prio::for_each_priority( [&]( so_5::priority_t p ) {
@@ -514,15 +514,14 @@ init( so_5::rt::environment_t & env )
 	{
 		// All top-level agents belong to the same coop,
 		// but work on different dispacthers.
-		using namespace so_5::disp;
 		env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
 				auto mbox = coop.environment().create_local_mbox();
 
 				// Request scheduler and accepter stuff.
 
 				// A special dispatcher.
-				auto prio_disp = prio_one_thread::strictly_ordered::
-						create_private_disp( coop.environment() );
+				auto prio_disp = so_5::disp::prio_one_thread::strictly_ordered::create_private_disp(
+						coop.environment() );
 
 				// Common data for both agents. Will be controlled by the coop.
 				auto data = coop.take_under_control(
