@@ -553,26 +553,6 @@ agent_t::do_drop_subscription_for_all_states(
 	m_subscriptions->drop_subscription_for_all_states( mbox, msg_type );
 }
 
-namespace
-{
-	class queue_push_protector_t
-	{
-		std::atomic_uint & m_counter;
-
-	public :
-		queue_push_protector_t( std::atomic_uint & counter )
-			:	m_counter( counter )
-		{
-			m_counter += 1;
-		}
-
-		~queue_push_protector_t()
-		{
-			m_counter -= 1;
-		}
-	};
-} /* namespace anonymous */
-
 void
 agent_t::push_event(
 	const message_limit::control_block_t * limit,
