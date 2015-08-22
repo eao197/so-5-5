@@ -259,8 +259,6 @@ void
 agent_coop_t::do_registration_specific_actions(
 	agent_coop_t * parent_coop )
 {
-	m_registration_status = REGISTRATION_IN_PROGRESS;
-
 	reorder_agents_with_respect_to_priorities();
 	bind_agents_to_coop();
 	define_all_agents();

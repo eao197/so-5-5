@@ -9,12 +9,6 @@
 
 #pragma once
 
-#include <map>
-#include <memory>
-#include <vector>
-#include <utility>
-#include <type_traits>
-
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/types.hpp>
@@ -33,8 +27,15 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent_state_listener.hpp>
-#include <so_5/rt/h/event_queue_proxy.hpp>
+#include <so_5/rt/h/event_queue.hpp>
 #include <so_5/rt/h/subscription_storage_fwd.hpp>
+
+#include <atomic>
+#include <map>
+#include <memory>
+#include <vector>
+#include <utility>
+#include <type_traits>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -86,9 +87,6 @@ namespace impl
 {
 
 // Forward declarations.
-class local_event_queue_t;
-class message_consumer_link_t;
-class so_environment_impl_t;
 class state_listener_controller_t;
 
 class mpsc_mbox_t;
@@ -1376,16 +1374,23 @@ class SO_5_TYPE agent_t
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
 
+//FIXME: there must be more deep explanation of that field.
 		/*!
-		 * \since v.5.4.0
-		 * \brief Event queue proxy.
+		 * \since v.5.5.8
+		 * \brief Special counter to protect push operation on event queue.
+		 */
+		std::atomic_uint	m_event_queue_protection_counter;
+
+		/*!
+		 * \since v.5.5.8
+		 * \brief A pointer to event_queue.
 		 *
 		 * After binding to the dispatcher is it pointed to the actual
 		 * event queue.
 		 *
-		 * After shutdown it is closed.
+		 * After shutdown it is set to nullptr.
 		 */
-		event_queue_proxy_ref_t m_event_queue_proxy;
+		std::atomic< event_queue_t * > m_event_queue;
 
 		/*!
 		 * \since v.5.4.0

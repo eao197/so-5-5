@@ -822,11 +822,6 @@ class SO_5_TYPE agent_coop_t
 		{
 			//! Cooperation is not registered yet.
 			COOP_NOT_REGISTERED,
-			/*!
-			 * \since v.5.5.8
-			 * \brief Cooperation is in process of registration.
-			 */
-			REGISTRATION_IN_PROGRESS,
 			//! Cooperation is registered.
 			/*!
 			 * Reference count for cooperation in that state should

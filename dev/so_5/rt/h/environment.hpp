@@ -1303,9 +1303,7 @@ class SO_5_TYPE environment_t
 			//! If this pointer is null then the limitless MPSC-mbox will be
 			//! created. If this pointer is not null the the MPSC-mbox with limit
 			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage,
-			//! Event queue proxy for the consumer.
-			event_queue_proxy_ref_t event_queue );
+			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Notification about readiness to the deregistration.
 		void
