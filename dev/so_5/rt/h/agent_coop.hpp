@@ -9,10 +9,6 @@
 
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <functional>
-
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
 #include <so_5/h/exception.hpp>
@@ -22,6 +18,11 @@
 #include <so_5/rt/h/agent.hpp>
 #include <so_5/rt/h/adhoc_agent_wrapper.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
+
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
@@ -821,6 +822,11 @@ class SO_5_TYPE agent_coop_t
 		{
 			//! Cooperation is not registered yet.
 			COOP_NOT_REGISTERED,
+			/*!
+			 * \since v.5.5.8
+			 * \brief Cooperation is in process of registration.
+			 */
+			REGISTRATION_IN_PROGRESS,
 			//! Cooperation is registered.
 			/*!
 			 * Reference count for cooperation in that state should
@@ -899,6 +905,13 @@ class SO_5_TYPE agent_coop_t
 		 */
 		coop_dereg_notificators_container_ref_t m_dereg_notificators;
 
+//FIXME: there should be more deep explanation of the working scheme!
+		/*!
+		 * \since v.5.5.8
+		 * \brief A lock for synchonization of evt_start events.
+		 */
+		std::mutex m_binding_lock;
+		
 		/*!
 		 * \since v.5.2.3
 		 * \brief The registration status of cooperation.

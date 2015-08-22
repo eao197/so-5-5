@@ -1570,6 +1570,14 @@ class SO_5_TYPE agent_t
 			execution_demand_t & d );
 
 		/*!
+		 * \since v.5.5.8
+		 * \brief Ensures that all agents from cooperation are
+		 * bound to dispatchers.
+		 */
+		void
+		ensure_binding_finished();
+
+		/*!
 		 * \since v.5.4.0
 		 * \note This method is necessary for GCC on Cygwin.
 		 */

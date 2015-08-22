@@ -572,6 +572,8 @@ agent_t::demand_handler_on_start(
 	current_thread_id_t working_thread_id,
 	execution_demand_t & d )
 {
+	d.m_receiver->ensure_binding_finished();
+
 	working_thread_id_sentinel_t sentinel(
 			d.m_receiver->m_working_thread_id,
 			working_thread_id );
@@ -585,6 +587,24 @@ agent_t::demand_handler_on_start(
 		impl::process_unhandled_exception(
 				working_thread_id, x, *(d.m_receiver) );
 	}
+}
+
+void
+agent_t::ensure_binding_finished()
+{
+	std::lock_guard< std::mutex > binding_lock{ m_agent_coop->m_binding_lock };
+
+	// Cooperation cannot have status COOP_NOT_REGISTERED at this moment!
+	if( agent_coop_t::COOP_NOT_REGISTERED == m_agent_coop->m_registration_status )
+		so_5::details::abort_on_fatal_error( [&] {
+			SO_5_LOG_ERROR( so_environment(), log_stream )
+			{
+				log_stream << "Unexpected error: agent_coop has status "
+					"COOP_NOT_REGISTERED at demand_handler_on_start. "
+					"Cooperation: " << m_agent_coop->query_coop_name()
+					<< ". Application will be aborted" << std::endl;
+			}
+		} );
 }
 
 demand_handler_pfn_t

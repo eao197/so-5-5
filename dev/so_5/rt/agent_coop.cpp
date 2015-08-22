@@ -259,6 +259,8 @@ void
 agent_coop_t::do_registration_specific_actions(
 	agent_coop_t * parent_coop )
 {
+	m_registration_status = REGISTRATION_IN_PROGRESS;
+
 	reorder_agents_with_respect_to_priorities();
 	bind_agents_to_coop();
 	define_all_agents();
@@ -321,6 +323,11 @@ agent_coop_t::define_all_agents()
 void
 agent_coop_t::bind_agents_to_disp()
 {
+	// All the following actions must be performed on locked m_binding_lock.
+	// It prevents evt_start event from execution until all agents will be
+	// bound to its dispatchers.
+	std::lock_guard< std::mutex > binding_lock{ m_binding_lock };
+
 	std::vector< disp_binding_activator_t > activators;
 	activators.reserve( m_agent_array.size() );
 
