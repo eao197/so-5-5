@@ -900,10 +900,21 @@ class SO_5_TYPE agent_coop_t
 		 */
 		coop_dereg_notificators_container_ref_t m_dereg_notificators;
 
-//FIXME: there should be more deep explanation of the working scheme!
 		/*!
 		 * \since v.5.5.8
 		 * \brief A lock for synchonization of evt_start events.
+		 *
+		 * A new way of handling coop registration was introduced
+		 * in v.5.5.8. Agents from the coop cannot start its work before
+		 * finish of main coop registration actions (expecialy before
+		 * end of such important step as binding agents to dispatchers).
+		 * But some agents could receive evt_start event before end of
+		 * agents binding step. Those agents will be stopped on this lock.
+		 *
+		 * Coop acquires this lock before agents binding step and releases
+		 * just after that. Every agent tries to acquire it during handling
+		 * of evt_start. If lock is belong to coop then an agent will be stopped
+		 * until the lock will be released.
 		 */
 		std::mutex m_binding_lock;
 		

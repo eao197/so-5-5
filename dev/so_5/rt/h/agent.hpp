@@ -1375,10 +1375,25 @@ class SO_5_TYPE agent_t
 		//! SObjectizer Environment for which the agent is belong.
 		environment_t & m_env;
 
-//FIXME: there must be more deep explanation of that field.
 		/*!
 		 * \since v.5.5.8
 		 * \brief Event queue operation protector.
+		 *
+		 * Initially m_event_queue is NULL. It is changed to actual value
+		 * in so_bind_to_dispatcher() method. And reset to nullptr again
+		 * in shutdown_agent().
+		 *
+		 * nullptr in m_event_queue means that methods push_event() and
+		 * push_service_request() will throw away any new demand.
+		 *
+		 * It is necessary to provide guarantee that m_event_queue will
+		 * be reset to nullptr in shutdown_agent() only if there is no
+		 * working push_event()/push_service_request() methods. To do than
+		 * default_rw_spinlock_t is used. Methods push_event() and
+		 * push_service_request() acquire it in read-mode and shutdown_agent()
+		 * acquires it in write-mode. It means that shutdown_agent() cannot
+		 * get access to m_event_queue until there is working
+		 * push_event()/push_service_request().
 		 */
 		default_rw_spinlock_t	m_event_queue_lock;
 
@@ -1390,6 +1405,9 @@ class SO_5_TYPE agent_t
 		 * event queue.
 		 *
 		 * After shutdown it is set to nullptr.
+		 *
+		 * \attention Access to m_event_queue value must be done only
+		 * under acquired m_event_queue_lock.
 		 */
 		event_queue_t * m_event_queue;
 

@@ -436,7 +436,6 @@ agent_t::bind_to_coop(
 	m_is_coop_deregistered = false;
 }
 
-//FIXME: this method must be marked as noexcept.
 void
 agent_t::shutdown_agent() SO_5_NOEXCEPT
 {
