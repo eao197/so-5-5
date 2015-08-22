@@ -14,6 +14,7 @@
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
 #include <so_5/h/atomic_refcounted.hpp>
+#include <so_5/h/spinlocks.hpp>
 
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
@@ -1377,9 +1378,9 @@ class SO_5_TYPE agent_t
 //FIXME: there must be more deep explanation of that field.
 		/*!
 		 * \since v.5.5.8
-		 * \brief Special counter to protect push operation on event queue.
+		 * \brief Event queue operation protector.
 		 */
-		std::atomic_uint	m_event_queue_protection_counter;
+		default_rw_spinlock_t	m_event_queue_lock;
 
 		/*!
 		 * \since v.5.5.8
@@ -1390,7 +1391,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * After shutdown it is set to nullptr.
 		 */
-		std::atomic< event_queue_t * > m_event_queue;
+		event_queue_t * m_event_queue;
 
 		/*!
 		 * \since v.5.4.0
@@ -1459,7 +1460,7 @@ class SO_5_TYPE agent_t
 		 * Method destroys all agent subscriptions.
 		 */
 		void
-		shutdown_agent();
+		shutdown_agent() SO_5_NOEXCEPT;
 		/*!
 		 * \}
 		 */

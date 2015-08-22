@@ -185,8 +185,6 @@ agent_t::agent_t(
 	,	m_is_coop_deregistered( false )
 	,	m_priority( ctx.options().query_priority() )
 {
-	// Because of defects in MSVS2013 :(
-	m_event_queue_protection_counter.store( 0, std::memory_order_release );
 }
 
 agent_t::~agent_t()
@@ -321,6 +319,8 @@ void
 agent_t::so_bind_to_dispatcher(
 	event_queue_t & queue )
 {
+	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
 	// Cooperation usage counter should be incremented.
 	// It will be decremented during final agent event execution.
 	agent_coop_t::increment_usage_count( *m_agent_coop );
@@ -337,7 +337,7 @@ agent_t::so_bind_to_dispatcher(
 							&agent_t::demand_handler_on_start ) );
 			
 			// Only then pointer to the queue could be stored.
-			m_event_queue.store( &queue, std::memory_order_release );
+			m_event_queue = &queue;
 		} );
 }
 
@@ -436,9 +436,12 @@ agent_t::bind_to_coop(
 	m_is_coop_deregistered = false;
 }
 
+//FIXME: this method must be marked as noexcept.
 void
-agent_t::shutdown_agent()
+agent_t::shutdown_agent() SO_5_NOEXCEPT
 {
+	std::lock_guard< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
+
 	// Since v.5.5.8 shutdown is done by two simple step:
 	// - remove actual value from m_event_queue;
 	// - pushing final demand to actual event queue.
@@ -446,21 +449,11 @@ agent_t::shutdown_agent()
 	// No new demands will be sent to the agent, but all the subscriptions
 	// remains. They will be destroyed at the very end of agent's lifetime.
 
-	auto q = m_event_queue.load( std::memory_order_acquire );
-	if( q )
+	if( m_event_queue )
 	{
-		// No more events will be stored to the queue.
-		m_event_queue.store( nullptr, std::memory_order_release );
-
-		// We must wait until all push operation will be finished.
-		yield_backoff_t backoff;
-		while( 0 != m_event_queue_protection_counter.load(
-					std::memory_order_acquire ) )
-			backoff();
-
 		// Final event must be pushed to queue.
 		so_5::details::invoke_noexcept_code( [&] {
-				q->push(
+				m_event_queue->push(
 						execution_demand_t(
 								this,
 								message_limit::control_block_t::none(),
@@ -469,6 +462,9 @@ agent_t::shutdown_agent()
 								message_ref_t(),
 								&agent_t::demand_handler_on_finish ) );
 			} );
+
+		// No more events will be stored to the queue.
+		m_event_queue = nullptr;
 	}
 	else
 		so_5::details::abort_on_fatal_error( [&] {
@@ -585,11 +581,10 @@ agent_t::push_event(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	queue_push_protector_t protector{ m_event_queue_protection_counter };
+	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
-	auto q = m_event_queue.load( std::memory_order_acquire );
-	if( q )
-		q->push(
+	if( m_event_queue )
+		m_event_queue->push(
 				execution_demand_t(
 					this,
 					limit,
@@ -606,11 +601,10 @@ agent_t::push_service_request(
 	std::type_index msg_type,
 	const message_ref_t & message )
 {
-	queue_push_protector_t protector{ m_event_queue_protection_counter };
+	read_lock_guard_t< default_rw_spinlock_t > queue_lock{ m_event_queue_lock };
 
-	auto q = m_event_queue.load( std::memory_order_acquire );
-	if( q )
-		q->push(
+	if( m_event_queue )
+		m_event_queue->push(
 				execution_demand_t(
 						this,
 						limit,
