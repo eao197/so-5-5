@@ -160,6 +160,16 @@ template< class M, class L >
 agent_context_t
 operator+(
 	agent_context_t ctx,
+	message_limit::log_then_abort_app_indicator_t< M, L > limit )
+	{
+		ctx.options().message_limits( limit );
+		return std::move( ctx );
+	};
+
+template< class M, class L >
+agent_context_t
+operator+(
+	agent_context_t ctx,
 	message_limit::redirect_indicator_t< M, L > limit )
 	{
 		ctx.options().message_limits( std::move( limit ) );
