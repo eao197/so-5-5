@@ -97,6 +97,23 @@ void test()
 			} );
 		call( indicator, ctx );
 	}
+
+	{
+		overlimit_context_t ctx{
+			*( static_cast< agent_t * >(nullptr) ),
+			*( static_cast< control_block_t * >(nullptr) ),
+			invocation_type_t::event,
+			1,
+			typeid(msg),
+			message_ref_t{}
+		};
+
+		auto indicator = log_then_abort< msg >( 10u,
+			[]( const agent_t &, const msg & ) {
+				std::cout << "this a message" << std::endl;
+			} );
+		call( indicator, ctx );
+	}
 }
 
 int main()
