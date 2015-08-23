@@ -182,7 +182,6 @@ agent_t::agent_t(
 		// constructor of derived class.
 	,	m_working_thread_id( so_5::query_current_thread_id() )
 	,	m_agent_coop( 0 )
-	,	m_is_coop_deregistered( false )
 	,	m_priority( ctx.options().query_priority() )
 {
 }
@@ -433,7 +432,6 @@ agent_t::bind_to_coop(
 	agent_coop_t & coop )
 {
 	m_agent_coop = &coop;
-	m_is_coop_deregistered = false;
 }
 
 void
@@ -490,9 +488,6 @@ agent_t::create_event_subscription(
 	// working thread.
 
 	ensure_operation_is_on_working_thread( "create_event_subscription" );
-
-	if( m_is_coop_deregistered )
-		return;
 
 	m_subscriptions->create_event_subscription(
 			mbox_ref,

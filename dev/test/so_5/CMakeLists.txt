@@ -38,9 +38,7 @@ add_subdirectory(disp/prio_ot_quoted_round_robin)
 
 add_subdirectory(disp/prio_dt_one_per_prio)
 
-add_subdirectory(event_handler/subscribe_errors)
-add_subdirectory(event_handler/ignore_exception)
-add_subdirectory(event_handler/exception_reaction_inheritance)
+add_subdirectory(event_handler)
 
 add_subdirectory(messages/three_messages)
 add_subdirectory(messages/resend_message)

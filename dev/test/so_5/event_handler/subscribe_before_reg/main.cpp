@@ -28,6 +28,8 @@ public :
 	a_test_t( context_t ctx )
 		:	so_5::rt::agent_t( ctx )
 	{
+		this >>= st_1;
+
 		st_1.event< msg_1 >( [this]{
 				this >>= st_2;
 				so_5::send_to_agent< msg_2 >( *this );

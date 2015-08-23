@@ -1429,9 +1429,6 @@ class SO_5_TYPE agent_t
 		//! Agent is belong to this cooperation.
 		agent_coop_t * m_agent_coop;
 
-		//! Is the cooperation deregistration in progress?
-		bool m_is_coop_deregistered;
-
 		/*!
 		 * \since v.5.5.5
 		 * \brief Delivery filters for that agents.
