@@ -10,7 +10,7 @@ struct msg : public so_5::rt::message_t
 	msg( int v ) : m_v(v) {}
 };
 
-struct signal : public so_5::rt::signal_t
+struct my_signal : public so_5::rt::signal_t
 {
 };
 
@@ -32,15 +32,20 @@ struct log_then_abort_app_indicator_t
 			{}
 	};
 
-template< typename M, typename L >
-log_then_abort_app_indicator_t< M, L >
-log_then_abort( unsigned int limit, L action )
+struct limits_manager
 {
-	return log_then_abort_app_indicator_t< M, L >{ limit, std::move(action) };
-}
+	template< typename M, typename L >
+	static log_then_abort_app_indicator_t< M, L >
+	log_then_abort( unsigned int limit, L lambda )
+	{
+		return log_then_abort_app_indicator_t< M, L >{
+			limit, std::move(lambda) };
+	}
+};
 
 template< bool IS_MESSAGE, typename M, typename L >
-struct call_logging_action_impl {
+struct call_logging_action_impl
+{
 	static void
 	call(
 		const so_5::rt::message_limit::overlimit_context_t & ctx,
@@ -52,7 +57,8 @@ struct call_logging_action_impl {
 };
 
 template< typename M, typename L >
-struct call_logging_action_impl< false, M, L > {
+struct call_logging_action_impl< false, M, L >
+{
 	static void
 	call(
 		const so_5::rt::message_limit::overlimit_context_t & ctx,
@@ -75,7 +81,6 @@ call( const log_then_abort_app_indicator_t< M, L > & indicator,
 	call_logging_action< M, L >::call( ctx, indicator.m_lambda );
 }
 
-
 void test()
 {
 	using namespace so_5::rt;
@@ -87,11 +92,11 @@ void test()
 			*( static_cast< control_block_t * >(nullptr) ),
 			invocation_type_t::event,
 			1,
-			typeid(signal),
+			typeid(my_signal),
 			message_ref_t{}
 		};
 
-		auto indicator = log_then_abort< signal >( 10u,
+		auto indicator = limits_manager::log_then_abort< my_signal >( 10u,
 			[]( const agent_t & ) {
 				std::cout << "this a signal" << std::endl;
 			} );
@@ -108,7 +113,7 @@ void test()
 			message_ref_t{}
 		};
 
-		auto indicator = log_then_abort< msg >( 10u,
+		auto indicator = limits_manager::log_then_abort< msg >( 10u,
 			[]( const agent_t &, const msg & ) {
 				std::cout << "this a message" << std::endl;
 			} );
