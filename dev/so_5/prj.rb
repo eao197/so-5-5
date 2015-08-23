@@ -36,7 +36,6 @@ MxxRu::Cpp::dll_target {
 		cpp_source 'mbox.cpp'
 
 		cpp_source 'event_queue.cpp'
-		cpp_source 'event_queue_proxy.cpp'
 
 		cpp_source 'event_exception_logger.cpp'
 
