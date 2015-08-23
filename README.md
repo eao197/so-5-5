@@ -1,5 +1,6 @@
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
-[![Build Status](https://travis-ci.org/masterspline/SObjectizer.svg?branch=master)](https://travis-ci.org/masterspline/SObjectizer)
+Coverity Scan Build Status [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
+
+Travis CI Build status [![Build Status](https://travis-ci.org/masterspline/SObjectizer.svg?branch=master)](https://travis-ci.org/masterspline/SObjectizer)
 
 This is unofficial SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.
 Project documentation in wiki https://github.com/masterspline/SObjectizer/wiki
