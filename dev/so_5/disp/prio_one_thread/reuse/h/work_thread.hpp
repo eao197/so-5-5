@@ -56,26 +56,20 @@ class work_thread_t
 		//! Demands queue to work for.
 		DEMAND_QUEUE & m_queue;
 
-		//! Thread ID to be passed to event handlers.
-		/*!
-		 * \note Receives actual value at the start of body() method.
-		 */
-		so_5::current_thread_id_t m_thread_id;
-
 		//! Thread object.
 		std::thread m_thread;
 
 		void
 		body()
 			{
-				m_thread_id = so_5::query_current_thread_id();
+				const auto thread_id = so_5::query_current_thread_id();
 
 				try
 					{
 						for(;;)
 							{
 								auto d = m_queue.pop();
-								d->call_handler( m_thread_id );
+								d->call_handler( thread_id );
 							}
 					}
 				catch( const typename DEMAND_QUEUE::shutdown_ex_t & )
