@@ -4,7 +4,7 @@ MxxRu::Cpp::exe_target {
 
 	required_prj 'so_5/prj.rb'
 
-	target '_unit.test.message_limits.log_then_abort.mc_mbox'
+	target '_unit.test.message_limits.log_then_abort_for_signal.sc_mbox'
 
 	cpp_source 'main.cpp'
 }

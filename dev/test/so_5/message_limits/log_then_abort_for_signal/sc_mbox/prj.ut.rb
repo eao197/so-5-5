@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/message_limits/log_then_abort/sc_mbox'
+path = 'test/so_5/message_limits/log_then_abort_for_signal/sc_mbox'
 
 MxxRu::setup_target(
 	MxxRu::NegativeBinaryUnittestTarget.new(
