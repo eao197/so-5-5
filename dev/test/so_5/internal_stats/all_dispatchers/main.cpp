@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <thread>
 #include <chrono>
+#include <random>
 
 #include <so_5/all.hpp>
 
@@ -320,7 +321,14 @@ class a_controller_t : public so_5::rt::agent_t
 		static std::size_t
 		random_index( std::size_t max_size )
 			{
-				return static_cast< std::size_t >( std::rand() ) % max_size;
+				if( max_size > 0 )
+				{
+					std::random_device rd;
+					std::mt19937 gen{ rd() };
+					return std::uniform_int_distribution< std::size_t >{0, max_size-1}(gen);
+				}
+				else
+					return 0;
 			}
 	};
 
