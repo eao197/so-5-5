@@ -251,11 +251,55 @@ class service_invoke_proxy_t
 
 		//! Make another proxy for time-unlimited synchronous
 		//! service request calls.
+		/*!
+		 * This method is used as second part of method chain for
+		 * synchronous interaction. It must be used if service request
+		 * initiator want to wait response of infinite amount of time.
+		 *
+		 * The call to wait_forever if equivalent of:
+		 * \code
+		 	std::future< Resp > f = mbox.get_one< Resp >().make_async< Req >(...);
+			Resp r = f.get();
+		 * \endcode
+		 *
+		 * It means that return conditions for wait_forever() are the same
+		 * as return conditions for underlying call to std::future::get().
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+		 	std::string r = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...);
+		 * \endcode
+		 */
 		infinite_wait_service_invoke_proxy_t< RESULT >
 		wait_forever() const;
 
 		//! Make another proxy for time-limited synchronous
 		//! service requests calls.
+		/*!
+		 * This method is used as second part of method chain for
+		 * synchronous interaction. It must be used if service request
+		 * initiator want to wait response no more than specified amount
+		 * of time.
+		 *
+		 * The call to wait_for if equivalent of:
+		 * \code
+		 	std::future< Resp > f = mbox.get_one< Resp >().make_async< Req >(...);
+			auto wait_result = f.wait_for( timeout );
+			if( std::future_status::ready != wait_result )
+				throw some_exception();
+			Resp r = f.get();
+		 * \endcode
+		 *
+		 * It means that return conditions for wait_for() are the same
+		 * as return conditions for underlying call to std::future::wait_for().
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+		 	std::string r = dest.get_one< std::string >().wait_for(std::chrono::milliseconds(50)).make_sync_get< request >(...);
+		 * \endcode
+		 */
 		template< class DURATION >
 		wait_for_service_invoke_proxy_t< RESULT, DURATION >
 		wait_for(
@@ -265,6 +309,15 @@ class service_invoke_proxy_t
 		//! Create param and make service request call.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 * \tparam ARGS types of PARAM's constructor arguments.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			auto result = dest.get_one< std::string >().make_async< request >(...) );
+		 * \endcode
 		 */
 		template< class PARAM, typename... ARGS >
 		std::future< RESULT >
