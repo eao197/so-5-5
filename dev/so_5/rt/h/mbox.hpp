@@ -374,6 +374,43 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		/*!
 		 * \since v.5.3.0
 		 * \brief Create a special proxy for service request invocation.
+		 *
+		 * \tparam RESULT type of result to be received as result of
+		 * service request.
+		 *
+		 * \note That method starts methods call chain for synchonous
+		 * agents interaction. Next method should be either
+		 * wait_forever()/wait_for() or async()/make_async().
+		 *
+		 * \par Usage examples
+		 * \code
+		 	// Make synchronous call and acquire result as a future object.
+			const so_5::rt::mbox_t & dest = ...;
+			std::future< std::string > result =
+					dest.get_one< std::string >().make_async< request >(...);
+
+			// Or if request object is already created:
+			std::unique_ptr< request > req = std::make_unique< request >(...);
+			...
+			std::future< std::string > result =
+					dest.get_one< std::string >().async( std::move( request ) );
+
+			// Make synchronous call, wait for result indefinitely.
+			std::string result =
+					dest.get_one< std::string >().wait_forever().make_sync_get< request >(...);
+			// Or...
+			std::unique_ptr< request > req = std::make_unique< request >(...);
+			std::string result =
+					dest.get_one< std::string >().wait_forever().sync_get( std::move( request ) );
+
+			// Make synchronous call, wait no more than 50ms.
+			std::string result =
+					dest.get_one< std::string >().wait_for( std::chrono::milliseconds(50) ).make_sync_get< request >(...);
+			// Or...
+			std::unique_ptr< request > req = std::make_unique< request >(...);
+			std::string result =
+					dest.get_one< std::string >().wait_for( std::chrono::milliseconds(50) ).sync_get( std::move( request ) );
+		 * \endcode
 		 */
 		template< class RESULT >
 		inline service_invoke_proxy_t< RESULT >
@@ -387,6 +424,14 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		 * \since v.5.3.0
 		 * \brief Create a special proxy for service request invocation
 		 * where return type is void.
+		 *
+		 * \tparam RESULT type of result to be received as result of
+		 * service request.
+		 *
+		 * \note This method could useful for waiting a completion of
+		 * some message processing by destination agent.
+		 *
+		 * \sa get_one().
 		 */
 		inline service_invoke_proxy_t< void >
 		run_one()
