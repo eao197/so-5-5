@@ -185,6 +185,14 @@ class service_invoke_proxy_t
 		//! Make asynchronous service request.
 		/*!
 		 * This method should be used for the cases where PARAM is a signal.
+		 *
+		 * \tparam PARAM type of signal to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	const so_5::rt::mbox_t & dest = ...;
+			auto result = dest.get_one< std::string >().async< status_signal >();
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -193,6 +201,17 @@ class service_invoke_proxy_t
 		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+			{
+				const so_5::rt::mbox_t & dest = ...;
+				auto result = dest.get_one< std::string >().async( req.make_reference() );
+			}
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -201,6 +220,14 @@ class service_invoke_proxy_t
 		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			auto result = dest.get_one< std::string >().async( std::make_unique< request >(...) );
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
@@ -209,6 +236,14 @@ class service_invoke_proxy_t
 		//! Make service request call with param.
 		/*!
 		 * This method should be used for the case where PARAM is a message.
+		 *
+		 * \tparam PARAM type of message to be sent to distination.
+		 *
+		 * \par Usage example:
+		 * \code
+			const so_5::rt::mbox_t & dest = ...;
+			auto result = dest.get_one< std::string >().async( new request(...) );
+		 * \endcode
 		 */
 		template< class PARAM >
 		std::future< RESULT >
