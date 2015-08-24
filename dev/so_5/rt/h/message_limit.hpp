@@ -625,9 +625,29 @@ struct message_limit_methods_mixin_t
 		 * \since v.5.5.4
 		 * \brief A helper function for creating transform_indicator.
 		 *
-		 * Must be used for message transformation. Type of message is
-		 * detected automatically from the type of transformation lambda
-		 * argument.
+		 * \note Must be used for message transformation, signals cannot be
+		 * transformed. Type of message is detected automatically from the type
+		 * of transformation lambda argument.
+		 *
+		 * \par Usage example:
+		 * \code
+			class a_request_processor_t : public so_5::rt::agent_t
+			{
+			public :
+				a_request_processor_t( context_t ctx )
+					:	so_5::rt::agent_t( ctx 
+							// Limit count of requests in the queue.
+							// If queue is full then request must be transformed
+							// to negative reply.
+							+ limit_then_transform( 3,
+								[]( const request & evt ) {
+									return make_transformed< reply >(
+											evt.m_reply_to, evt.m_id, false );
+								} ) )
+					{...}
+				...
+			};
+		 * \endcode
 		 */
 		template<
 				typename LAMBDA,
