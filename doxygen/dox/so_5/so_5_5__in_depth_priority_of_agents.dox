@@ -80,7 +80,7 @@ different priorities will be processed on different threads).
 Group prio_one_thread consists of two dispatchers: strictly_ordered and
 quoted_round_robin.
 
-\subsubsection so_5_5__in_depth_priority_of_agents__disps__one_thread__so Dispatcher prio_one_thread::strictrly_ordered
+\subsubsection so_5_5__in_depth_priority_of_agents__disps__one_thread__so Dispatcher prio_one_thread::strictly_ordered
 
 <b>Working Principles</b>
 
