@@ -1,4 +1,6 @@
-[![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
+Travis CI [![Build Status](https://travis-ci.org/masterspline/SObjectizer.svg?branch=master)](https://travis-ci.org/masterspline/SObjectizer)
+
+Coverity [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
 
 This is unofficial SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.
 Project documentation in wiki https://github.com/masterspline/SObjectizer/wiki
