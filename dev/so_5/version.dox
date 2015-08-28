@@ -7,8 +7,8 @@
 	Pririties for agents and several new dispatchers with priorities support
 	have been added. See \ref so_5_5__in_depth_priority_of_agents for details.
 
-	Another variant of introduce_child_coop for simplification of child coop
-   creation: \ref so_5_5_8__new_form_introduce_child_coop.
+	Another variant of introduce_child_coop and create_child_coop for
+	simplification of child coop creation: \ref so_5_5_8__new_form_introduce_child_coop.
 
 	New methods of so_5::rt::agent_coop_t for simplification of coop
    deregistration: \ref so_5_5_8__new_method_agent_coop_deregister.
