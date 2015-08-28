@@ -2,7 +2,10 @@
 
 \page so_5__version so_5: Version History
 
-\section so_5__5_8 5.5.8
+\section so_5__5_8 5.5.8 "Elbrus"
+
+	Pririties for agents and several new dispatchers with priorities support
+	have been added. See \ref so_5_5__in_depth_priority_of_agents for details.
 
 	Another variant of introduce_child_coop for simplification of child coop
    creation: \ref so_5_5_8__new_form_introduce_child_coop.
