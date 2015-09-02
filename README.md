@@ -45,8 +45,9 @@ When 'make install' finishes './installed_files' will contain two subfolders
 
 CMake build system currently supports this options:
 
-  BUILD_ALL      | Enable building examples and tests [default: OFF]
+| Option         | Description
   ---------------|--------------------------------------------------
+  BUILD_ALL      | Enable building examples and tests [default: OFF]
   BUILD_EXAMPLES | Enable building examples [default: OFF]
   BUILD_TESTS    | Enable building tests    [default: OFF]
 
