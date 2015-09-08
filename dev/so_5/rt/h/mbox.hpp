@@ -901,7 +901,9 @@ template< class PARAM, typename... ARGS >
 std::future< RESULT >
 service_invoke_proxy_t<RESULT>::make_async( ARGS&&... args ) const
 	{
-		intrusive_ptr_t< PARAM > msg{
+		using ENVELOPE = typename message_payload_type< PARAM >::envelope_type;
+
+		intrusive_ptr_t< ENVELOPE > msg{
 				details::make_message_instance< PARAM >(
 						std::forward<ARGS>(args)... ).release() };
 
@@ -1057,7 +1059,9 @@ RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 	ARGS&&... args ) const
 	{
-		intrusive_ptr_t< PARAM > msg{
+		using ENVELOPE = typename message_payload_type< PARAM >::envelope_type;
+
+		intrusive_ptr_t< ENVELOPE > msg{
 				details::make_message_instance< PARAM >(
 						std::forward<ARGS>(args)... ).release() };
 

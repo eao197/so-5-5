@@ -109,63 +109,6 @@ struct user_type_message_t : public message_t
 };
 
 //
-// message_payload_type
-//
-/*!
- * \since v.5.5.9
- * \brief A helper class for detection of payload type of message.
- *
- * \tparam T type to test.
- */
-template< typename T >
-struct message_payload_type
-	{
-		using payload_type = T;
-		using envelope_type = T;
-
-		inline static std::type_index payload_type_index() { return typeid(T); }
-
-		inline static payload_type *
-		extract_payload_ptr( message_ref_t & msg )
-			{
-				return dynamic_cast< payload_type * >( msg.get() );
-			}
-
-		inline static const payload_type &
-		payload_reference( const message_t & msg )
-			{
-				return dynamic_cast< const payload_type & >( msg );
-			}
-	};
-
-template< typename T >
-struct message_payload_type< user_type_message_t< T > >
-	{
-		using payload_type = T;
-		using envelope_type = user_type_message_t< T >;
-
-		inline static std::type_index payload_type_index() { return typeid(T); }
-
-		inline static payload_type *
-		extract_payload_ptr( message_ref_t & msg )
-			{
-				auto envelope = dynamic_cast< envelope_type * >( msg.get() );
-				if( !envelope )
-					SO_5_THROW_EXCEPTION( so_5::rc_unexpected_error,
-							"nullptr for user_type_message_t<T> instance" );
-
-				return &(envelope->m_payload);
-			}
-
-		inline static const payload_type &
-		payload_reference( const message_t & msg )
-			{
-				auto envelope = dynamic_cast< const envelope_type & >( msg );
-				return envelope.m_payload;
-			}
-	};
-
-//
 // is_user_type_message
 //
 /*!
@@ -289,6 +232,78 @@ ensure_classical_message()
 		static_assert( is_classical_message< MSG >::value,
 				"expected a type derived from the message_t" );
 	}
+
+//
+// message_payload_type_impl
+//
+template< typename T, bool is_classical_message >
+struct message_payload_type_impl
+	{
+		using payload_type = T;
+		using envelope_type = T;
+
+		inline static std::type_index payload_type_index() { return typeid(T); }
+
+		inline static payload_type *
+		extract_payload_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< payload_type * >( msg.get() );
+			}
+
+		inline static const payload_type &
+		payload_reference( const message_t & msg )
+			{
+				return dynamic_cast< const payload_type & >( msg );
+			}
+	};
+
+template< typename T >
+struct message_payload_type_impl< T, false >
+	{
+		using payload_type = T;
+		using envelope_type = user_type_message_t< T >;
+
+		inline static std::type_index payload_type_index() { return typeid(T); }
+
+		inline static const payload_type *
+		extract_payload_ptr( message_ref_t & msg )
+			{
+				auto envelope = dynamic_cast< envelope_type * >( msg.get() );
+				if( !envelope )
+					SO_5_THROW_EXCEPTION( so_5::rc_unexpected_error,
+							"nullptr for user_type_message_t<T> instance" );
+
+				return &(envelope->m_payload);
+			}
+
+		inline static const payload_type &
+		payload_reference( const message_t & msg )
+			{
+				auto envelope = dynamic_cast< const envelope_type & >( msg );
+				return envelope.m_payload;
+			}
+	};
+
+//
+// message_payload_type
+//
+/*!
+ * \since v.5.5.9
+ * \brief A helper class for detection of payload type of message.
+ *
+ * \tparam T type to test.
+ */
+template< typename T >
+struct message_payload_type
+	:	public message_payload_type_impl< T, is_classical_message< T >::value >
+	{
+	};
+
+template< typename T >
+struct message_payload_type< user_type_message_t< T > >
+	:	public message_payload_type_impl< T, false >
+	{
+	};
 
 namespace details
 {
