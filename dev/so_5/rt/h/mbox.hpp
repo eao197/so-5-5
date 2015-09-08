@@ -763,10 +763,11 @@ inline void
 abstract_message_box_t::deliver_message(
 	const intrusive_ptr_t< MESSAGE > & msg_ref ) const
 {
+	ensure_classical_message< MESSAGE >();
 	ensure_message_with_actual_data( msg_ref.get() );
 
 	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
+		message_payload_type< MESSAGE >::payload_type_index(),
 		msg_ref.template make_reference< message_t >() );
 }
 
@@ -775,10 +776,11 @@ void
 abstract_message_box_t::deliver_message(
 	std::unique_ptr< MESSAGE > msg_unique_ptr ) const
 {
+	ensure_classical_message< MESSAGE >();
 	ensure_message_with_actual_data( msg_unique_ptr.get() );
 
 	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
+		message_payload_type< MESSAGE >::payload_type_index(),
 		message_ref_t( msg_unique_ptr.release() ) );
 }
 
@@ -797,7 +799,7 @@ abstract_message_box_t::deliver_signal() const
 	ensure_signal< MESSAGE >();
 
 	deliver_message(
-		std::type_index( typeid( MESSAGE ) ),
+		message_payload_type< MESSAGE >::payload_type_index(),
 		message_ref_t() );
 }
 
@@ -830,7 +832,7 @@ service_invoke_proxy_t<RESULT>::async() const
 				new msg_service_request_t< RESULT, PARAM >(
 						std::move(promise) ) );
 		m_mbox->deliver_service_request(
-				std::type_index( typeid(PARAM) ),
+				message_payload_type< PARAM >::payload_type_index(),
 				ref );
 
 		return f;
@@ -853,7 +855,7 @@ service_invoke_proxy_t<RESULT>::async(
 						msg_ref.template make_reference< message_t >() ) );
 
 		m_mbox->deliver_service_request(
-				std::type_index( typeid(PARAM) ),
+				message_payload_type< PARAM >::payload_type_index(),
 				ref );
 
 		return f;
@@ -899,8 +901,9 @@ template< class PARAM, typename... ARGS >
 std::future< RESULT >
 service_invoke_proxy_t<RESULT>::make_async( ARGS&&... args ) const
 	{
-		intrusive_ptr_t< PARAM > msg(
-				new PARAM( std::forward<ARGS>(args)... ) );
+		intrusive_ptr_t< PARAM > msg{
+				details::make_message_instance< PARAM >(
+						std::forward<ARGS>(args)... ).release() };
 
 		return this->async( std::move( msg ) );
 	}
@@ -939,6 +942,8 @@ RESULT
 infinite_wait_service_invoke_proxy_t< RESULT >::sync_get(
 	std::unique_ptr< PARAM > msg_unique_ptr ) const
 	{
+		ensure_classical_message< PARAM >();
+
 		return this->sync_get(
 				intrusive_ptr_t< PARAM >( msg_unique_ptr.release() ) );
 	}
@@ -948,6 +953,8 @@ template< class PARAM >
 RESULT
 infinite_wait_service_invoke_proxy_t< RESULT >::sync_get( PARAM * msg ) const
 	{
+		ensure_classical_message< PARAM >();
+
 		return this->sync_get(
 				intrusive_ptr_t< PARAM >( msg ) );
 	}
@@ -1013,6 +1020,8 @@ RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
 	intrusive_ptr_t< PARAM > msg_ref ) const
 	{
+		ensure_classical_message< PARAM >();
+
 		auto f = m_creator.async( std::move(msg_ref) );
 
 		return wait_for_service_invoke_proxy_details::wait_and_return
@@ -1025,6 +1034,8 @@ RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::sync_get(
 	std::unique_ptr< PARAM > msg_unique_ptr ) const
 	{
+		ensure_classical_message< PARAM >();
+
 		return this->sync_get(
 				intrusive_ptr_t< PARAM >(
 						msg_unique_ptr.release() ) );
@@ -1046,8 +1057,9 @@ RESULT
 wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 	ARGS&&... args ) const
 	{
-		intrusive_ptr_t< PARAM > msg(
-				new PARAM( std::forward<ARGS>(args)... ) );
+		intrusive_ptr_t< PARAM > msg{
+				details::make_message_instance< PARAM >(
+						std::forward<ARGS>(args)... ).release() };
 
 		return this->sync_get( std::move( msg ) );
 	}

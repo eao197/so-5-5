@@ -72,10 +72,9 @@ template< typename MESSAGE, typename... ARGS >
 void
 send( const so_5::rt::mbox_t & to, ARGS&&... args )
 	{
-		std::unique_ptr< MESSAGE > msg(
-				new MESSAGE( std::forward<ARGS>(args)... ) );
-
-		to->deliver_message( std::move( msg ) );
+		to->deliver_message(
+				so_5::rt::details::make_message_instance< MESSAGE >(
+						std::forward<ARGS>(args)...) );
 	}
 
 /*!
@@ -157,10 +156,10 @@ send_delayed(
 	//! Message constructor parameters.
 	ARGS&&... args )
 	{
-		std::unique_ptr< MESSAGE > msg(
-				new MESSAGE( std::forward<ARGS>(args)... ) );
-
-		env.single_timer( std::move( msg ), to, pause );
+		env.single_timer(
+				so_5::rt::details::make_message_instance< MESSAGE >(
+						std::forward<ARGS>(args)... ),
+				to, pause );
 	}
 
 /*!
@@ -333,10 +332,10 @@ send_periodic(
 	//! Message constructor parameters.
 	ARGS&&... args )
 	{
-		std::unique_ptr< MESSAGE > msg(
-				new MESSAGE( std::forward<ARGS>(args)... ) );
-
-		return env.schedule_timer( std::move( msg ), to, pause, period );
+		return env.schedule_timer( 
+				so_5::rt::details::make_message_instance< MESSAGE >(
+						std::forward< ARGS >( args )... ),
+				to, pause, period );
 	}
 
 /*!

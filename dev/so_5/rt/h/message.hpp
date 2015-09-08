@@ -87,6 +87,106 @@ class SO_5_TYPE signal_t
 };
 
 //
+// user_type_message_t
+//
+/*!
+ * \since v.5.5.9
+ * \brief Template class for representing object of user type as a message.
+ *
+ * \tparam T type of actual message.
+ */
+template< typename T >
+struct user_type_message_t : public message_t
+{
+	//! Instance of user message.
+	const T m_payload;
+
+	//! Initializing constructor.
+	template< typename... ARGS >
+	user_type_message_t( ARGS &&... args )
+		:	m_payload( T{ std::forward< ARGS >( args )... } )
+		{}
+};
+
+//
+// message_payload_type
+//
+/*!
+ * \since v.5.5.9
+ * \brief A helper class for detection of payload type of message.
+ *
+ * \tparam T type to test.
+ */
+template< typename T >
+struct message_payload_type
+	{
+		using payload_type = T;
+		using envelope_type = T;
+
+		inline static std::type_index payload_type_index() { return typeid(T); }
+
+		inline static payload_type *
+		extract_payload_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< payload_type * >( msg.get() );
+			}
+
+		inline static const payload_type &
+		payload_reference( message_t & msg )
+			{
+				return dynamic_cast< const payload_type & >( msg );
+			}
+	};
+
+template< typename T >
+struct message_payload_type< user_type_message_t< T > >
+	{
+		using payload_type = T;
+		using envelope_type = user_type_message_t< T >;
+
+		inline static std::type_index payload_type_index() { return typeid(T); }
+
+		inline static payload_type *
+		extract_payload_ptr( message_ref_t & msg )
+			{
+				auto envelope = dynamic_cast< envelope_type * >( msg.get() );
+				if( !envelope )
+					SO_5_THROW_EXCEPTION( so_5::rc_unexpected_error,
+							"nullptr for user_type_message_t<T> instance" );
+
+				return &(envelope->m_payload);
+			}
+
+		inline static const payload_type &
+		payload_reference( message_t & msg )
+			{
+				auto envelope = dynamic_cast< const envelope_type & >( msg );
+				return envelope.m_payload;
+			}
+	};
+
+//
+// is_user_type_message
+//
+/*!
+ * \since v.5.5.9
+ * \brief A helper for detection presence of message of user type.
+ *
+ * \tparam M type to test.
+ */
+template< typename M >
+struct is_user_type_message
+	{
+		enum { value = false };
+	};
+
+template< typename M >
+struct is_user_type_message< user_type_message_t< M > >
+	{
+		enum { value = true };
+	};
+
+//
 // is_signal
 //
 /*!
@@ -100,17 +200,17 @@ struct is_signal
 	};
 
 //
-// is_message
+// is_classical_message
 //
 /*!
- * \since v.5.5.4
- * \brief A helper class for checking that message is a message.
+ * \since v.5.5.9
+ * \brief A helper class for checking that message is a classical message
+ * derived from %message_t class.
  */
 template< class T >
-struct is_message
+struct is_classical_message
 	{
-		enum { value = (std::is_base_of< message_t, T >::value &&
-				!is_signal< T >::value) };
+		enum { value = std::is_base_of< message_t, T >::value };
 	};
 
 //
@@ -125,7 +225,7 @@ template< class MSG >
 void
 ensure_not_signal()
 {
-	static_assert( is_message< MSG >::value,
+	static_assert( !is_signal< MSG >::value,
 			"message class must be derived from the message_t" );
 }
 
@@ -172,20 +272,39 @@ ensure_signal()
 			"expected a type derived from the signal_t" );
 }
 
+//
+// ensure_classical_message
+//
+/*!
+ * \since v.5.5.9
+ * \brief A special compile-time checker to guarantee that MSG is derived from
+ * %message_t.
+ *
+ * \tparam MSG type to be checked.
+ */
+template< typename MSG >
+void
+ensure_classical_message()
+	{
+		static_assert( is_classical_message< MSG >::value,
+				"expected a type derived from the message_t" );
+	}
+
 namespace details
 {
 
 template< bool is_signal, typename MSG >
 struct make_message_instance_impl
 	{
+		using E = typename message_payload_type< MSG >::envelope_type;
+
 		template< typename... ARGS >
-		static std::unique_ptr< MSG >
+		static std::unique_ptr< E >
 		make( ARGS &&... args )
 			{
 				ensure_not_signal< MSG >();
 
-				return std::unique_ptr< MSG >(
-						new MSG( std::forward< ARGS >(args)... ) );
+				return std::unique_ptr< E >( new E( std::forward< ARGS >(args)... ) );
 			}
 	};
 
@@ -206,8 +325,9 @@ struct make_message_instance_impl< true, MSG >
  * \brief A helper for allocate instance of a message.
  */
 template< typename MSG, typename... ARGS >
-std::unique_ptr< MSG >
+auto
 make_message_instance( ARGS &&... args )
+	-> std::unique_ptr< typename message_payload_type< MSG >::envelope_type >
 	{
 		return make_message_instance_impl<
 						is_signal< MSG >::value, MSG

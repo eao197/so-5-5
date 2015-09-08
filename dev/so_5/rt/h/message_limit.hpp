@@ -104,7 +104,7 @@ accept_one_indicator(
 	//! An instance of drop_indicator.
 	const drop_indicator_t< M > & indicator )
 	{
-		to.emplace_back( typeid( M ),
+		to.emplace_back( message_payload_type< M >::payload_type_index(),
 				indicator.m_limit,
 				[]( const overlimit_context_t & ) {} );
 	}
@@ -154,7 +154,7 @@ accept_one_indicator(
 	//! An instance of abort_app_indicator to store.
 	const abort_app_indicator_t< M > & indicator )
 	{
-		to.emplace_back( typeid( M ),
+		to.emplace_back( message_payload_type< M >::payload_type_index(),
 				indicator.m_limit,
 				[]( const overlimit_context_t & ctx ) {
 					impl::abort_app_reaction( ctx );
@@ -235,7 +235,7 @@ struct call_pre_abort_action_impl< false, M, L >
  */
 template< typename M, typename L >
 struct call_pre_abort_action
-	:	public call_pre_abort_action_impl< is_message< M >::value, M, L >
+	:	public call_pre_abort_action_impl< !is_signal< M >::value, M, L >
 {};
 
 } /* namespace impl */
@@ -255,7 +255,7 @@ accept_one_indicator(
 	{
 		auto lambda = indicator.m_lambda;
 
-		to.emplace_back( typeid( M ),
+		to.emplace_back( message_payload_type< M >::payload_type_index(),
 				indicator.m_limit,
 				[lambda]( const overlimit_context_t & ctx ) {
 					so_5::details::invoke_noexcept_code( [&] {
@@ -326,7 +326,7 @@ accept_one_indicator(
 	redirect_indicator_t< MSG, LAMBDA > indicator )
 	{
 		LAMBDA dest_getter = std::move( indicator.m_destination_getter );
-		to.emplace_back( typeid( MSG ),
+		to.emplace_back( message_payload_type< MSG >::payload_type_index(),
 				indicator.m_limit,
 				[dest_getter]( const overlimit_context_t & ctx ) {
 					impl::redirect_reaction( ctx, dest_getter() );
@@ -422,7 +422,7 @@ class transformed_message_t
 			//! Message box to which transformed message to be sent.
 			mbox_t mbox,
 			//! New message instance.
-			std::unique_ptr< MSG > msg )
+			std::unique_ptr< typename message_payload_type< MSG >::envelope_type > msg )
 			:	m_mbox( std::move( mbox ) )
 			{
 				ensure_message_with_actual_data( msg.get() );
@@ -444,7 +444,7 @@ class transformed_message_t
 
 		//! Type of the transformed message.
 		std::type_index
-		msg_type() const { return typeid(MSG); }
+		msg_type() const { return message_payload_type< MSG >::payload_type_index(); }
 
 		//! Instance of transformed message.
 		/*!
@@ -519,7 +519,7 @@ accept_one_indicator(
 	//! An instance of transform_indicator to be stored.
 	transform_indicator_t< M > indicator )
 	{
-		to.emplace_back( typeid( M ),
+		to.emplace_back( message_payload_type< M >::payload_type_index(),
 				indicator.m_limit,
 				std::move( indicator.m_action ) );
 	}

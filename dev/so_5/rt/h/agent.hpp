@@ -817,7 +817,11 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
+			ensure_classical_message< MESSAGE >();
+
+			do_drop_subscription( mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					target_state );
 		}
 
 		/*!
@@ -838,7 +842,10 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			void (AGENT::*)( const MESSAGE & ) )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					target_state );
 		}
 
 		/*!
@@ -854,7 +861,10 @@ class SO_5_TYPE agent_t
 			const state_t & target_state,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					target_state );
 		}
 
 		/*!
@@ -869,7 +879,10 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			const state_t & target_state )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), target_state );
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					target_state );
 		}
 
 		/*!
@@ -889,7 +902,12 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
+			ensure_classical_message< MESSAGE >();
+
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					so_default_state() );
 		}
 
 		/*!
@@ -909,7 +927,10 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*)( const MESSAGE & ) )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					so_default_state() );
 		}
 
 		/*!
@@ -924,7 +945,10 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					so_default_state() );
 		}
 
 		/*!
@@ -938,7 +962,10 @@ class SO_5_TYPE agent_t
 		so_drop_subscription(
 			const mbox_t & mbox )
 		{
-			do_drop_subscription( mbox, typeid( MESSAGE ), so_default_state() );
+			do_drop_subscription(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index(),
+					so_default_state() );
 		}
 
 		/*!
@@ -959,7 +986,11 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*)( const event_data_t< MESSAGE > & ) )
 		{
-			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
+			ensure_classical_message< MESSAGE >();
+
+			do_drop_subscription_for_all_states(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index() );
 		}
 
 		/*!
@@ -980,7 +1011,9 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			void (AGENT::*pfn)( const MESSAGE & ) )
 		{
-			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
+			do_drop_subscription_for_all_states(
+					mbox, 
+					message_payload_type< MESSAGE >::payload_type_index() );
 		}
 
 		/*!
@@ -996,7 +1029,9 @@ class SO_5_TYPE agent_t
 			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE >() )
 		{
-			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
+			do_drop_subscription_for_all_states(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index() );
 		}
 
 		/*!
@@ -1011,7 +1046,9 @@ class SO_5_TYPE agent_t
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox )
 		{
-			do_drop_subscription_for_all_states( mbox, typeid( MESSAGE ) );
+			do_drop_subscription_for_all_states(
+					mbox,
+					message_payload_type< MESSAGE >::payload_type_index() );
 		}
 		/*!
 		 * \}
@@ -1219,7 +1256,10 @@ class SO_5_TYPE agent_t
 			{
 				ensure_not_signal< MESSAGE >();
 
-				do_set_delivery_filter( mbox, typeid(MESSAGE), std::move(filter) );
+				do_set_delivery_filter(
+						mbox,
+						message_payload_type< MESSAGE >::payload_type_index(),
+						std::move(filter) );
 			}
 
 		/*!
@@ -1262,7 +1302,9 @@ class SO_5_TYPE agent_t
 			//! This must be MPMC-mbox.
 			const mbox_t & mbox ) SO_5_NOEXCEPT
 			{
-				do_drop_delivery_filter( mbox, typeid(MESSAGE) );
+				do_drop_delivery_filter(
+						mbox,
+						message_payload_type< MESSAGE >::payload_type_index() );
 			}
 		/*!
 		 * \}
@@ -1749,14 +1791,14 @@ class lambda_as_filter_t : public delivery_filter_t
 			{
 				return so_5::details::do_with_rollback_on_exception(
 					[&] {
-						return m_filter( dynamic_cast< const MESSAGE & >( msg ) );
+						return m_filter( message_payload_type< MESSAGE >::payload_reference( msg ) );
 					},
 					[&] {
 						so_5::details::abort_on_fatal_error( [&] {
 							SO_5_LOG_ERROR( receiver.so_environment(), serr ) {
 								serr << "An exception from delivery filter "
 									"for message type "
-									<< typeid(MESSAGE).name()
+									<< message_payload_type< MESSAGE >::payload_type_index().name()
 									<< ". Application will be aborted"
 									<< std::endl;
 							}
@@ -1776,15 +1818,15 @@ agent_t::so_set_delivery_filter(
 		using namespace so_5::details::lambda_traits;
 		using namespace delivery_filter_templates;
 
-		using message_type = typename argument_type_if_lambda< LAMBDA >::type;
+		using argument_type = typename argument_type_if_lambda< LAMBDA >::type;
 
-		ensure_not_signal< message_type >();
+		ensure_not_signal< argument_type >();
 
 		do_set_delivery_filter(
 				mbox,
-				typeid(message_type),
+				message_payload_type< argument_type >::payload_type_index(),
 				delivery_filter_unique_ptr_t{ 
-					new lambda_as_filter_t< LAMBDA, message_type >(
+					new lambda_as_filter_t< LAMBDA, argument_type >(
 							std::move( lambda ) )
 				} );
 	}
@@ -1859,8 +1901,10 @@ msg_service_request_t< RESULT, MESSAGE > *
 get_actual_service_request_pointer(
 	const message_ref_t & message_ref )
 {
-	typedef msg_service_request_t< RESULT, MESSAGE >
-			actual_request_msg_t;
+	using actual_request_msg_t =
+			msg_service_request_t<
+					RESULT,
+					message_payload_type< MESSAGE >::envelope_type >;
 
 	auto actual_request_ptr = dynamic_cast< actual_request_msg_t * >(
 			message_ref.get() );
@@ -2010,6 +2054,8 @@ subscription_bind_t::event(
 	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
 	thread_safety_t thread_safety )
 {
+	ensure_classical_message< MESSAGE >();
+
 	using namespace event_subscription_helpers;
 
 	// Agent must have right type.
@@ -2027,9 +2073,9 @@ subscription_bind_t::event(
 							get_actual_service_request_pointer< RESULT, MESSAGE >(
 									message_ref );
 
-					const event_data_t< MESSAGE > event_data(
-							dynamic_cast< MESSAGE * >(
-									actual_request_ptr->m_param.get() ) );
+					const event_data_t< MESSAGE > event_data{
+							message_payload_type< MESSAGE >::extract_payload_ptr(
+									actual_request_ptr->m_params ) };
 
 					// All exceptions will be processed in service_handler_on_message.
 					result_setter_t< RESULT >().call_old_format_event_and_set_result(
@@ -2040,14 +2086,17 @@ subscription_bind_t::event(
 				}
 			else
 				{
-					const event_data_t< MESSAGE > event_data(
-						dynamic_cast< MESSAGE * >( message_ref.get() ) );
+					const event_data_t< MESSAGE > event_data{
+							message_payload_type< MESSAGE >::extract_payload_ptr( message_ref ) };
 
 					(cast_result->*pfn)( event_data );
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+	create_subscription_for_states( 
+			message_payload_type< MESSAGE >::payload_type_index(),
+			method,
+			thread_safety );
 
 	return *this;
 }
@@ -2075,8 +2124,8 @@ subscription_bind_t::event(
 							get_actual_service_request_pointer< RESULT, MESSAGE >(
 									message_ref );
 
-					auto msg = dynamic_cast< MESSAGE * >(
-							actual_request_ptr->m_param.get() );
+					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+							actual_request_ptr->m_param );
 					ensure_message_with_actual_data( msg );
 
 					// All exceptions will be processed in service_handler_on_message.
@@ -2088,14 +2137,18 @@ subscription_bind_t::event(
 				}
 			else
 				{
-					auto msg = dynamic_cast< MESSAGE * >( message_ref.get() );
+					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+							message_ref );
 					ensure_message_with_actual_data( msg );
 
 					(cast_result->*pfn)( *msg );
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+	create_subscription_for_states(
+			message_payload_type< MESSAGE >::payload_type_index(),
+			method,
+			thread_safety );
 
 	return *this;
 }
@@ -2138,7 +2191,10 @@ subscription_bind_t::event(
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+	create_subscription_for_states(
+			message_payload_type< MESSAGE >::payload_type_index(),
+			method,
+			thread_safety );
 
 	return *this;
 }
@@ -2166,8 +2222,8 @@ subscription_bind_t::event(
 							get_actual_service_request_pointer< RESULT, MESSAGE >(
 									message_ref );
 
-					auto msg = dynamic_cast< MESSAGE * >(
-							actual_request_ptr->m_param.get() );
+					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+							actual_request_ptr->m_param );
 					ensure_message_with_actual_data( msg );
 
 					// All exceptions will be processed in service_handler_on_message.
@@ -2178,14 +2234,18 @@ subscription_bind_t::event(
 				}
 			else
 				{
-					auto msg = dynamic_cast< MESSAGE * >( message_ref.get() );
+					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+							message_ref );
 					ensure_message_with_actual_data( msg );
 
 					TRAITS::call_with_arg( lambda, *msg );
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+	create_subscription_for_states(
+			message_payload_type< MESSAGE >::payload_type_index(),
+			method,
+			thread_safety );
 
 	return *this;
 }
@@ -2226,7 +2286,10 @@ subscription_bind_t::event(
 				}
 		};
 
-	create_subscription_for_states( typeid( MESSAGE ), method, thread_safety );
+	create_subscription_for_states(
+			message_payload_type< MESSAGE >::payload_type_index(),
+			method,
+			thread_safety );
 
 	return *this;
 }
