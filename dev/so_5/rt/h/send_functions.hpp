@@ -29,37 +29,6 @@ namespace impl
 	template< class MESSAGE, bool IS_SIGNAL >
 	struct instantiator_and_sender_t
 		{
-			void
-			send( const so_5::rt::mbox_t & to )
-				{
-					std::unique_ptr< MESSAGE > msg( new MESSAGE() );
-
-					to->deliver_message( std::move( msg ) );
-				}
-
-			void
-			send_delayed(
-				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_t & to,
-				std::chrono::steady_clock::duration pause )
-				{
-					std::unique_ptr< MESSAGE > msg( new MESSAGE() );
-
-					env.single_timer( std::move( msg ), to, pause );
-				}
-
-			timer_id_t
-			send_periodic(
-				so_5::rt::environment_t & env,
-				const so_5::rt::mbox_t & to,
-				std::chrono::steady_clock::duration pause,
-				std::chrono::steady_clock::duration period )
-				{
-					std::unique_ptr< MESSAGE > msg( new MESSAGE() );
-
-					return env.schedule_timer(
-							std::move( msg ), to, pause, period );
-				}
 		};
 
 	template< class MESSAGE >
