@@ -197,7 +197,8 @@ struct call_pre_abort_action_impl
 		static void
 		call( const overlimit_context_t & ctx, L action )
 			{
-				const M & m = dynamic_cast< const M & >( *ctx.m_message );
+				const auto & m = message_payload_type< M >::payload_reference(
+						*ctx.m_message );
 				action( ctx.m_receiver, m );
 			}
 	};
@@ -665,8 +666,9 @@ struct message_limit_methods_mixin_t
 						// So ensure that is event, not service request.
 						impl::ensure_event_transform_reaction( ctx );
 
-						const ARG & msg = dynamic_cast< const ARG & >(
-								*ctx.m_message.get() );
+						const auto & msg =
+								message_payload_type< ARG >::payload_reference(
+										*ctx.m_message.get() );
 						auto r = transformator( msg );
 						impl::transform_reaction(
 								ctx, r.mbox(), r.msg_type(), r.message() );

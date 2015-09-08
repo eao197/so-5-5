@@ -1897,14 +1897,16 @@ get_actual_agent_pointer( agent_t & agent )
  * \throw exception_t if dynamic_cast fails.
  */
 template< class RESULT, class MESSAGE >
-msg_service_request_t< RESULT, MESSAGE > *
+msg_service_request_t<
+		RESULT,
+		typename message_payload_type< MESSAGE >::envelope_type > *
 get_actual_service_request_pointer(
 	const message_ref_t & message_ref )
 {
 	using actual_request_msg_t =
 			msg_service_request_t<
 					RESULT,
-					message_payload_type< MESSAGE >::envelope_type >;
+					typename message_payload_type< MESSAGE >::envelope_type >;
 
 	auto actual_request_ptr = dynamic_cast< actual_request_msg_t * >(
 			message_ref.get() );
@@ -2075,7 +2077,7 @@ subscription_bind_t::event(
 
 					const event_data_t< MESSAGE > event_data{
 							message_payload_type< MESSAGE >::extract_payload_ptr(
-									actual_request_ptr->m_params ) };
+									actual_request_ptr->m_param ) };
 
 					// All exceptions will be processed in service_handler_on_message.
 					result_setter_t< RESULT >().call_old_format_event_and_set_result(

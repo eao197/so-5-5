@@ -132,7 +132,7 @@ struct message_payload_type
 			}
 
 		inline static const payload_type &
-		payload_reference( message_t & msg )
+		payload_reference( const message_t & msg )
 			{
 				return dynamic_cast< const payload_type & >( msg );
 			}
@@ -158,7 +158,7 @@ struct message_payload_type< user_type_message_t< T > >
 			}
 
 		inline static const payload_type &
-		payload_reference( message_t & msg )
+		payload_reference( const message_t & msg )
 			{
 				auto envelope = dynamic_cast< const envelope_type & >( msg );
 				return envelope.m_payload;
