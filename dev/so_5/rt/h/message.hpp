@@ -250,6 +250,12 @@ struct message_payload_type_impl
 				return dynamic_cast< payload_type * >( msg.get() );
 			}
 
+		inline static envelope_type *
+		extract_envelope_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< envelope_type * >( msg.get() );
+			}
+
 		inline static const payload_type &
 		payload_reference( const message_t & msg )
 			{
@@ -274,6 +280,12 @@ struct message_payload_type_impl< T, false >
 							"nullptr for user_type_message_t<T> instance" );
 
 				return &(envelope->m_payload);
+			}
+
+		inline static envelope_type *
+		extract_envelope_ptr( message_ref_t & msg )
+			{
+				return dynamic_cast< envelope_type * >( msg.get() );
 			}
 
 		inline static const payload_type &
