@@ -708,6 +708,31 @@ struct message_limit_methods_mixin_t
 		/*!
 		 * \since v.5.5.4
 		 * \brief Helper method for creating message transformation result.
+		 *
+		 * \par Usage examples:
+			\code
+			class request_acceptor : public so_5::rt::agent_t
+				{
+				public :
+					request_acceptor(
+						context_t ctx,
+						so_5::rt::mbox_t interaction_mbox,
+						request_scheduling_data & data )
+						:	so_5::rt::agent_t( ctx
+								// If there are to many pending requests then
+								// new requests must be rejected.
+								+ limit_then_transform( 10,
+									[this]( const generation_request & req ) {
+										return make_transformed< generation_rejected >(
+												m_interaction_mbox,
+												req.m_id );
+										} ) )
+						,	m_interaction_mbox( std::move( interaction_mbox ) )
+						,	m_data( data )
+						{}
+				...
+				};
+			\endcode
 		 */
 		template< typename MSG, typename... ARGS >
 		static transformed_message_t< MSG >

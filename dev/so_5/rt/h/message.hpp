@@ -93,7 +93,8 @@ class SO_5_TYPE signal_t
  * \since v.5.5.9
  * \brief Template class for representing object of user type as a message.
  *
- * \tparam T type of actual message.
+ * \tparam T type of actual message. This type must have move- or copy
+ * constructor.
  */
 template< typename T >
 struct user_type_message_t : public message_t
@@ -236,26 +237,46 @@ ensure_classical_message()
 //
 // message_payload_type_impl
 //
+/*!
+ * \since v.5.5.9
+ * \brief Implementation details for %message_payload_type.
+ *
+ * \note This specialization is for cases where T is derived from message_t.
+ * In that case payload_type is the same as envelope_type.
+ */
 template< typename T, bool is_classical_message >
 struct message_payload_type_impl
 	{
+		//! Type visible to user.
 		using payload_type = T;
+		//! Type for message delivery.
 		using envelope_type = T;
 
+		//! Type ID for subscription.
 		inline static std::type_index payload_type_index() { return typeid(T); }
 
+		//! Helper for extraction of pointer to payload part.
+		/*!
+		 * \note This method return non-const pointer because it is
+		 * necessary for so_5::rt::event_data_t.
+		 */
 		inline static payload_type *
 		extract_payload_ptr( message_ref_t & msg )
 			{
 				return dynamic_cast< payload_type * >( msg.get() );
 			}
 
+		//! Helper for extraction of pointer to envelope part.
+		/*!
+		 * The same implementation as for extract_envelope_ptr().
+		 */
 		inline static envelope_type *
 		extract_envelope_ptr( message_ref_t & msg )
 			{
 				return dynamic_cast< envelope_type * >( msg.get() );
 			}
 
+		//! Helper for getting a const reference to payload part.
 		inline static const payload_type &
 		payload_reference( const message_t & msg )
 			{
@@ -263,14 +284,29 @@ struct message_payload_type_impl
 			}
 	};
 
+/*!
+ * \since v.5.5.9
+ * \brief Implementation details for %message_payload_type.
+ *
+ * \note This specialization is for cases where T is not derived from message_t.
+ * In that case payload_type is T, but envelope_type is user_type_message_t<T>.
+ */
 template< typename T >
 struct message_payload_type_impl< T, false >
 	{
+		//! Type visible to user.
 		using payload_type = T;
+		//! Type for message delivery.
 		using envelope_type = user_type_message_t< T >;
 
+		//! Type ID for subscription.
 		inline static std::type_index payload_type_index() { return typeid(T); }
 
+		//! Helper for extraction of pointer to payload part.
+		/*!
+		 * \note This method return const pointer because payload is
+		 * a const object inside user_type_message_t<T> instance.
+		 */
 		inline static const payload_type *
 		extract_payload_ptr( message_ref_t & msg )
 			{
@@ -282,12 +318,14 @@ struct message_payload_type_impl< T, false >
 				return &(envelope->m_payload);
 			}
 
+		//! Helper for extraction of pointer to envelope part.
 		inline static envelope_type *
 		extract_envelope_ptr( message_ref_t & msg )
 			{
 				return dynamic_cast< envelope_type * >( msg.get() );
 			}
 
+		//! Helper for getting a const reference to payload part.
 		inline static const payload_type &
 		payload_reference( const message_t & msg )
 			{
