@@ -279,7 +279,7 @@ struct message_payload_type_impl< T, false >
 		inline static const payload_type &
 		payload_reference( const message_t & msg )
 			{
-				auto envelope = dynamic_cast< const envelope_type & >( msg );
+				auto & envelope = dynamic_cast< const envelope_type & >( msg );
 				return envelope.m_payload;
 			}
 	};
