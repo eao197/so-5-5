@@ -154,10 +154,30 @@ class subscription_bind_t
 
 		//! Make subscription to the message.
 		/*!
-		 * Since v.5.3.0 could be used for event handlers and service handlers.
+		 * \note Since v.5.3.0 could be used for event handlers and service handlers.
 		 *
 		 * \note This method supports event-methods which receive
 		 * message or signal information via event_data_t object.
+		 *
+		 * \par Usage example
+		 * \code
+			struct engine_control : public so_5::rt::message_t { ... };
+			class engine_controller : public so_5::rt::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self().event( &engine_controller::evt_control );
+					...
+				}
+				...
+			private :
+				void evt_control( const so_5::rt::event_data_t< engine_control > & cmd )
+				{
+					...
+				}
+			};
+		 * \endcode
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		subscription_bind_t &
@@ -169,11 +189,32 @@ class subscription_bind_t
 
 		//! Make subscription to the message.
 		/*!
-		 * Since v.5.3.0 could be used for event handlers and service handlers.
+		 * \note Since v.5.3.0 could be used for event handlers and service
+		 * handlers.
 		 *
 		 * \note This method supports event-methods for messages only.
 		 * Message object is passed to event-method directly, without
 		 * event_data_t wrapper.
+		 *
+		 * \par Usage example
+		 * \code
+			struct engine_control : public so_5::rt::message_t { ... };
+			class engine_controller : public so_5::rt::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self().event( &engine_controller::evt_control );
+					...
+				}
+				...
+			private :
+				void evt_control( const engine_control & cmd )
+				{
+					...
+				}
+			};
+		 * \endcode
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		subscription_bind_t &
@@ -213,7 +254,7 @@ class subscription_bind_t
 				{
 					...
 				}
-			}
+			};
 		 * \endcode
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
@@ -229,6 +270,33 @@ class subscription_bind_t
 		 * \brief Make subscription to the signal.
 		 *
 		 * \note This method supports event-methods for signals only.
+		 *
+		 * \par Usage example
+		 * \code
+			struct turn_on : public so_5::rt::signal_t {};
+			struct turn_off : public so_5::rt::signal_t {};
+			class engine_controller : public so_5::rt::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self()
+						.event( so_5::signal< turn_on >, &engine_controller::evt_turn_on )
+						.event( so_5::signal< turn_off >, &engine_controller::evt_turn_off );
+					...
+				}
+				...
+			private :
+				void evt_turn_on() { ... }
+				void evt_turn_off() { ... }
+			};
+		 * \endcode
+		 *
+		 * \attention There is a more convient form of event() for subscription
+		 * of signal handlers:
+		 * \code
+			so_subscribe_self().event< turn_on >( &engine_controller::evt_turn_on );
+		 * \endcode
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		subscription_bind_t &
@@ -244,15 +312,37 @@ class subscription_bind_t
 		 * \since v.5.3.0
 		 * \brief Make subscription to the message by lambda-function.
 		 *
-		 * Only lambda-function in the form:
-		 *
-		 * <tt>RESULT (const MESSAGE &)</tt>
-		 *
+		 * \attention Only lambda-function in the forms:
+		 * \code
+			RESULT (const MESSAGE &)
+			RESULT (MESSAGE)
+		 * \endcode
 		 * are supported.
 		 *
 		 * \note This method supports event-lambdas for messages only.
 		 * Message object is passed to the lambda directly, without
 		 * event_data_t wrapper.
+		 * 
+		 * \par Usage example.
+		 * \code
+			enum class engine_control { turn_on, turn_off, slow_down };
+			struct setup_params : public so_5::rt::message_t { ... };
+			struct update_settings { ... };
+
+			class engine_controller : public so_5::rt::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self()
+						.event( [this]( engine_control evt ) {...} )
+						.event( [this]( const setup_params & evt ) {...} )
+						.event( [this]( const update_settings & evt ) {...} )
+					...
+				}
+				...
+			};
+		 * \endcode
 		 */
 		template< class LAMBDA >
 		subscription_bind_t &
@@ -266,13 +356,37 @@ class subscription_bind_t
 		 * \since v.5.3.0
 		 * \brief Make subscription to the signal by lambda-function.
 		 *
-		 * Only lambda-function in the form:
-		 *
-		 * <tt>RESULT ()</tt>
-		 *
-		 * are supported.
+		 * \attention Only lambda-function in the form:
+		 * \code
+			RESULT ()
+		 * \endcode
+		 * is supported.
 		 *
 		 * \note This method supports event-lambdas for signals only.
+		 *
+		 * \par Usage example
+		 * \code
+			struct turn_on : public so_5::rt::signal_t {};
+			struct turn_off : public so_5::rt::signal_t {};
+			class engine_controller : public so_5::rt::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self()
+						.event( so_5::signal< turn_on >, [this]{ ... } )
+						.event( so_5::signal< turn_off >, [this]{ ... } );
+					...
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \attention There is a more convient form of event() for subscription
+		 * of signal handlers:
+		 * \code
+			so_subscribe_self().event< turn_on >( [this]{...} );
+		 * \endcode
 		 */
 		template< class MESSAGE, class LAMBDA >
 		subscription_bind_t &
