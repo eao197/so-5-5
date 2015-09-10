@@ -536,7 +536,7 @@ make_async_get(
 	{
 		so_5::rt::ensure_not_signal< MSG >();
 
-		return mbox->get_one< RESULT >().make_async< MSG >(
+		return mbox->get_one< RESULT >().template make_async< MSG >(
 				std::forward< ARGS >(args)... );
 	}
 
@@ -553,7 +553,7 @@ make_async_get(
 	{
 		so_5::rt::ensure_signal< SIGNAL >();
 
-		return mbox->get_one< RESULT >().async< SIGNAL >();
+		return mbox->get_one< RESULT >().template async< SIGNAL >();
 	}
 /*!
  * \}
