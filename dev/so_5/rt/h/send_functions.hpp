@@ -516,5 +516,48 @@ send_periodic_to_agent(
 				period );
 	}
 
+/*!
+ * \name Helper functions for simplification of synchronous interactions.
+ * \{
+ */
+
+/*!
+ * \since v.5.5.9
+ * \brief Make a synchronous request and receive result in form of a future
+ * object.
+ */
+template< typename RESULT, typename MSG, typename... ARGS >
+std::future< RESULT >
+make_async_get(
+	//! Mbox for sending a synchronous request to.
+	const so_5::rt::mbox_t & mbox,
+	//! Arguments for MSG's constructor params.
+	ARGS &&... args )
+	{
+		so_5::rt::ensure_not_signal< MSG >();
+
+		return mbox->get_one< RESULT >().make_async< MSG >(
+				std::forward< ARGS >(args)... );
+	}
+
+template<
+		typename RESULT,
+		typename SIGNAL,
+		typename RV = typename std::enable_if<
+				so_5::rt::is_signal< SIGNAL >::value,
+				std::future< RESULT > >::type >
+RV
+make_async_get(
+	//! Mbox for sending a synchronous request to.
+	const so_5::rt::mbox_t & mbox )
+	{
+		so_5::rt::ensure_signal< SIGNAL >();
+
+		return mbox->get_one< RESULT >().async< SIGNAL >();
+	}
+/*!
+ * \}
+ */
+
 } /* namespace so_5 */
 
