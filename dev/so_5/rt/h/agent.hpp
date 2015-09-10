@@ -183,6 +183,47 @@ class subscription_bind_t
 			//! Thread safety of the event handler.
 			thread_safety_t thread_safety = not_thread_safe );
 
+		//! Make subscription to the message.
+		/*!
+		 * \since v.5.5.9
+		 *
+		 * \note This method is intended to use with messages whose types
+		 * are not derived from so_5::rt::message_t. Message content is
+		 * passed to event handler by copy. It can be costly if message is
+		 * a heavy object.
+		 *
+		 * \note This method supports event-methods for messages only.
+		 * Message object is passed to event-method directly, without
+		 * event_data_t wrapper.
+		 *
+		 * \par Usage example
+		 * \code
+			enum class engine_control { turn_on, turn_off, slow_down };
+			class engine_controller : public so_5::rt::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self().event( &engine_controller::evt_control );
+					...
+				}
+				...
+			private :
+				void evt_control( engine_control cmd )
+				{
+					...
+				}
+			}
+		 * \endcode
+		 */
+		template< class RESULT, class MESSAGE, class AGENT >
+		subscription_bind_t &
+		event(
+			//! Event handling method.
+			RESULT (AGENT::*pfn)( MESSAGE ),
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
+
 		/*!
 		 * \since v.5.3.0
 		 * \brief Make subscription to the signal.
@@ -291,6 +332,19 @@ class subscription_bind_t
 			const std::type_index & msg_type,
 			const event_handler_method_t & method,
 			thread_safety_t thread_safety ) const;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Common implementation of subscription for method
+		 * of agent's class.
+		 */
+		template< class RESULT, class MESSAGE, class AGENT, class METHOD >
+		subscription_bind_t &
+		event_impl(
+			//! Event handling method.
+			METHOD pfn,
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety );
 };
 
 //
@@ -1947,12 +2001,12 @@ struct result_setter_t
 				to.set_value( (a->*pfn)( evt ) );
 			}
 
-		template< class AGENT, class PARAM >
+		template< class AGENT, class METHOD, class PARAM >
 		void
 		call_new_format_event_and_set_result(
 			std::promise< RESULT > & to,
 			AGENT * a,
-			RESULT (AGENT::*pfn)( const PARAM & ),
+			METHOD pfn,
 			const PARAM & msg )
 			{
 				to.set_value( (a->*pfn)( msg ) );
@@ -2003,12 +2057,12 @@ struct result_setter_t< void >
 				to.set_value();
 			}
 
-		template< class AGENT, class PARAM >
+		template< class AGENT, class METHOD, class PARAM >
 		void
 		call_new_format_event_and_set_result(
 			std::promise< void > & to,
 			AGENT * a,
-			void (AGENT::*pfn)( const PARAM & ),
+			METHOD pfn,
 			const PARAM & msg )
 			{
 				(a->*pfn)( msg );
@@ -2123,50 +2177,16 @@ subscription_bind_t::event(
 	RESULT (AGENT::*pfn)( const MESSAGE & ),
 	thread_safety_t thread_safety )
 {
-	using namespace event_subscription_helpers;
+	return this->event_impl< RESULT, MESSAGE, AGENT, decltype(pfn) >( pfn, thread_safety );
+}
 
-	// Agent must have right type.
-	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
-
-	auto method = [cast_result,pfn](
-			invocation_type_t invocation_type,
-			message_ref_t & message_ref)
-		{
-			if( invocation_type_t::service_request == invocation_type )
-				{
-					using namespace promise_result_setting_details;
-
-					auto actual_request_ptr =
-							get_actual_service_request_pointer< RESULT, MESSAGE >(
-									message_ref );
-
-					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-							actual_request_ptr->m_param );
-					ensure_message_with_actual_data( msg );
-
-					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_new_format_event_and_set_result(
-							actual_request_ptr->m_promise,
-							cast_result,
-							pfn,
-							*msg );
-				}
-			else
-				{
-					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-							message_ref );
-					ensure_message_with_actual_data( msg );
-
-					(cast_result->*pfn)( *msg );
-				}
-		};
-
-	create_subscription_for_states(
-			message_payload_type< MESSAGE >::payload_type_index(),
-			method,
-			thread_safety );
-
-	return *this;
+template< class RESULT, class MESSAGE, class AGENT >
+inline subscription_bind_t &
+subscription_bind_t::event(
+	RESULT (AGENT::*pfn)( MESSAGE ),
+	thread_safety_t thread_safety )
+{
+	return this->event_impl< RESULT, MESSAGE, AGENT, decltype(pfn) >( pfn, thread_safety );
 }
 
 template< class RESULT, class MESSAGE, class AGENT >
@@ -2332,6 +2352,58 @@ subscription_bind_t::create_subscription_for_states(
 					*s,
 					method,
 					thread_safety );
+}
+
+template< class RESULT, class MESSAGE, class AGENT, class METHOD >
+subscription_bind_t &
+subscription_bind_t::event_impl(
+	METHOD pfn,
+	thread_safety_t thread_safety )
+{
+	using namespace event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
+
+	auto method = [cast_result,pfn](
+			invocation_type_t invocation_type,
+			message_ref_t & message_ref)
+		{
+			if( invocation_type_t::service_request == invocation_type )
+				{
+					using namespace promise_result_setting_details;
+
+					auto actual_request_ptr =
+							get_actual_service_request_pointer< RESULT, MESSAGE >(
+									message_ref );
+
+					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+							actual_request_ptr->m_param );
+					ensure_message_with_actual_data( msg );
+
+					// All exceptions will be processed in service_handler_on_message.
+					result_setter_t< RESULT >().call_new_format_event_and_set_result(
+							actual_request_ptr->m_promise,
+							cast_result,
+							pfn,
+							*msg );
+				}
+			else
+				{
+					auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+							message_ref );
+					ensure_message_with_actual_data( msg );
+
+					(cast_result->*pfn)( *msg );
+				}
+		};
+
+	create_subscription_for_states(
+			message_payload_type< MESSAGE >::payload_type_index(),
+			method,
+			thread_safety );
+
+	return *this;
 }
 
 /*

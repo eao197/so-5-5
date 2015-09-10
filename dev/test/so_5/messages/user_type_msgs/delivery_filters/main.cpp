@@ -26,14 +26,14 @@ public :
 	so_define_agent() override
 	{
 		so_set_delivery_filter( m_mbox,
-			[]( const int & v ) { return v > 3; } );
+			[]( int v ) { return v > 3; } );
 		so_set_delivery_filter( m_mbox,
 			[]( const std::string & v ) { return v.length() == 5; } );
 		so_set_delivery_filter( m_mbox,
 			[]( const msg & v ) { return "Bye" == v.m_a; } );
 
 		so_subscribe( m_mbox )
-			.event( [&]( const int & evt ) {
+			.event( [&]( int evt ) {
 					m_accumulator += "i{" + std::to_string( evt ) + "}";
 				} )
 			.event( [&]( const std::string & evt ) {
