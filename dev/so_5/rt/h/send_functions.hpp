@@ -521,6 +521,10 @@ send_periodic_to_agent(
  * \{
  */
 
+/*!
+ * \since v.5.5.9
+ * \brief Implementation details for helper functions request_future and request_value.
+ */
 namespace make_async_details {
 
 inline const so_5::rt::mbox_t &
@@ -537,13 +541,45 @@ arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return a
 /*!
  * \since v.5.5.9
  * \brief Make a synchronous request and receive result in form of a future
- * object.
+ * object. Intended to use with messages.
+ *
+ * \tparam RESULT type of expected result. The std::future<RESULT> will be
+ * returned.
+ * \tparam MSG type of message to be sent to request processor.
+ * \tparam TARGET identification of request processor. Could be reference to
+ * so_5::rt::mbox_t, to so_5::rt::agent_t or
+ * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * mbox will be used).
+ * \tparam ARGS arguments for MSG's constructors.
+ *
+ * \par Usage example:
+ * \code
+	// For sending request to mbox:
+	const so_5::rt::mbox_t & convert_mbox = ...;
+	auto f1 = so_5::request_future< std::string, int >( convert_mbox, 10 );
+	...
+	f1.get();
+
+	// For sending request to agent:
+	const so_5::rt::agent_t & a = ...;
+	auto f2 = so_5::request_future< std::string, int >( a, 10 );
+	...
+	f2.get();
+
+	// For sending request to ad-hoc agent:
+	auto service = coop.define_agent();
+	coop.define_agent().on_start( [service] {
+		auto f3 = so_5::request_future< std::string, int >( service, 10 );
+		...
+		f3.get();
+	} );
+ * \endcode
  */
-template< typename RESULT, typename MSG, typename MBOX, typename... ARGS >
+template< typename RESULT, typename MSG, typename TARGET, typename... ARGS >
 std::future< RESULT >
-make_async_get(
-	//! Mbox for sending a synchronous request to.
-	MBOX && mbox,
+request_future(
+	//! Target for sending a synchronous request to.
+	TARGET && who,
 	//! Arguments for MSG's constructor params.
 	ARGS &&... args )
 	{
@@ -551,28 +587,68 @@ make_async_get(
 
 		so_5::rt::ensure_not_signal< MSG >();
 
-		return arg_to_mbox( std::forward< MBOX >(mbox) )
+		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()
 				.template make_async< MSG >( std::forward< ARGS >(args)... );
 	}
 
+/*!
+ * \since v.5.5.9
+ * \brief Make a synchronous request and receive result in form of a future
+ * object. Intended to use with signals.
+ *
+ * \tparam RESULT type of expected result. The std::future<RESULT> will be
+ * returned.
+ * \tparam SIGNAL type of signal to be sent to request processor.
+ * This type must be derived from so_5::rt::signal_t.
+ * \tparam TARGET identification of request processor. Could be reference to
+ * so_5::rt::mbox_t, to so_5::rt::agent_t or
+ * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * mbox will be used).
+ * \tparam FUTURE_TYPE type of funtion return value (detected automatically).
+ *
+ * \par Usage example:
+ * \code
+	struct get_status : public so_5::rt::signal_t {};
+
+	// For sending request to mbox:
+	const so_5::rt::mbox_t & engine = ...;
+	auto f1 = so_5::request_future< std::string, get_status >( engine );
+	...
+	f1.get();
+
+	// For sending request to agent:
+	const so_5::rt::agent_t & engine = ...;
+	auto f2 = so_5::request_future< std::string, get_status >( engine );
+	...
+	f2.get();
+
+	// For sending request to ad-hoc agent:
+	auto engine = coop.define_agent();
+	coop.define_agent().on_start( [engine] {
+		auto f3 = so_5::request_future< std::string, get_status >( engine );
+		...
+		f3.get();
+	} );
+ * \endcode
+ */
 template<
 		typename RESULT,
 		typename SIGNAL,
-		typename MBOX,
-		typename RV = typename std::enable_if<
+		typename TARGET,
+		typename FUTURE_TYPE = typename std::enable_if<
 				so_5::rt::is_signal< SIGNAL >::value,
 				std::future< RESULT > >::type >
-RV
-make_async_get(
-	//! Mbox for sending a synchronous request to.
-	MBOX && mbox )
+FUTURE_TYPE
+request_future(
+	//! Target for sending a synchronous request to.
+	TARGET && who )
 	{
 		using namespace make_async_details;
 
 		so_5::rt::ensure_signal< SIGNAL >();
 
-		return arg_to_mbox( std::forward< MBOX >(mbox) )
+		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()
 				.template async< SIGNAL >();
 	}

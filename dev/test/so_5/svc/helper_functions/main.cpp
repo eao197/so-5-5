@@ -55,18 +55,18 @@ perform_service_interaction( TARGET && service )
 {
 	std::string accumulator;
 
-	accumulator += so_5::make_async_get< std::string, int >( service, 1 ).get();
+	accumulator += so_5::request_future< std::string, int >( service, 1 ).get();
 
-	accumulator += so_5::make_async_get< std::string, classic_msg >(
+	accumulator += so_5::request_future< std::string, classic_msg >(
 			service, "Hello", "World" ).get();
 
-	accumulator += so_5::make_async_get< std::string, msg >(
+	accumulator += so_5::request_future< std::string, msg >(
 			service, "Bye", "World" ).get();
 
-	accumulator += so_5::make_async_get< std::string, classic_signal >(
+	accumulator += so_5::request_future< std::string, classic_signal >(
 			service ).get();
 
-	accumulator += so_5::make_async_get< std::string, empty >(
+	accumulator += so_5::request_future< std::string, empty >(
 			service ).get();
 
 	const std::string expected = "i{1}cm{Hello,World}m{Bye,World}"
