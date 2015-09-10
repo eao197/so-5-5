@@ -521,39 +521,60 @@ send_periodic_to_agent(
  * \{
  */
 
+namespace make_async_details {
+
+inline const so_5::rt::mbox_t &
+arg_to_mbox( const so_5::rt::mbox_t & mbox ) { return mbox; }
+
+inline const so_5::rt::mbox_t &
+arg_to_mbox( const so_5::rt::agent_t & agent ) { return agent.so_direct_mbox(); }
+
+inline const so_5::rt::mbox_t &
+arg_to_mbox( so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
+
+} /* namespace details */
+
 /*!
  * \since v.5.5.9
  * \brief Make a synchronous request and receive result in form of a future
  * object.
  */
-template< typename RESULT, typename MSG, typename... ARGS >
+template< typename RESULT, typename MSG, typename MBOX, typename... ARGS >
 std::future< RESULT >
 make_async_get(
 	//! Mbox for sending a synchronous request to.
-	const so_5::rt::mbox_t & mbox,
+	MBOX && mbox,
 	//! Arguments for MSG's constructor params.
 	ARGS &&... args )
 	{
+		using namespace make_async_details;
+
 		so_5::rt::ensure_not_signal< MSG >();
 
-		return mbox->get_one< RESULT >().template make_async< MSG >(
-				std::forward< ARGS >(args)... );
+		return arg_to_mbox( std::forward< MBOX >(mbox) )
+				->template get_one< RESULT >()
+				.template make_async< MSG >( std::forward< ARGS >(args)... );
 	}
 
 template<
 		typename RESULT,
 		typename SIGNAL,
+		typename MBOX,
 		typename RV = typename std::enable_if<
 				so_5::rt::is_signal< SIGNAL >::value,
 				std::future< RESULT > >::type >
 RV
 make_async_get(
 	//! Mbox for sending a synchronous request to.
-	const so_5::rt::mbox_t & mbox )
+	MBOX && mbox )
 	{
+		using namespace make_async_details;
+
 		so_5::rt::ensure_signal< SIGNAL >();
 
-		return mbox->get_one< RESULT >().template async< SIGNAL >();
+		return arg_to_mbox( std::forward< MBOX >(mbox) )
+				->template get_one< RESULT >()
+				.template async< SIGNAL >();
 	}
 /*!
  * \}
