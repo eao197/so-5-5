@@ -27,24 +27,24 @@ struct empty {};
 
 struct classic_signal : public so_5::rt::signal_t {};
 
-template< typename TARGET >
+template< typename TARGET, typename MBOX >
 void
-setup_service_events( TARGET & to )
+setup_service_events( TARGET & to, MBOX mbox )
 {
 	to
-		.event( []( int evt ) -> std::string {
+		.event( mbox, []( int evt ) -> std::string {
 				return "i{" + std::to_string( evt ) + "}";
 			} )
-		.event( []( const classic_msg & evt ) {
+		.event( mbox, []( const classic_msg & evt ) {
 				return "cm{" + evt.m_a + "," + evt.m_b + "}";
 			} )
-		.event( []( const msg & evt ) -> std::string {
+		.event( mbox, []( const msg & evt ) -> std::string {
 				return "m{" + evt.m_a + "," + evt.m_b + "}";
 			} )
-		.event( []( empty ) -> std::string {
+		.event( mbox, []( empty ) -> std::string {
 				return "empty{}";
 			} )
-		.template event< classic_signal >( []() -> std::string {
+		.template event< classic_signal >( mbox, []() -> std::string {
 				return "signal{}";
 			} );
 }
@@ -87,7 +87,7 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		setup_service_events( so_default_state() );
+		setup_service_events( so_default_state(), so_direct_mbox() );
 	}
 };
 
@@ -141,10 +141,14 @@ make_adhoc_agents_coop( so_5::rt::environment_t & env )
 	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
 		using namespace so_5::disp::one_thread;
 
-		auto service = coop.define_agent();
-		setup_service_events( service );
+		auto service = coop.define_agent(
+				create_private_disp( coop.environment() )->binder() );
+		setup_service_events( service, service );
 
 		coop.define_agent().on_start( [&coop, service] {
+				perform_service_interaction( service );
+
+				coop.deregister_normally();
 			} );
 	} );
 }
@@ -169,6 +173,8 @@ init( so_5::rt::environment_t & env )
 
 			coop.make_agent< a_test_via_direct_mbox_t >( *service );
 		} );
+
+	make_adhoc_agents_coop( env );
 }
 
 int

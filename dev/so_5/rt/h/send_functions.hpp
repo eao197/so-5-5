@@ -530,7 +530,7 @@ inline const so_5::rt::mbox_t &
 arg_to_mbox( const so_5::rt::agent_t & agent ) { return agent.so_direct_mbox(); }
 
 inline const so_5::rt::mbox_t &
-arg_to_mbox( so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
+arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
 
 } /* namespace details */
 
