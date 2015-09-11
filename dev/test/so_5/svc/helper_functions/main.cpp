@@ -51,7 +51,7 @@ setup_service_events( TARGET & to, MBOX mbox )
 
 template< typename TARGET >
 void
-perform_service_interaction( TARGET && service )
+perform_service_interaction_via_futures( TARGET && service )
 {
 	std::string accumulator;
 
@@ -75,6 +75,80 @@ perform_service_interaction( TARGET && service )
 	if( expected != accumulator )
 		throw std::runtime_error( "unexpected accumulator value: " +
 				accumulator + ", expected: " + expected );
+}
+
+template< typename TARGET >
+void
+perform_service_interaction_via_infinite_wait( TARGET && service )
+{
+	using namespace so_5;
+
+	std::string accumulator;
+
+	accumulator += request_value< std::string, int >(
+			service, infinite_wait, 1 );
+
+	accumulator += request_value< std::string, classic_msg >(
+			service, infinite_wait, "Hello", "World" );
+
+	accumulator += request_value< std::string, msg >(
+			service, infinite_wait, "Bye", "World" );
+
+	accumulator += so_5::request_future< std::string, classic_signal >(
+			service, infinite_wait );
+
+	accumulator += so_5::request_value< std::string, empty >(
+			service, infinite_wait );
+
+	const std::string expected = "i{1}cm{Hello,World}m{Bye,World}"
+			"signal{}empty{}";
+
+	if( expected != accumulator )
+		throw std::runtime_error( "unexpected accumulator value: " +
+				accumulator + ", expected: " + expected );
+}
+
+template< typename TARGET >
+void
+perform_service_interaction_via_finite_wait( TARGET && service )
+{
+	using namespace so_5;
+	using secs = std::chrono::seconds;
+
+	std::string accumulator;
+
+	accumulator += request_value< std::string, int >(
+			service, secs(5), 1 );
+
+	accumulator += request_value< std::string, classic_msg >(
+			service, secs(5), "Hello", "World" );
+
+	accumulator += request_value< std::string, msg >(
+			service, secs(5), "Bye", "World" );
+
+	accumulator += so_5::request_future< std::string, classic_signal >(
+			service, secs(5) );
+
+	accumulator += so_5::request_value< std::string, empty >(
+			service, secs(5) );
+
+	const std::string expected = "i{1}cm{Hello,World}m{Bye,World}"
+			"signal{}empty{}";
+
+	if( expected != accumulator )
+		throw std::runtime_error( "unexpected accumulator value: " +
+				accumulator + ", expected: " + expected );
+}
+
+template< typename TARGET >
+void
+perform_service_interaction( TARGET && service )
+{
+	using namespace std;
+
+	perform_service_interaction_via_futures( forward< TARGET >(service) );
+	perform_service_interaction_via_infinite_wait( forward< TARGET >(service) );
+	perform_service_interaction_via_finite_wait( forward< TARGET >(service) );
 }
 
 class a_service_t : public so_5::rt::agent_t

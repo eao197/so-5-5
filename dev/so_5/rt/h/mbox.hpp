@@ -26,6 +26,19 @@
 namespace so_5
 {
 
+/*!
+ * \since v.5.5.9
+ * \brief A type for special marker for infitite waiting on service request.
+ */
+enum class service_request_infinite_waiting_t { inifitite_waiting };
+
+/*!
+ * \since v.5.5.9
+ * \brief A special indicator for infinite waiting on service request.
+ */
+const service_request_infinite_waiting_t infinite_wait =
+		service_request_infinite_waiting_t::inifitite_waiting;
+
 namespace rt
 {
 
@@ -367,6 +380,17 @@ class service_invoke_proxy_t
 		infinite_wait_service_invoke_proxy_t< RESULT >
 		wait_forever() const;
 
+		/*!
+		 * \since v.5.5.9
+		 * \brief A helper method for create a proxy for infinite waiting
+		 * on service request.
+		 */
+		infinite_wait_service_invoke_proxy_t< RESULT >
+		get_wait_proxy( service_request_infinite_waiting_t ) const
+			{
+				return this->wait_forever();
+			}
+
 		//! Make another proxy for time-limited synchronous
 		//! service requests calls.
 		/*!
@@ -398,6 +422,20 @@ class service_invoke_proxy_t
 		wait_for(
 			//! Timeout for std::future::wait_for().
 			const DURATION & timeout ) const;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief A helper method to create a proxy for waiting on
+		 * service request for a timeout.
+		 */
+		template< class DURATION >
+		wait_for_service_invoke_proxy_t< RESULT, DURATION >
+		get_wait_proxy(
+			//! Timeout for std::future::wait_for().
+			const DURATION & timeout ) const
+			{
+				return this->wait_for( timeout );
+			}
 
 		//! Create param and make service request call.
 		/*!

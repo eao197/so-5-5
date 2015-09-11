@@ -636,9 +636,10 @@ template<
 		typename RESULT,
 		typename SIGNAL,
 		typename TARGET,
-		typename FUTURE_TYPE = typename std::enable_if<
-				so_5::rt::is_signal< SIGNAL >::value,
-				std::future< RESULT > >::type >
+		typename FUTURE_TYPE =
+				typename std::enable_if<
+						so_5::rt::is_signal< SIGNAL >::value, std::future< RESULT >
+				>::type >
 FUTURE_TYPE
 request_future(
 	//! Target for sending a synchronous request to.
@@ -651,6 +652,131 @@ request_future(
 		return arg_to_mbox( std::forward< TARGET >(who) )
 				->template get_one< RESULT >()
 				.template async< SIGNAL >();
+	}
+
+/*!
+ * \since v.5.5.9
+ * \brief Make a synchronous request and receive result in form of a value
+ * with waiting for some time. Intended to use with messages.
+ *
+ * \tparam RESULT type of expected result.
+ * \tparam MSG type of message to be sent to request processor.
+ * \tparam TARGET identification of request processor. Could be reference to
+ * so_5::rt::mbox_t, to so_5::rt::agent_t or
+ * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * mbox will be used).
+ * \tparam DURATION type of waiting indicator. Can be
+ * so_5::service_request_infinite_waiting_t or some of std::chrono type.
+ * \tparam ARGS arguments for MSG's constructors.
+ *
+ * \par Usage example:
+ * \code
+	// For sending request to mbox:
+	const so_5::rt::mbox_t & convert_mbox = ...;
+	auto r1 = so_5::request_value< std::string, int >( convert_mbox, so_5::infinite_wait, 10 );
+	auto r2 = so_5::request_value< std::string, int >( convert_mbox, std::chrono::milliseconds(10), 10 );
+
+	// For sending request to agent:
+	const so_5::rt::agent_t & a = ...;
+	auto r3 = so_5::request_value< std::string, int >( a, so_5::infinite_wait, 10 );
+	auto r4 = so_5::request_value< std::string, int >( a, std::chrono::milliseconds(10), 10 );
+
+	// For sending request to ad-hoc agent:
+	auto service = coop.define_agent();
+	coop.define_agent().on_start( [service] {
+		auto r5 = so_5::request_value< std::string, int >( service, so_5::infinite_wait, 10 );
+		auto r6 = so_5::request_value< std::string, int >( service, std::chrono::milliseconds(10), 10 );
+	} );
+ * \endcode
+ */
+template<
+		typename RESULT,
+		typename MSG,
+		typename TARGET,
+		typename DURATION,
+		typename... ARGS >
+RESULT
+request_value(
+	//! Target for sending a synchronous request to.
+	TARGET && who,
+	//! Time to wait.
+	DURATION timeout,
+	//! Arguments for MSG's constructor params.
+	ARGS &&... args )
+	{
+		using namespace make_async_details;
+
+		so_5::rt::ensure_not_signal< MSG >();
+
+		return arg_to_mbox( std::forward< TARGET >(who) )
+				->template get_one< RESULT >()
+				.get_wait_proxy( timeout )
+				.template make_sync_get< MSG >( std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.9
+ * \brief Make a synchronous request and receive result in form of a value with
+ * waiting for some time. Intended to use with signals.
+ *
+ * \tparam RESULT type of expected result.
+ * returned.
+ * \tparam SIGNAL type of signal to be sent to request processor.
+ * This type must be derived from so_5::rt::signal_t.
+ * \tparam TARGET identification of request processor. Could be reference to
+ * so_5::rt::mbox_t, to so_5::rt::agent_t or
+ * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * mbox will be used).
+ * \tparam DURATION type of waiting indicator. Can be
+ * so_5::service_request_infinite_waiting_t or some of std::chrono type.
+ * \tparam RESULT_TYPE type of funtion return value (detected automatically).
+ *
+ * \par Usage example:
+ * \code
+	struct get_status : public so_5::rt::signal_t {};
+
+	// For sending request to mbox:
+	const so_5::rt::mbox_t & engine = ...;
+	auto r1 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
+	auto r2 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
+
+	// For sending request to agent:
+	const so_5::rt::agent_t & engine = ...;
+	auto r3 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
+	auto r4 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
+
+	// For sending request to ad-hoc agent:
+	auto engine = coop.define_agent();
+	coop.define_agent().on_start( [engine] {
+		auto r5 = so_5::request_value< std::string, get_status >( engine, so_5::infinite_wait );
+		auto r6 = so_5::request_value< std::string, get_status >( engine, std::chrono::milliseconds(10) );
+	} );
+ * \endcode
+ */
+template<
+		typename RESULT,
+		typename SIGNAL,
+		typename TARGET,
+		typename DURATION,
+		typename RESULT_TYPE =
+				typename std::enable_if<
+						so_5::rt::is_signal< SIGNAL >::value, RESULT
+				>::type >
+RESULT_TYPE
+request_future(
+	//! Target for sending a synchronous request to.
+	TARGET && who,
+	//! Time for waiting for a result.
+	DURATION timeout )
+	{
+		using namespace make_async_details;
+
+		so_5::rt::ensure_signal< SIGNAL >();
+
+		return arg_to_mbox( std::forward< TARGET >(who) )
+				->template get_one< RESULT >()
+				.get_wait_proxy( timeout )
+				.template sync_get< SIGNAL >();
 	}
 /*!
  * \}
