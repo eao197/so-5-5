@@ -763,7 +763,7 @@ template<
 						so_5::rt::is_signal< SIGNAL >::value, RESULT
 				>::type >
 RESULT_TYPE
-request_future(
+request_value(
 	//! Target for sending a synchronous request to.
 	TARGET && who,
 	//! Time for waiting for a result.

@@ -94,10 +94,10 @@ perform_service_interaction_via_infinite_wait( TARGET && service )
 	accumulator += request_value< std::string, msg >(
 			service, infinite_wait, "Bye", "World" );
 
-	accumulator += so_5::request_future< std::string, classic_signal >(
+	accumulator += request_value< std::string, classic_signal >(
 			service, infinite_wait );
 
-	accumulator += so_5::request_value< std::string, empty >(
+	accumulator += request_value< std::string, empty >(
 			service, infinite_wait );
 
 	const std::string expected = "i{1}cm{Hello,World}m{Bye,World}"
@@ -126,10 +126,10 @@ perform_service_interaction_via_finite_wait( TARGET && service )
 	accumulator += request_value< std::string, msg >(
 			service, secs(5), "Bye", "World" );
 
-	accumulator += so_5::request_future< std::string, classic_signal >(
+	accumulator += request_value< std::string, classic_signal >(
 			service, secs(5) );
 
-	accumulator += so_5::request_value< std::string, empty >(
+	accumulator += request_value< std::string, empty >(
 			service, secs(5) );
 
 	const std::string expected = "i{1}cm{Hello,World}m{Bye,World}"

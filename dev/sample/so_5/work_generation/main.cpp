@@ -359,10 +359,10 @@ private :
 		// as inabillity of receiver to provide request array.
 		try
 		{
-			return m_receiver->
-					get_one< std::vector< application_request > >()
-					.wait_for( std::chrono::milliseconds( 20 ) )
-					.sync_get< a_receiver_t::msg_take_requests >();
+			return so_5::request_value<
+						std::vector< application_request >,
+						a_receiver_t::msg_take_requests >
+					( m_receiver, std::chrono::milliseconds( 20 ) );
 		}
 		catch( const std::exception & x )
 		{
