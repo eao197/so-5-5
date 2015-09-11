@@ -65,14 +65,31 @@ namespace impl
 } /* namespace rt */
 
 /*!
+ * \since v.5.5.9
+ * \brief Implementation details for send-family and request_future/value helper functions.
+ */
+namespace send_functions_details {
+
+inline const so_5::rt::mbox_t &
+arg_to_mbox( const so_5::rt::mbox_t & mbox ) { return mbox; }
+
+inline const so_5::rt::mbox_t &
+arg_to_mbox( const so_5::rt::agent_t & agent ) { return agent.so_direct_mbox(); }
+
+inline const so_5::rt::mbox_t &
+arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
+
+} /* namespace send_functions_details */
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for creating and delivering a message.
  */
-template< typename MESSAGE, typename... ARGS >
+template< typename MESSAGE, typename TARGET, typename... ARGS >
 void
-send( const so_5::rt::mbox_t & to, ARGS&&... args )
+send( TARGET && to, ARGS&&... args )
 	{
-		to->deliver_message(
+		send_functions_details::arg_to_mbox( to )->deliver_message(
 				so_5::rt::details::make_message_instance< MESSAGE >(
 						std::forward<ARGS>(args)...) );
 	}
@@ -81,15 +98,15 @@ send( const so_5::rt::mbox_t & to, ARGS&&... args )
  * \since v.5.5.1
  * \brief A utility function for sending a signal.
  */
-template< typename MESSAGE >
+template< typename MESSAGE, typename TARGET >
 void
-send( const so_5::rt::mbox_t & to )
+send( TARGET && to )
 	{
 		so_5::rt::impl::instantiator_and_sender_t<
 				MESSAGE,
 				so_5::rt::is_signal< MESSAGE >::value > helper;
 
-		helper.send( to );
+		helper.send( send_functions_details::arg_to_mbox( to ) );
 	}
 
 /*!
@@ -101,7 +118,7 @@ template< typename MESSAGE, typename... ARGS >
 void
 send_to_agent( const so_5::rt::agent_t & receiver, ARGS&&... args )
 	{
-		send< MESSAGE >( receiver.so_direct_mbox(), std::forward<ARGS>(args)... );
+		send< MESSAGE >( receiver, std::forward<ARGS>(args)... );
 	}
 
 /*!
@@ -115,7 +132,7 @@ send_to_agent(
 	const so_5::rt::adhoc_agent_definition_proxy_t & receiver,
 	ARGS&&... args )
 	{
-		send< MESSAGE >( receiver.direct_mbox(), std::forward<ARGS>(args)... );
+		send< MESSAGE >( receiver, std::forward<ARGS>(args)... );
 	}
 
 /*!
@@ -126,7 +143,7 @@ template< typename MESSAGE >
 void
 send_to_agent( const so_5::rt::agent_t & receiver )
 	{
-		send< MESSAGE >( receiver.so_direct_mbox() );
+		send< MESSAGE >( receiver );
 	}
 
 /*!
@@ -523,23 +540,6 @@ send_periodic_to_agent(
 
 /*!
  * \since v.5.5.9
- * \brief Implementation details for helper functions request_future and request_value.
- */
-namespace make_async_details {
-
-inline const so_5::rt::mbox_t &
-arg_to_mbox( const so_5::rt::mbox_t & mbox ) { return mbox; }
-
-inline const so_5::rt::mbox_t &
-arg_to_mbox( const so_5::rt::agent_t & agent ) { return agent.so_direct_mbox(); }
-
-inline const so_5::rt::mbox_t &
-arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
-
-} /* namespace details */
-
-/*!
- * \since v.5.5.9
  * \brief Make a synchronous request and receive result in form of a future
  * object. Intended to use with messages.
  *
@@ -583,7 +583,7 @@ request_future(
 	//! Arguments for MSG's constructor params.
 	ARGS &&... args )
 	{
-		using namespace make_async_details;
+		using namespace send_functions_details;
 
 		so_5::rt::ensure_not_signal< MSG >();
 
@@ -645,7 +645,7 @@ request_future(
 	//! Target for sending a synchronous request to.
 	TARGET && who )
 	{
-		using namespace make_async_details;
+		using namespace send_functions_details;
 
 		so_5::rt::ensure_signal< SIGNAL >();
 
@@ -704,7 +704,7 @@ request_value(
 	//! Arguments for MSG's constructor params.
 	ARGS &&... args )
 	{
-		using namespace make_async_details;
+		using namespace send_functions_details;
 
 		so_5::rt::ensure_not_signal< MSG >();
 
@@ -769,7 +769,7 @@ request_value(
 	//! Time for waiting for a result.
 	DURATION timeout )
 	{
-		using namespace make_async_details;
+		using namespace send_functions_details;
 
 		so_5::rt::ensure_signal< SIGNAL >();
 

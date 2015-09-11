@@ -148,7 +148,7 @@ public :
 	so_evt_start() override
 	{
 		// Start work cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :

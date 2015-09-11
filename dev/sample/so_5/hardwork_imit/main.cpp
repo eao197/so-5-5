@@ -154,8 +154,7 @@ create_test_coop(
 					std::this_thread::sleep_for(
 							std::chrono::milliseconds( evt.m_milliseconds ) );
 
-					so_5::send_to_agent< msg_hardwork_done >(
-							*a_manager, evt.m_index );
+					so_5::send< msg_hardwork_done >( *a_manager, evt.m_index );
 				},
 				so_5::thread_safe );
 
@@ -165,8 +164,7 @@ create_test_coop(
 					std::this_thread::sleep_for(
 							std::chrono::milliseconds( evt.m_milliseconds ) );
 
-					so_5::send_to_agent< msg_hardwork_checked >(
-							*a_manager, evt.m_index );
+					so_5::send< msg_hardwork_checked >( *a_manager, evt.m_index );
 				},
 				so_5::thread_safe );
 

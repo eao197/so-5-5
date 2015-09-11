@@ -58,7 +58,7 @@ public :
 		}
 
 		// Initiate loop of requests for the values.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
