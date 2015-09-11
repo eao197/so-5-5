@@ -84,6 +84,46 @@ arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return a
 /*!
  * \since v.5.5.1
  * \brief A utility function for creating and delivering a message.
+ *
+ * \note Since v.5.5.9 can accept const references to so_5::rt::mbox_t,
+ * so_5::rt::agent_t and so_5::rt::adhoc_agent_definition_proxy_t.
+ *
+ * \tparam MESSAGE type of message to be sent.
+ * \tparam TARGET identification of request processor. Could be reference to
+ * so_5::rt::mbox_t, to so_5::rt::agent_t or
+ * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * mbox will be used).
+ * \tparam ARGS arguments for MESSAGE's constructor.
+ *
+ * \par Usage samples:
+ * \code
+	struct hello_msg { std::string greeting; std::string who };
+
+	// Send to mbox.
+	so_5::send< hello_msg >( env.create_local_mbox( "hello" ), "Hello", "World!" );
+
+	// Send to agent.
+	class demo_agent : public so_5::rt::agent_t
+	{
+	public :
+		...
+		virtual void so_evt_start() override
+		{
+			...
+			so_5::send< hello_msg >( *this, "Hello", "World!" );
+		}
+	};
+
+	// Send to ad-hoc agent.
+	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		auto a = coop.define_agent();
+		a.on_start( [a] {
+			...
+			so_5::send< hello_msg >( a, "Hello", "World!" );
+		} );
+		...
+	} );
+ * \endcode
  */
 template< typename MESSAGE, typename TARGET, typename... ARGS >
 void
@@ -97,6 +137,45 @@ send( TARGET && to, ARGS&&... args )
 /*!
  * \since v.5.5.1
  * \brief A utility function for sending a signal.
+ *
+ * \note Since v.5.5.9 can accept const references to so_5::rt::mbox_t,
+ * so_5::rt::agent_t and so_5::rt::adhoc_agent_definition_proxy_t.
+ *
+ * \tparam MESSAGE type of signal o be sent.
+ * \tparam TARGET identification of request processor. Could be reference to
+ * so_5::rt::mbox_t, to so_5::rt::agent_t or
+ * so_5::rt::adhoc_agent_definition_proxy_t (in two later cases agent's direct
+ * mbox will be used).
+ *
+ * \par Usage samples:
+ * \code
+	struct turn_on : public so_5::rt::signal_t;
+
+	// Send to mbox.
+	so_5::send< turn_on >( env.create_local_mbox( "engine" ) );
+
+	// Send to agent.
+	class engine_agent : public so_5::rt::agent_t
+	{
+	public :
+		...
+		virtual void so_evt_start() override
+		{
+			...
+			so_5::send< turn_on >( *this );
+		}
+	};
+
+	// Send to ad-hoc agent.
+	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		auto a = coop.define_agent();
+		a.on_start( [a] {
+			...
+			so_5::send< turn_on >( a );
+		} );
+		...
+	} );
+ * \endcode
  */
 template< typename MESSAGE, typename TARGET >
 void

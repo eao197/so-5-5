@@ -10,6 +10,12 @@
 	for methods of agents or `R(T)` for lambda-functions. Event handlers of such
 	format are very useful with messages of arbitrary types.
 
+	New helper functions for synchronous agents interaction:
+	so_5::request_future() and so_5::request_value();
+
+	New format of so_5::send(). Now so_5::send() can accept const reference to
+	so_5::rt::mbox_t, so_5::rt::agent_t and so_5::rt::adhoc_agent_definition_proxy_t.
+
 \section so_5__5_8 5.5.8 "Elbrus"
 
 	Pririties for agents and several new dispatchers with priorities support
