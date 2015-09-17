@@ -24,6 +24,8 @@ MxxRu::Cpp::dll_target {
 
 	cpp_source 'timers.cpp'
 
+	cpp_source 'wrapped_env.cpp'
+
 	# Run-time.
 	sources_root( 'rt' ) {
 
