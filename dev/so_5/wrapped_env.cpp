@@ -40,7 +40,7 @@ struct wrapped_env_t::details_t
 		stop() { m_env.stop(); }
 
 		void
-		join() { m_env_thread.join(); }
+		join() { if( m_env_thread.joinable() ) m_env_thread.join(); }
 	};
 
 namespace

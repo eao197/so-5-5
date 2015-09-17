@@ -13,6 +13,8 @@ add_subdirectory(environment/add_disp_after_start)
 add_subdirectory(environment/reg_coop_after_stop)
 add_subdirectory(environment/autoname_coop)
 
+add_subdirectory(wrapped_env)
+
 add_subdirectory(execution_hint/basic_checks)
 
 add_subdirectory(timer_thread/single_delayed)

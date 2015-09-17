@@ -315,7 +315,7 @@ template< typename MESSAGE, typename... ARGS >
 void
 send_delayed_to_agent(
 	//! An agent whos environment must be used.
-	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -400,7 +400,7 @@ template< typename MESSAGE >
 void
 send_delayed_to_agent(
 	//! An agent whos environment must be used.
-	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause )
 	{
@@ -500,7 +500,7 @@ template< typename MESSAGE, typename... ARGS >
 timer_id_t
 send_periodic_to_agent(
 	//! An agent whos environment must be used.
-	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
@@ -599,7 +599,7 @@ template< typename MESSAGE >
 timer_id_t
 send_periodic_to_agent(
 	//! An agent whos environment must be used.
-	so_5::rt::adhoc_agent_definition_proxy_t & agent,
+	const so_5::rt::adhoc_agent_definition_proxy_t & agent,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.
