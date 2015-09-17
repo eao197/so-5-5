@@ -78,18 +78,18 @@ class a_client_t
 		so_evt_start() override
 			{
 				std::cout << "hello_svc: "
-						<< m_svc_mbox->get_one< std::string >()
-								.async< msg_hello_svc >().get()
+						<< so_5::request_future< std::string, msg_hello_svc >(
+								m_svc_mbox ).get()
 						<< std::endl;
 
 				std::cout << "convert_svc: "
-						<< m_svc_mbox->get_one< std::string >()
-								.make_async< msg_convert >( 42 ).get()
+						<< so_5::request_future< std::string, msg_convert >(
+								m_svc_mbox, 42 ).get()
 						<< std::endl;
 
 				std::cout << "sync_convert_svc: "
-						<< m_svc_mbox->get_one< std::string >()
-								.wait_forever().make_sync_get< msg_convert >( 1020 )
+						<< so_5::request_value< std::string, msg_convert >(
+								m_svc_mbox, so_5::infinite_wait, 1020 )
 						<< std::endl;
 
 				// More complex case with conversion.

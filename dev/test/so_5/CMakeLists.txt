@@ -40,10 +40,7 @@ add_subdirectory(disp/prio_dt_one_per_prio)
 
 add_subdirectory(event_handler)
 
-add_subdirectory(messages/three_messages)
-add_subdirectory(messages/resend_message)
-add_subdirectory(messages/store_and_resend_later)
-add_subdirectory(messages/tuple_as_message)
+add_subdirectory(messages)
 
 add_subdirectory(state/change_state)
 

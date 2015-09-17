@@ -95,7 +95,7 @@ public :
 	so_evt_start() override
 	{
 		// Start work cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -313,7 +313,7 @@ public :
 	so_evt_start() override
 	{
 		// Start working cycle.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -347,7 +347,7 @@ private :
 			// There are some requests. They must be processed.
 			process_requests( requests );
 			// Start next turn immediately.
-			so_5::send_to_agent< msg_next_turn >( *this );
+			so_5::send< msg_next_turn >( *this );
 		}
 	}
 
@@ -359,10 +359,10 @@ private :
 		// as inabillity of receiver to provide request array.
 		try
 		{
-			return m_receiver->
-					get_one< std::vector< application_request > >()
-					.wait_for( std::chrono::milliseconds( 20 ) )
-					.sync_get< a_receiver_t::msg_take_requests >();
+			return so_5::request_value<
+						std::vector< application_request >,
+						a_receiver_t::msg_take_requests >
+					( m_receiver, std::chrono::milliseconds( 20 ) );
 		}
 		catch( const std::exception & x )
 		{

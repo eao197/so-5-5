@@ -58,7 +58,7 @@ public :
 		}
 
 		// Initiate loop of requests for the values.
-		so_5::send_to_agent< msg_next_turn >( *this );
+		so_5::send< msg_next_turn >( *this );
 	}
 
 private :
@@ -79,14 +79,13 @@ private :
 
 		std::size_t values_found = 0;
 
-		// Will use sync-requests for requests of value.
-		auto svc = m_storage_mbox->get_one< std::string >().wait_forever();
-
 		for( const auto & kv : m_values )
 		{
 			try
 			{
-				auto result = svc.make_sync_get< msg_request_by_key >( kv.first );
+				// Will use sync-requests for requests of value.
+				auto result = so_5::request_value< std::string, msg_request_by_key >(
+						m_storage_mbox, so_5::infinite_wait, kv.first );
 
 				std::cout << "key: '" << kv.first << "', expected: '"
 						<< kv.second << "', received: '" << result << "'"

@@ -897,10 +897,11 @@ class SO_5_TYPE environment_t
 			*/
 			std::chrono::steady_clock::duration period )
 		{
+			ensure_classical_message< MESSAGE >();
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause,
@@ -928,10 +929,11 @@ class SO_5_TYPE environment_t
 			*/
 			unsigned int period_msec )
 		{
+			ensure_classical_message< MESSAGE >();
 			ensure_message_with_actual_data( msg.get() );
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -959,7 +961,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				pause,
@@ -988,7 +990,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			return schedule_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ),
@@ -1012,7 +1014,7 @@ class SO_5_TYPE environment_t
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				pause );
@@ -1033,10 +1035,11 @@ class SO_5_TYPE environment_t
 			//! Timeout before delivery.
 			unsigned int delay_msec )
 		{
+			ensure_classical_message< MESSAGE >();
 			ensure_message_with_actual_data( msg.get() );
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t( msg.release() ),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );
@@ -1057,7 +1060,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				pause );
@@ -1079,7 +1082,7 @@ class SO_5_TYPE environment_t
 			ensure_signal< MESSAGE >();
 
 			single_timer(
-				std::type_index( typeid( MESSAGE ) ),
+				message_payload_type< MESSAGE >::payload_type_index(),
 				message_ref_t(),
 				mbox,
 				std::chrono::milliseconds( delay_msec ) );

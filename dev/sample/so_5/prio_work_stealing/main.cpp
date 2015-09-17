@@ -173,7 +173,7 @@ class request_generator : public so_5::rt::agent_t
 		so_evt_start() override
 			{
 				// Will start requests generation immediately.
-				so_5::send_to_agent< produce_next >( *this );
+				so_5::send< produce_next >( *this );
 			}
 
 	private :
