@@ -8,13 +8,83 @@
  * \brief Class wrapped_env and its details.
  */
 
-#pragma once
-
 #include <so_5/h/wrapped_env.hpp>
 
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 namespace so_5 {
+
+namespace
+{
+
+/*!
+ * \since v.5.5.9
+ * \brief Implementation of environment to be used inside wrapped_env.
+ */
+class actual_environment_t
+	:	public so_5::rt::environment_t
+	{
+	typedef so_5::rt::environment_t base_type_t;
+
+	public:
+		//! Initializing constructor.
+		actual_environment_t(
+			//! Initialization routine.
+			so_5::api::generic_simple_init_t init,
+			//! SObjectizer Environment parameters.
+			so_5::rt::environment_params_t && env_params )
+			:	base_type_t( std::move( env_params ) )
+			,	m_init( std::move(init) )
+			{}
+
+		virtual void
+		init() override
+			{
+				{
+					std::lock_guard< std::mutex > lock{ m_status_lock };
+					m_status = status_t::started;
+					m_status_cond.notify_all();
+				}
+
+				m_init( *this );
+			}
+
+		void
+		ensure_started()
+			{
+				/*!
+				 * \note This method is necessary because stop() can be
+				 * called before run(). In that case there will be an
+				 * infinite waiting on join() in wrapped_env_t.
+				 */
+				std::unique_lock< std::mutex > lock{ m_status_lock };
+				m_status_cond.wait( lock,
+					[this]{ return status_t::started == m_status; } );
+			}
+
+	private:
+		//! Initialization routine.
+		so_5::api::generic_simple_init_t m_init;
+
+		//! Status of environment.
+		enum class status_t
+			{
+				not_started,
+				started
+			};
+
+		//! Status of environment.
+		status_t m_status = status_t::not_started;
+
+		//! Lock object for defending status.
+		std::mutex m_status_lock;
+		//! Condition for waiting on status.
+		std::condition_variable m_status_cond;
+	};
+
+} /* namespace anonymous */
 
 /*!
  * \since v.5.5.9
@@ -23,7 +93,7 @@ namespace so_5 {
 struct wrapped_env_t::details_t
 	{
 		//! Actual environment object.
-		so_5::api::impl::so_quick_environment_t< so_5::api::generic_simple_init_t > m_env;
+		actual_environment_t m_env;
 
 		//! Helper thread for calling run method.
 		std::thread m_env_thread;
@@ -37,7 +107,11 @@ struct wrapped_env_t::details_t
 			{}
 
 		void
-		stop() { m_env.stop(); }
+		stop()
+			{
+				m_env.ensure_started();
+				m_env.stop();
+			}
 
 		void
 		join() { if( m_env_thread.joinable() ) m_env_thread.join(); }

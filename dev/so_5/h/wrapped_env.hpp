@@ -23,10 +23,105 @@ namespace so_5 {
 	#pragma warning(disable: 4251)
 #endif
 
-//FIXME: an usage example must be present in the comment.
 /*!
  * \since v.5.5.9
  * \brief A wrapped environment.
+ *
+ * \note Starts a SObjectizer Environment in the constructor. Automatically
+ * stops it in the destructor (via stop_then_join() call). An Environment
+ * will be started on the context of new thread. This thread is also
+ * created in the constructor of wrapped_env_t.
+ *
+ * \note SObjectizer Environment is started with autoshutdown disabled.
+ * It means that the Environment won't be stopped when the last coop will
+ * be deregistered. Autoshutdown will be disabled even if a constructor
+ * with custom Environment's params will be used.
+ *
+ * \par Usage examples
+ * \code
+	// Start Environment without initialization function.
+	int main()
+	{
+		so_5::wrapped_env_t env;
+		... // Some user code.
+		// Add a cooperation to environment.
+		env.environment().introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+			coop.make_agent< some_agent >(...);
+			...
+		} );
+		... // Some user code.
+
+		return 0; // env.stop_then_join() will be called in env destructor.
+	}
+
+	// Start Environment with initialization function but with
+	// default parameters.
+	int main()
+	{
+		so_5::wrapped_env_t env{
+			[]( so_5::rt::environment_t & env ) {
+				... // Some initialization stuff.
+			}
+		};
+		... // Some user code.
+
+		return 0; // env.stop_then_join() will be called in env destructor.
+	}
+
+	// Start Environment with initialization function and custom
+	// parameters.
+	so_5::rt::environment_params_t make_params()
+	{
+		so_5::rt::environment_params_t params;
+		params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+		...
+		return params;
+	}
+
+	int main()
+	{
+		so_5::wrapped_env_t env{
+			[]( so_5::rt::environment_t & env ) {
+				... // Some initialization stuff.
+			},
+			make_params()
+		};
+		... // Some user code.
+
+		return 0; // env.stop_then_join() will be called in env destructor.
+	}
+
+	// Start Environment with initialization function and custom
+	// parameters tuner function.
+	int main()
+	{
+		so_5::wrapped_env_t env{
+			[]( so_5::rt::environment_t & env ) {
+				... // Some initialization stuff.
+			},
+			[]( so_5::rt::environment_params_t & params ) {
+				params.exception_reaction( so_5::rt::shutdown_sobjectizer_on_exception );
+				...
+			}
+		};
+		... // Some user code.
+
+		return 0; // env.stop_then_join() will be called in env destructor.
+	}
+
+	// Explicit stop and join.
+	int main()
+	{
+		so_5::wrapped_env_t env{ ... };
+		... // Some user code.
+		// Stopping environment.
+		env.stop();
+		... // Some user code.
+		// Waiting for finish of environment's work.
+		env.join();
+		... // Some user code.
+	}
+ * \endcode
  */
 class SO_5_TYPE wrapped_env_t
 	{
