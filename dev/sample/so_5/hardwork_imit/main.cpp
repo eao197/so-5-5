@@ -130,7 +130,7 @@ class a_manager_t : public so_5::rt::agent_t
 		std::chrono::steady_clock::time_point m_start_time;
 };
 
-so_5::rt::agent_coop_unique_ptr_t
+so_5::rt::coop_unique_ptr_t
 create_test_coop(
 	so_5::rt::environment_t & env,
 	so_5::rt::disp_binder_unique_ptr_t disp_binder,

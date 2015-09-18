@@ -97,7 +97,7 @@ init(
 	{
 		env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::agent_coop_t & coop ) {
+				[]( so_5::rt::coop_t & coop ) {
 					auto a_service = coop.make_agent< a_convert_service_t >();
 					coop.make_agent< a_client_t >( a_service->so_direct_mbox() );
 				} );

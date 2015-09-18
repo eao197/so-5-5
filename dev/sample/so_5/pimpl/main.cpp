@@ -122,7 +122,7 @@ main()
 				env.introduce_coop(
 					// Agents will be bound to private active_obj dispatcher.
 					so_5::disp::active_obj::create_private_disp( env )->binder(),
-					[]( so_5::rt::agent_coop_t & coop ) {
+					[]( so_5::rt::coop_t & coop ) {
 						auto storage = coop.make_agent< a_key_value_storage_t >();
 
 						coop.make_agent< a_consumer_t >( storage->so_direct_mbox() );
