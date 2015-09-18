@@ -45,7 +45,7 @@ namespace so_5 {
 		so_5::wrapped_env_t env;
 		... // Some user code.
 		// Add a cooperation to environment.
-		env.environment().introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+		env.environment().introduce_coop( []( so_5::rt::coop_t & coop ) {
 			coop.make_agent< some_agent >(...);
 			...
 		} );

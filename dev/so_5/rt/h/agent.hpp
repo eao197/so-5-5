@@ -100,7 +100,7 @@ class delivery_filter_storage_t;
 
 class state_t;
 class environment_t;
-class agent_coop_t;
+class coop_t;
 class agent_t;
 
 //
@@ -592,7 +592,7 @@ class SO_5_TYPE agent_t
 {
 		friend class subscription_bind_t;
 		friend class intrusive_ptr_t< agent_t >;
-		friend class agent_coop_t;
+		friend class coop_t;
 		friend class state_t;
 
 		friend class so_5::rt::impl::mpsc_mbox_t;
@@ -822,7 +822,7 @@ class SO_5_TYPE agent_t
 		 * and perform some actions in dependence of return value.
 		 *
 		 * \note Since v.5.3.0 default implementation calls
-		 * agent_coop_t::exception_reaction() for agent's cooperation
+		 * coop_t::exception_reaction() for agent's cooperation
 		 * object.
 		 */
 		virtual exception_reaction_t
@@ -1329,7 +1329,7 @@ class SO_5_TYPE agent_t
 			a_sample_t::evt_on_smth(
 				const so_5::rt::event_data_t< some_message_t > & msg )
 			{
-				so_5::rt::agent_coop_unique_ptr_t coop =
+				so_5::rt::coop_unique_ptr_t coop =
 					so_environment().create_coop(
 						so_5::rt::nonempty_name_t( "first_coop" ) );
 
@@ -1637,7 +1637,7 @@ class SO_5_TYPE agent_t
 		so_5::current_thread_id_t m_working_thread_id;
 
 		//! Agent is belong to this cooperation.
-		agent_coop_t * m_agent_coop;
+		coop_t * m_agent_coop;
 
 		/*!
 		 * \since v.5.5.5
@@ -1676,7 +1676,7 @@ class SO_5_TYPE agent_t
 		void
 		bind_to_coop(
 			//! Cooperation for that agent.
-			agent_coop_t & coop );
+			coop_t & coop );
 
 		//! Agent shutdown deriver.
 		/*!

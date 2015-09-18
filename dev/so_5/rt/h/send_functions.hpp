@@ -115,7 +115,7 @@ arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return a
 	};
 
 	// Send to ad-hoc agent.
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		auto a = coop.define_agent();
 		a.on_start( [a] {
 			...
@@ -167,7 +167,7 @@ send( TARGET && to, ARGS&&... args )
 	};
 
 	// Send to ad-hoc agent.
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		auto a = coop.define_agent();
 		a.on_start( [a] {
 			...
