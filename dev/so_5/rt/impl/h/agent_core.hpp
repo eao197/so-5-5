@@ -86,6 +86,12 @@ class coop_private_iface_t
 		}
 };
 
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_private_iface_t = coop_private_iface_t;
+
 //
 // agent_core_stats_t
 //

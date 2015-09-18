@@ -1129,6 +1129,12 @@ class SO_5_TYPE coop_t
 };
 
 /*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_t = coop_t;
+
+/*!
  * \since v.5.2.3
  * \brief A custom deleter for cooperation.
  */
@@ -1139,12 +1145,30 @@ class coop_deleter_t
 		operator()( coop_t * coop ) { coop_t::destroy( coop ); }
 };
 
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_deleter_t = coop_deleter_t;
+
 //! Typedef for the agent_coop autopointer.
 typedef std::unique_ptr< coop_t, coop_deleter_t >
 	coop_unique_ptr_t;
 
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_unique_ptr_t = coop_unique_ptr_t;
+
 //! Typedef for the agent_coop smart pointer.
 typedef std::shared_ptr< coop_t > coop_ref_t;
+
+/*!
+ * \since v.5.5.9
+ * \brief A typedef for compatibility with previous versions.
+ */
+using agent_coop_ref_t = coop_ref_t;
 
 } /* namespace rt */
 
