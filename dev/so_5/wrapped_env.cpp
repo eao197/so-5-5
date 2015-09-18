@@ -103,13 +103,18 @@ struct wrapped_env_t::details_t
 			so_5::api::generic_simple_init_t init_func,
 			so_5::rt::environment_params_t && params )
 			:	m_env{ std::move( init_func ), std::move( params ) }
-			,	m_env_thread{ [this]{ m_env.run(); } }
 			{}
+
+		void
+		start()
+			{
+				m_env_thread = std::thread{ [this]{ m_env.run(); } };
+				m_env.ensure_started();
+			}
 
 		void
 		stop()
 			{
-				m_env.ensure_started();
 				m_env.stop();
 			}
 
@@ -150,42 +155,35 @@ make_params_via_tuner( so_5::api::generic_simple_so_env_params_tuner_t tuner )
 } /* namespace anonymous */
 
 wrapped_env_t::wrapped_env_t()
-	:	m_impl{
-			make_details_object(
-					[]( so_5::rt::environment_t & ) {},
-					make_necessary_tuning( so_5::rt::environment_params_t{} ) )
-		}
+	:	wrapped_env_t{
+			[]( so_5::rt::environment_t & ) {},
+			so_5::rt::environment_params_t{} }
 	{}
 
 wrapped_env_t::wrapped_env_t(
 	so_5::api::generic_simple_init_t init_func )
-	:	m_impl{
-			make_details_object(
-					std::move( init_func ),
-					make_necessary_tuning( so_5::rt::environment_params_t{} ) )
-		}
+	:	wrapped_env_t{
+			std::move( init_func ),
+			make_necessary_tuning( so_5::rt::environment_params_t{} ) }
 	{}
 
 wrapped_env_t::wrapped_env_t(
 	so_5::api::generic_simple_init_t init_func,
 	so_5::api::generic_simple_so_env_params_tuner_t params_tuner )
-	:	m_impl{
-			make_details_object(
-					std::move( init_func ),
-					make_necessary_tuning( 
-						make_params_via_tuner( std::move( params_tuner ) ) ) )
-		}
+	:	wrapped_env_t{
+			std::move( init_func ),
+			make_params_via_tuner( std::move( params_tuner ) ) }
 	{}
 
 wrapped_env_t::wrapped_env_t(
 	so_5::api::generic_simple_init_t init_func,
 	so_5::rt::environment_params_t && params )
-	:	m_impl{
-			make_details_object(
-					std::move( init_func ),
-					make_necessary_tuning( std::move( params ) ) )
-		}
-	{}
+	:	m_impl{ make_details_object(
+			std::move( init_func ),
+			make_necessary_tuning( std::move( params ) ) ) }
+	{
+		m_impl->start();
+	}
 
 wrapped_env_t::~wrapped_env_t()
 	{

@@ -46,4 +46,5 @@ MxxRu::Cpp::composite_target {
 	required_prj 'sample/so_5/news_board/prj.rb'
 	required_prj 'sample/so_5/prio_work_stealing/prj.rb'
 	required_prj 'sample/so_5/wrapped_env_demo/prj.rb'
+	required_prj 'sample/so_5/convert_lib/prj.rb'
 }
