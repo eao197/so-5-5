@@ -111,42 +111,20 @@ extern "C" int create_converter( converter ** handle_receiver )
 	{
 		std::unique_ptr< so_5::wrapped_env_t > env{ new so_5::wrapped_env_t{} };
 
-		// Synchronization stuff. We can return from that function only
-		// when converter agent successfully started.
-		bool converter_started = false;
-		std::mutex start_lock;
-		std::condition_variable start_cond;
-
-		std::unique_lock< std::mutex > lock{ start_lock };
-
 		// A single coop with conversion agent must be added into Environment.
 		env->environment().introduce_coop( [&]( so_5::rt::coop_t & coop ) {
 			// Mbox for conversion messages.
 			auto mbox = coop.environment().create_local_mbox( "converter" );
 			// Converter agent.
-			coop.define_agent()
-				// On start the agent should inform client thread.
-				.on_start( [&] {
-						// Notification to client thread must be sent.
-						{
-							std::lock_guard< std::mutex > l{ start_lock };
-							converter_started = true;
-						}
-						start_cond.notify_one();
-					} )
-				// Main conversion event.
-				.event( mbox, []( const std::string & v ) -> int {
-						std::istringstream s{ v };
-						int result;
-						s >> result;
-						if( s.fail() )
-							throw std::invalid_argument( "unable to convert to int: '" + v + "'" );
-						return result;
-					} );
+			coop.define_agent().event( mbox, []( const std::string & v ) -> int {
+					std::istringstream s{ v };
+					int result;
+					s >> result;
+					if( s.fail() )
+						throw std::invalid_argument( "unable to convert to int: '" + v + "'" );
+					return result;
+				} );
 			} );
-
-		// Wait for start of conversion agent.
-		start_cond.wait( lock, [&] { return converter_started; } );
 
 		// Result handle for converter Environment.
 		*handle_receiver = reinterpret_cast< converter * >( env.release() );
