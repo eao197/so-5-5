@@ -45,3 +45,5 @@ add_subdirectory(make_pipeline)
 add_subdirectory(machine_control)
 add_subdirectory(news_board)
 add_subdirectory(prio_work_stealing)
+add_subdirectory(wrapped_env_demo)
+
