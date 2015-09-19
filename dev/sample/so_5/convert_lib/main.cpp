@@ -14,7 +14,7 @@
 //
 // Library interface.
 //
-struct converter {};
+struct converter;
 extern "C" int create_converter( converter ** handle_receiver );
 extern "C" int convert_value(
 	converter * handle, 
@@ -26,27 +26,31 @@ extern "C" void destroy_converter( converter * handle );
 // Library usage.
 //
 
+// Demo function which tries to convert all source values
+// and returns vector of conversion descriptions results.
 std::vector< std::string >
 make_conversion(
 	const std::vector< std::string > & values )
 {
 	// Helper for creation of converter instance.
-	converter * raw_handle = nullptr;
+	converter * handle = nullptr;
 
-	const int rc1 = create_converter( &raw_handle );
+	const int rc1 = create_converter( &handle );
 	if( rc1 )
 		throw std::runtime_error( "converter creation error: " +
 				std::to_string( rc1 ) );
 
-	std::unique_ptr< converter, void (*)(converter *) > unique_handle(
-			raw_handle, &destroy_converter );
+	// Use unique_ptr to automatically delete converter at exit.
+	std::unique_ptr< converter, void (*)(converter *) > converter_deleter(
+			handle, destroy_converter );
 
 	std::vector< std::string > result;
 
+	// Do conversion and collecting of result descriptions.
 	for( const auto & s : values )
 	{
 		int int_value = 0;
-		const int rc2 = convert_value( unique_handle.get(), s.c_str(), &int_value );
+		const int rc2 = convert_value( handle, s.c_str(), &int_value );
 
 		if( rc2 )
 			result.push_back( "error=" + std::to_string( rc2 ) );
@@ -60,6 +64,7 @@ make_conversion(
 // Main demo loop.
 void demo()
 {
+	// Two source sequences to be processed.
 	std::vector< std::string > seq1;
 	seq1.push_back( "1" );
 	seq1.push_back( "2" );
@@ -72,18 +77,22 @@ void demo()
 	seq2.push_back( "thirteen" );
 	seq2.push_back( "14" );
 
+	// Initiate asynchronous processing of sequences.
 	auto f1 = std::async( make_conversion, std::cref(seq1) );
 	auto f2 = std::async( make_conversion, std::cref(seq2) );
 
-	std::cout << "First sequence: " << std::endl;
-	for( auto i : f1.get() )
-		std::cout << i << ",";
-	std::cout << std::endl;
+	// Collecting and printing results.
+	auto printer = [](
+		const char * name,
+		const std::vector< std::string > & result ) {
+			std::cout << name << ": " << std::flush;
+			for( const auto & i : result )
+				std::cout << i << ",";
+			std::cout << std::endl;
+		};
 
-	std::cout << "Second sequence: " << std::endl;
-	for( auto i : f2.get() )
-		std::cout << i << ",";
-	std::cout << std::endl;
+	printer( "First sequence", f1.get() );
+	printer( "Second sequence", f2.get() );
 }
 
 int main()
@@ -146,6 +155,8 @@ extern "C" int convert_value(
 	{
 		auto env = reinterpret_cast< so_5::wrapped_env_t * >( handle );
 
+		// Do a synchronous request to mbox with fixed name.
+		// An exception will be throw in the case of an error.
 		*receiver = so_5::request_value< int, std::string >(
 			env->environment().create_local_mbox( "converter" ),
 			so_5::infinite_wait,

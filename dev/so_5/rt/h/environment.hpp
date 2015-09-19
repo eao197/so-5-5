@@ -581,7 +581,7 @@ class SO_5_TYPE environment_t
 		 *
 			\code
 			so_5::rt::coop_unique_ptr_t coop = so_env.create_coop(
-				so_5::rt::nonempty_name_t( "some_coop" ),
+				"some_coop",
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
 					"some_active_group" ) );
@@ -1258,15 +1258,15 @@ class SO_5_TYPE environment_t
 			// For the case when name for new coop will be generated automatically.
 			// And default dispatcher will be used for binding.
 			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
-				coop->make_agent< first_agent >(...);
-				coop->make_agent< second_agent >(...);
+				coop.make_agent< first_agent >(...);
+				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is specified.
 			// Default dispatcher will be used for binding.
 			env.introduce_coop( "main-coop", []( so_5::rt::coop_t & coop ) {
-				coop->make_agent< first_agent >(...);
-				coop->make_agent< second_agent >(...);
+				coop.make_agent< first_agent >(...);
+				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is automatically generated and
@@ -1274,8 +1274,8 @@ class SO_5_TYPE environment_t
 			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[]( so_5::rt::coop_t & coop ) {
-					coop->make_agent< first_agent >(...);
-					coop->make_agent< second_agent >(...);
+					coop.make_agent< first_agent >(...);
+					coop.make_agent< second_agent >(...);
 				} );
 
 			// For the case when name is explicitly defined and
@@ -1284,8 +1284,8 @@ class SO_5_TYPE environment_t
 				"main-coop",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[]( so_5::rt::coop_t & coop ) {
-					coop->make_agent< first_agent >(...);
-					coop->make_agent< second_agent >(...);
+					coop.make_agent< first_agent >(...);
+					coop.make_agent< second_agent >(...);
 				} );
 			\endcode
 		 */
