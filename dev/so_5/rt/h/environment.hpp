@@ -558,7 +558,7 @@ class SO_5_TYPE environment_t
 		 * \return A new cooperation with \a name. This cooperation
 		 * will use default dispatcher binders.
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
 			const nonempty_name_t & name );
@@ -569,7 +569,7 @@ class SO_5_TYPE environment_t
 		 * \return A new cooperation with automatically generated name. This
 		 * cooperation will use default dispatcher binders.
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			autoname_indicator_t indicator() );
 
@@ -580,8 +580,8 @@ class SO_5_TYPE environment_t
 		 * this cooperation.
 		 *
 			\code
-			so_5::rt::agent_coop_unique_ptr_t coop = so_env.create_coop(
-				so_5::rt::nonempty_name_t( "some_coop" ),
+			so_5::rt::coop_unique_ptr_t coop = so_env.create_coop(
+				"some_coop",
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
 					"some_active_group" ) );
@@ -593,7 +593,7 @@ class SO_5_TYPE environment_t
 				so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
 			\endcode
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
 			const nonempty_name_t & name,
@@ -606,7 +606,7 @@ class SO_5_TYPE environment_t
 		 * \return A cooperation with automatically generated name and
 		 * \a disp_binder as the default dispatcher binder.
 		 */
-		agent_coop_unique_ptr_t
+		coop_unique_ptr_t
 		create_coop(
 			//! A new cooperation name.
 			autoname_indicator_t indicator(),
@@ -630,7 +630,7 @@ class SO_5_TYPE environment_t
 		void
 		register_coop(
 			//! Cooperation to be registered.
-			agent_coop_unique_ptr_t agent_coop );
+			coop_unique_ptr_t agent_coop );
 
 		/*!
 		 * \since v.5.2.1
@@ -1257,25 +1257,25 @@ class SO_5_TYPE environment_t
 			\code
 			// For the case when name for new coop will be generated automatically.
 			// And default dispatcher will be used for binding.
-			env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-				coop->make_agent< first_agent >(...);
-				coop->make_agent< second_agent >(...);
+			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+				coop.make_agent< first_agent >(...);
+				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is specified.
 			// Default dispatcher will be used for binding.
-			env.introduce_coop( "main-coop", []( so_5::rt::agent_coop_t & coop ) {
-				coop->make_agent< first_agent >(...);
-				coop->make_agent< second_agent >(...);
+			env.introduce_coop( "main-coop", []( so_5::rt::coop_t & coop ) {
+				coop.make_agent< first_agent >(...);
+				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is automatically generated and
 			// dispatcher binder is specified.
 			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::agent_coop_t & coop ) {
-					coop->make_agent< first_agent >(...);
-					coop->make_agent< second_agent >(...);
+				[]( so_5::rt::coop_t & coop ) {
+					coop.make_agent< first_agent >(...);
+					coop.make_agent< second_agent >(...);
 				} );
 
 			// For the case when name is explicitly defined and
@@ -1283,9 +1283,9 @@ class SO_5_TYPE environment_t
 			env.introduce_coop(
 				"main-coop",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::agent_coop_t & coop ) {
-					coop->make_agent< first_agent >(...);
-					coop->make_agent< second_agent >(...);
+				[]( so_5::rt::coop_t & coop ) {
+					coop.make_agent< first_agent >(...);
+					coop.make_agent< second_agent >(...);
 				} );
 			\endcode
 		 */
@@ -1312,7 +1312,7 @@ class SO_5_TYPE environment_t
 		void
 		so5__ready_to_deregister_notify(
 			//! Cooperation which is ready to be deregistered.
-			agent_coop_t * coop );
+			coop_t * coop );
 
 		//! Do the final actions of a cooperation deregistration.
 		void
@@ -1620,7 +1620,7 @@ environment_t::introduce_coop( ARGS &&... args )
 	\endcode
  */
 template< typename... ARGS >
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 create_child_coop(
 	//! Owner of the cooperation.
 	agent_t & owner,
@@ -1641,7 +1641,7 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
+	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		coop.define_agent().on_start( [&coop] {
 			auto child = so_5::rt::create_child_coop( coop, so_5::autoname );
 			child->make_agent< worker >();
@@ -1653,10 +1653,10 @@ create_child_coop(
 	\endcode
  */
 template< typename... ARGS >
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 create_child_coop(
 	//! Parent cooperation.
-	const agent_coop_t & parent,
+	const coop_t & parent,
 	//! Arguments for the environment_t::create_coop() method.
 	ARGS&&... args )
 {
@@ -1680,7 +1680,7 @@ create_child_coop(
 		virtual void
 		so_evt_start() override
 		{
-			so_5::rt::introduce_child_coop( *this, []( so_5::rt::agent_coop_t & coop ) {
+			so_5::rt::introduce_child_coop( *this, []( so_5::rt::coop_t & coop ) {
 				coop.make_agent< worker >();
 			} );
 		}
@@ -1712,10 +1712,10 @@ introduce_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::agent_coop_t & parent ) {
+	env.introduce_coop( []( so_5::rt::coop_t & parent ) {
 		coop.define_agent().on_start( [&parent] {
 			so_5::rt::introduce_child_coop( parent,
-				[]( so_5::rt::agent_coop_t & child ) {
+				[]( so_5::rt::coop_t & child ) {
 					child.make_agent< worker >();
 					...
 				} );
@@ -1734,7 +1734,7 @@ template< typename... ARGS >
 void
 introduce_child_coop(
 	//! Parent cooperation.
-	const agent_coop_t & parent,
+	const coop_t & parent,
 	//! Arguments for the environment_t::introduce_coop() method.
 	ARGS&&... args )
 {

@@ -333,7 +333,7 @@ environment_t::install_exception_logger(
 	m_impl->m_dispatchers.install_exception_logger( std::move( logger ) );
 }
 
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 environment_t::create_coop(
 	const nonempty_name_t & name )
 {
@@ -342,31 +342,31 @@ environment_t::create_coop(
 		create_default_disp_binder() );
 }
 
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 environment_t::create_coop(
 	autoname_indicator_t indicator() )
 {
 	return create_coop( indicator, create_default_disp_binder() );
 }
 
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 environment_t::create_coop(
 	const nonempty_name_t & name,
 	disp_binder_unique_ptr_t disp_binder )
 {
-	return agent_coop_unique_ptr_t(
-			new agent_coop_t( name, std::move(disp_binder), self_ref() ) );
+	return coop_unique_ptr_t(
+			new coop_t( name, std::move(disp_binder), self_ref() ) );
 }
 
-agent_coop_unique_ptr_t
+coop_unique_ptr_t
 environment_t::create_coop(
 	autoname_indicator_t (*)(),
 	disp_binder_unique_ptr_t disp_binder )
 {
 	auto counter = ++(m_impl->m_autoname_counter);
 	std::string name = "__so5_autoname_" + std::to_string(counter) + "__";
-	return agent_coop_unique_ptr_t(
-			new agent_coop_t(
+	return coop_unique_ptr_t(
+			new coop_t(
 					std::move(name),
 					std::move(disp_binder),
 					self_ref() ) );
@@ -374,7 +374,7 @@ environment_t::create_coop(
 
 void
 environment_t::register_coop(
-	agent_coop_unique_ptr_t agent_coop )
+	coop_unique_ptr_t agent_coop )
 {
 	m_impl->m_agent_core.register_coop( std::move( agent_coop ) );
 }
@@ -506,7 +506,7 @@ environment_t::so5__create_mpsc_mbox(
 
 void
 environment_t::so5__ready_to_deregister_notify(
-	agent_coop_t * coop )
+	coop_t * coop )
 {
 	m_impl->m_agent_core.ready_to_deregister_notify( coop );
 }

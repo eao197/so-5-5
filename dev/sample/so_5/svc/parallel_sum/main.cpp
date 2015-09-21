@@ -57,7 +57,7 @@ class a_vector_summator_t : public so_5::rt::agent_t
 				so_5::rt::introduce_child_coop(
 						*this,
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-						[&]( so_5::rt::agent_coop_t & coop )
+						[&]( so_5::rt::coop_t & coop )
 						{
 							coop.define_agent().event(
 								m_part_summator_mbox,
@@ -148,7 +148,7 @@ class a_runner_t : public so_5::rt::agent_t
 				so_5::rt::introduce_child_coop(
 					*this,
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ),
-					[this]( so_5::rt::agent_coop_t & coop ) {
+					[this]( so_5::rt::coop_t & coop ) {
 						coop.make_agent< a_vector_summator_t >( m_summator_mbox );
 					} );
 			}
@@ -191,7 +191,7 @@ main( int argc, char ** argv )
 							env.introduce_coop(
 									so_5::disp::active_obj::create_disp_binder(
 											"active_obj" ),
-									[&]( so_5::rt::agent_coop_t & coop ) {
+									[&]( so_5::rt::coop_t & coop ) {
 										coop.make_agent< a_runner_t >( ITERATIONS );
 									} );
 						},
