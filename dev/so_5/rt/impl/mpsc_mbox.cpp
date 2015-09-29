@@ -143,7 +143,8 @@ limitful_mpsc_mbox_t::do_deliver_message(
 
 	auto limit = m_limits.find( msg_type );
 
-	try_to_deliver_to_agent< invocation_type_t::event >(
+	try_to_deliver_to_agent(
+			invocation_type_t::event,
 			*m_single_consumer,
 			limit,
 			msg_type,
@@ -171,7 +172,8 @@ limitful_mpsc_mbox_t::do_deliver_service_request(
 		[&] {
 			auto limit = m_limits.find( msg_type );
 
-			try_to_deliver_to_agent< invocation_type_t::service_request >(
+			try_to_deliver_to_agent(
+					invocation_type_t::service_request,
 					*m_single_consumer,
 					limit,
 					msg_type,

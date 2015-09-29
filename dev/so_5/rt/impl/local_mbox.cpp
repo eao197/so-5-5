@@ -125,7 +125,8 @@ local_mbox_t::do_deliver_message(
 		for( auto a : it->second )
 		{
 			if( a.must_be_delivered( *(message.get()) ) )
-				try_to_deliver_to_agent< invocation_type_t::event >(
+				try_to_deliver_to_agent(
+						invocation_type_t::event,
 						a.subscriber(),
 						a.limit(),
 						msg_type,
@@ -172,7 +173,8 @@ local_mbox_t::do_deliver_service_request(
 
 			auto & a = it->second.front();
 			if( a.must_be_delivered( svc_request_param ) )
-				try_to_deliver_to_agent< invocation_type_t::service_request >(
+				try_to_deliver_to_agent(
+						invocation_type_t::service_request,
 						a.subscriber(),
 						a.limit(),
 						msg_type,
