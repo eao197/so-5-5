@@ -19,6 +19,7 @@
 #include <so_5/h/exception.hpp>
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/compiler_features.hpp>
+#include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
@@ -248,6 +249,17 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \since v.5.5.9
+		 * \brief Set message delivery tracer for the environment.
+		 */
+		environment_params_t &
+		message_delivery_tracer( so_5::msg_tracing::tracer_unique_ptr_t tracer )
+		{
+			m_message_delivery_tracer = std::move( tracer );
+			return *this;
+		}
+
+		/*!
 		 * \name Methods for internal use only.
 		 * \{
 		 */
@@ -291,6 +303,16 @@ class SO_5_TYPE environment_params_t
 		so5__error_logger() const
 		{
 			return m_error_logger;
+		}
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Get message delivery tracer for the environment.
+		 */
+		so_5::msg_tracing::tracer_unique_ptr_t
+		so5__giveout_message_delivery_tracer()
+		{
+			return std::move( m_message_delivery_tracer );
 		}
 		/*!
 		 * \}
@@ -344,6 +366,12 @@ class SO_5_TYPE environment_params_t
 		 * \brief Error logger for the environment.
 		 */
 		error_logger_shptr_t m_error_logger;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Tracer for message delivery.
+		 */
+		so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
 };
 
 //

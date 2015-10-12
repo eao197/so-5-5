@@ -46,6 +46,7 @@ environment_params_t::environment_params_t(
 	,	m_exception_reaction( other.m_exception_reaction )
 	,	m_autoshutdown_disabled( other.m_autoshutdown_disabled )
 	,	m_error_logger( std::move( other.m_error_logger ) )
+	,	m_message_delivery_tracer( std::move( other.m_message_delivery_tracer ) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -74,6 +75,7 @@ environment_params_t::swap( environment_params_t & other )
 	std::swap( m_autoshutdown_disabled, other.m_autoshutdown_disabled );
 
 	m_error_logger.swap( other.m_error_logger );
+	m_message_delivery_tracer.swap( other.m_message_delivery_tracer );
 }
 
 environment_params_t &
@@ -184,6 +186,15 @@ struct environment_t::internals_t
 	 */
 	error_logger_shptr_t m_error_logger;
 
+	/*!
+	 * \since v.5.5.9
+	 * \brief Tracer object for message delivery tracing.
+	 * \attention This field must be declared and initialized
+	 * before m_mbox_core because a pointer to tracer will be passed
+	 * to the constructor of m_mbox_core.
+	 */
+	so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
+
 	//! An utility for mboxes.
 	impl::mbox_core_ref_t m_mbox_core;
 
@@ -240,6 +251,8 @@ struct environment_t::internals_t
 		environment_t & env,
 		environment_params_t && params )
 		:	m_error_logger( params.so5__error_logger() )
+		,	m_message_delivery_tracer{
+				params.so5__giveout_message_delivery_tracer() }
 		,	m_mbox_core( new impl::mbox_core_t() )
 		,	m_agent_core(
 				env,
