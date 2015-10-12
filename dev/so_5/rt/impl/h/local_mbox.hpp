@@ -22,6 +22,7 @@
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/impl/h/agent_ptr_compare.hpp>
+#include <so_5/rt/impl/h/message_limit_internals.hpp>
 
 namespace so_5
 {
@@ -32,71 +33,25 @@ namespace rt
 namespace impl
 {
 
-//
-// local_mbox_t
-//
-
-//! A class for representing a local anonymous mbox.
-class local_mbox_t : public abstract_message_box_t
+namespace local_mbox_details
 {
-	public:
-		local_mbox_t( mbox_id_t id );
-		virtual ~local_mbox_t();
 
-		virtual mbox_id_t
-		id() const override
-			{
-				return m_id;
-			}
+//
+// data_t
+//
 
-		virtual void
-		subscribe_event_handler(
-			const std::type_index & type_wrapper,
-			const so_5::rt::message_limit::control_block_t * limit,
-			agent_t * subscriber ) override;
+/*!
+ * \since v.5.5.9
+ * \brief A coolection of data required for local mbox implementation.
+ */
+class data_t
+	{
+	protected :
+		data_t( mbox_id_t id )
+			:	m_id{ id }
+			{}
 
-		virtual void
-		unsubscribe_event_handlers(
-			const std::type_index & type_wrapper,
-			agent_t * subscriber ) override;
-
-		virtual std::string
-		query_name() const override;
-
-		virtual mbox_type_t
-		type() const override
-			{
-				return mbox_type_t::multi_producer_multi_consumer;
-			}
-
-		virtual void
-		do_deliver_message(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
-
-		virtual void
-		do_deliver_service_request(
-			const std::type_index & msg_type,
-			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override;
-
-		virtual void
-		set_delivery_filter(
-			const std::type_index & msg_type,
-			const delivery_filter_t & filter,
-			agent_t & subscriber ) override;
-
-		virtual void
-		drop_delivery_filter(
-			const std::type_index & msg_type,
-			agent_t & subscriber ) SO_5_NOEXCEPT override;
-
-	private:
-		/*!
-		 * \since v.5.4.0
-		 * \brief ID of this mbox.
-		 */
+		//! ID of this mbox.
 		const mbox_id_t m_id;
 
 		//! Object lock.
@@ -288,6 +243,296 @@ class local_mbox_t : public abstract_message_box_t
 		//! Map of subscribers to messages.
 		messages_table_t m_subscribers;
 };
+
+//
+// no_tracing_base_t
+//
+/*!
+ * \since v.5.5.9
+ * \brief Base class for local mbox for the case when message delivery
+ * tracing is disabled.
+ */
+struct no_tracing_base_t
+	{
+//FIXME: must be implemented!
+	};
+
+} /* namespace local_mbox_details */
+
+//
+// local_mbox_template_t
+//
+
+//! A template with implementation of local mbox.
+/*!
+ * \since v.5.5.9
+ * \tparam TRACING_BASE base class with implementation of message
+ * delivery tracing methods.
+ */
+template< typename TRACING_BASE >
+class local_mbox_template_t
+	:	public abstract_message_box_t
+	,	protected local_mbox_details::data_t
+	,	protected TRACING_BASE
+	{
+	public:
+		template< typename... TRACING_ARGS >
+		local_mbox_template_t(
+			//! ID of this mbox.
+			mbox_id_t id,
+			//! Optional parameters for TRACING_BASE's constructor.
+			TRACING_ARGS &&... args )
+			:	local_mbox_details::data_t{ id }
+			,	TRACING_BASE{ std::forward< TRACING_ARGS >(args)... }
+			{}
+
+		virtual mbox_id_t
+		id() const override
+			{
+				return m_id;
+			}
+
+		virtual void
+		subscribe_event_handler(
+			const std::type_index & type_wrapper,
+			const so_5::rt::message_limit::control_block_t * limit,
+			agent_t * subscriber ) override
+			{
+				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( type_wrapper );
+				if( it == m_subscribers.end() )
+				{
+					// There isn't such message type yet.
+					subscriber_container_t container;
+					container.emplace_back( subscriber, limit );
+
+					m_subscribers.emplace( type_wrapper, std::move( container ) );
+				}
+				else
+				{
+					auto & agents = it->second;
+
+					subscriber_info_t info{ subscriber, limit };
+
+					auto pos = std::lower_bound( agents.begin(), agents.end(), info );
+					if( pos != agents.end() )
+					{
+						// This is subscriber or appopriate place for it.
+						if( &(pos->subscriber()) != subscriber )
+							agents.insert( pos, info );
+						else
+							// Agent is already in subscribers list.
+							// But its state must be updated.
+							pos->set_limit( limit );
+					}
+					else
+						agents.push_back( info );
+				}
+			}
+
+		virtual void
+		unsubscribe_event_handlers(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber ) override
+			{
+				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( type_wrapper );
+				if( it != m_subscribers.end() )
+				{
+					auto & agents = it->second;
+
+					auto pos = std::lower_bound( agents.begin(), agents.end(),
+							subscriber_info_t{ subscriber } );
+					if( pos != agents.end() && &(pos->subscriber()) == subscriber )
+					{
+						// Subscriber can be removed only if there is no delivery filter.
+						pos->drop_limit();
+						if( pos->empty() )
+							agents.erase( pos );
+					}
+
+					if( agents.empty() )
+						m_subscribers.erase( it );
+				}
+			}
+
+		virtual std::string
+		query_name() const override
+			{
+				std::ostringstream s;
+				s << "<mbox:type=MPMC:id=" << m_id << ">";
+
+				return s.str();
+			}
+
+		virtual mbox_type_t
+		type() const override
+			{
+				return mbox_type_t::multi_producer_multi_consumer;
+			}
+
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				using namespace so_5::rt::message_limit::impl;
+
+				read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( msg_type );
+				if( it != m_subscribers.end() )
+					for( auto a : it->second )
+					{
+						if( a.must_be_delivered( *(message.get()) ) )
+							try_to_deliver_to_agent(
+									invocation_type_t::event,
+									a.subscriber(),
+									a.limit(),
+									msg_type,
+									message,
+									overlimit_reaction_deep,
+									[&] {
+										agent_t::call_push_event(
+												a.subscriber(),
+												a.limit(),
+												m_id,
+												msg_type,
+												message );
+									} );
+					}
+			}
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				using namespace so_5::rt::message_limit::impl;
+
+				msg_service_request_base_t::dispatch_wrapper( message,
+					[&] {
+						read_lock_guard_t< default_rw_spinlock_t > lock( m_lock );
+
+						auto it = m_subscribers.find( msg_type );
+
+						if( it == m_subscribers.end() )
+							SO_5_THROW_EXCEPTION(
+									so_5::rc_no_svc_handlers,
+									"no service handlers (no subscribers for message)" );
+
+						if( 1 != it->second.size() )
+							SO_5_THROW_EXCEPTION(
+									so_5::rc_more_than_one_svc_handler,
+									"more than one service handler found" );
+
+						const auto & svc_request_param =
+							dynamic_cast< msg_service_request_base_t & >( *message )
+									.query_param();
+
+						auto & a = it->second.front();
+						if( a.must_be_delivered( svc_request_param ) )
+							try_to_deliver_to_agent(
+									invocation_type_t::service_request,
+									a.subscriber(),
+									a.limit(),
+									msg_type,
+									message,
+									overlimit_reaction_deep,
+									[&] {
+										agent_t::call_push_service_request(
+												a.subscriber(),
+												a.limit(),
+												m_id,
+												msg_type,
+												message );
+									} );
+						else
+							SO_5_THROW_EXCEPTION(
+									so_5::rc_no_svc_handlers,
+									"no service handlers (no subscribers for message or "
+									"subscriber is blocked by delivery filter)" );
+					} );
+			}
+
+		virtual void
+		set_delivery_filter(
+			const std::type_index & msg_type,
+			const delivery_filter_t & filter,
+			agent_t & subscriber ) override
+			{
+				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( msg_type );
+				if( it == m_subscribers.end() )
+				{
+					// There isn't such message type yet.
+					subscriber_container_t container;
+					container.emplace_back( &subscriber, &filter );
+
+					m_subscribers.emplace( msg_type, std::move( container ) );
+				}
+				else
+				{
+					auto & agents = it->second;
+
+					subscriber_info_t info{ &subscriber, &filter };
+
+					auto pos = std::lower_bound( agents.begin(), agents.end(), info );
+					if( pos != agents.end() )
+					{
+						// This is subscriber or appopriate place for it.
+						if( &(pos->subscriber()) != &subscriber )
+							agents.insert( pos, info );
+						else
+							// Agent is already in subscribers list.
+							// But its state must be updated.
+							pos->set_filter( filter );
+					}
+					else
+						agents.push_back( info );
+				}
+			}
+
+		virtual void
+		drop_delivery_filter(
+			const std::type_index & msg_type,
+			agent_t & subscriber ) SO_5_NOEXCEPT override
+			{
+				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( msg_type );
+				if( it != m_subscribers.end() )
+				{
+					auto & agents = it->second;
+
+					auto pos = std::lower_bound( agents.begin(), agents.end(),
+							subscriber_info_t{ &subscriber } );
+					if( pos != agents.end() && &(pos->subscriber()) == &subscriber )
+					{
+						// Subscriber can be removed only if there is no delivery filter.
+						pos->drop_filter();
+						if( pos->empty() )
+							// There is no more need in that subscriber.
+							agents.erase( pos );
+					}
+
+					if( agents.empty() )
+						m_subscribers.erase( it );
+				}
+			}
+	};
+
+/*!
+ * \since v.5.5.9
+ * \brief Alias for local mbox without message delivery tracing.
+ */
+using local_mbox_no_tracing_t =
+	local_mbox_template_t< local_mbox_details::no_tracing_base_t >;
 
 } /* namespace impl */
 

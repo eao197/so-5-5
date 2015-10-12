@@ -37,7 +37,7 @@ mbox_core_t::~mbox_core_t()
 mbox_t
 mbox_core_t::create_local_mbox()
 {
-	mbox_t mbox_ref( new local_mbox_t( ++m_mbox_id_counter ) );
+	mbox_t mbox_ref( new local_mbox_no_tracing_t{ ++m_mbox_id_counter } );
 
 	return mbox_ref;
 }
@@ -50,7 +50,7 @@ mbox_core_t::create_local_mbox(
 			mbox_name,
 			[this]() -> mbox_t {
 				return mbox_t(
-					new local_mbox_t( ++m_mbox_id_counter ) );
+					new local_mbox_no_tracing_t{ ++m_mbox_id_counter } );
 			} );
 }
 

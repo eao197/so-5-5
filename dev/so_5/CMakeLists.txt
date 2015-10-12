@@ -36,7 +36,6 @@ set(SO_5_SRC exception.cpp
 	rt/impl/subscr_storage_hash_table_based.cpp
 	rt/impl/subscr_storage_adaptive.cpp
 	rt/impl/process_unhandled_exception.cpp
-	rt/impl/local_mbox.cpp
 	rt/impl/named_local_mbox.cpp
 	rt/impl/mpsc_mbox.cpp
 	rt/impl/mbox_core.cpp
