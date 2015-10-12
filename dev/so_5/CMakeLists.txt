@@ -11,6 +11,7 @@ set(SO_5_SRC exception.cpp
 	atomic_refcounted.cpp
 	error_logger.cpp
 	timers.cpp
+	msg_tracing.cpp
 	wrapped_env.cpp
 	rt/nonempty_name.cpp
 	rt/message.cpp
