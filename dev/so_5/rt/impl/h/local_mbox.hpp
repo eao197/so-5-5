@@ -275,6 +275,26 @@ struct tracing_disabled_base_t
 				// No implementation. This method must be removed by
 				// optimized compiler.
 			}
+
+		void
+		trace_set_delivery_filter(
+			const abstract_message_box_t &,
+			const std::type_index &,
+			const agent_t * )
+			{
+				// No implementation. This method must be removed by
+				// optimized compiler.
+			}
+
+		void
+		trace_drop_delivery_filter(
+			const abstract_message_box_t &,
+			const std::type_index &,
+			const agent_t * )
+			{
+				// No implementation. This method must be removed by
+				// optimized compiler.
+			}
 //FIXME: must be implemented!
 	};
 
@@ -331,6 +351,41 @@ class tracing_enabled_base_t
 
 				m_tracer.trace( s.str() );
 			}
+
+		void
+		trace_set_delivery_filter(
+			const abstract_message_box_t & mbox,
+			const std::type_index & msg_type,
+			const agent_t * subscriber )
+			{
+				std::ostringstream s;
+
+				s << "msg_trace [tid=" << query_current_thread_id()
+					<< "][mbox_id=" << mbox.id()
+					<< "][mbox_name=" << mbox.query_name()
+					<< "] set_delivery_filter [msg=" << msg_type.name()
+					<< "][agent_ptr=" << subscriber << "]";
+
+				m_tracer.trace( s.str() );
+			}
+
+		void
+		trace_drop_delivery_filter(
+			const abstract_message_box_t & mbox,
+			const std::type_index & msg_type,
+			const agent_t * subscriber )
+			{
+				std::ostringstream s;
+
+				s << "msg_trace [tid=" << query_current_thread_id()
+					<< "][mbox_id=" << mbox.id()
+					<< "][mbox_name=" << mbox.query_name()
+					<< "] drop_delivery_filter [msg=" << msg_type.name()
+					<< "][agent_ptr=" << subscriber << "]";
+
+				m_tracer.trace( s.str() );
+			}
+
 //FIXME: must be implemented!
 	};
 
@@ -553,6 +608,11 @@ class local_mbox_template_t
 			const delivery_filter_t & filter,
 			agent_t & subscriber ) override
 			{
+				this->trace_set_delivery_filter(
+						*this,
+						msg_type,
+						&subscriber );
+
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( msg_type );
@@ -591,6 +651,11 @@ class local_mbox_template_t
 			const std::type_index & msg_type,
 			agent_t & subscriber ) SO_5_NOEXCEPT override
 			{
+				this->trace_drop_delivery_filter(
+						*this,
+						msg_type,
+						&subscriber );
+
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( msg_type );

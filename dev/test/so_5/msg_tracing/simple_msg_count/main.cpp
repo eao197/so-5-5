@@ -42,6 +42,8 @@ struct finish : public so_5::rt::signal_t {};
 
 class a_test_t : public so_5::rt::agent_t
 {
+	struct dummy_msg { int m_i = 0; };
+
 public :
 	a_test_t( context_t ctx, so_5::rt::mbox_t data_mbox )
 		:	so_5::rt::agent_t{ ctx }
@@ -51,6 +53,10 @@ public :
 	virtual void
 	so_define_agent() override
 	{
+		so_set_delivery_filter( m_data_mbox, []( const dummy_msg & msg ) {
+				return 0 == msg.m_i;
+			} );
+
 		so_subscribe( m_data_mbox ).event< finish >( &a_test_t::evt_finish );
 	}
 
@@ -95,7 +101,7 @@ main()
 												so_5::msg_tracing::std_cout_tracer() } } );
 					} );
 
-				const unsigned int expected_value = 2;
+				const unsigned int expected_value = 4;
 				auto actual_value = counter.load( std::memory_order_acquire );
 				if( expected_value != actual_value )
 					throw std::runtime_error( "Unexpected count of trace messages: "
