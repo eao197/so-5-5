@@ -18,6 +18,8 @@
 
 #include <so_5/h/spinlocks.hpp>
 
+#include <so_5/h/msg_tracing.hpp>
+
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/agent.hpp>
 
@@ -245,15 +247,33 @@ class data_t
 };
 
 //
-// no_tracing_base_t
+// tracing_disabled_base_t
 //
 /*!
  * \since v.5.5.9
  * \brief Base class for local mbox for the case when message delivery
  * tracing is disabled.
  */
-struct no_tracing_base_t
+struct tracing_disabled_base_t
 	{
+//FIXME: must be implemented!
+	};
+
+//
+// tracing_enabled_base_t
+//
+/*!
+ * \since v.5.5.9
+ * \brief Base class for local mbox for the case when message delivery
+ * tracing is enabled.
+ */
+struct tracing_enabled_base_t
+	{
+		so_5::msg_tracing::tracer_t & m_tracer;
+
+		tracing_enabled_base_t( so_5::msg_tracing::tracer_t & tracer )
+			:	m_tracer{ tracer }
+			{}
 //FIXME: must be implemented!
 	};
 
@@ -531,8 +551,15 @@ class local_mbox_template_t
  * \since v.5.5.9
  * \brief Alias for local mbox without message delivery tracing.
  */
-using local_mbox_no_tracing_t =
-	local_mbox_template_t< local_mbox_details::no_tracing_base_t >;
+using local_mbox_without_tracing_t =
+	local_mbox_template_t< local_mbox_details::tracing_disabled_base_t >;
+
+/*!
+ * \since v.5.5.9
+ * \brief Alias for local mbox with message delivery tracing.
+ */
+using local_mbox_with_tracing_t =
+	local_mbox_template_t< local_mbox_details::tracing_enabled_base_t >;
 
 } /* namespace impl */
 

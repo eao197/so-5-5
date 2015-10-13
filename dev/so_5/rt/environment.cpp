@@ -253,7 +253,8 @@ struct environment_t::internals_t
 		:	m_error_logger( params.so5__error_logger() )
 		,	m_message_delivery_tracer{
 				params.so5__giveout_message_delivery_tracer() }
-		,	m_mbox_core( new impl::mbox_core_t() )
+		,	m_mbox_core(
+				new impl::mbox_core_t{ m_message_delivery_tracer.get() } )
 		,	m_agent_core(
 				env,
 				params.so5__giveout_coop_listener() )

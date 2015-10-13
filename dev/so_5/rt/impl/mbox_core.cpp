@@ -24,8 +24,10 @@ namespace impl
 // mbox_core_t
 //
 
-mbox_core_t::mbox_core_t()
-	:	m_mbox_id_counter( 1 )
+mbox_core_t::mbox_core_t(
+	so_5::msg_tracing::tracer_t * tracer )
+	:	m_tracer{ tracer }
+	,	m_mbox_id_counter{ 1 }
 {
 }
 
@@ -37,9 +39,11 @@ mbox_core_t::~mbox_core_t()
 mbox_t
 mbox_core_t::create_local_mbox()
 {
-	mbox_t mbox_ref( new local_mbox_no_tracing_t{ ++m_mbox_id_counter } );
-
-	return mbox_ref;
+	auto id = ++m_mbox_id_counter;
+	if( !m_tracer )
+		return mbox_t{ new local_mbox_without_tracing_t{ id } };
+	else
+		return mbox_t{ new local_mbox_with_tracing_t{ id, *m_tracer } };
 }
 
 mbox_t
@@ -48,10 +52,7 @@ mbox_core_t::create_local_mbox(
 {
 	return create_named_mbox(
 			mbox_name,
-			[this]() -> mbox_t {
-				return mbox_t(
-					new local_mbox_no_tracing_t{ ++m_mbox_id_counter } );
-			} );
+			[this]() { return create_local_mbox(); } );
 }
 
 mbox_t
