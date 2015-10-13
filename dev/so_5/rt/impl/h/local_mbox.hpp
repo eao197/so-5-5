@@ -46,9 +46,8 @@ namespace local_mbox_details
  * \since v.5.5.9
  * \brief A coolection of data required for local mbox implementation.
  */
-class data_t
+struct data_t
 	{
-	protected :
 		data_t( mbox_id_t id )
 			:	m_id{ id }
 			{}
@@ -244,7 +243,7 @@ class data_t
 
 		//! Map of subscribers to messages.
 		messages_table_t m_subscribers;
-};
+	};
 
 //
 // tracing_disabled_base_t
@@ -256,6 +255,26 @@ class data_t
  */
 struct tracing_disabled_base_t
 	{
+		void
+		trace_subscribe_event_handler(
+			const abstract_message_box_t &,
+			const std::type_index &,
+			const so_5::rt::message_limit::control_block_t *,
+			const agent_t * )
+			{
+				// No implementation. This method must be removed by
+				// optimized compiler.
+			}
+
+		void
+		trace_unsubscribe_event_handler(
+			const abstract_message_box_t &,
+			const std::type_index &,
+			const agent_t * )
+			{
+				// No implementation. This method must be removed by
+				// optimized compiler.
+			}
 //FIXME: must be implemented!
 	};
 
@@ -267,13 +286,51 @@ struct tracing_disabled_base_t
  * \brief Base class for local mbox for the case when message delivery
  * tracing is enabled.
  */
-struct tracing_enabled_base_t
+class tracing_enabled_base_t
 	{
+	private :
 		so_5::msg_tracing::tracer_t & m_tracer;
 
+	public :
 		tracing_enabled_base_t( so_5::msg_tracing::tracer_t & tracer )
 			:	m_tracer{ tracer }
 			{}
+
+		void
+		trace_subscribe_event_handler(
+			const abstract_message_box_t & mbox,
+			const std::type_index & msg_type,
+			const so_5::rt::message_limit::control_block_t * limit,
+			const agent_t * subscriber )
+			{
+				std::ostringstream s;
+
+				s << "msg_trace [tid=" << query_current_thread_id()
+					<< "][mbox_id=" << mbox.id()
+					<< "][mbox_name=" << mbox.query_name()
+					<< "] subscribe_event_handler [msg=" << msg_type.name()
+					<< "][agent_ptr=" << subscriber
+					<< "][limit_ptr=" << limit << "]";
+
+				m_tracer.trace( s.str() );
+			}
+
+		void
+		trace_unsubscribe_event_handler(
+			const abstract_message_box_t & mbox,
+			const std::type_index & msg_type,
+			const agent_t * subscriber )
+			{
+				std::ostringstream s;
+
+				s << "msg_trace [tid=" << query_current_thread_id()
+					<< "][mbox_id=" << mbox.id()
+					<< "][mbox_name=" << mbox.query_name()
+					<< "] unsubscribe_event_handler [msg=" << msg_type.name()
+					<< "][agent_ptr=" << subscriber << "]";
+
+				m_tracer.trace( s.str() );
+			}
 //FIXME: must be implemented!
 	};
 
@@ -292,8 +349,8 @@ struct tracing_enabled_base_t
 template< typename TRACING_BASE >
 class local_mbox_template_t
 	:	public abstract_message_box_t
-	,	protected local_mbox_details::data_t
-	,	protected TRACING_BASE
+	,	private local_mbox_details::data_t
+	,	private TRACING_BASE
 	{
 	public:
 		template< typename... TRACING_ARGS >
@@ -318,6 +375,12 @@ class local_mbox_template_t
 			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override
 			{
+				this->trace_subscribe_event_handler(
+						*this,
+						type_wrapper,
+						limit,
+						subscriber );
+
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( type_wrapper );
@@ -356,6 +419,11 @@ class local_mbox_template_t
 			const std::type_index & type_wrapper,
 			agent_t * subscriber ) override
 			{
+				this->trace_unsubscribe_event_handler(
+						*this,
+						type_wrapper,
+						subscriber );
+
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( type_wrapper );
