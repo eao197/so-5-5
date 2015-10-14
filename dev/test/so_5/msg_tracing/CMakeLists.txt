@@ -1,1 +1,3 @@
+add_subdirectory(simple_msg_count)
 add_subdirectory(simple_svc_count)
+add_subdirectory(simple_svc_count_on_exception)
