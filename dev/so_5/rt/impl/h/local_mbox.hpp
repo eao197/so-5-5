@@ -715,6 +715,7 @@ class local_mbox_template_t
 						msg_type, message, overlimit_reaction_deep };
 
 				do_deliver_service_request_impl(
+						tracer,
 						msg_type,
 						message,
 						overlimit_reaction_deep );
@@ -857,6 +858,7 @@ class local_mbox_template_t
 
 		void
 		do_deliver_service_request_impl(
+			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -879,36 +881,65 @@ class local_mbox_template_t
 									so_5::rc_more_than_one_svc_handler,
 									"more than one service handler found" );
 
-						const auto & svc_request_param =
-							dynamic_cast< msg_service_request_base_t & >( *message )
-									.query_param();
-
-						auto & a = it->second.front();
-						const auto delivery_status =
-								a.must_be_delivered( svc_request_param );
-
-						if( delivery_possibility_t::must_be_delivered == delivery_status )
-							try_to_deliver_to_agent(
-									invocation_type_t::service_request,
-									a.subscriber(),
-									a.limit(),
-									msg_type,
-									message,
-									overlimit_reaction_deep,
-									[&] {
-										agent_t::call_push_service_request(
-												a.subscriber(),
-												a.limit(),
-												m_id,
-												msg_type,
-												message );
-									} );
-						else
-							SO_5_THROW_EXCEPTION(
-									so_5::rc_no_svc_handlers,
-									"no service handlers (no subscribers for message or "
-									"subscriber is blocked by delivery filter)" );
+						do_deliver_service_request_to_subscriber(
+								tracer,
+								it->second.front(),
+								msg_type,
+								message,
+								overlimit_reaction_deep );
 					} );
+			}
+
+		void
+		do_deliver_service_request_to_subscriber(
+			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			const subscriber_info_t & agent_info,
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const
+			{
+				const auto & svc_request_param =
+					dynamic_cast< msg_service_request_base_t & >( *message )
+							.query_param();
+
+				const auto delivery_status =
+						agent_info.must_be_delivered( svc_request_param );
+
+				if( delivery_possibility_t::must_be_delivered == delivery_status )
+					{
+						tracer.delivery_attempt( &agent_info.subscriber() );
+
+						using namespace so_5::rt::message_limit::impl;
+
+						try_to_deliver_to_agent(
+								invocation_type_t::service_request,
+								agent_info.subscriber(),
+								agent_info.limit(),
+								msg_type,
+								message,
+								overlimit_reaction_deep,
+								[&] {
+									tracer.push_to_queue( &agent_info.subscriber() );
+
+									agent_t::call_push_service_request(
+											agent_info.subscriber(),
+											agent_info.limit(),
+											m_id,
+											msg_type,
+											message );
+								} );
+					}
+				else
+					{
+						tracer.message_rejected(
+								&agent_info.subscriber(),
+								delivery_status );
+
+						SO_5_THROW_EXCEPTION(
+								so_5::rc_no_svc_handlers,
+								"no service handlers (no subscribers for message or "
+								"subscriber is blocked by delivery filter)" );
+					}
 			}
 	};
 
