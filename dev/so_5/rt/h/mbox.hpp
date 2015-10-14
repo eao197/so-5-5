@@ -42,6 +42,17 @@ const service_request_infinite_waiting_t infinite_wait =
 namespace rt
 {
 
+/*!
+ * \since v.5.5.9
+ * \brief Result of checking delivery posibility.
+ */
+enum class delivery_possibility_t
+{
+	must_be_delivered,
+	no_subscription,
+	disabled_by_delivery_filter
+};
+
 template< class RESULT >
 class service_invoke_proxy_t;
 
