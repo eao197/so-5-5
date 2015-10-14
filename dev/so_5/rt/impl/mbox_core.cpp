@@ -60,17 +60,37 @@ mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
 	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
 {
+	const auto id = ++m_mbox_id_counter;
+
+	std::unique_ptr< abstract_message_box_t > actual_mbox;
 	if( limits_storage )
-		return mbox_t(
-				new limitful_mpsc_mbox_t(
-						++m_mbox_id_counter,
-						single_consumer,
-						*limits_storage ) );
+	{
+		if( !m_tracer )
+			actual_mbox.reset( new limitful_mpsc_mbox_without_tracing_t{
+					id,
+					single_consumer,
+					*limits_storage } );
+		else
+			actual_mbox.reset( new limitful_mpsc_mbox_with_tracing_t{
+					id,
+					single_consumer,
+					*limits_storage,
+					*m_tracer } );
+	}
 	else
-		return mbox_t(
-				new limitless_mpsc_mbox_t(
-						++m_mbox_id_counter,
-						single_consumer ) );
+	{
+		if( !m_tracer )
+			actual_mbox.reset( new limitless_mpsc_mbox_without_tracing_t{
+					id,
+					single_consumer } );
+		else
+			actual_mbox.reset( new limitless_mpsc_mbox_with_tracing_t{
+					id,
+					single_consumer,
+					*m_tracer } );
+	}
+
+	return mbox_t{ actual_mbox.release() };
 }
 
 void
