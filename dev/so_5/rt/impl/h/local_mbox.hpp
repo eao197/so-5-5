@@ -325,6 +325,9 @@ struct tracing_disabled_base_t
 				commit() {}
 
 				void
+				no_subscribers() const {}
+
+				void
 				delivery_attempt( const agent_t * ) const {}
 
 				void
@@ -491,6 +494,23 @@ class tracing_enabled_base_t
 
 				void
 				commit() { m_commited = true; }
+
+				void
+				no_subscribers() const
+					{
+						std::ostringstream s;
+
+						s << "msg_trace [tid=" << query_current_thread_id()
+							<< "][mbox_id=" << m_mbox.id()
+							<< "][mbox_name=" << m_mbox.query_name()
+							<< "] " << m_op_name << ".no_subscribers "
+							<< "[msg_type=" << m_msg_type.name()
+							<< "][msg_ptr=" << m_message.get()
+							<< "][overlimit_deep=" << m_overlimit_reaction_deep
+							<< "]";
+
+						m_tracer.trace( s.str() );
+					}
 
 				void
 				delivery_attempt( const agent_t * subscriber ) const
@@ -812,9 +832,17 @@ class local_mbox_template_t
 
 				auto it = m_subscribers.find( msg_type );
 				if( it != m_subscribers.end() )
-					for( const auto & a : it->second )
-						do_deliver_message_to_subscriber( a,
-								tracer, msg_type, message, overlimit_reaction_deep );
+					{
+						for( const auto & a : it->second )
+							do_deliver_message_to_subscriber(
+									a,
+									tracer,
+									msg_type,
+									message,
+									overlimit_reaction_deep );
+					}
+				else
+					tracer.no_subscribers();
 			}
 
 		void
@@ -872,9 +900,13 @@ class local_mbox_template_t
 						auto it = m_subscribers.find( msg_type );
 
 						if( it == m_subscribers.end() )
-							SO_5_THROW_EXCEPTION(
-									so_5::rc_no_svc_handlers,
-									"no service handlers (no subscribers for message)" );
+							{
+								tracer.no_subscribers();
+
+								SO_5_THROW_EXCEPTION(
+										so_5::rc_no_svc_handlers,
+										"no service handlers (no subscribers for message)" );
+							}
 
 						if( 1 != it->second.size() )
 							SO_5_THROW_EXCEPTION(
