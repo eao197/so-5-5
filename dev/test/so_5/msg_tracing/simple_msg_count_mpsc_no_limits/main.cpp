@@ -10,6 +10,7 @@
 
 #include "../simple_tracer.hpp"
 
+struct start : public so_5::rt::signal_t {};
 struct finish : public so_5::rt::signal_t {};
 
 class a_test_t : public so_5::rt::agent_t
@@ -22,16 +23,17 @@ public :
 	virtual void
 	so_define_agent() override
 	{
+		so_subscribe_self().event< start >( &a_test_t::evt_start );
 		so_subscribe_self().event< finish >( &a_test_t::evt_finish );
 	}
 
-	virtual void
-	so_evt_start() override
+private :
+	void
+	evt_start()
 	{
 		so_5::send< finish >( *this );
 	}
 
-private :
 	void
 	evt_finish()
 	{
@@ -39,11 +41,32 @@ private :
 	}
 };
 
+class a_request_initator_t : public so_5::rt::agent_t
+{
+public :
+	a_request_initator_t( context_t ctx, so_5::rt::mbox_t other_mbox )
+		:	so_5::rt::agent_t{ ctx }
+		,	m_other_mbox{ std::move( other_mbox ) }
+		{}
+
+	virtual void
+	so_evt_start() override
+	{
+		so_5::request_value< void, start >( m_other_mbox, so_5::infinite_wait );
+	}
+
+private :
+	const so_5::rt::mbox_t m_other_mbox;
+};
+
 void
 init( so_5::rt::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-			coop.make_agent< a_test_t >();
+	env.introduce_coop(
+		so_5::disp::active_obj::create_private_disp( env )->binder(),
+		[]( so_5::rt::agent_coop_t & coop ) {
+			auto a_test = coop.make_agent< a_test_t >();
+			coop.make_agent< a_request_initator_t >( a_test->so_direct_mbox() );
 		} );
 }
 
@@ -64,7 +87,7 @@ main()
 												so_5::msg_tracing::std_cout_tracer() } } );
 					} );
 
-				const unsigned int expected_value = 6;
+				const unsigned int expected_value = 12;
 				auto actual_value = counter.load( std::memory_order_acquire );
 				if( expected_value != actual_value )
 					throw std::runtime_error( "Unexpected count of trace messages: "
