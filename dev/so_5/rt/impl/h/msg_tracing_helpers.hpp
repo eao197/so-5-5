@@ -14,6 +14,8 @@
 
 #include <so_5/rt/h/mbox.hpp>
 
+#include <so_5/details/h/invoke_noexcept_code.hpp>
+
 #include <sstream>
 
 namespace so_5 {
@@ -23,6 +25,118 @@ namespace rt {
 namespace impl {
 
 namespace msg_tracing_helpers {
+
+namespace details {
+
+struct overlimit_deep_t
+	{
+		unsigned int m_deep;
+	};
+
+struct simple_action_name_t
+	{
+		const char * m_name;
+	};
+
+struct composed_action_name_t
+	{
+		const char * m_1;
+		const char * m_2;
+	};
+
+void
+make_trace_to( std::ostream & ) {}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const abstract_message_box_t & mbox )
+	{
+		s << "[mbox_id=" << mbox.id() << "]";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const std::type_index & msg_type )
+	{
+		s << "[msg_type=" << msg_type.name() << "]";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const agent_t * agent )
+	{
+		s << "[agent_ptr=" << agent << "]";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const so_5::rt::message_limit::control_block_t * limit )
+	{
+		s << "[limit_ptr=" << limit << "]";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const message_ref_t & message )
+	{
+		s << "[msg_ptr=" << message.get() << "]";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const overlimit_deep_t limit )
+	{
+		s << "[overlimit_deep=" << limit.m_deep << "]";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const simple_action_name_t name )
+	{
+		s << " " << name.m_name << " ";
+	}
+
+void
+make_trace_to(
+	std::ostream & s,
+	const composed_action_name_t name )
+	{
+		s << " " << name.m_1 << "." << name.m_2 << " ";
+	}
+
+template< typename A, typename... OTHER >
+void
+make_trace_to( std::ostream & s, A && a, OTHER &&... other )
+	{
+		make_trace_to( s, std::forward< A >(a) );
+		make_trace_to( s, std::forward< OTHER >(other)... );
+	}
+
+template< typename... ARGS >
+void
+make_trace(
+	so_5::msg_tracing::tracer_t & tracer,
+	ARGS &&... args ) SO_5_NOEXCEPT
+	{
+		so_5::details::invoke_noexcept_code( [&] {
+				std::ostringstream s;
+
+				s << "msg_trace [tid=" << query_current_thread_id() << "]";
+
+				make_trace_to( s, std::forward< ARGS >(args)... );
+
+				tracer.trace( s.str() );
+			} );
+	}
+
+} /* namespace details */
 
 //
 // tracing_disabled_base_t
@@ -104,7 +218,6 @@ struct tracing_disabled_base_t
 					const agent_t *,
 					const delivery_possibility_t ) const {}
 			};
-//FIXME: must be implemented!
 	};
 
 //
@@ -136,35 +249,29 @@ class tracing_enabled_base_t
 			const abstract_message_box_t & mbox,
 			const std::type_index & msg_type,
 			const so_5::rt::message_limit::control_block_t * limit,
-			const agent_t * subscriber ) const
+			const agent_t * subscriber ) const SO_5_NOEXCEPT
 			{
-				std::ostringstream s;
-
-				s << "msg_trace [tid=" << query_current_thread_id()
-					<< "][mbox_id=" << mbox.id()
-					<< "][mbox_name=" << mbox.query_name()
-					<< "] subscribe_event_handler [msg_type=" << msg_type.name()
-					<< "][agent_ptr=" << subscriber
-					<< "][limit_ptr=" << limit << "]";
-
-				m_tracer.trace( s.str() );
+				details::make_trace(
+						m_tracer,
+						mbox,
+						details::simple_action_name_t{ "subscribe_event_handler" },
+						msg_type,
+						subscriber,
+						limit );
 			}
 
 		void
 		trace_unsubscribe_event_handler(
 			const abstract_message_box_t & mbox,
 			const std::type_index & msg_type,
-			const agent_t * subscriber ) const
+			const agent_t * subscriber ) const SO_5_NOEXCEPT
 			{
-				std::ostringstream s;
-
-				s << "msg_trace [tid=" << query_current_thread_id()
-					<< "][mbox_id=" << mbox.id()
-					<< "][mbox_name=" << mbox.query_name()
-					<< "] unsubscribe_event_handler [msg_type=" << msg_type.name()
-					<< "][agent_ptr=" << subscriber << "]";
-
-				m_tracer.trace( s.str() );
+				details::make_trace(
+						m_tracer,
+						mbox,
+						details::simple_action_name_t{ "unsubscribe_event_handler" },
+						msg_type,
+						subscriber );
 			}
 
 		void
@@ -173,15 +280,12 @@ class tracing_enabled_base_t
 			const std::type_index & msg_type,
 			const agent_t * subscriber ) const
 			{
-				std::ostringstream s;
-
-				s << "msg_trace [tid=" << query_current_thread_id()
-					<< "][mbox_id=" << mbox.id()
-					<< "][mbox_name=" << mbox.query_name()
-					<< "] set_delivery_filter [msg_type=" << msg_type.name()
-					<< "][agent_ptr=" << subscriber << "]";
-
-				m_tracer.trace( s.str() );
+				details::make_trace(
+						m_tracer,
+						mbox,
+						details::simple_action_name_t{ "set_delivery_filter" },
+						msg_type,
+						subscriber );
 			}
 
 		void
@@ -190,15 +294,12 @@ class tracing_enabled_base_t
 			const std::type_index & msg_type,
 			const agent_t * subscriber ) const
 			{
-				std::ostringstream s;
-
-				s << "msg_trace [tid=" << query_current_thread_id()
-					<< "][mbox_id=" << mbox.id()
-					<< "][mbox_name=" << mbox.query_name()
-					<< "] drop_delivery_filter [msg_type=" << msg_type.name()
-					<< "][agent_ptr=" << subscriber << "]";
-
-				m_tracer.trace( s.str() );
+				details::make_trace(
+						m_tracer,
+						mbox,
+						details::simple_action_name_t{ "drop_delivery_filter" },
+						msg_type,
+						subscriber );
 			}
 
 		class deliver_op_tracer_t
@@ -209,7 +310,7 @@ class tracing_enabled_base_t
 				const char * m_op_name;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
-				const unsigned int m_overlimit_reaction_deep;
+				const details::overlimit_deep_t m_overlimit_deep;
 				bool m_commited = false;
 
 			public :
@@ -225,37 +326,29 @@ class tracing_enabled_base_t
 					,	m_op_name{ op_name }
 					,	m_msg_type{ msg_type }
 					,	m_message{ message }
-					,	m_overlimit_reaction_deep{ overlimit_reaction_deep }
+					,	m_overlimit_deep{ overlimit_reaction_deep }
 					{
-						std::ostringstream s;
-
-						s << "msg_trace [tid=" << query_current_thread_id()
-							<< "][mbox_id=" << m_mbox.id()
-							<< "][mbox_name=" << m_mbox.query_name()
-							<< "] " << m_op_name << ".started "
-							<< "[msg_type=" << m_msg_type.name()
-							<< "][msg_ptr=" << m_message.get()
-							<< "][overlimit_deep=" << m_overlimit_reaction_deep << "]";
-
-						m_tracer.trace( s.str() );
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{ m_op_name, "started" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep );
 					}
 
 				~deliver_op_tracer_t()
 					{
 						const char * const result =
-								m_commited ? ".finished" : ".aborted";
+								m_commited ? "finished" : "aborted";
 
-						std::ostringstream s;
-
-						s << "msg_trace [tid=" << query_current_thread_id()
-							<< "][mbox_id=" << m_mbox.id()
-							<< "][mbox_name=" << m_mbox.query_name()
-							<< "] " << m_op_name << result << " "
-							<< "[msg_type=" << m_msg_type.name()
-							<< "][msg_ptr=" << m_message.get()
-							<< "][overlimit_deep=" << m_overlimit_reaction_deep << "]";
-
-						m_tracer.trace( s.str() );
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{ m_op_name, result },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep );
 					}
 
 				void
@@ -264,52 +357,42 @@ class tracing_enabled_base_t
 				void
 				no_subscribers() const
 					{
-						std::ostringstream s;
-
-						s << "msg_trace [tid=" << query_current_thread_id()
-							<< "][mbox_id=" << m_mbox.id()
-							<< "][mbox_name=" << m_mbox.query_name()
-							<< "] " << m_op_name << ".no_subscribers "
-							<< "[msg_type=" << m_msg_type.name()
-							<< "][msg_ptr=" << m_message.get()
-							<< "][overlimit_deep=" << m_overlimit_reaction_deep
-							<< "]";
-
-						m_tracer.trace( s.str() );
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "no_subscribers" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep );
 					}
 
 				void
 				delivery_attempt( const agent_t * subscriber ) const
 					{
-						std::ostringstream s;
-
-						s << "msg_trace [tid=" << query_current_thread_id()
-							<< "][mbox_id=" << m_mbox.id()
-							<< "][mbox_name=" << m_mbox.query_name()
-							<< "] " << m_op_name << ".delivery_attempt "
-							<< "[msg_type=" << m_msg_type.name()
-							<< "][msg_ptr=" << m_message.get()
-							<< "][overlimit_deep=" << m_overlimit_reaction_deep
-							<< "][agent_ptr=" << subscriber << "]";
-
-						m_tracer.trace( s.str() );
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "delivery_attempt" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								subscriber );
 					}
 
 				void
 				push_to_queue( const agent_t * subscriber ) const
 					{
-						std::ostringstream s;
-
-						s << "msg_trace [tid=" << query_current_thread_id()
-							<< "][mbox_id=" << m_mbox.id()
-							<< "][mbox_name=" << m_mbox.query_name()
-							<< "] " << m_op_name << ".push_to_queue "
-							<< "[msg_type=" << m_msg_type.name()
-							<< "][msg_ptr=" << m_message.get()
-							<< "][overlimit_deep=" << m_overlimit_reaction_deep
-							<< "][agent_ptr=" << subscriber << "]";
-
-						m_tracer.trace( s.str() );
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "push_to_queue" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								subscriber );
 					}
 
 				void
@@ -320,24 +403,19 @@ class tracing_enabled_base_t
 						if( delivery_possibility_t::disabled_by_delivery_filter
 								== status )
 							{
-								std::ostringstream s;
-
-								s << "msg_trace [tid=" << query_current_thread_id()
-									<< "][mbox_id=" << m_mbox.id()
-									<< "][mbox_name=" << m_mbox.query_name()
-									<< "] " << m_op_name << ".message_rejected "
-									<< "[msg_type=" << m_msg_type.name()
-									<< "][msg_ptr=" << m_message.get()
-									<< "][overlimit_deep=" << m_overlimit_reaction_deep
-									<< "][agent_ptr=" << subscriber << "]";
-
-								m_tracer.trace( s.str() );
+								details::make_trace(
+										m_tracer,
+										m_mbox,
+										details::composed_action_name_t{
+												m_op_name, "message_rejected" },
+										m_msg_type,
+										m_message,
+										m_overlimit_deep,
+										subscriber );
 							}
 					}
 
 			};
-
-//FIXME: must be implemented!
 	};
 
 } /* namespace msg_tracing_helpers */
