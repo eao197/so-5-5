@@ -841,11 +841,8 @@ agent_t::handler_finder_msg_tracing_enabled(
 			d.m_receiver->so_current_state() );
 
 	impl::msg_tracing_helpers::trace_event_handler_search_result(
-			d.m_mbox_id,
-			d.m_msg_type,
+			d,
 			context_marker,
-			d.m_receiver,
-			d.m_receiver->so_current_state(),
 			search_result );
 
 	return search_result;

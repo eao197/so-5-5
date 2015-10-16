@@ -53,40 +53,37 @@ struct composed_action_name_t
 	};
 
 inline void
-make_trace_to( std::ostream & ) {}
-
-inline void
-make_trace_to( std::ostream & s, mbox_identification_t id )
+make_trace_to_1( std::ostream & s, mbox_identification_t id )
 	{
 		s << "[mbox_id=" << id.m_id << "]";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const abstract_message_box_t & mbox )
+make_trace_to_1( std::ostream & s, const abstract_message_box_t & mbox )
 	{
-		make_trace_to( s, mbox_identification_t{ mbox.id() } );
+		make_trace_to_1( s, mbox_identification_t{ mbox.id() } );
 	}
 
 inline void
-make_trace_to( std::ostream & s, const std::type_index & msg_type )
+make_trace_to_1( std::ostream & s, const std::type_index & msg_type )
 	{
 		s << "[msg_type=" << msg_type.name() << "]";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const agent_t * agent )
+make_trace_to_1( std::ostream & s, const agent_t * agent )
 	{
 		s << "[agent_ptr=" << agent << "]";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const state_t * state )
+make_trace_to_1( std::ostream & s, const state_t * state )
 	{
 		s << "[state=" << state->query_name() << "]";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const event_handler_data_t * handler )
+make_trace_to_1( std::ostream & s, const event_handler_data_t * handler )
 	{
 		s << "[evt_handler=";
 		if( handler )
@@ -97,7 +94,7 @@ make_trace_to( std::ostream & s, const event_handler_data_t * handler )
 	}
 
 inline void
-make_trace_to(
+make_trace_to_1(
 	std::ostream & s,
 	const so_5::rt::message_limit::control_block_t * limit )
 	{
@@ -105,34 +102,37 @@ make_trace_to(
 	}
 
 inline void
-make_trace_to( std::ostream & s, const message_ref_t & message )
+make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	{
 		s << "[msg_ptr=" << message.get() << "]";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const overlimit_deep_t limit )
+make_trace_to_1( std::ostream & s, const overlimit_deep_t limit )
 	{
 		s << "[overlimit_deep=" << limit.m_deep << "]";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const simple_action_name_t name )
+make_trace_to_1( std::ostream & s, const simple_action_name_t name )
 	{
 		s << " " << name.m_name << " ";
 	}
 
 inline void
-make_trace_to( std::ostream & s, const composed_action_name_t name )
+make_trace_to_1( std::ostream & s, const composed_action_name_t name )
 	{
 		s << " " << name.m_1 << "." << name.m_2 << " ";
 	}
+
+inline void
+make_trace_to( std::ostream & ) {}
 
 template< typename A, typename... OTHER >
 void
 make_trace_to( std::ostream & s, A && a, OTHER &&... other )
 	{
-		make_trace_to( s, std::forward< A >(a) );
+		make_trace_to_1( s, std::forward< A >(a) );
 		make_trace_to( s, std::forward< OTHER >(other)... );
 	}
 
@@ -441,21 +441,18 @@ class tracing_enabled_base_t
  */
 inline void
 trace_event_handler_search_result(
-	mbox_id_t mbox_id,
-	const std::type_index & msg_type,
+	const execution_demand_t & demand,
 	const char * context_marker,
-	const agent_t * subscriber,
-	const state_t & state,
 	const event_handler_data_t * search_result )
 	{
 		details::make_trace(
-			internal_env_iface_t{ subscriber->so_environment() }.msg_tracer(),
-			details::mbox_identification_t{ mbox_id },
+			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracer(),
+			demand.m_receiver,
 			details::composed_action_name_t{ context_marker, "find_handler" },
-			msg_type,
-//FIXME: message?
-			subscriber,
-			&state,
+			details::mbox_identification_t{ demand.m_mbox_id },
+			demand.m_msg_type,
+			demand.m_message_ref,
+			&(demand.m_receiver->so_current_state()),
 			search_result );
 	}
 
