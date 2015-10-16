@@ -67,30 +67,21 @@ class limitless_mpsc_mbox_template_t
 
 		virtual void
 		subscribe_event_handler(
-			const std::type_index & msg_type,
-			const so_5::rt::message_limit::control_block_t * limit,
+			const std::type_index & /*msg_type*/,
+			const so_5::rt::message_limit::control_block_t * /*limit*/,
 			agent_t * subscriber ) override
 			{
 				if( subscriber != m_single_consumer )
 					SO_5_THROW_EXCEPTION(
 							rc_illegal_subscriber_for_mpsc_mbox,
 							"the only one consumer can create subscription to mpsc_mbox" );
-				this->trace_subscribe_event_handler(
-						*this,
-						msg_type,
-						limit,
-						subscriber );
 			}
 
 		virtual void
 		unsubscribe_event_handlers(
-			const std::type_index & msg_type,
-			agent_t * subscriber ) override
+			const std::type_index & /*msg_type*/,
+			agent_t * /*subscriber*/ ) override
 			{
-				this->trace_unsubscribe_event_handler(
-						*this,
-						msg_type,
-						subscriber );
 			}
 
 		virtual std::string
@@ -122,7 +113,6 @@ class limitless_mpsc_mbox_template_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
 
-				tracer.delivery_attempt( m_single_consumer );
 				tracer.push_to_queue( m_single_consumer );
 
 				agent_t::call_push_event(
@@ -131,8 +121,6 @@ class limitless_mpsc_mbox_template_t
 						m_id,
 						msg_type,
 						message );
-
-				tracer.commit();
 			}
 
 		virtual void
@@ -147,8 +135,6 @@ class limitless_mpsc_mbox_template_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };
 
-				tracer.delivery_attempt( m_single_consumer );
-
 				msg_service_request_base_t::dispatch_wrapper( message,
 					[&] {
 						tracer.push_to_queue( m_single_consumer );
@@ -160,8 +146,6 @@ class limitless_mpsc_mbox_template_t
 								msg_type,
 								message );
 					} );
-
-				tracer.commit();
 			}
 
 		/*!
@@ -259,8 +243,6 @@ class limitful_mpsc_mbox_template_t
 						"deliver_message",
 						msg_type, message, overlimit_reaction_deep };
 
-				tracer.delivery_attempt( this->m_single_consumer );
-
 				using namespace so_5::rt::message_limit::impl;
 
 				auto limit = m_limits.find( msg_type );
@@ -282,8 +264,6 @@ class limitful_mpsc_mbox_template_t
 									msg_type,
 									message );
 						} );
-
-				tracer.commit();
 			}
 
 		virtual void
@@ -297,8 +277,6 @@ class limitful_mpsc_mbox_template_t
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
 						msg_type, message, overlimit_reaction_deep };
-
-				tracer.delivery_attempt( this->m_single_consumer );
 
 				msg_service_request_base_t::dispatch_wrapper( message,
 					[&] {
@@ -324,8 +302,6 @@ class limitful_mpsc_mbox_template_t
 											message );
 								} );
 					} );
-
-				tracer.commit();
 			}
 
 	private :

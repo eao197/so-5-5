@@ -289,12 +289,6 @@ class local_mbox_template_t
 			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override
 			{
-				this->trace_subscribe_event_handler(
-						*this,
-						type_wrapper,
-						limit,
-						subscriber );
-
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( type_wrapper );
@@ -333,11 +327,6 @@ class local_mbox_template_t
 			const std::type_index & type_wrapper,
 			agent_t * subscriber ) override
 			{
-				this->trace_unsubscribe_event_handler(
-						*this,
-						type_wrapper,
-						subscriber );
-
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( type_wrapper );
@@ -392,8 +381,6 @@ class local_mbox_template_t
 						msg_type,
 						message,
 						overlimit_reaction_deep );
-
-				tracer.commit();
 			}
 
 		virtual void
@@ -413,8 +400,6 @@ class local_mbox_template_t
 						msg_type,
 						message,
 						overlimit_reaction_deep );
-
-				tracer.commit();
 			}
 
 		virtual void
@@ -423,11 +408,6 @@ class local_mbox_template_t
 			const delivery_filter_t & filter,
 			agent_t & subscriber ) override
 			{
-				this->trace_set_delivery_filter(
-						*this,
-						msg_type,
-						&subscriber );
-
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( msg_type );
@@ -466,11 +446,6 @@ class local_mbox_template_t
 			const std::type_index & msg_type,
 			agent_t & subscriber ) SO_5_NOEXCEPT override
 			{
-				this->trace_drop_delivery_filter(
-						*this,
-						msg_type,
-						&subscriber );
-
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
 				auto it = m_subscribers.find( msg_type );
@@ -532,8 +507,6 @@ class local_mbox_template_t
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
-						tracer.delivery_attempt( &agent_info.subscriber() );
-
 						using namespace so_5::rt::message_limit::impl;
 
 						try_to_deliver_to_agent(
@@ -613,8 +586,6 @@ class local_mbox_template_t
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
-						tracer.delivery_attempt( &agent_info.subscriber() );
-
 						using namespace so_5::rt::message_limit::impl;
 
 						try_to_deliver_to_agent(

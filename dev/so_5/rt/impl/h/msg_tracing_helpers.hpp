@@ -41,11 +41,6 @@ struct mbox_identification_t
 		mbox_id_t m_id;
 	};
 
-struct simple_action_name_t
-	{
-		const char * m_name;
-	};
-
 struct composed_action_name_t
 	{
 		const char * m_1;
@@ -114,12 +109,6 @@ make_trace_to_1( std::ostream & s, const overlimit_deep_t limit )
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const simple_action_name_t name )
-	{
-		s << " " << name.m_name << " ";
-	}
-
-inline void
 make_trace_to_1( std::ostream & s, const composed_action_name_t name )
 	{
 		s << " " << name.m_1 << "." << name.m_2 << " ";
@@ -165,47 +154,6 @@ make_trace(
  */
 struct tracing_disabled_base_t
 	{
-		void
-		trace_subscribe_event_handler(
-			const abstract_message_box_t &,
-			const std::type_index &,
-			const so_5::rt::message_limit::control_block_t *,
-			const agent_t * ) const
-			{
-				// No implementation. This method must be removed by
-				// optimized compiler.
-			}
-
-		void
-		trace_unsubscribe_event_handler(
-			const abstract_message_box_t &,
-			const std::type_index &,
-			const agent_t * ) const
-			{
-				// No implementation. This method must be removed by
-				// optimized compiler.
-			}
-
-		void
-		trace_set_delivery_filter(
-			const abstract_message_box_t &,
-			const std::type_index &,
-			const agent_t * ) const
-			{
-				// No implementation. This method must be removed by
-				// optimized compiler.
-			}
-
-		void
-		trace_drop_delivery_filter(
-			const abstract_message_box_t &,
-			const std::type_index &,
-			const agent_t * ) const
-			{
-				// No implementation. This method must be removed by
-				// optimized compiler.
-			}
-
 		class deliver_op_tracer_t
 			{
 			public :
@@ -219,13 +167,7 @@ struct tracing_disabled_base_t
 					{}
 
 				void
-				commit() {}
-
-				void
 				no_subscribers() const {}
-
-				void
-				delivery_attempt( const agent_t * ) const {}
 
 				void
 				push_to_queue( const agent_t * ) const {}
@@ -261,64 +203,6 @@ class tracing_enabled_base_t
 				return m_tracer;
 			}
 
-		void
-		trace_subscribe_event_handler(
-			const abstract_message_box_t & mbox,
-			const std::type_index & msg_type,
-			const so_5::rt::message_limit::control_block_t * limit,
-			const agent_t * subscriber ) const SO_5_NOEXCEPT
-			{
-				details::make_trace(
-						m_tracer,
-						mbox,
-						details::simple_action_name_t{ "subscribe_event_handler" },
-						msg_type,
-						subscriber,
-						limit );
-			}
-
-		void
-		trace_unsubscribe_event_handler(
-			const abstract_message_box_t & mbox,
-			const std::type_index & msg_type,
-			const agent_t * subscriber ) const SO_5_NOEXCEPT
-			{
-				details::make_trace(
-						m_tracer,
-						mbox,
-						details::simple_action_name_t{ "unsubscribe_event_handler" },
-						msg_type,
-						subscriber );
-			}
-
-		void
-		trace_set_delivery_filter(
-			const abstract_message_box_t & mbox,
-			const std::type_index & msg_type,
-			const agent_t * subscriber ) const
-			{
-				details::make_trace(
-						m_tracer,
-						mbox,
-						details::simple_action_name_t{ "set_delivery_filter" },
-						msg_type,
-						subscriber );
-			}
-
-		void
-		trace_drop_delivery_filter(
-			const abstract_message_box_t & mbox,
-			const std::type_index & msg_type,
-			const agent_t * subscriber ) const
-			{
-				details::make_trace(
-						m_tracer,
-						mbox,
-						details::simple_action_name_t{ "drop_delivery_filter" },
-						msg_type,
-						subscriber );
-			}
-
 		class deliver_op_tracer_t
 			{
 			private :
@@ -328,7 +212,6 @@ class tracing_enabled_base_t
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
 				const details::overlimit_deep_t m_overlimit_deep;
-				bool m_commited = false;
 
 			public :
 				deliver_op_tracer_t(
@@ -345,31 +228,7 @@ class tracing_enabled_base_t
 					,	m_message{ message }
 					,	m_overlimit_deep{ overlimit_reaction_deep }
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{ m_op_name, "started" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep );
 					}
-
-				~deliver_op_tracer_t()
-					{
-						const char * const result =
-								m_commited ? "finished" : "aborted";
-
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{ m_op_name, result },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep );
-					}
-
-				void
-				commit() { m_commited = true; }
 
 				void
 				no_subscribers() const
@@ -382,20 +241,6 @@ class tracing_enabled_base_t
 								m_msg_type,
 								m_message,
 								m_overlimit_deep );
-					}
-
-				void
-				delivery_attempt( const agent_t * subscriber ) const
-					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "delivery_attempt" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
-								subscriber );
 					}
 
 				void

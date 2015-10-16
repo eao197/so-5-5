@@ -84,7 +84,7 @@ main()
 												so_5::msg_tracing::std_cout_tracer() } } );
 					} );
 
-				const unsigned int expected_value = 7;
+				const unsigned int expected_value = 2;
 				auto actual_value = counter.load( std::memory_order_acquire );
 				if( expected_value != actual_value )
 					throw std::runtime_error( "Unexpected count of trace messages: "
