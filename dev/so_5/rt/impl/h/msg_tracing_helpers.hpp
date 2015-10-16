@@ -13,6 +13,9 @@
 #include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/agent.hpp>
+
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 
@@ -33,6 +36,11 @@ struct overlimit_deep_t
 		unsigned int m_deep;
 	};
 
+struct mbox_identification_t
+	{
+		mbox_id_t m_id;
+	};
+
 struct simple_action_name_t
 	{
 		const char * m_name;
@@ -44,34 +52,51 @@ struct composed_action_name_t
 		const char * m_2;
 	};
 
-void
+inline void
 make_trace_to( std::ostream & ) {}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const abstract_message_box_t & mbox )
+inline void
+make_trace_to( std::ostream & s, mbox_identification_t id )
 	{
-		s << "[mbox_id=" << mbox.id() << "]";
+		s << "[mbox_id=" << id.m_id << "]";
 	}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const std::type_index & msg_type )
+inline void
+make_trace_to( std::ostream & s, const abstract_message_box_t & mbox )
+	{
+		make_trace_to( s, mbox_identification_t{ mbox.id() } );
+	}
+
+inline void
+make_trace_to( std::ostream & s, const std::type_index & msg_type )
 	{
 		s << "[msg_type=" << msg_type.name() << "]";
 	}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const agent_t * agent )
+inline void
+make_trace_to( std::ostream & s, const agent_t * agent )
 	{
 		s << "[agent_ptr=" << agent << "]";
 	}
 
-void
+inline void
+make_trace_to( std::ostream & s, const state_t * state )
+	{
+		s << "[state=" << state->query_name() << "]";
+	}
+
+inline void
+make_trace_to( std::ostream & s, const event_handler_data_t * handler )
+	{
+		s << "[evt_handler=";
+		if( handler )
+			s << handler;
+		else
+			s << "NONE";
+		s << "]";
+	}
+
+inline void
 make_trace_to(
 	std::ostream & s,
 	const so_5::rt::message_limit::control_block_t * limit )
@@ -79,34 +104,26 @@ make_trace_to(
 		s << "[limit_ptr=" << limit << "]";
 	}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const message_ref_t & message )
+inline void
+make_trace_to( std::ostream & s, const message_ref_t & message )
 	{
 		s << "[msg_ptr=" << message.get() << "]";
 	}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const overlimit_deep_t limit )
+inline void
+make_trace_to( std::ostream & s, const overlimit_deep_t limit )
 	{
 		s << "[overlimit_deep=" << limit.m_deep << "]";
 	}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const simple_action_name_t name )
+inline void
+make_trace_to( std::ostream & s, const simple_action_name_t name )
 	{
 		s << " " << name.m_name << " ";
 	}
 
-void
-make_trace_to(
-	std::ostream & s,
-	const composed_action_name_t name )
+inline void
+make_trace_to( std::ostream & s, const composed_action_name_t name )
 	{
 		s << " " << name.m_1 << "." << name.m_2 << " ";
 	}
@@ -128,7 +145,7 @@ make_trace(
 		so_5::details::invoke_noexcept_code( [&] {
 				std::ostringstream s;
 
-				s << "msg_trace [tid=" << query_current_thread_id() << "]";
+				s << "[tid=" << query_current_thread_id() << "]";
 
 				make_trace_to( s, std::forward< ARGS >(args)... );
 
@@ -418,6 +435,30 @@ class tracing_enabled_base_t
 			};
 	};
 
+/*!
+ * \since v.5.5.9
+ * \brief Helper for tracing the result of event handler search.
+ */
+inline void
+trace_event_handler_search_result(
+	mbox_id_t mbox_id,
+	const std::type_index & msg_type,
+	const char * context_marker,
+	const agent_t * subscriber,
+	const state_t & state,
+	const event_handler_data_t * search_result )
+	{
+		details::make_trace(
+			internal_env_iface_t{ subscriber->so_environment() }.msg_tracer(),
+			details::mbox_identification_t{ mbox_id },
+			details::composed_action_name_t{ context_marker, "find_handler" },
+			msg_type,
+//FIXME: message?
+			subscriber,
+			&state,
+			search_result );
+	}
+
 } /* namespace msg_tracing_helpers */
 
 } /* namespace impl */
@@ -425,5 +466,4 @@ class tracing_enabled_base_t
 } /* namespace rt */
 
 } /* namespace so_5 */
-
 

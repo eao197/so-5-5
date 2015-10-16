@@ -13,6 +13,7 @@
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
 #include <so_5/rt/impl/h/delivery_filter_storage.hpp>
+#include <so_5/rt/impl/h/msg_tracing_helpers.hpp>
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -169,6 +170,11 @@ agent_t::agent_t(
 	:	m_current_state_ptr( &st_default )
 	,	m_was_defined( false )
 	,	m_state_listener_controller( new impl::state_listener_controller_t )
+	,	m_handler_finder{
+			// Actual handler finder is dependent on msg_tracing status.
+			impl::internal_env_iface_t{ ctx.env() }.is_msg_tracing_enabled() ?
+				&agent_t::handler_finder_msg_tracing_enabled :
+				&agent_t::handler_finder_msg_tracing_disabled }
 	,	m_subscriptions(
 			ctx.options().query_subscription_storage_factory()( self_ptr() ) )
 	,	m_message_limits(
@@ -356,10 +362,8 @@ agent_t::so_create_execution_hint(
 	if( is_message_demand || is_service_demand )
 		{
 			// Try to find handler for the demand.
-			auto handler = d.m_receiver->m_subscriptions->find_handler(
-					d.m_mbox_id,
-					d.m_msg_type, 
-					d.m_receiver->so_current_state() );
+			auto handler = d.m_receiver->m_handler_finder(
+					d, "create_execution_hint" );
 			if( is_message_demand )
 				{
 					if( handler )
@@ -666,10 +670,8 @@ agent_t::demand_handler_on_message(
 {
 	message_limit::control_block_t::decrement( d.m_limit );
 
-	auto handler = d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
+	auto handler = d.m_receiver->m_handler_finder(
+			d, "demand_handler_on_message" );
 	if( handler )
 		process_message( working_thread_id, d, handler->m_method );
 }
@@ -733,10 +735,8 @@ agent_t::process_service_request(
 			const impl::event_handler_data_t * handler =
 					handler_data.first ?
 							handler_data.second :
-							d.m_receiver->m_subscriptions->find_handler(
-									d.m_mbox_id,
-									d.m_msg_type, 
-									d.m_receiver->so_current_state() );
+							d.m_receiver->m_handler_finder(
+									d, "process_service_request" );
 			if( handler )
 			{
 				working_thread_id_sentinel_t sentinel(
@@ -817,6 +817,38 @@ agent_t::do_drop_delivery_filter(
 
 	if( m_delivery_filters )
 		m_delivery_filters->drop_delivery_filter( mbox, msg_type, *this );
+}
+
+const impl::event_handler_data_t *
+agent_t::handler_finder_msg_tracing_disabled(
+	execution_demand_t & d,
+	const char * /*context_marker*/ )
+{
+	return d.m_receiver->m_subscriptions->find_handler(
+			d.m_mbox_id,
+			d.m_msg_type, 
+			d.m_receiver->so_current_state() );
+}
+
+const impl::event_handler_data_t *
+agent_t::handler_finder_msg_tracing_enabled(
+	execution_demand_t & d,
+	const char * context_marker )
+{
+	const auto search_result = d.m_receiver->m_subscriptions->find_handler(
+			d.m_mbox_id,
+			d.m_msg_type, 
+			d.m_receiver->so_current_state() );
+
+	impl::msg_tracing_helpers::trace_event_handler_search_result(
+			d.m_mbox_id,
+			d.m_msg_type,
+			context_marker,
+			d.m_receiver,
+			d.m_receiver->so_current_state(),
+			search_result );
+
+	return search_result;
 }
 
 } /* namespace rt */
