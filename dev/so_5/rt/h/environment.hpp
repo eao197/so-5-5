@@ -383,6 +383,12 @@ class SO_5_TYPE environment_params_t
  */
 typedef environment_params_t so_environment_params_t;
 
+namespace impl {
+
+class internal_env_iface_t;
+
+} /* namespace impl */
+
 //
 // environment_t
 //
@@ -485,6 +491,8 @@ typedef environment_params_t so_environment_params_t;
  */
 class SO_5_TYPE environment_t
 {
+	friend class so_5::rt::impl::internal_env_iface_t;
+
 		//! Auxiliary methods for getting reference to itself.
 		/*!
 		 * Could be used in constructors without compiler warnings.
@@ -1320,36 +1328,6 @@ class SO_5_TYPE environment_t
 		template< typename... ARGS >
 		void
 		introduce_coop( ARGS &&... args );
-
-		/*!
-		 * \name Methods for internal use inside SObjectizer.
-		 * \{
-		 */
-		//! Create multi-producer/single-consumer mbox.
-		mbox_t
-		so5__create_mpsc_mbox(
-			//! The only consumer for the messages.
-			agent_t * single_consumer,
-			//! Pointer to the optional message limits storage.
-			//! If this pointer is null then the limitless MPSC-mbox will be
-			//! created. If this pointer is not null the the MPSC-mbox with limit
-			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
-
-		//! Notification about readiness to the deregistration.
-		void
-		so5__ready_to_deregister_notify(
-			//! Cooperation which is ready to be deregistered.
-			coop_t * coop );
-
-		//! Do the final actions of a cooperation deregistration.
-		void
-		so5__final_deregister_coop(
-			//! Cooperation name to be deregistered.
-			const std::string & coop_name );
-		/*!
-		 * \}
-		 */
 
 	private:
 		//! Schedule timer event.

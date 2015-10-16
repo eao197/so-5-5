@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
+
 #include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/agent_core.hpp>
 #include <so_5/rt/impl/h/disp_repository.hpp>
@@ -508,34 +510,6 @@ environment_t::stats_repository()
 	return m_impl->m_stats_controller;
 }
 
-mbox_t
-environment_t::so5__create_mpsc_mbox(
-	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
-{
-	return m_impl->m_mbox_core->create_mpsc_mbox(
-			single_consumer,
-			limits_storage );
-}
-
-void
-environment_t::so5__ready_to_deregister_notify(
-	coop_t * coop )
-{
-	m_impl->m_agent_core.ready_to_deregister_notify( coop );
-}
-
-void
-environment_t::so5__final_deregister_coop(
-	const std::string & coop_name )
-{
-	bool any_cooperation_alive = 
-			m_impl->m_agent_core.final_deregister_coop( coop_name );
-
-	if( !any_cooperation_alive && !m_impl->m_autoshutdown_disabled )
-		stop();
-}
-
 void
 environment_t::impl__run_stats_controller_and_go_further()
 {
@@ -704,6 +678,56 @@ environment_t::impl__do_run_stage(
 				x.what() + "'" );
 	}
 }
+
+namespace impl
+{
+
+mbox_t
+internal_env_iface_t::create_mpsc_mbox(
+	agent_t * single_consumer,
+	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
+{
+	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
+			single_consumer,
+			limits_storage );
+}
+
+void
+internal_env_iface_t::ready_to_deregister_notify(
+	coop_t * coop )
+{
+	m_env.m_impl->m_agent_core.ready_to_deregister_notify( coop );
+}
+
+void
+internal_env_iface_t::final_deregister_coop(
+	const std::string & coop_name )
+{
+	bool any_cooperation_alive = 
+			m_env.m_impl->m_agent_core.final_deregister_coop( coop_name );
+
+	if( !any_cooperation_alive && !m_env.m_impl->m_autoshutdown_disabled )
+		m_env.stop();
+}
+
+bool
+internal_env_iface_t::is_msg_tracing_enabled() const
+{
+	return nullptr != m_env.m_impl->m_message_delivery_tracer.get();
+}
+
+so_5::msg_tracing::tracer_t &
+internal_env_iface_t::msg_tracer() const
+{
+	if( !is_msg_tracing_enabled() )
+		SO_5_THROW_EXCEPTION( rc_msg_tracing_disabled,
+				"msg_tracer cannot be accessed because msg_tracing is disabled" );
+
+	return *(m_env.m_impl->m_message_delivery_tracer);
+}
+
+} /* namespace impl */
+
 } /* namespace rt */
 
 } /* namespace so_5 */

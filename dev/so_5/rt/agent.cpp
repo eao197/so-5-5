@@ -6,6 +6,8 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/environment.hpp>
 
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
+
 #include <so_5/rt/impl/h/state_listener_controller.hpp>
 #include <so_5/rt/impl/h/subscription_storage_iface.hpp>
 #include <so_5/rt/impl/h/process_unhandled_exception.hpp>
@@ -175,7 +177,7 @@ agent_t::agent_t(
 	,	m_env( ctx.env() )
 	,	m_event_queue( nullptr )
 	,	m_direct_mbox(
-			ctx.env().so5__create_mpsc_mbox(
+			impl::internal_env_iface_t{ ctx.env() }.create_mpsc_mbox(
 				self_ptr(),
 				m_message_limits.get() ) )
 		// It is necessary to enable agent subscription in the

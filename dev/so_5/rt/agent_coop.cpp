@@ -9,9 +9,7 @@
 
 #include <so_5/rt/h/environment.hpp>
 
-#include <so_5/rt/h/agent.hpp>
-
-#include <so_5/rt/h/agent_coop.hpp>
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
 
 #include <so_5/rt/impl/h/agent_ptr_compare.hpp>
 
@@ -429,7 +427,7 @@ coop_t::decrement_usage_count()
 		if( COOP_REGISTERED == m_registration_status )
 		{
 			m_registration_status = COOP_DEREGISTERING;
-			m_env.so5__ready_to_deregister_notify( this );
+			impl::internal_env_iface_t{ m_env }.ready_to_deregister_notify( this );
 		}
 	}
 }
@@ -439,7 +437,7 @@ coop_t::final_deregister_coop()
 {
 	unbind_agents_from_disp( m_agent_array.end() );
 
-	m_env.so5__final_deregister_coop( m_coop_name );
+	impl::internal_env_iface_t{ m_env }.final_deregister_coop( m_coop_name );
 }
 
 coop_t *
