@@ -16,6 +16,7 @@
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
+#include <so_5/rt/impl/h/internal_message_iface.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 
@@ -99,7 +100,16 @@ make_trace_to_1(
 inline void
 make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	{
-		s << "[msg_ptr=" << message.get() << "]";
+		const message_t * ptr = message.get();
+		s << "[msg_ptr=" << ptr;
+		if( ptr )
+		{
+			// We can try cases with service requests and user-type messages.
+			const void * payload = internal_message_iface_t{ *ptr }.payload_ptr();
+			if( payload != ptr )
+				s << ",payload_ptr=" << payload;
+		}
+		s << "]";
 	}
 
 inline void
