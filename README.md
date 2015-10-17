@@ -29,7 +29,7 @@ on Linux:
 ```
 on Windows:
 
-First install "git for Windows" from https://git-for-windows.github.io/ or https://git-scm.com/download/win and cmake from https://cmake.org/download/ and make it avalable in PATH. Next from developer console (where msbuild and compiler executable is avalable and other environment variables is set)
+First install "git for Windows" from https://git-for-windows.github.io/ or https://git-scm.com/download/win and cmake from https://cmake.org/download/ and make it avalable in PATH. Next from developer console (where msbuild and compiler executable are avalable and other environment variables is set)
 ```
   git clone --recursive https://github.com/masterspline/SObjectizer.git so
   mkdir build
