@@ -12,7 +12,7 @@ agent-oriented style. Also it provides set of C++ classes for implementing
 agents, mailboxes for message exchange, different dispatcher types for running
 agents and working environment. 
 
-Supported platforms: Linux, Windows, FreeBSD.
+Supported platforms: Linux, Windows, FreeBSD, MacOs.
 
 Building
 ========
@@ -27,6 +27,19 @@ on Linux:
   make test
   make install
 ```
+on Windows:
+
+First install "git for Windows" from https://git-for-windows.github.io/ or https://git-scm.com/download/win and cmake from https://cmake.org/download/ and make it avalable in PATH. Next from developer console (where msbuild and compiler executable is avalable and other environment variables is set)
+```
+  git clone --recursive https://github.com/masterspline/SObjectizer.git so
+  mkdir build
+  cd build
+  cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../so/dev
+  msbuild /m /t:Build /p:Configuration=Release ALL_BUILD.vcxproj
+  msbuild /m /t:Build /p:Configuration=Release INSTALL.vcxproj
+```
+Also You can run cmake GUI instead command line cmake to configure build.
+
 For more detailed info about cmake build system for SObjectizer and avalable params
 see dev/cmake/CmakeQuickHowto.txt
 
