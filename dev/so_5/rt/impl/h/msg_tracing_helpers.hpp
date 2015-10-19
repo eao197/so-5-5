@@ -351,7 +351,7 @@ class tracing_enabled_base_t
 								m_message,
 								m_overlimit_deep,
 								subscriber,
-								details::text_separator_t{ "destination:" },
+								details::text_separator_t{ "==>" },
 								target );
 					}
 
@@ -370,9 +370,8 @@ class tracing_enabled_base_t
 								m_message,
 								m_overlimit_deep,
 								subscriber,
-								details::text_separator_t{ "transformed:" },
+								details::text_separator_t{ "==>" },
 								msg_type,
-								details::text_separator_t{ "destination:" },
 								target );
 					}
 			};

@@ -83,16 +83,24 @@ redirect_reaction(
 						<< ", agent: " << &(ctx.m_receiver)
 						<< ", target_mbox: " << to->query_name();
 			}
-		else if( invocation_type_t::event == ctx.m_event_type )
-			to->do_deliver_message(
-					ctx.m_msg_type,
-					ctx.m_message,
-					ctx.m_reaction_deep + 1 );
-		else if( invocation_type_t::service_request == ctx.m_event_type )
-			to->do_deliver_service_request(
-					ctx.m_msg_type,
-					ctx.m_message,
-					ctx.m_reaction_deep + 1 );
+		else
+			{
+				if( ctx.m_msg_tracer )
+					ctx.m_msg_tracer->reaction_redirect_message(
+							&ctx.m_receiver,
+							to );
+
+				if( invocation_type_t::event == ctx.m_event_type )
+					to->do_deliver_message(
+							ctx.m_msg_type,
+							ctx.m_message,
+							ctx.m_reaction_deep + 1 );
+				else if( invocation_type_t::service_request == ctx.m_event_type )
+					to->do_deliver_service_request(
+							ctx.m_msg_type,
+							ctx.m_message,
+							ctx.m_reaction_deep + 1 );
+			}
 	}
 
 SO_5_FUNC
