@@ -12,4 +12,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/simple_msg_count_mpsc_limits/prj.ut.rb"
 
 	required_prj "#{path}/overlimit_abort_app/prj.ut.rb"
+	required_prj "#{path}/overlimit_drop/prj.ut.rb"
 }

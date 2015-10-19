@@ -41,6 +41,14 @@ const unsigned int max_overlimit_reaction_deep = 32;
 
 SO_5_FUNC
 void
+drop_message_reaction( const overlimit_context_t & ctx )
+	{
+		if( ctx.m_msg_tracer )
+			ctx.m_msg_tracer->reaction_drop_message( &ctx.m_receiver );
+	}
+
+SO_5_FUNC
+void
 abort_app_reaction( const overlimit_context_t & ctx )
 	{
 		so_5::details::abort_on_fatal_error( [&] {
