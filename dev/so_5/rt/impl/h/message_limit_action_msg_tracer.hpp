@@ -58,10 +58,12 @@ class action_msg_tracer_t
 		reaction_transform(
 			//! Agent-receiver for the problematic message.
 			const agent_t * subscriber,
+			//! A new destination for transformed message.
+			const mbox_t & target,
 			//! A new type of message.
 			const std::type_index & msg_type,
-			//! A new destination for transformed message.
-			const mbox_t & target ) const SO_5_NOEXCEPT = 0;
+			//! An instance of new message.
+			const message_ref_t & transformed ) const SO_5_NOEXCEPT = 0;
 	};
 
 } /* namespace impl */

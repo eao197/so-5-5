@@ -143,10 +143,19 @@ transform_reaction(
 						<< ", target_mbox: " << to->query_name();
 			}
 		else
-			to->do_deliver_message(
-					msg_type,
-					message,
-					ctx.m_reaction_deep + 1 );
+			{
+				if( ctx.m_msg_tracer )
+					ctx.m_msg_tracer->reaction_transform(
+							&ctx.m_receiver,
+							to,
+							msg_type,
+							message );
+
+				to->do_deliver_message(
+						msg_type,
+						message,
+						ctx.m_reaction_deep + 1 );
+			}
 	}
 
 } /* namespace impl */

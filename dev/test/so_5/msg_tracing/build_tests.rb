@@ -14,4 +14,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/overlimit_abort_app/prj.ut.rb"
 	required_prj "#{path}/overlimit_drop/prj.ut.rb"
 	required_prj "#{path}/overlimit_redirect/prj.ut.rb"
+	required_prj "#{path}/overlimit_transform/prj.ut.rb"
 }

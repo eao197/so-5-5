@@ -358,8 +358,9 @@ class tracing_enabled_base_t
 				virtual void
 				reaction_transform(
 					const agent_t * subscriber,
+					const mbox_t & target,
 					const std::type_index & msg_type,
-					const mbox_t & target ) const SO_5_NOEXCEPT override
+					const message_ref_t & transformed ) const SO_5_NOEXCEPT override
 					{
 						details::make_trace(
 								m_tracer,
@@ -371,8 +372,9 @@ class tracing_enabled_base_t
 								m_overlimit_deep,
 								subscriber,
 								details::text_separator_t{ "==>" },
+								*target,
 								msg_type,
-								target );
+								transformed );
 					}
 			};
 	};

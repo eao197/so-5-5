@@ -11,7 +11,8 @@
 
 #include "../simple_tracer.hpp"
 
-struct hello : public so_5::rt::signal_t {};
+struct hello { int m_v; };
+struct bye { std::string m_v; };
 
 class a_first_t : public so_5::rt::agent_t
 {
@@ -23,14 +24,15 @@ public :
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< hello >( &a_first_t::evt_hello );
+		so_subscribe_self().event( &a_first_t::evt_bye );
 	}
 
 private :
 	void
-	evt_hello()
+	evt_bye( const bye & msg )
 	{
-		so_deregister_agent_coop_normally();
+		if( "1" == msg.m_v )
+			so_deregister_agent_coop_normally();
 	}
 };
 
@@ -39,31 +41,33 @@ class a_second_t : public so_5::rt::agent_t
 public :
 	a_second_t( context_t ctx, so_5::rt::mbox_t target )
 		:	so_5::rt::agent_t{ ctx
-				+ limit_then_redirect< hello >( 1,
-						[this]{ return m_target; } ) }
+				+ limit_then_transform( 1,
+						[this]( const hello & msg ) {
+							return make_transformed< bye >(
+								m_target,
+								std::to_string( msg.m_v ) );
+						} ) }
 		,	m_target{ std::move(target) }
 	{}
 
 	virtual void
 	so_define_agent() override
 	{
-		so_subscribe_self().event< hello >( &a_second_t::evt_hello );
+		so_subscribe_self().event( &a_second_t::evt_hello );
 	}
 
 	virtual void
 	so_evt_start() override
 	{
-		so_5::send< hello >( *this );
-		so_5::send< hello >( *this );
+		so_5::send< hello >( *this, 0 );
+		so_5::send< hello >( *this, 1 );
 	}
 
 private :
 	const so_5::rt::mbox_t m_target;
 
 	void
-	evt_hello()
-	{
-	}
+	evt_hello( const hello & ) {}
 };
 
 void
@@ -100,7 +104,7 @@ main()
 							", actual=" + std::to_string(actual_value) );
 			},
 			4,
-			"simple tracing overlimit reaction (redirect case)" );
+			"simple tracing overlimit reaction (transform case)" );
 	}
 	catch( const std::exception & ex )
 	{
