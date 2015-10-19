@@ -9,10 +9,13 @@
 
 #include <so_5/rt/h/message_limit.hpp>
 
+#include <so_5/rt/impl/h/message_limit_action_msg_tracer.hpp>
+
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/h/error_logger.hpp>
 #include <so_5/h/ret_code.hpp>
+
 
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
@@ -41,6 +44,9 @@ void
 abort_app_reaction( const overlimit_context_t & ctx )
 	{
 		so_5::details::abort_on_fatal_error( [&] {
+			if( ctx.m_msg_tracer )
+				ctx.m_msg_tracer->reaction_abort_app( &ctx.m_receiver );
+
 			SO_5_LOG_ERROR( ctx.m_receiver.so_environment().error_logger(), logger )
 				logger
 					<< "message limit exceeded, application will be aborted. "

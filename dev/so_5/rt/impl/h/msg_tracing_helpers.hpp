@@ -17,6 +17,7 @@
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
 #include <so_5/rt/impl/h/internal_message_iface.hpp>
+#include <so_5/rt/impl/h/message_limit_action_msg_tracer.hpp>
 
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 
@@ -40,6 +41,11 @@ struct overlimit_deep_t
 struct mbox_identification_t
 	{
 		mbox_id_t m_id;
+	};
+
+struct text_separator_t
+	{
+		const char * m_text;
 	};
 
 struct composed_action_name_t
@@ -125,6 +131,12 @@ make_trace_to_1( std::ostream & s, const composed_action_name_t name )
 	}
 
 inline void
+make_trace_to_1( std::ostream & s, const text_separator_t text )
+	{
+		s << " " << text.m_text << " ";
+	}
+
+inline void
 make_trace_to( std::ostream & ) {}
 
 template< typename A, typename... OTHER >
@@ -186,6 +198,9 @@ struct tracing_disabled_base_t
 				message_rejected(
 					const agent_t *,
 					const delivery_possibility_t ) const {}
+
+				const so_5::rt::message_limit::impl::action_msg_tracer_t *
+				overlimit_tracer() const { return nullptr; }
 			};
 	};
 
@@ -214,6 +229,7 @@ class tracing_enabled_base_t
 			}
 
 		class deliver_op_tracer_t
+			:	protected so_5::rt::message_limit::impl::action_msg_tracer_t
 			{
 			private :
 				so_5::msg_tracing::tracer_t & m_tracer;
@@ -287,6 +303,78 @@ class tracing_enabled_base_t
 							}
 					}
 
+				const so_5::rt::message_limit::impl::action_msg_tracer_t *
+				overlimit_tracer() const { return this; }
+
+			protected :
+				virtual void
+				reaction_abort_app(
+					const agent_t * subscriber ) const SO_5_NOEXCEPT override
+					{
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "overlimit.abort" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								subscriber );
+					}
+
+				virtual void
+				reaction_drop_message(
+					const agent_t * subscriber ) const SO_5_NOEXCEPT override
+					{
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "overlimit.drop" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								subscriber );
+					}
+
+				virtual void
+				reaction_redirect_message(
+					const agent_t * subscriber,
+					const mbox_t & target ) const SO_5_NOEXCEPT override
+					{
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "overlimit.redirect" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								subscriber,
+								details::text_separator_t{ "destination:" },
+								target );
+					}
+
+				virtual void
+				reaction_transform(
+					const agent_t * subscriber,
+					const std::type_index & msg_type,
+					const mbox_t & target ) const SO_5_NOEXCEPT override
+					{
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, "overlimit.transform" },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								subscriber,
+								details::text_separator_t{ "transformed:" },
+								msg_type,
+								details::text_separator_t{ "destination:" },
+								target );
+					}
 			};
 	};
 

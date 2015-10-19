@@ -25,6 +25,7 @@ namespace rt
 namespace message_limit
 {
 
+
 namespace impl
 {
 
@@ -267,6 +268,8 @@ try_to_deliver_to_agent(
 	const message_ref_t & what_to_deliver,
 	//! Deep of overlimit reactions recursion.
 	unsigned int overlimit_reaction_deep,
+	//! Message delivery tracer to be used inside overlimit reaction.
+	const so_5::rt::message_limit::impl::action_msg_tracer_t * tracer,
 	//! Actual delivery action.
 	LAMBDA delivery_action )
 {
@@ -281,7 +284,8 @@ try_to_deliver_to_agent(
 				invocation_type,
 				overlimit_reaction_deep,
 				msg_type,
-				what_to_deliver } );
+				what_to_deliver,
+				tracer } );
 	}
 	else
 	{

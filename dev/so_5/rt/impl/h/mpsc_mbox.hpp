@@ -254,6 +254,7 @@ class limitful_mpsc_mbox_template_t
 						msg_type,
 						message,
 						overlimit_reaction_deep,
+						tracer.overlimit_tracer(),
 						[&] {
 							tracer.push_to_queue( this->m_single_consumer );
 
@@ -291,6 +292,7 @@ class limitful_mpsc_mbox_template_t
 								msg_type,
 								message,
 								overlimit_reaction_deep,
+								tracer.overlimit_tracer(),
 								[&] {
 									tracer.push_to_queue( this->m_single_consumer );
 

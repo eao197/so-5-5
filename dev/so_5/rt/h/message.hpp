@@ -545,6 +545,13 @@ namespace message_limit
 
 struct control_block_t;
 
+namespace impl
+{
+
+class action_msg_tracer_t;
+
+} /* namespace impl */
+
 /*!
  * \since v.5.5.4
  * \brief Description of context for overlimit action.
@@ -569,6 +576,16 @@ struct overlimit_context_t
 		//! A message or service request to be delivered.
 		const message_ref_t & m_message;
 
+		/*!
+		 * \since v.5.5.9
+		 * \brief An optional pointer to tracer object for
+		 * message delivery tracing.
+		 *
+		 * \note Value nullptr means that message delivery tracing
+		 * is not used.
+		 */
+		const impl::action_msg_tracer_t * m_msg_tracer;
+
 		//! Initializing constructor.
 		inline
 		overlimit_context_t(
@@ -577,13 +594,15 @@ struct overlimit_context_t
 			invocation_type_t event_type,
 			unsigned int reaction_deep,
 			const std::type_index & msg_type,
-			const message_ref_t & message )
+			const message_ref_t & message,
+			const impl::action_msg_tracer_t * msg_tracer )
 			:	m_receiver( receiver )
 			,	m_limit( limit )
 			,	m_event_type( event_type )
 			,	m_reaction_deep( reaction_deep )
 			,	m_msg_type( msg_type )
 			,	m_message( message )
+			,	m_msg_tracer{ msg_tracer }
 			{}
 	};
 
