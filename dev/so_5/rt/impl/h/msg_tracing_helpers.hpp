@@ -36,6 +36,9 @@ namespace details {
 struct overlimit_deep_t
 	{
 		unsigned int m_deep;
+
+		// NOTE: this constructor is necessary for compatibility with MSVC++2013.
+		overlimit_deep_t( unsigned int deep ) : m_deep{ deep } {}
 	};
 
 struct mbox_identification_t
