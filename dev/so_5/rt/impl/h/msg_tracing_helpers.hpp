@@ -239,6 +239,23 @@ class tracing_enabled_base_t
 				const message_ref_t & m_message;
 				const details::overlimit_deep_t m_overlimit_deep;
 
+				template< typename... ARGS >
+				void
+				make_trace(
+					const char * action_name_suffix,
+					ARGS &&... args ) const
+					{
+						details::make_trace(
+								m_tracer,
+								m_mbox,
+								details::composed_action_name_t{
+										m_op_name, action_name_suffix },
+								m_msg_type,
+								m_message,
+								m_overlimit_deep,
+								std::forward< ARGS >(args)... );
+					}
+
 			public :
 				deliver_op_tracer_t(
 					const tracing_enabled_base_t & tracing_base,
@@ -259,28 +276,13 @@ class tracing_enabled_base_t
 				void
 				no_subscribers() const
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "no_subscribers" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep );
+						make_trace( "no_subscribers" );
 					}
 
 				void
 				push_to_queue( const agent_t * subscriber ) const
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "push_to_queue" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
-								subscriber );
+						make_trace( "push_to_queue", subscriber );
 					}
 
 				void
@@ -291,15 +293,7 @@ class tracing_enabled_base_t
 						if( delivery_possibility_t::disabled_by_delivery_filter
 								== status )
 							{
-								details::make_trace(
-										m_tracer,
-										m_mbox,
-										details::composed_action_name_t{
-												m_op_name, "message_rejected" },
-										m_msg_type,
-										m_message,
-										m_overlimit_deep,
-										subscriber );
+								make_trace( "message_rejected", subscriber );
 							}
 					}
 
@@ -311,30 +305,14 @@ class tracing_enabled_base_t
 				reaction_abort_app(
 					const agent_t * subscriber ) const SO_5_NOEXCEPT override
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "overlimit.abort" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
-								subscriber );
+						make_trace( "overlimit.abort", subscriber );
 					}
 
 				virtual void
 				reaction_drop_message(
 					const agent_t * subscriber ) const SO_5_NOEXCEPT override
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "overlimit.drop" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
-								subscriber );
+						make_trace( "overlimit.drop", subscriber );
 					}
 
 				virtual void
@@ -342,14 +320,8 @@ class tracing_enabled_base_t
 					const agent_t * subscriber,
 					const mbox_t & target ) const SO_5_NOEXCEPT override
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "overlimit.redirect" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
+						make_trace(
+								"overlimit.redirect",
 								subscriber,
 								details::text_separator_t{ "==>" },
 								target );
@@ -362,14 +334,8 @@ class tracing_enabled_base_t
 					const std::type_index & msg_type,
 					const message_ref_t & transformed ) const SO_5_NOEXCEPT override
 					{
-						details::make_trace(
-								m_tracer,
-								m_mbox,
-								details::composed_action_name_t{
-										m_op_name, "overlimit.transform" },
-								m_msg_type,
-								m_message,
-								m_overlimit_deep,
+						make_trace(
+								"overlimit.transform",
 								subscriber,
 								details::text_separator_t{ "==>" },
 								*target,
