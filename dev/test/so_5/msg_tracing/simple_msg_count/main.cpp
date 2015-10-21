@@ -14,7 +14,7 @@ struct finish : public so_5::rt::signal_t {};
 
 class a_test_t : public so_5::rt::agent_t
 {
-	struct dummy_msg { int m_i = 0; };
+	struct dummy_msg { int m_i; };
 
 public :
 	a_test_t( context_t ctx, so_5::rt::mbox_t data_mbox )
@@ -30,11 +30,13 @@ public :
 			} );
 
 		so_subscribe( m_data_mbox ).event< finish >( &a_test_t::evt_finish );
+		so_subscribe( m_data_mbox ).event( &a_test_t::evt_dummy_msg );
 	}
 
 	virtual void
 	so_evt_start() override
 	{
+		so_5::send< dummy_msg >( m_data_mbox, 1 );
 		so_5::send< finish >( m_data_mbox );
 	}
 
@@ -45,6 +47,13 @@ private :
 	evt_finish()
 	{
 		so_deregister_agent_coop_normally();
+	}
+
+	void
+	evt_dummy_msg( const dummy_msg & msg )
+	{
+		if( 0 != msg.m_i )
+			throw std::runtime_error( "msg.m_i != 0" );
 	}
 };
 
@@ -73,7 +82,7 @@ main()
 												so_5::msg_tracing::std_cout_tracer() } } );
 					} );
 
-				const unsigned int expected_value = 2;
+				const unsigned int expected_value = 3;
 				auto actual_value = counter.load( std::memory_order_acquire );
 				if( expected_value != actual_value )
 					throw std::runtime_error( "Unexpected count of trace messages: "
