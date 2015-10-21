@@ -349,7 +349,7 @@ class tracing_enabled_base_t
 								"overlimit.redirect",
 								subscriber,
 								details::text_separator_t{ "==>" },
-								target );
+								*target );
 					}
 
 				virtual void
