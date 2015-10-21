@@ -54,7 +54,8 @@ public:
 		so_default_state()
 			.event< change_state_signal >( [=] { this >>= st_1; } )
 			.event( [=]( const greeting_message & msg ) {
-					std::cout << "*** 0) greeting: " << msg.m_greeting << std::endl;
+					std::cout << "*** 0) greeting: " << msg.m_greeting
+							<< ", ptr: " << &msg << std::endl;
 				} );
 
 		// Actions for other states.
@@ -67,7 +68,8 @@ public:
 		st_2
 			.event< change_state_signal >( [=] { this >>= st_3; } )
 			.event( [=]( const greeting_message & msg ) {
-					std::cout << "*** 2) greeting: " << msg.m_greeting << std::endl;
+					std::cout << "*** 2) greeting: " << msg.m_greeting
+							<< ", ptr: " << &msg << std::endl;
 				} );
 
 		// st_3: switch to st_shutdown only, greeting_message is ignored.
@@ -79,7 +81,8 @@ public:
 			.event< change_state_signal >( [=] {
 					so_deregister_agent_coop_normally(); } )
 			.event( [=]( const greeting_message & msg ) {
-					std::cout << "*** F) greeting: " << msg.m_greeting << std::endl;
+					std::cout << "*** F) greeting: " << msg.m_greeting
+							<< ", ptr: " << &msg << std::endl;
 				} );
 	}
 

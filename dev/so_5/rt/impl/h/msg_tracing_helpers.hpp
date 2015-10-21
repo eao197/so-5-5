@@ -22,6 +22,7 @@
 #include <so_5/details/h/invoke_noexcept_code.hpp>
 
 #include <sstream>
+#include <tuple>
 
 namespace so_5 {
 
@@ -109,16 +110,37 @@ make_trace_to_1(
 inline void
 make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	{
-		const message_t * ptr = message.get();
-		s << "[msg_ptr=" << ptr;
-		if( ptr )
-		{
-			// We can try cases with service requests and user-type messages.
-			const void * payload = internal_message_iface_t{ *ptr }.payload_ptr();
-			if( payload != ptr )
-				s << ",payload_ptr=" << payload;
-		}
-		s << "]";
+		// The first pointer is a pointer to envelope.
+		// The second pointer is a pointer to payload.
+		using msg_pointers_t = std::tuple< const void *, const void * >;
+
+		auto detect_pointers = [&message]() -> msg_pointers_t {
+			if( const message_t * envelope = message.get() )
+				{
+					// We can try cases with service requests and user-type messages.
+					const void * payload =
+							internal_message_iface_t{ *envelope }.payload_ptr();
+
+					if( payload != envelope )
+						// There are an envelope and payload inside it.
+						return msg_pointers_t{ envelope, payload };
+					else
+						// There is only payload.
+						return msg_pointers_t{ nullptr, envelope };
+				}
+			else
+				// It is a signal there is nothing.
+				return msg_pointers_t{ nullptr, nullptr };
+		};
+
+		const void * envelope = nullptr;
+		const void * payload = nullptr;
+
+		std::tie(envelope,payload) = detect_pointers();
+
+		if( envelope )
+			s << "[envelope_ptr=" << envelope << "]";
+		s << "[payload_ptr=" << payload << "]";
 	}
 
 inline void
