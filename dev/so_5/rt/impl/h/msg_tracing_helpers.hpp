@@ -140,7 +140,10 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 
 		if( envelope )
 			s << "[envelope_ptr=" << envelope << "]";
-		s << "[payload_ptr=" << payload << "]";
+		if( payload )
+			s << "[payload_ptr=" << payload << "]";
+		else
+			s << "[signal]";
 	}
 
 inline void
