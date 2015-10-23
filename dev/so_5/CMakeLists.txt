@@ -72,4 +72,24 @@ install(
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
 )
+
+set( PUBLIC_HEADERS 
+	all.hpp 
+	rt/h/rt.hpp 
+	api/h/api.hpp 
+
+	disp/one_thread/h/pub.hpp 
+	disp/active_obj/h/pub.hpp 
+	disp/active_group/h/pub.hpp 
+	disp/thread_pool/h/pub.hpp 
+	disp/adv_thread_pool/h/pub.hpp 
+	disp/prio_one_thread/strictly_ordered/h/pub.hpp 
+	disp/prio_one_thread/quoted_round_robin/h/pub.hpp 
+	disp/prio_dedicated_threads/one_per_prio/h/pub.hpp
+)
+foreach( HEADER_FILE ${PUBLIC_HEADERS} )
+    get_filename_component( DIR ${HEADER_FILE} DIRECTORY )
+    install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+endforeach()
