@@ -5,6 +5,8 @@ if(WIN32)
 	add_definitions(-DSO_5__PLATFORM_REQUIRES_CDECL)
 endif()
 
+set(SO_5_TARGET so.${SO_5_VERSION})
+
 set(SO_5_SRC exception.cpp
 	exception.cpp
 	current_thread_id.cpp
@@ -66,18 +68,19 @@ set(SO_5_SRC exception.cpp
 	disp/prio_dedicated_threads/one_per_prio/pub.cpp
 )
 
-add_library(so.${SO_5_VERSION} SHARED ${SO_5_SRC})
+add_library(${SO_5_TARGET} SHARED ${SO_5_SRC})
+
 install(
-	TARGETS so.${SO_5_VERSION}
+	TARGETS ${SO_5_TARGET}
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include
+	INCLUDES DESTINATION include
 )
 
 include(CMakeListsPublicHeaders.txt)
 
 foreach( HEADER_FILE ${PUBLIC_HEADERS} )
-    get_filename_component( DIR ${HEADER_FILE} DIRECTORY )
-    install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+	get_filename_component( DIR ${HEADER_FILE} DIRECTORY )
+	install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
 endforeach()
