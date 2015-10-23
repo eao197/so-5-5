@@ -78,9 +78,11 @@ install(
 	INCLUDES DESTINATION include
 )
 
-include(CMakeListsPublicHeaders.txt)
+file(GLOB_RECURSE ALL_SO_5_HEADERS RELATIVE ${CMAKE_CURRENT_LIST_DIR} *.hpp)
 
-foreach( HEADER_FILE ${PUBLIC_HEADERS} )
-	get_filename_component( DIR ${HEADER_FILE} DIRECTORY )
-	install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+foreach( HEADER_FILE ${ALL_SO_5_HEADERS} )
+	if(NOT HEADER_FILE MATCHES "[\\/]impl[\\/]")
+		get_filename_component( DIR ${HEADER_FILE} DIRECTORY )
+		install( FILES ${HEADER_FILE} DESTINATION include/so_5/${DIR} )
+	endif()
 endforeach()
