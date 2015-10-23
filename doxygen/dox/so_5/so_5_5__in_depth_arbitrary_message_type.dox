@@ -166,7 +166,7 @@ void evt_new_config( const new_config & cfg ) {...}
 };
 \endcode
 
-<b>It is impossible to handle message of arbitrary type T to be handled with event handler which receives const reference to event_data_t<T>.</b>
+<b>It is impossible to handle message of arbitrary type T by an event handler which receives const reference to event_data_t<T>.</b>
 
 \section so_5_5__in_depth__arbitrary_msg_type__syncs Synchronous Interaction via Messages of Arbitrary Types
 
@@ -177,6 +177,15 @@ methods make_async() and make_sync_get(). For example:
 const so_5::rt::mbox_t & converter_mbox = ...;
 auto f = converter_mbox->get_one<std::string>().make_async<int>(42);
 auto v = converter_mbox->get_one<std::string>().wait_forever().make_sync_get<int>(42);
+\endcode
+
+
+Helpers so_5::request_future() and so_5::request_value(), introduced in v.5.5.9,
+can also be used with messages of arbitrary user types:
+
+\code
+auto f = so_5::request_future< int, std::string >(converter_mbox, 42);
+auto v = so_5::request_value< int, std::string >(converter_mbox, so_5::infinite_wait, 42);
 \endcode
 
 \section so_5_5__in_depth__arbitrary_msg_type__delivery_filters Delivery Filters
