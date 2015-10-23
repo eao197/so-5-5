@@ -48,7 +48,7 @@ void engine_agent::evt_engine_action( engine_action msg )
 \section so_5_5__in_depth__arbitrary_msg_type__how_it_works How It Works
 
 There is a very simple trick: when user calls send<T>(mbox,args) and T is not
-derived from message_t then and instance of special template type
+derived from message_t then an instance of special template type
 so_5::rt::user_type_message_t<T> is constructed and delivered as message.
 
 When an instance of so_5::rt::user_type_message_t<T> is extracted from an event
