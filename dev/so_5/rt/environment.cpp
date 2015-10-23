@@ -6,6 +6,8 @@
 
 #include <string>
 
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
+
 #include <so_5/rt/impl/h/mbox_core.hpp>
 #include <so_5/rt/impl/h/agent_core.hpp>
 #include <so_5/rt/impl/h/disp_repository.hpp>
@@ -46,6 +48,7 @@ environment_params_t::environment_params_t(
 	,	m_exception_reaction( other.m_exception_reaction )
 	,	m_autoshutdown_disabled( other.m_autoshutdown_disabled )
 	,	m_error_logger( std::move( other.m_error_logger ) )
+	,	m_message_delivery_tracer( std::move( other.m_message_delivery_tracer ) )
 {}
 
 environment_params_t::~environment_params_t()
@@ -74,6 +77,7 @@ environment_params_t::swap( environment_params_t & other )
 	std::swap( m_autoshutdown_disabled, other.m_autoshutdown_disabled );
 
 	m_error_logger.swap( other.m_error_logger );
+	m_message_delivery_tracer.swap( other.m_message_delivery_tracer );
 }
 
 environment_params_t &
@@ -184,6 +188,15 @@ struct environment_t::internals_t
 	 */
 	error_logger_shptr_t m_error_logger;
 
+	/*!
+	 * \since v.5.5.9
+	 * \brief Tracer object for message delivery tracing.
+	 * \attention This field must be declared and initialized
+	 * before m_mbox_core because a pointer to tracer will be passed
+	 * to the constructor of m_mbox_core.
+	 */
+	so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
+
 	//! An utility for mboxes.
 	impl::mbox_core_ref_t m_mbox_core;
 
@@ -240,7 +253,10 @@ struct environment_t::internals_t
 		environment_t & env,
 		environment_params_t && params )
 		:	m_error_logger( params.so5__error_logger() )
-		,	m_mbox_core( new impl::mbox_core_t() )
+		,	m_message_delivery_tracer{
+				params.so5__giveout_message_delivery_tracer() }
+		,	m_mbox_core(
+				new impl::mbox_core_t{ m_message_delivery_tracer.get() } )
 		,	m_agent_core(
 				env,
 				params.so5__giveout_coop_listener() )
@@ -494,34 +510,6 @@ environment_t::stats_repository()
 	return m_impl->m_stats_controller;
 }
 
-mbox_t
-environment_t::so5__create_mpsc_mbox(
-	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
-{
-	return m_impl->m_mbox_core->create_mpsc_mbox(
-			single_consumer,
-			limits_storage );
-}
-
-void
-environment_t::so5__ready_to_deregister_notify(
-	coop_t * coop )
-{
-	m_impl->m_agent_core.ready_to_deregister_notify( coop );
-}
-
-void
-environment_t::so5__final_deregister_coop(
-	const std::string & coop_name )
-{
-	bool any_cooperation_alive = 
-			m_impl->m_agent_core.final_deregister_coop( coop_name );
-
-	if( !any_cooperation_alive && !m_impl->m_autoshutdown_disabled )
-		stop();
-}
-
 void
 environment_t::impl__run_stats_controller_and_go_further()
 {
@@ -690,6 +678,56 @@ environment_t::impl__do_run_stage(
 				x.what() + "'" );
 	}
 }
+
+namespace impl
+{
+
+mbox_t
+internal_env_iface_t::create_mpsc_mbox(
+	agent_t * single_consumer,
+	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
+{
+	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
+			single_consumer,
+			limits_storage );
+}
+
+void
+internal_env_iface_t::ready_to_deregister_notify(
+	coop_t * coop )
+{
+	m_env.m_impl->m_agent_core.ready_to_deregister_notify( coop );
+}
+
+void
+internal_env_iface_t::final_deregister_coop(
+	const std::string & coop_name )
+{
+	bool any_cooperation_alive = 
+			m_env.m_impl->m_agent_core.final_deregister_coop( coop_name );
+
+	if( !any_cooperation_alive && !m_env.m_impl->m_autoshutdown_disabled )
+		m_env.stop();
+}
+
+bool
+internal_env_iface_t::is_msg_tracing_enabled() const
+{
+	return nullptr != m_env.m_impl->m_message_delivery_tracer.get();
+}
+
+so_5::msg_tracing::tracer_t &
+internal_env_iface_t::msg_tracer() const
+{
+	if( !is_msg_tracing_enabled() )
+		SO_5_THROW_EXCEPTION( rc_msg_tracing_disabled,
+				"msg_tracer cannot be accessed because msg_tracing is disabled" );
+
+	return *(m_env.m_impl->m_message_delivery_tracer);
+}
+
+} /* namespace impl */
+
 } /* namespace rt */
 
 } /* namespace so_5 */

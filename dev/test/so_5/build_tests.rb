@@ -55,6 +55,8 @@ MxxRu::Cpp::composite_target {
 
 	required_prj( "test/so_5/mbox/build_tests.rb" )
 
+	required_prj( "test/so_5/msg_tracing/build_tests.rb" )
+
 	required_prj( "test/so_5/ad_hoc_agents/build_tests.rb" )
 
 	required_prj( "test/so_5/message_limits/build_tests.rb" )

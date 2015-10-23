@@ -11,6 +11,7 @@ set(SO_5_SRC exception.cpp
 	atomic_refcounted.cpp
 	error_logger.cpp
 	timers.cpp
+	msg_tracing.cpp
 	wrapped_env.cpp
 	rt/nonempty_name.cpp
 	rt/message.cpp
@@ -35,9 +36,7 @@ set(SO_5_SRC exception.cpp
 	rt/impl/subscr_storage_hash_table_based.cpp
 	rt/impl/subscr_storage_adaptive.cpp
 	rt/impl/process_unhandled_exception.cpp
-	rt/impl/local_mbox.cpp
 	rt/impl/named_local_mbox.cpp
-	rt/impl/mpsc_mbox.cpp
 	rt/impl/mbox_core.cpp
 	rt/impl/agent_core.cpp
 	rt/impl/disp_repository.cpp

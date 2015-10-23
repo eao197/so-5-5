@@ -28,6 +28,13 @@ namespace so_5
 namespace rt
 {
 
+namespace impl
+{
+
+class internal_message_iface_t;
+
+} /* namespace */
+
 //
 // message_t
 //
@@ -40,10 +47,10 @@ namespace rt
  * have an actual message data. For signals (messages without any data)
  * a signal_t class should be used as a base class.
  */
-class SO_5_TYPE message_t
-	:
-		public atomic_refcounted_t
-{
+class SO_5_TYPE message_t : public atomic_refcounted_t
+	{
+		friend class impl::internal_message_iface_t;
+
 	public:
 		message_t();
 		message_t( const message_t & );
@@ -51,7 +58,20 @@ class SO_5_TYPE message_t
 		operator = ( const message_t & );
 
 		virtual ~message_t();
-};
+
+	private :
+		/*!
+		 * \since v.5.5.9
+		 * \brief Get the pointer to the message payload.
+		 *
+		 * \note This method is necessary for message delivery tracing.
+		 * For ordinal messages it will return a pointer to the message itself.
+		 * For service requests and user-defined messages it will return
+		 * pointer to a payload object.
+		 */
+		virtual const void *
+		so5__payload_ptr() const;
+	};
 
 //
 // message_ref_t
@@ -107,6 +127,10 @@ struct user_type_message_t : public message_t
 	user_type_message_t( ARGS &&... args )
 		:	m_payload( T{ std::forward< ARGS >( args )... } )
 		{}
+
+private :
+	virtual const void *
+	so5__payload_ptr() const override { return &m_payload; }
 };
 
 //
@@ -490,6 +514,10 @@ struct msg_service_request_t : public msg_service_request_base_t
 			{
 				return *m_param;
 			}
+
+	private :
+		virtual const void *
+		so5__payload_ptr() const override { return m_param.get(); }
 	};
 
 //
@@ -517,6 +545,13 @@ namespace message_limit
 
 struct control_block_t;
 
+namespace impl
+{
+
+class action_msg_tracer_t;
+
+} /* namespace impl */
+
 /*!
  * \since v.5.5.4
  * \brief Description of context for overlimit action.
@@ -541,6 +576,16 @@ struct overlimit_context_t
 		//! A message or service request to be delivered.
 		const message_ref_t & m_message;
 
+		/*!
+		 * \since v.5.5.9
+		 * \brief An optional pointer to tracer object for
+		 * message delivery tracing.
+		 *
+		 * \note Value nullptr means that message delivery tracing
+		 * is not used.
+		 */
+		const impl::action_msg_tracer_t * m_msg_tracer;
+
 		//! Initializing constructor.
 		inline
 		overlimit_context_t(
@@ -549,13 +594,15 @@ struct overlimit_context_t
 			invocation_type_t event_type,
 			unsigned int reaction_deep,
 			const std::type_index & msg_type,
-			const message_ref_t & message )
+			const message_ref_t & message,
+			const impl::action_msg_tracer_t * msg_tracer )
 			:	m_receiver( receiver )
 			,	m_limit( limit )
 			,	m_event_type( event_type )
 			,	m_reaction_deep( reaction_deep )
 			,	m_msg_type( msg_type )
 			,	m_message( message )
+			,	m_msg_tracer{ msg_tracer }
 			{}
 	};
 

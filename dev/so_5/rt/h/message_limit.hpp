@@ -69,6 +69,19 @@ struct description_t
  */
 using description_container_t = std::vector< description_t >;
 
+namespace impl
+{
+
+/*!
+ * \since v.5.5.9
+ * \brief Actual implementation of drop message reaction.
+ */
+SO_5_FUNC
+void
+drop_message_reaction( const overlimit_context_t & ctx );
+
+} /* namespace impl */
+
 //
 // drop_indicator_t
 //
@@ -106,7 +119,7 @@ accept_one_indicator(
 	{
 		to.emplace_back( message_payload_type< M >::payload_type_index(),
 				indicator.m_limit,
-				[]( const overlimit_context_t & ) {} );
+				&impl::drop_message_reaction );
 	}
 
 namespace impl

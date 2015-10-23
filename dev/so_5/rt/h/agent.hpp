@@ -1562,6 +1562,24 @@ class SO_5_TYPE agent_t
 			m_state_listener_controller;
 
 		/*!
+		 * \since v.5.5.9
+		 * \brief Type of function for searching event handler.
+		 */
+		using handler_finder_t = 
+			const impl::event_handler_data_t *(*)(
+					execution_demand_t & /* demand */,
+					const char * /* context_marker */ );
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Function for searching event handler.
+		 *
+		 * \note The value is set only once in the constructor and
+		 * doesn't changed anymore.
+		 */
+		handler_finder_t m_handler_finder;
+
+		/*!
 		 * \since v.5.4.0
 		 * \brief All agent's subscriptions.
 		 */
@@ -1926,6 +1944,26 @@ class SO_5_TYPE agent_t
 		do_drop_delivery_filter(
 			const mbox_t & mbox,
 			const std::type_index & msg_type ) SO_5_NOEXCEPT;
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Handler finder for the case when message delivery
+		 * tracing is disabled.
+		 */
+		static const impl::event_handler_data_t *
+		handler_finder_msg_tracing_disabled(
+			execution_demand_t & demand,
+			const char * context_marker );
+
+		/*!
+		 * \since v.5.5.9
+		 * \brief Handler finder for the case when message delivery
+		 * tracing is enabled.
+		 */
+		static const impl::event_handler_data_t *
+		handler_finder_msg_tracing_enabled(
+			execution_demand_t & demand,
+			const char * context_marker );
 };
 
 /*!
