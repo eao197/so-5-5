@@ -19,7 +19,7 @@ Building
 
 on Linux:
 ```
-  git clone --recursive https://github.com/masterspline/SObjectizer.git so
+  git clone https://github.com/masterspline/SObjectizer.git so
   mkdir build
   cd build
   cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../so/dev
@@ -31,7 +31,7 @@ on Windows:
 
 First install "git for Windows" from https://git-for-windows.github.io/ or https://git-scm.com/download/win and cmake from https://cmake.org/download/ and make it avalable in PATH. Next from developer console (where msbuild and compiler executable are avalable and other environment variables is set)
 ```
-  git clone --recursive https://github.com/masterspline/SObjectizer.git so
+  git clone https://github.com/masterspline/SObjectizer.git so
   mkdir build
   cd build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../so/dev
