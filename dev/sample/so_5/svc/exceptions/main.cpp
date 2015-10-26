@@ -73,24 +73,19 @@ class a_client_t
 		const so_5::rt::mbox_t m_svc_mbox;
 	};
 
-void
-init(
-	so_5::rt::environment_t & env )
-	{
-		env.introduce_coop(
-				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::coop_t & coop ) {
-					auto service = make_converter( coop );
-					coop.make_agent< a_client_t >( service );
-				} );
-	}
-
 int
 main()
 	{
 		try
 			{
-				so_5::launch( &init );
+				so_5::launch( []( so_5::rt::environment_t & env ) {
+						env.introduce_coop(
+								so_5::disp::active_obj::create_private_disp( env )->binder(),
+								[]( so_5::rt::coop_t & coop ) {
+									auto service = make_converter( coop );
+									coop.make_agent< a_client_t >( service );
+								} );
+					} );
 			}
 		catch( const std::exception & ex )
 			{
