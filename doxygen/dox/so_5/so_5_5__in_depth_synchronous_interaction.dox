@@ -4,7 +4,7 @@
 
 \section so_5_5__in_depth__svc_requests__intro Introduction
 
-A major change had been introduced in v.5.3.0 -- a possibility to synchronous
+A major change was introduced in v.5.3.0 -- a possibility to synchronously
 wait for result of message processing. An agent, called service client, could
 ask another agent (called service_handler) to do something by asynchronously
 sending message to service_handler and then synchronously waiting for the
@@ -89,7 +89,7 @@ only one receiver of msg_get_status behind that argument.
 
 The `timeout` argument is very important.
 
-The most simple and the most dangerous way, is wait service request result
+The most simple and the most dangerous way, is to wait service request result
 infinitely long:
 
 \code
@@ -100,7 +100,7 @@ int v = so_5::request_value<int, msg_convert>(mbox, so_5::infinite_wait, "42");
 std::string s = so_5::request_value<std::string, msg_get_status>(processor, so_5::infinite_wait);
 \endcode
 
-The second way, which is much more safer, is wait service request result for
+The second way, which is much more safer, is to wait service request result for
 the specified amount of time:
 
 \code
