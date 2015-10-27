@@ -3,7 +3,7 @@ Travis CI [![Build Status](https://travis-ci.org/masterspline/SObjectizer.svg?br
 Coverity [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
 
 This is unofficial SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.
-Project documentation in wiki https://github.com/masterspline/SObjectizer/wiki
+Project documentation in wiki http://sourceforge.net/p/sobjectizer/wiki/Home/.
 
 SObjectizer is a framework for agent-oriented (a.k.a. actor model) programming
  in C++ (like Theron or C++ Actor Framework (CAF) for C++ and Akka for Java).
