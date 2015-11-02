@@ -2,7 +2,7 @@
  * A simple unit-test for combined_queue_lock_t.
  */
 
-#include <so_5/disp/reuse/locks/h/locks.hpp>
+#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
 
 #include <iostream>
 #include <thread>
@@ -11,38 +11,37 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-using namespace so_5::disp::reuse::locks;
+using namespace so_5::disp::mpsc_queue_traits;
 
 void
 test_thread( unsigned int milliseconds_to_wait )
 {
-	std::thread child;
+	lock_unique_ptr_t lock_a{ combined_lock_factory()() };
+	lock_unique_ptr_t lock_b{ combined_lock_factory()() };
+
+	unique_lock_t guard_b{ *lock_b };
+
+	std::thread child{ [&lock_a, &lock_b] {
+			unique_lock_t a{ *lock_a };
+			{
+				// Informs parent that child has started.
+				lock_guard_t b{ *lock_b };
+				b.notify_one();
+			}
+			// Try to wait on lock_a.
+			a.wait_for_notify();
+		} };
+
+	guard_b.wait_for_notify();
+	
+	// Acquire lock_a and make child thread to wait for some time.
 	{
-		combined_queue_lock_t lock_a;
-		combined_queue_lock_t lock_b;
-
-		combined_queue_unique_lock_t guard_b{ lock_b };
-
-		child = std::thread{ [&] {
-				combined_queue_unique_lock_t a{ lock_a };
-				{
-					// Informs parent that child has started.
-					combined_queue_lock_guard_t b{ lock_b };
-					b.notify_one();
-				}
-
-				// Try to wait of lock_a.
-				a.wait_for_notify();
-			} };
-
-		guard_b.wait_for_notify();
-		
-		// Acquire lock_a and make child thread to wait for some time.
-		combined_queue_lock_guard_t guard_a{ lock_a };
+		lock_guard_t guard_a{ *lock_a };
 		std::this_thread::sleep_for(
 				std::chrono::milliseconds{ milliseconds_to_wait } );
 		guard_a.notify_one();
 	}
+
 	child.join();
 }
 
