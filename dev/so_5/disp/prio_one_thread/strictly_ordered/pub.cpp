@@ -47,7 +47,9 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
 		dispatcher_t()
-			:	m_work_thread{ m_demand_queue }
+//FIXME: type of lock factory must be configurable!
+			:	m_demand_queue{ queue_traits::combined_lock_factory()() }
+			,	m_work_thread{ m_demand_queue }
 			,	m_data_source{ self() }
 			{}
 

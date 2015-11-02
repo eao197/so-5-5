@@ -47,7 +47,9 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
 		dispatcher_t()
-			:	m_data_source( m_work_thread, m_agents_bound )
+//FIXME: lock factory must be passed as arg to the dispatcher's constructor!
+			:	m_work_thread{ so_5::disp::mpsc_queue_traits::combined_lock_factory() }
+			,	m_data_source( m_work_thread, m_agents_bound )
 			{}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.

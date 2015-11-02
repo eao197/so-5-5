@@ -283,7 +283,9 @@ dispatcher_t::create_thread_for_agent( const so_5::rt::agent_t & agent )
 
 	using namespace so_5::disp::reuse::work_thread;
 
-	work_thread_shptr_t thread( new work_thread_t() );
+//FIXME: type of lock factory must be configurable!
+	auto lock_factory = so_5::disp::mpsc_queue_traits::combined_lock_factory();
+	work_thread_shptr_t thread( new work_thread_t{ std::move(lock_factory) } );
 
 	thread->start();
 	so_5::details::do_with_rollback_on_exception(

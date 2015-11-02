@@ -52,7 +52,17 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 	public:
 		dispatcher_t()
 			:	m_data_source{ self() }
-			{}
+			{
+				m_threads.reserve( so_5::prio::total_priorities_count );
+				so_5::prio::for_each_priority( [this]( so_5::priority_t ) {
+//FIXME: type of lock factory must be configurable!
+						auto lock_factory = so_5::disp::mpsc_queue_traits::combined_lock_factory();
+
+						std::unique_ptr< work_thread_t > t{
+								new work_thread_t{ std::move(lock_factory) } };
+						m_threads.push_back( std::move(t) );
+					} );
+			}
 
 		//! \name Implementation of so_5::rt::dispatcher methods.
 		//! \{
@@ -71,7 +81,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				so_5::details::invoke_noexcept_code( [this] {
 						for( auto & t : m_threads )
-							t.shutdown();
+							t->shutdown();
 					} );
 			}
 
@@ -80,7 +90,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			{
 				so_5::details::invoke_noexcept_code( [this] {
 						for( auto & t : m_threads )
-							t.wait();
+							t->wait();
 
 						m_data_source.stop();
 					} );
@@ -101,7 +111,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		so_5::rt::event_queue_t *
 		get_agent_binding( priority_t priority )
 			{
-				return m_threads[ to_size_t( priority ) ].get_agent_binding();
+				return m_threads[ to_size_t( priority ) ]->get_agent_binding();
 			}
 
 		//! Notification about binding of yet another agent.
@@ -153,7 +163,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 										mbox,
 										p,
 										agents,
-										m_dispatcher.m_threads[ to_size_t(p) ] );
+										*(m_dispatcher.m_threads[ to_size_t(p) ]) );
 							} );
 
 						so_5::send< stats::messages::quantity< std::size_t > >(
@@ -206,7 +216,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		disp_data_source_t m_data_source;
 
 		//! Working threads for every priority.
-		work_thread_t m_threads[ so_5::prio::total_priorities_count ];
+		std::vector< std::unique_ptr< work_thread_t > > m_threads;
 
 		//! Counters for agent count for every priority.
 		std::atomic< std::size_t > m_agents_per_priority[ so_5::prio::total_priorities_count ];
@@ -240,11 +250,11 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 								m_agents_per_priority[ i ].store( 0,
 										std::memory_order_release );
 
-								m_threads[ i ].start();
+								m_threads[ i ]->start();
 
 								// Thread successfully started. Pointer to it
 								// must be used on rollback.
-								started_threads[ i ] = &m_threads[ i ];
+								started_threads[ i ] = m_threads[ i ].get();
 							}
 					},
 					[&] {
