@@ -185,6 +185,71 @@ class lock_guard_t
 		lock_t & m_lock;
 	};
 
+//
+// params_t
+//
+/*!
+ * \since v.5.5.10
+ * \brief Container for storing parameters for MPSC queue.
+ */
+class params_t
+	{
+	public :
+		//! Default constructor.
+		params_t()
+			:	m_lock_factory{ combined_lock_factory() }
+			{}
+		//! Copy constructor.
+		params_t( const params_t & o )
+			:	m_lock_factory{ o.m_lock_factory }
+			{}
+		//! Move constructor.
+		params_t( params_t && o )
+			:	m_lock_factory{ std::move(o.m_lock_factory) }
+			{}
+
+		friend inline void swap( params_t & a, params_t & b )
+			{
+				using namespace std;
+				swap( a.m_lock_factory, b.m_lock_factory );
+			}
+
+		//! Copy operator.
+		params_t & operator=( const params_t & o )
+			{
+				params_t tmp{ o };
+				swap( *this, tmp );
+				return *this;
+			}
+
+		//! Move operator.
+		params_t & operator=( params_t && o )
+			{
+				params_t tmp{ std::move(o) };
+				swap( *this, tmp );
+				return *this;
+			}
+
+		//! Setter for lock factory.
+		params_t &
+		lock_factory( lock_factory_t factory )
+			{
+				m_lock_factory = std::move( factory );
+				return *this;
+			}
+
+		//! Getter for lock factory.
+		const lock_factory_t &
+		lock_factory() const
+			{
+				return m_lock_factory;
+			}
+
+	private :
+		//! Lock factory to be used during queue creation.
+		lock_factory_t m_lock_factory;
+	};
+
 } /* namespace mpsc_queue_traits */
 
 } /* namespace disp */
