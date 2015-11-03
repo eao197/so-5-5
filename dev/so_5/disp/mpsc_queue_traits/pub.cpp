@@ -14,6 +14,7 @@
 
 #include <mutex>
 #include <condition_variable>
+#include <iostream>
 
 namespace so_5 {
 
@@ -168,9 +169,8 @@ class simple_lock_t : public lock_t
 		virtual void
 		wait_for_notify() override
 			{
-				std::unique_lock< std::mutex > mlock{ m_mutex, std::adopt_lock };
+				std::unique_lock< std::mutex > mlock{ m_mutex, std::defer_lock };
 				m_condition.wait( mlock, [this]{ return m_signaled; } );
-
 				// At this point m_signaled must be 'true'.
 				m_signaled = false;
 			}
