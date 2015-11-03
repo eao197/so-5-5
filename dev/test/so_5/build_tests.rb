@@ -5,7 +5,7 @@ MxxRu::Cpp::composite_target {
 
 	if 'cygwin' != toolset.tag( 'gcc_port', 'NOTGCC' )
 		required_prj 'test/so_5/spinlocks/llvm_inspired_test/prj.ut.rb'
-		required_prj 'test/so_5/spinlocks/combined_queue_lock/prj.ut.rb'
+		required_prj 'test/so_5/mpsc_queue_traits/locks/prj.ut.rb'
 	end
 
 	required_prj 'test/so_5/details/build_tests.rb'
