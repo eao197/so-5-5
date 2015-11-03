@@ -32,6 +32,12 @@ test_thread(
 			}
 			// Try to wait on lock_a.
 			a.wait_for_notify();
+
+			{
+				// Informs parent that child has started.
+				lock_guard_t b{ *lock_b };
+				b.notify_one();
+			}
 		} };
 
 	guard_b.wait_for_notify();
@@ -43,6 +49,9 @@ test_thread(
 				std::chrono::milliseconds{ milliseconds_to_wait } );
 		guard_a.notify_one();
 	}
+
+	// Wait for notify again.
+	guard_b.wait_for_notify();
 
 	child.join();
 }
