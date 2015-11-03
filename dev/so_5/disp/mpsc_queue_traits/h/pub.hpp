@@ -104,6 +104,15 @@ combined_lock_factory(
 	//! Max waiting time for waiting on spinlock before switching to mutex.
 	std::chrono::high_resolution_clock::duration waiting_time );
 
+//FIXME: example of usage is necessary in Doxygen-comment.
+/*!
+ * \since v.5.5.10
+ * \brief Factory for creation of very simple implementation based on
+ * usage of mutex and condition_variable only.
+ */
+SO_5_FUNC lock_factory_t
+simple_lock_factory();
+
 //
 // unique_lock_t
 //

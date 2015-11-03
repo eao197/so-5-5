@@ -141,6 +141,7 @@ main()
 		cases.push_back( case_info_t{ "combined_lock(default)", combined_lock_factory() } );
 		cases.push_back( case_info_t{ "combined_lock(1us)",
 				combined_lock_factory( std::chrono::microseconds(1) ) } );
+		cases.push_back( case_info_t{ "simple_lock", simple_lock_factory() } );
 
 		for( const auto & c : cases )
 		{

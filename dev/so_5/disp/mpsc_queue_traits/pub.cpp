@@ -55,9 +55,6 @@ class combined_lock_t : public lock_t
 			,	m_signaled( false )
 			{}
 
-		combined_lock_t( const combined_lock_t & ) = delete;
-		combined_lock_t( combined_lock_t && ) = delete;
-
 		virtual void
 		lock() override
 			{
@@ -144,6 +141,54 @@ class combined_lock_t : public lock_t
 		bool m_signaled;
 	};
 
+//
+// simple_lock_t
+//
+/*!
+ * \since v.5.5.10
+ * \brief A very simple lock based on usage of std::mutex and
+ * std::condition_variable.
+ */
+class simple_lock_t : public lock_t
+	{
+	public :
+		virtual void
+		lock() override
+			{
+				m_mutex.lock();
+			}
+
+		virtual void
+		unlock() override
+			{
+				m_mutex.unlock();
+			}
+
+	protected :
+		virtual void
+		wait_for_notify() override
+			{
+				std::unique_lock< std::mutex > mlock{ m_mutex, std::adopt_lock };
+				m_condition.wait( mlock, [this]{ return m_signaled; } );
+
+				// At this point m_signaled must be 'true'.
+				m_signaled = false;
+			}
+
+		virtual void
+		notify_one() override
+			{
+				m_signaled = true;
+				m_condition.notify_one();
+			}
+
+	private :
+		std::mutex m_mutex;
+		std::condition_variable m_condition;
+
+		bool m_signaled = { false };
+	};
+
 } /* namespace impl */
 
 //
@@ -162,6 +207,12 @@ combined_lock_factory(
 		return [waiting_time] {
 			return lock_unique_ptr_t{ new impl::combined_lock_t{ waiting_time } };
 		};
+	}
+
+SO_5_FUNC lock_factory_t
+simple_lock_factory()
+	{
+		return [] { return lock_unique_ptr_t{ new impl::simple_lock_t{} }; };
 	}
 
 } /* namespace mpsc_queue_traits */
