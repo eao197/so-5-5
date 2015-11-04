@@ -28,6 +28,12 @@ namespace disp
 namespace active_obj
 {
 
+/*!
+ * \since v.5.5.10
+ * \brief Alias for namespace with traits of event queue.
+ */
+namespace queue_traits = so_5::disp::mpsc_queue_traits;
+
 //
 // params_t
 //
@@ -71,14 +77,35 @@ class params_t
 
 		//! Setter for queue parameters.
 		params_t &
-		queue_params( so_5::disp::mpsc_queue_traits::params_t p )
+		set_queue_params( queue_traits::params_t p )
 			{
 				m_queue_params = std::move(p);
 				return *this;
 			}
 
+		//! Tuner for queue parameters.
+		/*!
+		 * Accepts lambda-function or functional object which tunes
+		 * queue parameters.
+			\code
+			so_5::disp::active_obj::create_private_disp( env,
+				"my_active_obj_disp",
+				so_5::disp::active_obj::params_t{}.tune_queue_params(
+					[]( so_5::disp::active_obj::queue_traits::params_t & p ) {
+						p.lock_factory( so_5::disp::active_obj::queue_traits::simple_lock_factory() );
+					} ) );
+			\endcode
+		 */
+		template< typename L >
+		params_t &
+		tune_queue_params( L tunner )
+			{
+				tunner( m_queue_params );
+				return *this;
+			}
+
 		//! Getter for queue parameters.
-		const so_5::disp::mpsc_queue_traits::params_t &
+		const queue_traits::params_t &
 		queue_params() const
 			{
 				return m_queue_params;
@@ -86,7 +113,7 @@ class params_t
 
 	private :
 		//! Queue parameters.
-		so_5::disp::mpsc_queue_traits::params_t m_queue_params;
+		queue_traits::params_t m_queue_params;
 	};
 
 //
@@ -139,8 +166,12 @@ create_disp()
 \code
 auto private_disp = so_5::disp::active_obj::create_private_disp(
 	env,
-	"db_handler" );
-
+	"db_handler",
+	// Additional params with specific options for queue's traits.
+	so_5::disp::active_obj::params_t{}.tune_queue_params(
+		[]( so_5::disp::active_obj::queue_traits::params_t & p ) {
+			p.lock_factory( so_5::disp::active_obj::queue_traits::simple_lock_factory() );
+		} ) );
 auto coop = env.create_coop( so_5::autoname,
 	// The main dispatcher for that coop will be
 	// private active_obj dispatcher.
