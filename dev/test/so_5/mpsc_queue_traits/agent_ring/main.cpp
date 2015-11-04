@@ -108,6 +108,26 @@ class active_obj_binder_factory_t : public binder_factory_t
 		so_5::disp::active_obj::private_dispatcher_handle_t m_disp;
 	};
 
+class active_group_binder_factory_t : public binder_factory_t
+	{
+	public :
+		active_group_binder_factory_t(
+			so_5::disp::active_group::private_dispatcher_handle_t disp )
+			:	m_disp{ std::move( disp ) }
+			{}
+
+		virtual so_5::rt::disp_binder_unique_ptr_t
+		binder() override
+			{
+				auto id = ++m_id;
+				return m_disp->binder( std::to_string(id) );
+			}
+	private :
+		so_5::disp::active_group::private_dispatcher_handle_t m_disp;
+
+		unsigned int m_id = {0};
+	};
+
 void
 create_coop(
 	so_5::rt::environment_t & env,
@@ -116,7 +136,6 @@ create_coop(
 		so_5::rt::mbox_t first_agent_mbox;
 
 		env.introduce_coop(
-			binder_factory.binder(),
 			[&]( so_5::rt::agent_coop_t & coop )
 			{
 				const std::size_t ring_size = 16;
@@ -129,7 +148,8 @@ create_coop(
 
 				for( unsigned int i = 0; i != ring_size; ++i )
 					{
-						auto member = coop.make_agent< a_ring_member_t >();
+						auto member = coop.make_agent_with_binder< a_ring_member_t >(
+								binder_factory.binder() );
 						agents.push_back( member );
 						mboxes.push_back( member->so_direct_mbox() );
 					}
@@ -185,6 +205,23 @@ active_obj_maker(
 		return factory;
 	}
 
+binder_factory_unique_ptr_t
+active_group_maker(
+	so_5::rt::environment_t & env,
+	lock_factory_t lock_factory )
+	{
+		auto disp = so_5::disp::active_group::create_private_disp(
+				env,
+				std::string(),
+				so_5::disp::active_group::params_t{}.tune_queue_params(
+					[lock_factory]( so_5::disp::active_group::queue_traits::params_t & p ) {
+						p.lock_factory( lock_factory );
+					} ) );
+		binder_factory_unique_ptr_t factory{ new active_group_binder_factory_t{
+				std::move(disp) } };
+		return factory;
+	}
+
 void
 do_test()
 	{
@@ -196,6 +233,7 @@ do_test()
 		std::vector< case_info_t > cases;
 		cases.push_back( case_info_t{ "one_thread", one_thread_maker } );
 		cases.push_back( case_info_t{ "active_obj", active_obj_maker } );
+		cases.push_back( case_info_t{ "active_group", active_group_maker } );
 
 		struct lock_factory_info_t
 			{
