@@ -104,7 +104,9 @@ using case_setter_unique_ptr_t = std::unique_ptr< case_setter_t >;
 class default_disp_setter_t : public case_setter_t
 	{
 	public :
-		using case_setter_t::case_setter_t;
+		default_disp_setter_t( lock_factory_t lock_factory )
+			:	case_setter_t{ std::move(lock_factory) }
+			{}
 
 		virtual void
 		tune_env_params( so_5::rt::environment_params_t & params ) override
@@ -123,7 +125,9 @@ class default_disp_setter_t : public case_setter_t
 class one_thread_case_setter_t : public case_setter_t
 	{
 	public :
-		using case_setter_t::case_setter_t;
+		one_thread_case_setter_t( lock_factory_t lock_factory )
+			:	case_setter_t{ std::move(lock_factory) }
+			{}
 
 		virtual void
 		tune_env_params( so_5::rt::environment_params_t & params ) override
@@ -144,7 +148,9 @@ class one_thread_case_setter_t : public case_setter_t
 class active_obj_case_setter_t : public case_setter_t
 	{
 	public :
-		using case_setter_t::case_setter_t;
+		active_obj_case_setter_t( lock_factory_t lock_factory )
+			:	case_setter_t{ std::move(lock_factory) }
+			{}
 
 		virtual void
 		tune_env_params( so_5::rt::environment_params_t & params ) override
@@ -166,7 +172,9 @@ class active_obj_case_setter_t : public case_setter_t
 class active_group_case_setter_t : public case_setter_t
 	{
 	public :
-		using case_setter_t::case_setter_t;
+		active_group_case_setter_t( lock_factory_t lock_factory )
+			:	case_setter_t{ std::move(lock_factory) }
+			{}
 
 		virtual void
 		tune_env_params( so_5::rt::environment_params_t & params ) override
@@ -234,7 +242,7 @@ using case_maker_t = std::function<
 template< typename SETTER >
 case_maker_t maker()
 	{
-		return []( lock_factory_t lock_factory ) -> case_setter_unique_ptr_t {
+		return []( lock_factory_t lock_factory ) {
 			case_setter_unique_ptr_t setter{ new SETTER{ std::move(lock_factory) } };
 			return setter;
 		};
