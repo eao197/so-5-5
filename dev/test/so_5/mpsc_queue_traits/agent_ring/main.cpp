@@ -198,6 +198,30 @@ class active_group_case_setter_t : public case_setter_t
 		unsigned int m_id = {0};
 	};
 
+class prio_strictly_ordered_case_setter_t : public case_setter_t
+	{
+	public :
+		prio_strictly_ordered_case_setter_t( lock_factory_t lock_factory )
+			:	case_setter_t{ std::move(lock_factory) }
+			{}
+
+		virtual void
+		tune_env_params( so_5::rt::environment_params_t & params ) override
+			{
+				using namespace so_5::disp::prio_one_thread::strictly_ordered;
+				params.add_named_dispatcher(
+					"prio::strictly_ordered",
+					create_disp( setup_lock_factory( params_t{} ) )
+				);
+			}
+
+		virtual so_5::rt::disp_binder_unique_ptr_t
+		binder() override
+			{
+				using namespace so_5::disp::prio_one_thread::strictly_ordered;
+				return create_disp_binder( "prio::strictly_ordered" );
+			}
+	};
 void
 create_coop(
 	so_5::rt::environment_t & env,
@@ -265,6 +289,9 @@ do_test()
 				"active_obj", maker< active_obj_case_setter_t >() } );
 		cases.push_back( case_info_t{
 				"active_group", maker< active_group_case_setter_t >() } );
+		cases.push_back( case_info_t{
+				"prio::strictly_ordered",
+				maker< prio_strictly_ordered_case_setter_t >() } );
 
 		struct lock_factory_info_t
 			{
