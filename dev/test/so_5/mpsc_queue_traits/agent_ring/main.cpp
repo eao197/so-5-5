@@ -65,75 +65,135 @@ class a_ring_member_t : public so_5::rt::agent_t
 
 using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
 
-class binder_factory_t
+class case_setter_t
 	{
 	public :
-		virtual ~binder_factory_t() {}
+		case_setter_t( lock_factory_t lock_factory )
+			:	m_lock_factory{ std::move(lock_factory) }
+			{}
+		virtual ~case_setter_t() {}
+
+		virtual void
+		tune_env_params( so_5::rt::environment_params_t & ) = 0;
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
 		binder() = 0;
+
+	protected :
+		const lock_factory_t &
+		lock_factory() const { return m_lock_factory; }
+
+		template< typename P >
+		P
+		setup_lock_factory( P params ) const
+			{
+				params.tune_queue_params(
+					[&]( so_5::disp::mpsc_queue_traits::params_t & p ) {
+						p.lock_factory( m_lock_factory );
+					} );
+
+				return params;
+			}
+
+	private :
+		const lock_factory_t m_lock_factory;
 	};
 
-using binder_factory_unique_ptr_t = std::unique_ptr< binder_factory_t >;
+using case_setter_unique_ptr_t = std::unique_ptr< case_setter_t >;
 
-class one_thread_binder_factory_t : public binder_factory_t
+class default_disp_setter_t : public case_setter_t
 	{
 	public :
-		one_thread_binder_factory_t(
-			so_5::disp::one_thread::private_dispatcher_handle_t disp )
-			:	m_disp{ std::move( disp ) }
-			{}
+		using case_setter_t::case_setter_t;
+
+		virtual void
+		tune_env_params( so_5::rt::environment_params_t & params ) override
+			{
+				params.default_disp_params(
+					setup_lock_factory( so_5::disp::one_thread::params_t{} ) );
+			}
+
+		virtual so_5::rt::disp_binder_unique_ptr_t
+		binder()
+			{
+				return so_5::rt::create_default_disp_binder();
+			}
+	};
+
+class one_thread_case_setter_t : public case_setter_t
+	{
+	public :
+		using case_setter_t::case_setter_t;
+
+		virtual void
+		tune_env_params( so_5::rt::environment_params_t & params ) override
+			{
+				params.add_named_dispatcher(
+					"one_thread",
+					so_5::disp::one_thread::create_disp(
+						setup_lock_factory( so_5::disp::one_thread::params_t{} ) )
+				);
+			}
+		virtual so_5::rt::disp_binder_unique_ptr_t
+		binder() override
+			{
+				return so_5::disp::one_thread::create_disp_binder( "one_thread" );
+			}
+	};
+
+class active_obj_case_setter_t : public case_setter_t
+	{
+	public :
+		using case_setter_t::case_setter_t;
+
+		virtual void
+		tune_env_params( so_5::rt::environment_params_t & params ) override
+			{
+				params.add_named_dispatcher(
+					"active_obj",
+					so_5::disp::active_obj::create_disp(
+						setup_lock_factory( so_5::disp::active_obj::params_t{} ) )
+				);
+			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
 		binder() override
 			{
-				return m_disp->binder();
+				return so_5::disp::active_obj::create_disp_binder( "active_obj" );
 			}
-	private :
-		so_5::disp::one_thread::private_dispatcher_handle_t m_disp;
 	};
 
-class active_obj_binder_factory_t : public binder_factory_t
+class active_group_case_setter_t : public case_setter_t
 	{
 	public :
-		active_obj_binder_factory_t(
-			so_5::disp::active_obj::private_dispatcher_handle_t disp )
-			:	m_disp{ std::move( disp ) }
-			{}
+		using case_setter_t::case_setter_t;
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
-		binder() override
+		virtual void
+		tune_env_params( so_5::rt::environment_params_t & params ) override
 			{
-				return m_disp->binder();
+				params.add_named_dispatcher(
+					"active_group",
+					so_5::disp::active_group::create_disp(
+						setup_lock_factory( so_5::disp::active_group::params_t{} ) )
+				);
 			}
-	private :
-		so_5::disp::active_obj::private_dispatcher_handle_t m_disp;
-	};
-
-class active_group_binder_factory_t : public binder_factory_t
-	{
-	public :
-		active_group_binder_factory_t(
-			so_5::disp::active_group::private_dispatcher_handle_t disp )
-			:	m_disp{ std::move( disp ) }
-			{}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
 		binder() override
 			{
 				auto id = ++m_id;
-				return m_disp->binder( std::to_string(id) );
+				return so_5::disp::active_group::create_disp_binder(
+						"active_group", std::to_string(id) );
 			}
-	private :
-		so_5::disp::active_group::private_dispatcher_handle_t m_disp;
 
+	private :
 		unsigned int m_id = {0};
 	};
 
 void
 create_coop(
 	so_5::rt::environment_t & env,
-	binder_factory_t & binder_factory )
+	case_setter_t & setter )
 	{
 		so_5::rt::mbox_t first_agent_mbox;
 
@@ -151,7 +211,7 @@ create_coop(
 				for( unsigned int i = 0; i != ring_size; ++i )
 					{
 						auto member = coop.make_agent_with_binder< a_ring_member_t >(
-								binder_factory.binder() );
+								setter.binder() );
 						agents.push_back( member );
 						mboxes.push_back( member->so_direct_mbox() );
 					}
@@ -168,58 +228,39 @@ create_coop(
 		so_5::send< a_ring_member_t::msg_start >( first_agent_mbox );
 	}
 
-using binder_factory_maker_t = std::function<
-	binder_factory_unique_ptr_t(so_5::rt::environment_t &, lock_factory_t) >;
+using case_maker_t = std::function<
+	case_setter_unique_ptr_t(lock_factory_t) >;
 
-binder_factory_unique_ptr_t
-one_thread_maker(
-	so_5::rt::environment_t & env,
-	lock_factory_t lock_factory )
+case_setter_unique_ptr_t
+default_disp_maker( lock_factory_t lock_factory )
 	{
-		auto disp = so_5::disp::one_thread::create_private_disp(
-				env,
-				std::string(),
-				so_5::disp::one_thread::params_t{}.tune_queue_params(
-					[lock_factory]( so_5::disp::one_thread::queue_traits::params_t & p ) {
-						p.lock_factory( lock_factory );
-					} ) );
-		binder_factory_unique_ptr_t factory{ new one_thread_binder_factory_t{
-				std::move(disp) } };
-		return factory;
+		case_setter_unique_ptr_t setter{ new default_disp_setter_t{
+				std::move(lock_factory) } };
+		return setter;
 	}
 
-binder_factory_unique_ptr_t
-active_obj_maker(
-	so_5::rt::environment_t & env,
-	lock_factory_t lock_factory )
+case_setter_unique_ptr_t
+one_thread_maker( lock_factory_t lock_factory )
 	{
-		auto disp = so_5::disp::active_obj::create_private_disp(
-				env,
-				std::string(),
-				so_5::disp::active_obj::params_t{}.tune_queue_params(
-					[lock_factory]( so_5::disp::active_obj::queue_traits::params_t & p ) {
-						p.lock_factory( lock_factory );
-					} ) );
-		binder_factory_unique_ptr_t factory{ new active_obj_binder_factory_t{
-				std::move(disp) } };
-		return factory;
+		case_setter_unique_ptr_t setter{ new one_thread_case_setter_t{
+				std::move(lock_factory) } };
+		return setter;
 	}
 
-binder_factory_unique_ptr_t
-active_group_maker(
-	so_5::rt::environment_t & env,
-	lock_factory_t lock_factory )
+case_setter_unique_ptr_t
+active_obj_maker( lock_factory_t lock_factory )
 	{
-		auto disp = so_5::disp::active_group::create_private_disp(
-				env,
-				std::string(),
-				so_5::disp::active_group::params_t{}.tune_queue_params(
-					[lock_factory]( so_5::disp::active_group::queue_traits::params_t & p ) {
-						p.lock_factory( lock_factory );
-					} ) );
-		binder_factory_unique_ptr_t factory{ new active_group_binder_factory_t{
-				std::move(disp) } };
-		return factory;
+		case_setter_unique_ptr_t setter{ new active_obj_case_setter_t{
+				std::move(lock_factory) } };
+		return setter;
+	}
+
+case_setter_unique_ptr_t
+active_group_maker( lock_factory_t lock_factory )
+	{
+		case_setter_unique_ptr_t setter{ new active_group_case_setter_t{
+				std::move(lock_factory) } };
+		return setter;
 	}
 
 void
@@ -228,9 +269,10 @@ do_test()
 		struct case_info_t
 			{
 				std::string m_disp_name;
-				binder_factory_maker_t m_factory_maker;
+				case_maker_t m_maker;
 			};
 		std::vector< case_info_t > cases;
+		cases.push_back( case_info_t{ "default_disp", default_disp_maker } );
 		cases.push_back( case_info_t{ "one_thread", one_thread_maker } );
 		cases.push_back( case_info_t{ "active_obj", active_obj_maker } );
 		cases.push_back( case_info_t{ "active_group", active_group_maker } );
@@ -258,9 +300,14 @@ do_test()
 							<< std::endl;
 
 					run_with_time_limit( [&] {
-								so_5::launch( [&]( so_5::rt::environment_t & env ) {
-										auto maker = c.m_factory_maker( env, f.m_factory );
-										create_coop( env, *maker );
+								auto setter = c.m_maker( f.m_factory );
+
+								so_5::launch(
+									[&]( so_5::rt::environment_t & env ) {
+										create_coop( env, *setter );
+									},
+									[&]( so_5::rt::environment_params_t & params ) {
+										setter->tune_env_params( params );
 									} );
 							},
 							5,
