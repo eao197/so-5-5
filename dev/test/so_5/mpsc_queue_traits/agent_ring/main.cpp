@@ -231,36 +231,13 @@ create_coop(
 using case_maker_t = std::function<
 	case_setter_unique_ptr_t(lock_factory_t) >;
 
-case_setter_unique_ptr_t
-default_disp_maker( lock_factory_t lock_factory )
+template< typename SETTER >
+case_maker_t maker()
 	{
-		case_setter_unique_ptr_t setter{ new default_disp_setter_t{
-				std::move(lock_factory) } };
-		return setter;
-	}
-
-case_setter_unique_ptr_t
-one_thread_maker( lock_factory_t lock_factory )
-	{
-		case_setter_unique_ptr_t setter{ new one_thread_case_setter_t{
-				std::move(lock_factory) } };
-		return setter;
-	}
-
-case_setter_unique_ptr_t
-active_obj_maker( lock_factory_t lock_factory )
-	{
-		case_setter_unique_ptr_t setter{ new active_obj_case_setter_t{
-				std::move(lock_factory) } };
-		return setter;
-	}
-
-case_setter_unique_ptr_t
-active_group_maker( lock_factory_t lock_factory )
-	{
-		case_setter_unique_ptr_t setter{ new active_group_case_setter_t{
-				std::move(lock_factory) } };
-		return setter;
+		return []( lock_factory_t lock_factory ) -> case_setter_unique_ptr_t {
+			case_setter_unique_ptr_t setter{ new SETTER{ std::move(lock_factory) } };
+			return setter;
+		};
 	}
 
 void
@@ -272,10 +249,14 @@ do_test()
 				case_maker_t m_maker;
 			};
 		std::vector< case_info_t > cases;
-		cases.push_back( case_info_t{ "default_disp", default_disp_maker } );
-		cases.push_back( case_info_t{ "one_thread", one_thread_maker } );
-		cases.push_back( case_info_t{ "active_obj", active_obj_maker } );
-		cases.push_back( case_info_t{ "active_group", active_group_maker } );
+		cases.push_back( case_info_t{
+				"default_disp", maker< default_disp_setter_t >() } );
+		cases.push_back( case_info_t{
+				"one_thread", maker< one_thread_case_setter_t >() } );
+		cases.push_back( case_info_t{
+				"active_obj", maker< active_obj_case_setter_t >() } );
+		cases.push_back( case_info_t{
+				"active_group", maker< active_group_case_setter_t >() } );
 
 		struct lock_factory_info_t
 			{
