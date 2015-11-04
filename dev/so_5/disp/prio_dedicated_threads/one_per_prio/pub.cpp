@@ -50,13 +50,12 @@ using work_thread_t = so_5::disp::reuse::work_thread::work_thread_t;
 class dispatcher_t : public so_5::rt::dispatcher_t
 	{
 	public:
-		dispatcher_t()
+		dispatcher_t( params_t params )
 			:	m_data_source{ self() }
 			{
 				m_threads.reserve( so_5::prio::total_priorities_count );
-				so_5::prio::for_each_priority( [this]( so_5::priority_t ) {
-//FIXME: type of lock factory must be configurable!
-						auto lock_factory = so_5::disp::mpsc_queue_traits::combined_lock_factory();
+				so_5::prio::for_each_priority( [&]( so_5::priority_t ) {
+						auto lock_factory = params.queue_params().lock_factory();
 
 						std::unique_ptr< work_thread_t > t{
 								new work_thread_t{ std::move(lock_factory) } };
@@ -353,8 +352,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			so_5::rt::environment_t & env,
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
-			const std::string & data_sources_name_base )
-			:	m_disp( new dispatcher_t() )
+			const std::string & data_sources_name_base,
+			//! Parameters for the dispatcher.
+			params_t params )
+			:	m_disp( new dispatcher_t{ std::move(params) } )
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -394,9 +395,10 @@ private_dispatcher_t::~private_dispatcher_t()
 // create_disp
 //
 SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
-create_disp()
+create_disp( params_t params )
 	{
-		return so_5::rt::dispatcher_unique_ptr_t( new impl::dispatcher_t() );
+		return so_5::rt::dispatcher_unique_ptr_t(
+				new impl::dispatcher_t{ std::move(params) } );
 	}
 
 //
@@ -405,11 +407,14 @@ create_disp()
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
 	so_5::rt::environment_t & env,
-	const std::string & data_sources_name_base )
+	const std::string & data_sources_name_base,
+	params_t params )
 	{
 		return private_dispatcher_handle_t(
-				new impl::real_private_dispatcher_t(
-						env, data_sources_name_base ) );
+				new impl::real_private_dispatcher_t{
+						env,
+						data_sources_name_base,
+						std::move(params) } );
 	}
 
 //
