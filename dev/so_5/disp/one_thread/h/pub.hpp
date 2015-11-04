@@ -7,8 +7,7 @@
 	\brief Functions for creating and binding of the single thread dispatcher.
 */
 
-#if !defined( _SO_5__DISP__ONE_THREAD__PUB_HPP_ )
-#define _SO_5__DISP__ONE_THREAD__PUB_HPP_
+#pragma once
 
 #include <string>
 
@@ -17,7 +16,7 @@
 #include <so_5/rt/h/disp.hpp>
 #include <so_5/rt/h/disp_binder.hpp>
 
-#include <so_5/disp/mpsc_queue_traits/h/pub.hpp>
+#include <so_5/disp/one_thread/h/params.hpp>
 
 namespace so_5
 {
@@ -28,93 +27,6 @@ namespace disp
 namespace one_thread
 {
 
-/*!
- * \since v.5.5.10
- * \brief Alias for namespace with traits of event queue.
- */
-namespace queue_traits = so_5::disp::mpsc_queue_traits;
-
-//
-// params_t
-//
-/*!
- * \since v.5.5.10
- * \brief Parameters for one thread dispatcher.
- */
-class params_t
-	{
-	public :
-		//! Default constructor.
-		params_t() {}
-		//! Copy constructor.
-		params_t( const params_t & o )
-			:	m_queue_params{ o.m_queue_params }
-			{}
-		//! Move constructor.
-		params_t( params_t && o )
-			:	m_queue_params{ std::move(o.m_queue_params) }
-			{}
-
-		friend inline void swap( params_t & a, params_t & b )
-			{
-				swap( a.m_queue_params, b.m_queue_params );
-			}
-
-		//! Copy operator.
-		params_t & operator=( const params_t & o )
-			{
-				params_t tmp{ o };
-				swap( *this, tmp );
-				return *this;
-			}
-		//! Move operator.
-		params_t & operator=( params_t && o )
-			{
-				params_t tmp{ std::move(o) };
-				swap( *this, tmp );
-				return *this;
-			}
-
-		//! Setter for queue parameters.
-		params_t &
-		set_queue_params( queue_traits::params_t p )
-			{
-				m_queue_params = std::move(p);
-				return *this;
-			}
-
-		//! Tuner for queue parameters.
-		/*!
-		 * Accepts lambda-function or functional object which tunes
-		 * queue parameters.
-			\code
-			so_5::disp::one_thread::create_private_disp( env,
-				"my_one_thread_disp",
-				so_5::disp::one_thread::params_t{}.tune_queue_params(
-					[]( so_5::disp::one_thread::queue_traits::params_t & p ) {
-						p.lock_factory( so_5::disp::one_thread::queue_traits::simple_lock_factory() );
-					} ) );
-			\endcode
-		 */
-		template< typename L >
-		params_t &
-		tune_queue_params( L tunner )
-			{
-				tunner( m_queue_params );
-				return *this;
-			}
-
-		//! Getter for queue parameters.
-		const queue_traits::params_t &
-		queue_params() const
-			{
-				return m_queue_params;
-			}
-
-	private :
-		//! Queue parameters.
-		queue_traits::params_t m_queue_params;
-	};
 //
 // private_dispatcher_t
 //
@@ -255,6 +167,4 @@ create_disp_binder(
 } /* namespace disp */
 
 } /* namespace so_5 */
-
-#endif
 

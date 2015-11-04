@@ -63,6 +63,8 @@ class a_ring_member_t : public so_5::rt::agent_t
 		const unsigned int m_rounds = 2000;
 	};
 
+using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
+
 class binder_factory_t
 	{
 	public :
@@ -165,8 +167,6 @@ create_coop(
 
 		so_5::send< a_ring_member_t::msg_start >( first_agent_mbox );
 	}
-
-using lock_factory_t = so_5::disp::mpsc_queue_traits::lock_factory_t;
 
 using binder_factory_maker_t = std::function<
 	binder_factory_unique_ptr_t(so_5::rt::environment_t &, lock_factory_t) >;

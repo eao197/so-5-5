@@ -36,6 +36,8 @@
 #include <so_5/rt/stats/h/controller.hpp>
 #include <so_5/rt/stats/h/repository.hpp>
 
+#include <so_5/disp/one_thread/h/params.hpp>
+
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
 	#pragma warning(disable: 4251)
@@ -260,6 +262,28 @@ class SO_5_TYPE environment_params_t
 		}
 
 		/*!
+		 * \since v.5.5.10
+		 * \brief Set parameters for the default dispatcher.
+		 */
+		environment_params_t &
+		default_disp_params( so_5::disp::one_thread::params_t params )
+		{
+			m_default_disp_params = std::move(params);
+			return *this;
+		}
+
+		/*!
+		 * \since v.5.5.10
+		 * \brief Get the parameters for the default dispatcher.
+		 */
+		const so_5::disp::one_thread::params_t &
+		default_disp_params() const
+		{
+			return m_default_disp_params;
+		}
+
+
+		/*!
 		 * \name Methods for internal use only.
 		 * \{
 		 */
@@ -372,6 +396,12 @@ class SO_5_TYPE environment_params_t
 		 * \brief Tracer for message delivery.
 		 */
 		so_5::msg_tracing::tracer_unique_ptr_t m_message_delivery_tracer;
+
+		/*!
+		 * \since v.5.5.10
+		 * \brief Parameters for the default dispatcher.
+		 */
+		so_5::disp::one_thread::params_t m_default_disp_params;
 };
 
 //
