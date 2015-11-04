@@ -151,13 +151,12 @@ create_disp(
 	params_t params );
 
 //! Create a dispatcher.
-so_5::rt::dispatcher_unique_ptr_t
+inline so_5::rt::dispatcher_unique_ptr_t
 create_disp()
 	{
 		return create_disp( params_t{} );
 	}
 
-//FIXME: actual example should be used here!
 /*!
  * \since v.5.5.10
  * \brief Create a private %active_obj dispatcher.
@@ -204,7 +203,7 @@ auto coop = env.create_coop( so_5::autoname,
 	private_disp->binder() );
 \endcode
  */
-private_dispatcher_handle_t
+inline private_dispatcher_handle_t
 create_private_disp(
 	//! SObjectizer Environment to work in.
 	so_5::rt::environment_t & env,

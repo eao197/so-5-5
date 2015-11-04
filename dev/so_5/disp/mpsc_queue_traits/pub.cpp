@@ -172,8 +172,11 @@ class simple_lock_t : public lock_t
 		wait_for_notify() override
 			{
 				so_5::details::invoke_noexcept_code( [this] {
+					// Mutex already locked. We must not try to reacquire it.
 					std::unique_lock< std::mutex > mlock{ m_mutex, std::adopt_lock };
 					m_condition.wait( mlock, [this]{ return m_signaled; } );
+					// Destructor of unique_lock must not release mutex
+					// (mutex must remain acquired).
 					mlock.release();
 				} );
 
