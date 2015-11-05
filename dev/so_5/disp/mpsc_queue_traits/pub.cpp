@@ -171,9 +171,12 @@ class simple_lock_t : public lock_t
 		virtual void
 		wait_for_notify() override
 			{
-				// Mutex already locked. We must not try to reacquire it.
-				std::unique_lock< std::mutex > mlock{ m_mutex, std::defer_lock };
-				m_condition.wait( mlock, [this]{ return m_signaled; } );
+				so_5::details::invoke_noexcept_code( [&] {
+					// Mutex already locked. We must not try to reacquire it.
+					std::unique_lock< std::mutex > mlock{ m_mutex, std::adopt_lock };
+					m_condition.wait( mlock, [this]{ return m_signaled; } );
+					mlock.release();
+				} );
 
 				// At this point m_signaled must be 'true'.
 				m_signaled = false;
