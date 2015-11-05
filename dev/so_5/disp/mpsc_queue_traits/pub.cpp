@@ -171,14 +171,9 @@ class simple_lock_t : public lock_t
 		virtual void
 		wait_for_notify() override
 			{
-				so_5::details::invoke_noexcept_code( [this] {
-					// Mutex already locked. We must not try to reacquire it.
-					std::unique_lock< std::mutex > mlock{ m_mutex, std::adopt_lock };
-					m_condition.wait( mlock, [this]{ return m_signaled; } );
-					// Destructor of unique_lock must not release mutex
-					// (mutex must remain acquired).
-					mlock.release();
-				} );
+				// Mutex already locked. We must not try to reacquire it.
+				std::unique_lock< std::mutex > mlock{ m_mutex, std::defer_lock };
+				m_condition.wait( mlock, [this]{ return m_signaled; } );
 
 				// At this point m_signaled must be 'true'.
 				m_signaled = false;
@@ -206,7 +201,7 @@ class simple_lock_t : public lock_t
 SO_5_FUNC lock_factory_t
 combined_lock_factory()
 	{
-		return combined_lock_factory( std::chrono::milliseconds{1} );
+		return combined_lock_factory( default_combined_lock_waiting_time() );
 	}
 
 SO_5_FUNC lock_factory_t

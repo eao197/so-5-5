@@ -83,32 +83,93 @@ using lock_unique_ptr_t = std::unique_ptr< lock_t >;
 using lock_factory_t = std::function< lock_unique_ptr_t() >;
 
 //
+// default_combined_lock_waiting_time
+//
+/*!
+ * \since v.5.5.10
+ * \brief Default timeout used by combined_lock for waiting on spinlock
+ * before switching to mutex-based locking scheme.
+ */
+inline std::chrono::high_resolution_clock::duration
+default_combined_lock_waiting_time()
+	{
+		return std::chrono::milliseconds(1);
+	}
+
+//
 // combined_lock_factory
 //
-//FIXME: example of usage is necessary in Doxygen-comment.
 /*!
  * \since v.5.5.10
  * \brief Factory for creation of combined queue lock with default waiting time.
+ *
+ * \par Usage example:
+	\code
+	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
+		[]( so_5::rt::environment_params_t & params ) {
+			// Add another one_thread dispatcher with combined_lock for
+			// event queue protection.
+			using namespace so_5::disp::one_thread;
+			params.add_named_dispatcher(
+				"helpers_disp",
+				create_disp( params_t{}.tune_queue_params(
+					[]( queue_traits::params_t & queue_params ) {
+						queue_params.lock_factory( queue_traits::combined_lock_factory() );
+					} ) ) );
+		} );
+	\endcode
  */
 SO_5_FUNC lock_factory_t
 combined_lock_factory();
 
-//FIXME: example of usage is necessary in Doxygen-comment.
 /*!
  * \since v.5.5.10
  * \brief Factory for creation of combined queue lock with the specified
  * waiting time.
+ *
+ * \par Usage example:
+	\code
+	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
+		[]( so_5::rt::environment_params_t & params ) {
+			// Add another one_thread dispatcher with combined_lock for
+			// event queue protection.
+			using namespace so_5::disp::one_thread;
+			params.add_named_dispatcher(
+				"helpers_disp",
+				create_disp( params_t{}.tune_queue_params(
+					[]( queue_traits::params_t & queue_params ) {
+						// Switching to mutex will be after waiting for 500us.
+						queue_params.lock_factory( queue_traits::combined_lock_factory(
+							std::chrono::microseconds(500) ) );
+					} ) ) );
+		} );
+	\endcode
  */
 SO_5_FUNC lock_factory_t
 combined_lock_factory(
 	//! Max waiting time for waiting on spinlock before switching to mutex.
 	std::chrono::high_resolution_clock::duration waiting_time );
 
-//FIXME: example of usage is necessary in Doxygen-comment.
 /*!
  * \since v.5.5.10
  * \brief Factory for creation of very simple implementation based on
  * usage of mutex and condition_variable only.
+ *
+ * \par Usage example:
+	\code
+	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
+		[]( so_5::rt::environment_params_t & params ) {
+			// Add another one_thread dispatcher with simple_lock for
+			// event queue protection.
+			using namespace so_5::disp::one_thread;
+			params.add_named_dispatcher(
+				"helpers_disp",
+				create_disp( params_t{}.tune_queue_params(
+					[]( queue_traits::params_t & queue_params ) {
+						queue_params.lock_factory( queue_traits::simple_lock_factory() );
+					} ) ) );
+		} );
+	\endcode
  */
 SO_5_FUNC lock_factory_t
 simple_lock_factory();
