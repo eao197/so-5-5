@@ -13,6 +13,9 @@
 	lock factory (such as so_5::disp::mpsc_queue_traits::combined_lock_factory()
 	and so_5::disp::mpsc_queue_traits::simple_lock_factory());
 	
+	A possibility to tune options for event queue of the default dispatcher
+	is implemented via so_5::rt::environment_params_t::default_disp_params()
+	method.
 
 \section so_5__5_9 5.5.9 "Cerro Zapaleri"
 

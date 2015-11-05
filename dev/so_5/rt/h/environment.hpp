@@ -264,6 +264,19 @@ class SO_5_TYPE environment_params_t
 		/*!
 		 * \since v.5.5.10
 		 * \brief Set parameters for the default dispatcher.
+		 *
+		 * \par Usage example:
+			\code
+			so_5::launch( []( so_5::rt::environment_t & env ) { ... },
+				[]( so_5::rt::environment_params_t & env_params ) {
+					using namespace so_5::disp::one_thread;
+					// Event queue for the default dispatcher must use mutex as lock.
+					env_params.default_disp_params( params_t{}.tune_queue_params(
+						[]( queue_traits::params_t & queue_params ) {
+							queue_params.lock_factory( queue_traits::simple_lock_factory() );
+						} ) );
+				} );
+			\endcode
 		 */
 		environment_params_t &
 		default_disp_params( so_5::disp::one_thread::params_t params )
