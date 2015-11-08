@@ -10,13 +10,9 @@
 
 #pragma once
 
-#include <deque>
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-#include <chrono>
+#include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
 
-#include <so_5/h/spinlocks.hpp>
+#include <deque>
 
 namespace so_5
 {
@@ -26,6 +22,8 @@ namespace disp
 
 namespace reuse
 {
+
+namespace queue_traits = so_5::disp::mpmc_queue_traits;
 
 //
 // mpmc_ptr_queue_t
@@ -44,59 +42,21 @@ template< class T >
 class mpmc_ptr_queue_t
 	{
 	public :
-		/*!
-		 * Type of heavy synchronization object to wait for if
-		 * queue is empty.
-		 */
-		class waiting_object_t
-			{
-				waiting_object_t( const waiting_object_t & ) = delete;
-
-				waiting_object_t &
-				operator=( const waiting_object_t & ) = delete;
-
-				friend class mpmc_ptr_queue_t;
-
-			public :
-				inline
-				waiting_object_t()
-					{}
-
-			private :
-				//! Waiting for notification.
-				inline void
-				wait( std::unique_lock< std::mutex > & l )
-					{
-						m_condition.wait( l );
-					}
-
-				//! Make notification.
-				inline void
-				lock_and_notify()
-					{
-						std::lock_guard< std::mutex > l( m_mutex );
-						m_condition.notify_one();
-					}
-
-			private :
-				std::mutex m_mutex;
-				std::condition_variable m_condition;
-			};
-
-		mpmc_ptr_queue_t()
-			:	m_shutdown( false )
+		mpmc_ptr_queue_t( queue_traits::lock_factory_t lock_factory )
+			:	m_lock{ lock_factory() }
+			,	m_shutdown( false )
 			{}
 
 		//! Initiate shutdown for working threads.
 		inline void
 		shutdown()
 			{
-				std::lock_guard< default_spinlock_t > lock( m_lock );
+				std::lock_guard< queue_traits::lock_t > lock{ *m_lock };
 
 				m_shutdown = true;
 
-				while( !m_waiting_threads.empty() )
-					pop_and_notify_one_waiting_thread();
+				while( !m_waiting_customers.empty() )
+					pop_and_notify_one_waiting_customer();
 			}
 
 		//! Get next active queue.
@@ -104,15 +64,12 @@ class mpmc_ptr_queue_t
 		 * \retval nullptr is the case of dispatcher shutdown.
 		 */
 		inline T *
-		pop( waiting_object_t & wt_alarm )
+		pop( queue_traits::condition_t & condition )
 			{
-				using hrc = std::chrono::high_resolution_clock;
-				auto spin_stop_point = hrc::now() +
-						std::chrono::microseconds( 500 );
+				std::lock_guard< queue_traits::lock_t > lock{ *m_lock };
+
 				do
 					{
-						std::unique_lock< default_spinlock_t > lock( m_lock );
-
 						if( m_shutdown )
 							break;
 
@@ -123,24 +80,9 @@ class mpmc_ptr_queue_t
 								return r;
 							}
 
-						if( spin_stop_point <= hrc::now() )
-							{
-								// Spin loop must be finished.
-								// Next waiting must be on heavy waiting object.
-								m_waiting_threads.push_back( &wt_alarm );
+						m_waiting_customers.push_back( &condition );
 
-								std::unique_lock< std::mutex > wt_lock(
-										wt_alarm.m_mutex );
-
-								lock.unlock();
-								wt_alarm.wait( wt_lock );
-							}
-						else
-							{
-								// Spin loop must be continued.
-								lock.unlock();
-								std::this_thread::yield();
-							}
+						condition.wait();
 					}
 				while( true );
 
@@ -151,17 +93,23 @@ class mpmc_ptr_queue_t
 		void
 		schedule( T * queue )
 			{
-				std::lock_guard< default_spinlock_t > lock( m_lock );
+				std::lock_guard< queue_traits::lock_t > lock{ *m_lock };
 
 				m_queue.push_back( queue );
 
-				if( !m_waiting_threads.empty() )
-					pop_and_notify_one_waiting_thread();
+				if( !m_waiting_customers.empty() )
+					pop_and_notify_one_waiting_customer();
+			}
+
+		queue_traits::condition_unique_ptr_t
+		allocate_condition()
+			{
+				return m_lock->allocate_condition();
 			}
 
 	private :
 		//! Object's lock.
-		default_spinlock_t m_lock;
+		queue_traits::lock_unique_ptr_t m_lock;
 
 		//! Shutdown flag.
 		bool	m_shutdown;
@@ -170,15 +118,15 @@ class mpmc_ptr_queue_t
 		std::deque< T * > m_queue;
 
 		//! Waiting threads.
-		std::deque< waiting_object_t * > m_waiting_threads;
+		std::deque< queue_traits::condition_t * > m_waiting_customers;
 
 		void
-		pop_and_notify_one_waiting_thread()
+		pop_and_notify_one_waiting_customer()
 			{
-				waiting_object_t * wt_alarm = m_waiting_threads.front();
-				m_waiting_threads.pop_front();
+				auto & condition = *m_waiting_customers.back();
+				m_waiting_customers.pop_back();
 
-				wt_alarm->lock_and_notify();
+				condition.notify();
 			}
 	};
 
