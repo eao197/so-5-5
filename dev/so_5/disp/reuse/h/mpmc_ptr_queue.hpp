@@ -13,6 +13,7 @@
 #include <so_5/disp/mpmc_queue_traits/h/pub.hpp>
 
 #include <deque>
+#include <vector>
 
 namespace so_5
 {
@@ -42,10 +43,16 @@ template< class T >
 class mpmc_ptr_queue_t
 	{
 	public :
-		mpmc_ptr_queue_t( queue_traits::lock_factory_t lock_factory )
+		mpmc_ptr_queue_t(
+			queue_traits::lock_factory_t lock_factory,
+			std::size_t thread_count )
 			:	m_lock{ lock_factory() }
 			,	m_shutdown( false )
-			{}
+			{
+				// Reserve some space for storing infos about waiting
+				// customer threads.
+				m_waiting_customers.reserve( thread_count );
+			}
 
 		//! Initiate shutdown for working threads.
 		inline void
@@ -118,7 +125,7 @@ class mpmc_ptr_queue_t
 		std::deque< T * > m_queue;
 
 		//! Waiting threads.
-		std::deque< queue_traits::condition_t * > m_waiting_customers;
+		std::vector< queue_traits::condition_t * > m_waiting_customers;
 
 		void
 		pop_and_notify_one_waiting_customer()

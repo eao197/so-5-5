@@ -175,7 +175,9 @@ class dispatcher_t
 		//! Constructor.
 		dispatcher_t(
 			std::size_t thread_count )
-			:	m_queue{ so_5::disp::mpmc_queue_traits::combined_lock_factory() }
+			:	m_queue{
+					so_5::disp::mpmc_queue_traits::simple_lock_factory(),
+					thread_count }
 			,	m_thread_count( thread_count )
 			,	m_data_source( stats_supplier() )
 			{
@@ -413,5 +415,6 @@ class dispatcher_t
 } /* namespace disp */
 
 } /* namespace so_5 */
+
 
 
