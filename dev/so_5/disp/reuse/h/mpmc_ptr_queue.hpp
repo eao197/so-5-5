@@ -24,8 +24,6 @@ namespace disp
 namespace reuse
 {
 
-namespace queue_traits = so_5::disp::mpmc_queue_traits;
-
 //
 // mpmc_ptr_queue_t
 //
@@ -44,7 +42,7 @@ class mpmc_ptr_queue_t
 	{
 	public :
 		mpmc_ptr_queue_t(
-			queue_traits::lock_factory_t lock_factory,
+			so_5::disp::mpmc_queue_traits::lock_factory_t lock_factory,
 			std::size_t thread_count )
 			:	m_lock{ lock_factory() }
 			,	m_shutdown( false )
@@ -58,7 +56,7 @@ class mpmc_ptr_queue_t
 		inline void
 		shutdown()
 			{
-				std::lock_guard< queue_traits::lock_t > lock{ *m_lock };
+				std::lock_guard< so_5::disp::mpmc_queue_traits::lock_t > lock{ *m_lock };
 
 				m_shutdown = true;
 
@@ -71,9 +69,9 @@ class mpmc_ptr_queue_t
 		 * \retval nullptr is the case of dispatcher shutdown.
 		 */
 		inline T *
-		pop( queue_traits::condition_t & condition )
+		pop( so_5::disp::mpmc_queue_traits::condition_t & condition )
 			{
-				std::lock_guard< queue_traits::lock_t > lock{ *m_lock };
+				std::lock_guard< so_5::disp::mpmc_queue_traits::lock_t > lock{ *m_lock };
 
 				do
 					{
@@ -100,7 +98,7 @@ class mpmc_ptr_queue_t
 		void
 		schedule( T * queue )
 			{
-				std::lock_guard< queue_traits::lock_t > lock{ *m_lock };
+				std::lock_guard< so_5::disp::mpmc_queue_traits::lock_t > lock{ *m_lock };
 
 				m_queue.push_back( queue );
 
@@ -108,7 +106,7 @@ class mpmc_ptr_queue_t
 					pop_and_notify_one_waiting_customer();
 			}
 
-		queue_traits::condition_unique_ptr_t
+		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t
 		allocate_condition()
 			{
 				return m_lock->allocate_condition();
@@ -116,7 +114,7 @@ class mpmc_ptr_queue_t
 
 	private :
 		//! Object's lock.
-		queue_traits::lock_unique_ptr_t m_lock;
+		so_5::disp::mpmc_queue_traits::lock_unique_ptr_t m_lock;
 
 		//! Shutdown flag.
 		bool	m_shutdown;
@@ -125,7 +123,7 @@ class mpmc_ptr_queue_t
 		std::deque< T * > m_queue;
 
 		//! Waiting threads.
-		std::vector< queue_traits::condition_t * > m_waiting_customers;
+		std::vector< so_5::disp::mpmc_queue_traits::condition_t * > m_waiting_customers;
 
 		void
 		pop_and_notify_one_waiting_customer()

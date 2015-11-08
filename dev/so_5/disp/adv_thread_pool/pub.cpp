@@ -137,7 +137,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
 			const std::string & data_sources_name_base )
-			:	m_disp( new dispatcher_t( thread_count ) )
+			:	m_disp{
+					new dispatcher_t{
+						thread_count,
+						so_5::disp::mpmc_queue_traits::params_t{} } }
 			{
 				m_disp->set_data_sources_name_base( data_sources_name_base );
 				m_disp->start( env );
@@ -185,8 +188,10 @@ create_disp(
 		if( !thread_count )
 			thread_count = default_thread_pool_size();
 
-		return so_5::rt::dispatcher_unique_ptr_t(
-				new impl::dispatcher_t( thread_count ) );
+		return so_5::rt::dispatcher_unique_ptr_t{
+				new impl::dispatcher_t{
+						thread_count,
+						so_5::disp::mpmc_queue_traits::params_t{} } };
 	}
 
 //
