@@ -28,7 +28,7 @@ namespace thread_pool
 {
 
 /*!
- * \since v.5.5.10
+ * \since v.5.5.11
  * \brief Alias for namespace with traits of event queue.
  */
 namespace queue_traits = so_5::disp::mpmc_queue_traits;
