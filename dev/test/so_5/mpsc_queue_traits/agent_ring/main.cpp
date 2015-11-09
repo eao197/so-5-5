@@ -112,7 +112,7 @@ class default_disp_setter_t : public case_setter_t
 		tune_env_params( so_5::rt::environment_params_t & params ) override
 			{
 				params.default_disp_params(
-					setup_lock_factory( so_5::disp::one_thread::params_t{} ) );
+					setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) );
 			}
 
 		virtual so_5::rt::disp_binder_unique_ptr_t
@@ -135,7 +135,7 @@ class one_thread_case_setter_t : public case_setter_t
 				params.add_named_dispatcher(
 					"one_thread",
 					so_5::disp::one_thread::create_disp(
-						setup_lock_factory( so_5::disp::one_thread::params_t{} ) )
+						setup_lock_factory( so_5::disp::one_thread::disp_params_t{} ) )
 				);
 			}
 		virtual so_5::rt::disp_binder_unique_ptr_t
