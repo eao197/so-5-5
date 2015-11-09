@@ -112,8 +112,8 @@ default_combined_lock_waiting_time()
 			using namespace so_5::disp::one_thread;
 			params.add_named_dispatcher(
 				"helpers_disp",
-				create_disp( params_t{}.tune_queue_params(
-					[]( queue_traits::params_t & queue_params ) {
+				create_disp( disp_params_t{}.tune_queue_params(
+					[]( queue_traits::queue_params_t & queue_params ) {
 						queue_params.lock_factory( queue_traits::combined_lock_factory() );
 					} ) ) );
 		} );
@@ -136,8 +136,8 @@ combined_lock_factory();
 			using namespace so_5::disp::one_thread;
 			params.add_named_dispatcher(
 				"helpers_disp",
-				create_disp( params_t{}.tune_queue_params(
-					[]( queue_traits::params_t & queue_params ) {
+				create_disp( disp_params_t{}.tune_queue_params(
+					[]( queue_traits::queue_params_t & queue_params ) {
 						// Switching to mutex will be after waiting for 500us.
 						queue_params.lock_factory( queue_traits::combined_lock_factory(
 							std::chrono::microseconds(500) ) );
@@ -164,8 +164,8 @@ combined_lock_factory(
 			using namespace so_5::disp::one_thread;
 			params.add_named_dispatcher(
 				"helpers_disp",
-				create_disp( params_t{}.tune_queue_params(
-					[]( queue_traits::params_t & queue_params ) {
+				create_disp( disp_params_t{}.tune_queue_params(
+					[]( queue_traits::queue_params_t & queue_params ) {
 						queue_params.lock_factory( queue_traits::simple_lock_factory() );
 					} ) ) );
 		} );
@@ -247,52 +247,52 @@ class lock_guard_t
 	};
 
 //
-// params_t
+// queue_params_t
 //
 /*!
  * \since v.5.5.10
  * \brief Container for storing parameters for MPSC queue.
  */
-class params_t
+class queue_params_t
 	{
 	public :
 		//! Default constructor.
-		params_t()
+		queue_params_t()
 			:	m_lock_factory{ combined_lock_factory() }
 			{}
 		//! Copy constructor.
-		params_t( const params_t & o )
+		queue_params_t( const queue_params_t & o )
 			:	m_lock_factory{ o.m_lock_factory }
 			{}
 		//! Move constructor.
-		params_t( params_t && o )
+		queue_params_t( queue_params_t && o )
 			:	m_lock_factory{ std::move(o.m_lock_factory) }
 			{}
 
-		friend inline void swap( params_t & a, params_t & b )
+		friend inline void swap( queue_params_t & a, queue_params_t & b )
 			{
 				using namespace std;
 				swap( a.m_lock_factory, b.m_lock_factory );
 			}
 
 		//! Copy operator.
-		params_t & operator=( const params_t & o )
+		queue_params_t & operator=( const queue_params_t & o )
 			{
-				params_t tmp{ o };
+				queue_params_t tmp{ o };
 				swap( *this, tmp );
 				return *this;
 			}
 
 		//! Move operator.
-		params_t & operator=( params_t && o )
+		queue_params_t & operator=( queue_params_t && o )
 			{
-				params_t tmp{ std::move(o) };
+				queue_params_t tmp{ std::move(o) };
 				swap( *this, tmp );
 				return *this;
 			}
 
 		//! Setter for lock factory.
-		params_t &
+		queue_params_t &
 		lock_factory( lock_factory_t factory )
 			{
 				m_lock_factory = std::move( factory );
@@ -310,6 +310,12 @@ class params_t
 		//! Lock factory to be used during queue creation.
 		lock_factory_t m_lock_factory;
 	};
+
+/*!
+ * \brief Old alias for queue_params for compatibility.
+ * \deprecated Use queue_params_t instead.
+ */
+using params_t = queue_params_t;
 
 } /* namespace mpsc_queue_traits */
 

@@ -88,7 +88,7 @@ class case_setter_t
 		setup_lock_factory( P params ) const
 			{
 				params.tune_queue_params(
-					[&]( so_5::disp::mpsc_queue_traits::params_t & p ) {
+					[&]( so_5::disp::mpsc_queue_traits::queue_params_t & p ) {
 						p.lock_factory( m_lock_factory );
 					} );
 

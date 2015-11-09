@@ -307,7 +307,7 @@ main( int argc, char ** argv )
 			{
 				if( cfg.m_active_objects )
 				{
-					so_5::disp::active_obj::queue_traits::params_t queue_params;
+					so_5::disp::active_obj::queue_traits::queue_params_t queue_params;
 					if( cfg.m_simple_lock )
 						queue_params.lock_factory(
 								so_5::disp::active_obj::queue_traits::simple_lock_factory() );

@@ -77,7 +77,7 @@ class params_t
 
 		//! Setter for queue parameters.
 		params_t &
-		set_queue_params( queue_traits::params_t p )
+		set_queue_params( queue_traits::queue_params_t p )
 			{
 				m_queue_params = std::move(p);
 				return *this;
@@ -90,8 +90,8 @@ class params_t
 			\code
 			so_5::disp::active_obj::create_private_disp( env,
 				"my_active_obj_disp",
-				so_5::disp::active_obj::params_t{}.tune_queue_params(
-					[]( so_5::disp::active_obj::queue_traits::params_t & p ) {
+				so_5::disp::active_obj::disp_params_t{}.tune_queue_params(
+					[]( so_5::disp::active_obj::queue_traits::queue_params_t & p ) {
 						p.lock_factory( so_5::disp::active_obj::queue_traits::simple_lock_factory() );
 					} ) );
 			\endcode
@@ -105,7 +105,7 @@ class params_t
 			}
 
 		//! Getter for queue parameters.
-		const queue_traits::params_t &
+		const queue_traits::queue_params_t &
 		queue_params() const
 			{
 				return m_queue_params;
@@ -113,7 +113,7 @@ class params_t
 
 	private :
 		//! Queue parameters.
-		queue_traits::params_t m_queue_params;
+		queue_traits::queue_params_t m_queue_params;
 	};
 
 //
@@ -168,7 +168,7 @@ auto private_disp = so_5::disp::active_obj::create_private_disp(
 	"db_handler",
 	// Additional params with specific options for queue's traits.
 	so_5::disp::active_obj::params_t{}.tune_queue_params(
-		[]( so_5::disp::active_obj::queue_traits::params_t & p ) {
+		[]( so_5::disp::active_obj::queue_traits::queue_params_t & p ) {
 			p.lock_factory( so_5::disp::active_obj::queue_traits::simple_lock_factory() );
 		} ) );
 auto coop = env.create_coop( so_5::autoname,
