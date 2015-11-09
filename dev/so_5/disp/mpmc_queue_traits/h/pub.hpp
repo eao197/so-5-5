@@ -130,7 +130,6 @@ default_combined_lock_waiting_time()
 		return std::chrono::milliseconds(1);
 	}
 
-//FIXME: an example in Doxygen comment must be fixed.
 /*!
  * \since v.5.5.11
  * \brief Factory for creation of combined queue lock with the specified
@@ -145,7 +144,7 @@ default_combined_lock_waiting_time()
 			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(
 				"helpers_disp",
-				create_disp( params_t{}.tune_queue_params(
+				create_disp( disp_params_t{}.tune_queue_params(
 					[]( queue_traits::queue_params_t & queue_params ) {
 						// Switching to mutex will be after waiting for 500us.
 						queue_params.lock_factory( queue_traits::combined_lock_factory(
@@ -159,7 +158,6 @@ combined_lock_factory(
 	//! Max waiting time for waiting on spinlock before switching to mutex.
 	std::chrono::high_resolution_clock::duration waiting_time );
 
-//FIXME: an example in Doxygen comment must be fixed.
 //
 // combined_lock_factory
 //
@@ -176,7 +174,7 @@ combined_lock_factory(
 			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(
 				"helpers_disp",
-				create_disp( params_t{}.tune_queue_params(
+				create_disp( disp_params_t{}.tune_queue_params(
 					[]( queue_traits::queue_params_t & queue_params ) {
 						queue_params.lock_factory( queue_traits::combined_lock_factory() );
 					} ) ) );
@@ -190,7 +188,6 @@ combined_lock_factory()
 				default_combined_lock_waiting_time() );
 	}
 
-//FIXME: an example in Doxygen comment must be fixed.
 /*!
  * \since v.5.5.11
  * \brief Factory for creation of very simple implementation based on
@@ -205,7 +202,7 @@ combined_lock_factory()
 			using namespace so_5::disp::thread_pool;
 			params.add_named_dispatcher(
 				"helpers_disp",
-				create_disp( params_t{}.tune_queue_params(
+				create_disp( disp_params_t{}.tune_queue_params(
 					[]( queue_traits::queue_params_t & queue_params ) {
 						queue_params.lock_factory( queue_traits::simple_lock_factory() );
 					} ) ) );

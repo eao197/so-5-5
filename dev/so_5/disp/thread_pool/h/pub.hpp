@@ -213,7 +213,6 @@ class bind_params_t
 		std::size_t m_max_demands_at_once = { 4 };
 	};
 
-//FIXME: all occurences of params_t in tests/examples must be changed to bind_params_t.
 //
 // params_t
 //
