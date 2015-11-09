@@ -315,7 +315,7 @@ main( int argc, char ** argv )
 					params.add_named_dispatcher(
 							"active_obj",
 							so_5::disp::active_obj::create_disp(
-									so_5::disp::active_obj::params_t{}.set_queue_params(
+									so_5::disp::active_obj::disp_params_t{}.set_queue_params(
 											std::move(queue_params) ) ) );
 				}
 			} );

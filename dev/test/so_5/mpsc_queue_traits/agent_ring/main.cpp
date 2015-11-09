@@ -158,7 +158,7 @@ class active_obj_case_setter_t : public case_setter_t
 				params.add_named_dispatcher(
 					"active_obj",
 					so_5::disp::active_obj::create_disp(
-						setup_lock_factory( so_5::disp::active_obj::params_t{} ) )
+						setup_lock_factory( so_5::disp::active_obj::disp_params_t{} ) )
 				);
 			}
 
