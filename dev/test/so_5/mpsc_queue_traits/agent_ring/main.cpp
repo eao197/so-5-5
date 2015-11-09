@@ -182,7 +182,7 @@ class active_group_case_setter_t : public case_setter_t
 				params.add_named_dispatcher(
 					"active_group",
 					so_5::disp::active_group::create_disp(
-						setup_lock_factory( so_5::disp::active_group::params_t{} ) )
+						setup_lock_factory( so_5::disp::active_group::disp_params_t{} ) )
 				);
 			}
 
