@@ -154,7 +154,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 			params.add_named_dispatcher(
 					"thread_pool",
 					create_disp( disp_params_t{}.set_queue_params(
-						queue_traits::params_t{}.lock_factory( factory ) ) ) );
+						queue_traits::queue_params_t{}.lock_factory( factory ) ) ) );
 		} );
 }
 

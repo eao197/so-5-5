@@ -108,7 +108,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 					new a_test_t( env ),
 					atp_disp::create_disp_binder(
 							"thread_pool",
-							atp_disp::params_t() ) );
+							atp_disp::bind_params_t() ) );
 		},
 		[&]( so_5::rt::environment_params_t & params )
 		{
@@ -116,7 +116,7 @@ run_sobjectizer( atp_disp::queue_traits::lock_factory_t factory )
 			params.add_named_dispatcher(
 					"thread_pool",
 					create_disp( disp_params_t{}.set_queue_params(
-						queue_traits::params_t{}.lock_factory( factory ) ) ) );
+						queue_traits::queue_params_t{}.lock_factory( factory ) ) ) );
 		} );
 }
 

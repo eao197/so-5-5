@@ -175,7 +175,7 @@ class dispatcher_t
 		//! Constructor.
 		dispatcher_t(
 			std::size_t thread_count,
-			const so_5::disp::mpmc_queue_traits::params_t & queue_params )
+			const so_5::disp::mpmc_queue_traits::queue_params_t & queue_params )
 			:	m_queue{
 					queue_params.lock_factory(),
 					thread_count }

@@ -198,7 +198,7 @@ run_sobjectizer(
 					create_disp(
 						disp_params_t{}
 							.thread_count( thread_count )
-							.set_queue_params( queue_traits::params_t{}
+							.set_queue_params( queue_traits::queue_params_t{}
 									.lock_factory( factory ) )
 					)
 			);

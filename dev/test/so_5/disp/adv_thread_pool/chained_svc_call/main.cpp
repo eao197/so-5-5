@@ -116,12 +116,13 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 				},
 				[&]( so_5::rt::environment_params_t & params )
 				{
+					using namespace atp_disp;
 					params.add_named_dispatcher(
 							"thread_pool",
-							atp_disp::create_disp( 
-								atp_disp::disp_params_t{}
+							create_disp( 
+								disp_params_t{}
 									.thread_count( thread_pool_size )
-									.set_queue_params( atp_disp::queue_traits::params_t{}
+									.set_queue_params( queue_traits::queue_params_t{}
 										.lock_factory( factory ) ) )
 					);
 				} );

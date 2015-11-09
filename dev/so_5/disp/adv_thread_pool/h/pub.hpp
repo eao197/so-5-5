@@ -94,7 +94,7 @@ class disp_params_t
 
 		//! Setter for queue parameters.
 		disp_params_t &
-		set_queue_params( queue_traits::params_t p )
+		set_queue_params( queue_traits::queue_params_t p )
 			{
 				m_queue_params = std::move(p);
 				return *this;
@@ -125,7 +125,7 @@ class disp_params_t
 			}
 
 		//! Getter for queue parameters.
-		const queue_traits::params_t &
+		const queue_traits::queue_params_t &
 		queue_params() const
 			{
 				return m_queue_params;
@@ -138,7 +138,7 @@ class disp_params_t
 		 */
 		std::size_t m_thread_count = { 0 };
 		//! Queue parameters.
-		queue_traits::params_t m_queue_params;
+		queue_traits::queue_params_t m_queue_params;
 	};
 
 //
@@ -195,7 +195,6 @@ class bind_params_t
 		fifo_t m_fifo = { fifo_t::cooperation };
 	};
 
-//FIXME: all occurences of params_t in tests/examples must be changed to bind_params_t.
 //
 // params_t
 //

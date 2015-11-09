@@ -59,7 +59,8 @@ do_test()
 								disp_params_t{}
 									.thread_count(4)
 									.set_queue_params(
-										queue_traits::params_t{}.lock_factory( factory ) ),
+										queue_traits::queue_params_t{}
+											.lock_factory( factory ) ),
 								std::string() );
 
 						env.register_agent_as_coop(

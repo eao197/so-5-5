@@ -266,7 +266,7 @@ class a_contoller_t : public so_5::rt::agent_t
 			if( dispatcher_t::thread_pool == m_cfg.m_dispatcher )
 			{
 				using namespace so_5::disp::thread_pool;
-				params_t params;
+				bind_params_t params;
 				if( m_cfg.m_individual_fifo )
 					params.fifo( fifo_t::individual );
 				if( m_cfg.m_demands_at_once )
@@ -276,7 +276,7 @@ class a_contoller_t : public so_5::rt::agent_t
 			else
 			{
 				using namespace so_5::disp::adv_thread_pool;
-				params_t params;
+				bind_params_t params;
 				if( m_cfg.m_individual_fifo )
 					params.fifo( fifo_t::individual );
 				return create_disp_binder( "thread_pool", params );
@@ -316,7 +316,7 @@ show_cfg( const cfg_t & cfg )
 			std::cout << cfg.m_demands_at_once;
 		else
 			std::cout << "default ("
-				<< so_5::disp::thread_pool::params_t().query_max_demands_at_once()
+				<< so_5::disp::thread_pool::bind_params_t().query_max_demands_at_once()
 				<< ")";
 	}
 
@@ -334,7 +334,7 @@ show_cfg( const cfg_t & cfg )
 	{
 		std::cout << "default (";
 		if( so_5::disp::thread_pool::fifo_t::cooperation ==
-				so_5::disp::thread_pool::params_t().query_fifo() )
+				so_5::disp::thread_pool::bind_params_t().query_fifo() )
 			std::cout << "cooperation";
 		else
 			std::cout << "individual";

@@ -169,7 +169,7 @@ run_sobjectizer(
 				env.register_coop( std::move( c ) );
 			}
 
-			tp_disp::params_t params;
+			tp_disp::bind_params_t params;
 			params.max_demands_at_once( 1024 );
 			for( std::size_t i = 0; i != cooperation_count; ++i )
 			{
@@ -201,12 +201,12 @@ run_sobjectizer(
 		},
 		[&]( so_5::rt::environment_params_t & params )
 		{
+			using namespace tp_disp;
 			params.add_named_dispatcher(
 					"thread_pool",
-					tp_disp::create_disp(
-						tp_disp::disp_params_t{}
+					create_disp( disp_params_t{}
 							.thread_count( thread_count )
-							.set_queue_params( tp_disp::queue_traits::params_t{}
+							.set_queue_params( queue_traits::queue_params_t{}
 								.lock_factory( factory ) ) )
 			);
 		} );
