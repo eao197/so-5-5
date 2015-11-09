@@ -11,6 +11,7 @@
 #pragma once
 
 #include <so_5/h/declspec.hpp>
+#include <so_5/h/compiler_features.hpp>
 
 #include <functional>
 #include <memory>
@@ -42,11 +43,11 @@ class SO_5_TYPE lock_t
 
 		//! Lock object in exclusive mode.
 		virtual void
-		lock() = 0;
+		lock() SO_5_NOEXCEPT = 0;
 
 		//! Unlock object locked in exclusive mode.
 		virtual void
-		unlock() = 0;
+		unlock() SO_5_NOEXCEPT = 0;
 
 	protected :
 		//! Waiting for nofication.
@@ -54,14 +55,14 @@ class SO_5_TYPE lock_t
 		 * \attention Must be called only when object is locked!
 		 */
 		virtual void
-		wait_for_notify() = 0;
+		wait_for_notify() SO_5_NOEXCEPT = 0;
 
 		//! Notify one waiting thread if it exists.
 		/*!
 		 * \attention Must be called only when object is locked.
 		 */
 		virtual void
-		notify_one() = 0;
+		notify_one() SO_5_NOEXCEPT = 0;
 	};
 
 //
@@ -96,32 +97,6 @@ default_combined_lock_waiting_time()
 		return std::chrono::milliseconds(1);
 	}
 
-//
-// combined_lock_factory
-//
-/*!
- * \since v.5.5.10
- * \brief Factory for creation of combined queue lock with default waiting time.
- *
- * \par Usage example:
-	\code
-	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
-		[]( so_5::rt::environment_params_t & params ) {
-			// Add another one_thread dispatcher with combined_lock for
-			// event queue protection.
-			using namespace so_5::disp::one_thread;
-			params.add_named_dispatcher(
-				"helpers_disp",
-				create_disp( disp_params_t{}.tune_queue_params(
-					[]( queue_traits::queue_params_t & queue_params ) {
-						queue_params.lock_factory( queue_traits::combined_lock_factory() );
-					} ) ) );
-		} );
-	\endcode
- */
-SO_5_FUNC lock_factory_t
-combined_lock_factory();
-
 /*!
  * \since v.5.5.10
  * \brief Factory for creation of combined queue lock with the specified
@@ -149,6 +124,35 @@ SO_5_FUNC lock_factory_t
 combined_lock_factory(
 	//! Max waiting time for waiting on spinlock before switching to mutex.
 	std::chrono::high_resolution_clock::duration waiting_time );
+
+//
+// combined_lock_factory
+//
+/*!
+ * \since v.5.5.10
+ * \brief Factory for creation of combined queue lock with default waiting time.
+ *
+ * \par Usage example:
+	\code
+	so_5::launch( []( so_5::rt::environment_t & env ) { ... },
+		[]( so_5::rt::environment_params_t & params ) {
+			// Add another one_thread dispatcher with combined_lock for
+			// event queue protection.
+			using namespace so_5::disp::one_thread;
+			params.add_named_dispatcher(
+				"helpers_disp",
+				create_disp( disp_params_t{}.tune_queue_params(
+					[]( queue_traits::queue_params_t & queue_params ) {
+						queue_params.lock_factory( queue_traits::combined_lock_factory() );
+					} ) ) );
+		} );
+	\endcode
+ */
+inline lock_factory_t
+combined_lock_factory()
+	{
+		return combined_lock_factory( default_combined_lock_waiting_time() );
+	}
 
 /*!
  * \since v.5.5.10
