@@ -117,6 +117,15 @@ class disp_params_t
 	};
 
 //
+// params_t
+//
+/*!
+ * \brief Old alias for disp_params for compatibility with previous versions.
+ * \deprecated Use disp_params_t instead.
+ */
+using params_t = disp_params_t;
+
+//
 // private_dispatcher_t
 //
 

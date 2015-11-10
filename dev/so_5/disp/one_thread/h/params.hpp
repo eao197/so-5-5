@@ -113,6 +113,15 @@ class disp_params_t
 		queue_traits::queue_params_t m_queue_params;
 	};
 
+//
+// params_t
+//
+/*!
+ * \brief Old alias for disp_params for compatibility with previous versions.
+ * \deprecated Use disp_params_t instead.
+ */
+using params_t = disp_params_t;
+
 } /* namespace one_thread */
 
 } /* namespace disp */
