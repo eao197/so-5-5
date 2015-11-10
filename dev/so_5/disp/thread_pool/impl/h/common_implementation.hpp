@@ -18,6 +18,8 @@
 
 #include <so_5/details/h/rollback_on_exception.hpp>
 
+#include <mutex>
+
 namespace so_5 {
 
 namespace disp {
@@ -25,8 +27,6 @@ namespace disp {
 namespace thread_pool {
 
 namespace common_implementation {
-
-using spinlock_t = so_5::default_spinlock_t;
 
 namespace stats = so_5::rt::stats;
 namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
@@ -229,7 +229,7 @@ class dispatcher_t
 			so_5::rt::agent_ref_t agent,
 			const PARAMS & params )
 			{
-				std::lock_guard< spinlock_t > lock( m_lock );
+				std::lock_guard< std::mutex > lock( m_lock );
 
 				if( ADAPTATIONS::is_individual_fifo( params ) )
 					return bind_agent_with_inidividual_fifo(
@@ -244,7 +244,7 @@ class dispatcher_t
 		unbind_agent(
 			so_5::rt::agent_ref_t agent )
 			{
-				std::lock_guard< spinlock_t > lock( m_lock );
+				std::lock_guard< std::mutex > lock( m_lock );
 
 				auto it = m_agents.find( agent.get() );
 				if( it != m_agents.end() )
@@ -285,7 +285,7 @@ class dispatcher_t
 		std::vector< std::unique_ptr< WORK_THREAD > > m_threads;
 
 		//! Object's lock.
-		spinlock_t m_lock;
+		std::mutex m_lock;
 
 		//! Information about cooperations.
 		/*!
@@ -386,7 +386,7 @@ class dispatcher_t
 		supply( tp_stats::stats_consumer_t & consumer ) override
 			{
 				// Statics must be collected on locked object.
-				std::lock_guard< spinlock_t > lock( m_lock );
+				std::lock_guard< std::mutex > lock( m_lock );
 
 				consumer.set_thread_count( m_threads.size() );
 
