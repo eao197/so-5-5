@@ -6,6 +6,7 @@
 
 	A possibility to tune some options for event queue added for dispatchers
 	so_5::disp::thread_pool and so_5::disp::adv_thread_pool.
+	See \ref so_5_5_12__event_queue_lock_factories for more details.
 
 	Types for parameters for dispatchers now have name disp_params_t
 	(for example so_5::disp::one_thread::disp_params_t or
