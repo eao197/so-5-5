@@ -83,6 +83,9 @@ using binder_generator_t = std::function< so_5::rt::disp_binder_unique_ptr_t() >
 
 class a_benchmarker_t : public so_5::rt::agent_t
 	{
+		struct ping : public so_5::rt::signal_t {};
+		struct pong : public so_5::rt::signal_t {};
+
 	public :
 		a_benchmarker_t(
 			context_t ctx,
@@ -92,14 +95,17 @@ class a_benchmarker_t : public so_5::rt::agent_t
 			,	m_cfg{ std::move(cfg) }
 			,	m_binder_generator{ std::move(binder_generator) }
 			,	m_root_coop_name{ "root" }
-			{}
+			{
+				m_child_mboxes.reserve( cfg.m_coop_count * cfg.m_coop_size );
+			}
 
 		virtual void
 		so_define_agent() override
 			{
 				so_subscribe_self()
 					.event( &a_benchmarker_t::evt_root_deregistered )
-					.event( &a_benchmarker_t::evt_child_registered );
+					.event( &a_benchmarker_t::evt_child_registered )
+					.event< pong >( &a_benchmarker_t::evt_pong );
 			}
 
 		virtual void
@@ -130,10 +136,14 @@ class a_benchmarker_t : public so_5::rt::agent_t
 
 		const std::string m_root_coop_name;
 
+		std::vector< so_5::rt::mbox_t > m_child_mboxes;
+
 		benchmarker_t m_reg_bench;
+		benchmarker_t m_ping_pong_bench;
 		benchmarker_t m_dereg_bench;
 
 		unsigned int m_child_coop_reg_count = { 0u };
+		unsigned int m_pongs_received = { 0u };
 
 		void
 		evt_root_deregistered( const so_5::rt::msg_coop_deregistered & )
@@ -156,6 +166,27 @@ class a_benchmarker_t : public so_5::rt::agent_t
 								m_cfg.m_coop_count,
 								"registrations" );
 
+						m_ping_pong_bench.start();
+
+						benchmarker_t ping_send_bench;
+						ping_send_bench.start();
+						for( const auto & c : m_child_mboxes )
+							so_5::send< ping >( c );
+						ping_send_bench.finish_and_show_stats( m_child_mboxes.size(),
+								"pings" );
+					}
+			}
+
+		void
+		evt_pong()
+			{
+				++m_pongs_received;
+				if( m_pongs_received == (m_cfg.m_coop_count * m_cfg.m_coop_size) )
+					{
+						// Ping-pong stage finished.
+						m_ping_pong_bench.finish_and_show_stats( m_pongs_received,
+								"ping-pongs" );
+
 						// Initiate deregistration of all children.
 						m_dereg_bench.start();
 						so_environment().deregister_coop(
@@ -175,9 +206,17 @@ class a_benchmarker_t : public so_5::rt::agent_t
 									so_5::rt::make_coop_reg_notificator(
 											so_direct_mbox() ) );
 
+							const auto parent = this;
 							for( unsigned int a = 0; a != m_cfg.m_coop_size; ++a )
-								// Empty ad-hoc agent will be used.
-								coop.define_agent();
+								{
+									// Ad-hoc agent will respond to ping signal.
+									auto child = coop.define_agent();
+									m_child_mboxes.push_back( child.direct_mbox() );
+
+									child.event< ping >( child, [parent] {
+												so_5::send< pong >( *parent );
+										} );
+								}
 						} );
 			}
 	};
