@@ -48,6 +48,7 @@ add_subdirectory(messages)
 add_subdirectory(state/change_state)
 
 add_subdirectory(coop/duplicate_name)
+add_subdirectory(coop/dereg_empty_coop)
 add_subdirectory(coop/reg_some_and_stop_1)
 add_subdirectory(coop/reg_some_and_stop_2)
 add_subdirectory(coop/reg_some_and_stop_3)
