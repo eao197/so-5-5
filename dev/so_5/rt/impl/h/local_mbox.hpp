@@ -545,14 +545,25 @@ public :
 		{
 			if( is_vector() )
 				{
-					if( m_vector.size() != size_limits::switch_to_map )
-						{
-							switch_storage_to_map();
-							insert_to_map( std::move( info ) );
-						}
-					else
-						insert_to_vector( std::move( info ) );
+					if( m_vector.size() == size_limits::switch_to_map )
+						switch_storage_to_map();
 				}
+			else
+				{
+					// There is a tricky part.
+					// Switching from map to vector is not performed on erase
+					// operation because it is not known what to do with exception
+					// (for example if exception is raised during creation of
+					// new vector storage).
+					// So the switching is done during insertion. If there is a few
+					// items in map then storage is switched to vector and new
+					// item is placed into that vector.
+					if( m_map.size() < size_limits::switch_to_vector )
+						switch_storage_to_vector();
+				}
+
+			if( is_vector() )
+				insert_to_vector( std::move( info ) );
 			else
 				insert_to_map( std::move( info ) );
 		}
@@ -570,8 +581,6 @@ public :
 			if( is_vector() )
 				m_vector.erase( it.m_it_v );
 			else
-//FIXME: size of the map must be checked after deletion.
-//If it is too small then it is necessary to switch to vector-based storage.
 				m_map.erase( it.m_it_m );
 		}
 
