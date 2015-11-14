@@ -722,31 +722,16 @@ class local_mbox_template_t
 			const so_5::rt::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override
 			{
-				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
-
-				auto it = m_subscribers.find( type_wrapper );
-				if( it == m_subscribers.end() )
-				{
-					// There isn't such message type yet.
-					local_mbox_details::subscriber_adaptive_container_t container;
-					container.emplace( subscriber, limit );
-
-					m_subscribers.emplace( type_wrapper, std::move( container ) );
-				}
-				else
-				{
-					auto & agents = it->second;
-
-					auto pos = agents.find( subscriber );
-					if( pos != agents.end() )
-					{
-						// Agent is already in subscribers list.
-						// But its state must be updated.
-						pos->set_limit( limit );
-					}
-					else
-						agents.emplace( subscriber, limit );
-				}
+				insert_or_modify_subscriber(
+						type_wrapper,
+						subscriber,
+						[&] {
+							return local_mbox_details::subscriber_info_t{
+									subscriber, limit };
+						},
+						[&]( local_mbox_details::subscriber_info_t & info ) {
+							info.set_limit( limit );
+						} );
 			}
 
 		virtual void
@@ -754,25 +739,12 @@ class local_mbox_template_t
 			const std::type_index & type_wrapper,
 			agent_t * subscriber ) override
 			{
-				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
-
-				auto it = m_subscribers.find( type_wrapper );
-				if( it != m_subscribers.end() )
-				{
-					auto & agents = it->second;
-
-					auto pos = agents.find( subscriber );
-					if( pos != agents.end() )
-					{
-						// Subscriber can be removed only if there is no delivery filter.
-						pos->drop_limit();
-						if( pos->empty() )
-							agents.erase( pos );
-					}
-
-					if( agents.empty() )
-						m_subscribers.erase( it );
-				}
+				modify_and_remove_subscriber_if_needed(
+						type_wrapper,
+						subscriber,
+						[]( local_mbox_details::subscriber_info_t & info ) {
+							info.drop_limit();
+						} );
 			}
 
 		virtual std::string
@@ -834,31 +806,16 @@ class local_mbox_template_t
 			const delivery_filter_t & filter,
 			agent_t & subscriber ) override
 			{
-				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
-
-				auto it = m_subscribers.find( msg_type );
-				if( it == m_subscribers.end() )
-				{
-					// There isn't such message type yet.
-					local_mbox_details::subscriber_adaptive_container_t container;
-					container.emplace( &subscriber, &filter );
-
-					m_subscribers.emplace( msg_type, std::move( container ) );
-				}
-				else
-				{
-					auto & agents = it->second;
-
-					auto pos = agents.find( &subscriber );
-					if( pos != agents.end() )
-					{
-						// Agent is already in subscribers list.
-						// But its state must be updated.
-						pos->set_filter( filter );
-					}
-					else
-						agents.emplace( &subscriber, &filter );
-				}
+				insert_or_modify_subscriber(
+						msg_type,
+						&subscriber,
+						[&] {
+							return local_mbox_details::subscriber_info_t{
+									&subscriber, &filter };
+						},
+						[&]( local_mbox_details::subscriber_info_t & info ) {
+							info.set_filter( filter );
+						} );
 			}
 
 		virtual void
@@ -866,20 +823,75 @@ class local_mbox_template_t
 			const std::type_index & msg_type,
 			agent_t & subscriber ) SO_5_NOEXCEPT override
 			{
+				modify_and_remove_subscriber_if_needed(
+						msg_type,
+						&subscriber,
+						[]( local_mbox_details::subscriber_info_t & info ) {
+							info.drop_filter();
+						} );
+			}
+
+	private :
+		template< typename INFO_MAKER, typename INFO_CHANGER >
+		void
+		insert_or_modify_subscriber(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber,
+			INFO_MAKER maker,
+			INFO_CHANGER changer )
+			{
 				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
 
-				auto it = m_subscribers.find( msg_type );
+				auto it = m_subscribers.find( type_wrapper );
+				if( it == m_subscribers.end() )
+				{
+					// There isn't such message type yet.
+					local_mbox_details::subscriber_adaptive_container_t container;
+					container.insert( maker() );
+
+					m_subscribers.emplace( type_wrapper, std::move( container ) );
+				}
+				else
+				{
+					auto & agents = it->second;
+
+					auto pos = agents.find( subscriber );
+					if( pos != agents.end() )
+					{
+						// Agent is already in subscribers list.
+						// But its state must be updated.
+						changer( *pos );
+					}
+					else
+						// There is no subscriber in the container.
+						// It must be added.
+						agents.insert( maker() );
+				}
+			}
+
+		template< typename INFO_CHANGER >
+		void
+		modify_and_remove_subscriber_if_needed(
+			const std::type_index & type_wrapper,
+			agent_t * subscriber,
+			INFO_CHANGER changer )
+			{
+				std::unique_lock< default_rw_spinlock_t > lock( m_lock );
+
+				auto it = m_subscribers.find( type_wrapper );
 				if( it != m_subscribers.end() )
 				{
 					auto & agents = it->second;
 
-					auto pos = agents.find( &subscriber );
+					auto pos = agents.find( subscriber );
 					if( pos != agents.end() )
 					{
-						// Subscriber can be removed only if there is no delivery filter.
-						pos->drop_filter();
+						// Subscriber is found and must be modified.
+						changer( *pos );
+
+						// If info about subscriber becomes empty after modification
+						// then subscriber info must be removed.
 						if( pos->empty() )
-							// There is no more need in that subscriber.
 							agents.erase( pos );
 					}
 
@@ -888,7 +900,6 @@ class local_mbox_template_t
 				}
 			}
 
-	private :
 		void
 		do_deliver_message_impl(
 			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
