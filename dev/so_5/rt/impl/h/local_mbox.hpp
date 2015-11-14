@@ -499,15 +499,15 @@ public :
 	subscriber_adaptive_container_t(
 		const subscriber_adaptive_container_t & o )
 		:	m_storage{ o.m_storage }
-		,	m_vector{ o.m_vector }
-		,	m_map{ o.m_map }
+		,	m_vector( o.m_vector )
+		,	m_map( o.m_map )
 		{}
 	//! Move constructor.
 	subscriber_adaptive_container_t(
 		subscriber_adaptive_container_t && o )
 		:	m_storage{ o.m_storage }
-		,	m_vector{ std::move( o.m_vector ) }
-		,	m_map{ std::move( o.m_map ) }
+		,	m_vector( std::move( o.m_vector ) )
+		,	m_map( std::move( o.m_map ) )
 		{
 			// Other object is now empty.
 			// It must use vector as a storage.
