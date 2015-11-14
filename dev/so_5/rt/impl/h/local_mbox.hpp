@@ -229,11 +229,19 @@ public :
  */
 class subscriber_adaptive_container_t
 {
+	struct agent_ptr_compare_type
+		{
+			bool operator()( agent_t * a, agent_t * b ) const
+			{
+				return special_agent_ptr_compare( *a, *b );
+			}
+		};
+
 	using vector_type = std::vector< subscriber_info_t >;
 	using vector_iterator_type = vector_type::iterator;
 	using const_vector_iterator_type = vector_type::const_iterator;
 
-	using map_type = std::map< agent_t *, subscriber_info_t >;
+	using map_type = std::map< agent_t *, subscriber_info_t, agent_ptr_compare_type >;
 	using map_iterator_type = map_type::iterator;
 	using const_map_iterator_type = map_type::const_iterator;
 
