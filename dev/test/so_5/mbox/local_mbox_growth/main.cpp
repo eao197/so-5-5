@@ -26,12 +26,10 @@ class a_test_t : public so_5::rt::agent_t
 				this >>= st_creating_coops;
 
 				st_creating_coops
-					.event< ping >( m_ping_mbox, &a_test_t::evt_ping )
 					.event( &a_test_t::evt_coop_registered )
 					.event< pong >( &a_test_t::evt_pong_when_creating );
 
 				st_destroying_coops
-					.event< ping >( m_ping_mbox, &a_test_t::evt_ping )
 					.event( &a_test_t::evt_coop_deregistered )
 					.event< pong >( &a_test_t::evt_pong_when_destroying );
 			}
@@ -47,16 +45,10 @@ class a_test_t : public so_5::rt::agent_t
 
 		unsigned int m_iterations_passed = { 0 };
 		unsigned int m_last_coop_size = { 1 };
-		std::size_t m_live_agents = { 1 };
+		std::size_t m_live_agents = { 0 };
 		std::size_t m_pongs_received = { 0 };
 
 		std::vector< std::string > m_live_coops;
-
-		void
-		evt_ping()
-			{
-				so_5::send< pong >( *this );
-			}
 
 		void
 		evt_coop_registered(

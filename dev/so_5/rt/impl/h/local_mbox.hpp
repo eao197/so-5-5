@@ -247,6 +247,8 @@ class subscriber_adaptive_container_t
 
 	enum class storage_type { vector, map };
 
+	// NOTE! This is just arbitrary values.
+	// There were no any benchmarks to prove that those values are useful.
 	struct size_limits
 	{
 		static const std::size_t switch_to_vector = 16;
@@ -459,19 +461,38 @@ private :
 	void
 	switch_storage_to_vector()
 		{
-			map_type empty_map;
+			// All exceptions will be ignored.
+			// It is because an exception can be thrown on staged 1-2-3,
+			// but not on stage 4.
+			try
+				{
+					// Stage 1. New containers to swap values with old containers.
+					// An exception could be thrown in the constructors.
+					map_type empty_map;
+					vector_type new_storage;
 
-			// Use the fact that items in map is already ordered.
-			vector_type new_storage;
-			new_storage.reserve( m_map.size() );
-			std::for_each( m_map.begin(), m_map.end(),
-				[&new_storage]( const map_type::value_type & info ) {
-					new_storage.push_back( info.second );
-				} );
+					// Stage 2. Preallocate necessary space in the new vector.
+					// An exception can be thrown here.
+					new_storage.reserve( m_map.size() );
 
-			m_vector.swap( new_storage );
-			m_map.swap( empty_map );
-			m_storage = storage_type::vector;
+					// Stage 3. Copy items from old map to the new vector.
+					// We do not expect exceptions here at v.5.5.12, but
+					// the situation can change in the future versions.
+
+					// Use the fact that items in map is already ordered.
+					std::for_each( m_map.begin(), m_map.end(),
+						[&new_storage]( const map_type::value_type & info ) {
+							new_storage.push_back( info.second );
+						} );
+
+					// Stage 4. Swapping.
+					// No exceptions expected here.
+					m_vector.swap( new_storage );
+					m_map.swap( empty_map );
+					m_storage = storage_type::vector;
+				}
+			catch(...)
+				{}
 		}
 
 	iterator
@@ -548,19 +569,6 @@ public :
 					if( m_vector.size() == size_limits::switch_to_map )
 						switch_storage_to_map();
 				}
-			else
-				{
-					// There is a tricky part.
-					// Switching from map to vector is not performed on erase
-					// operation because it is not known what to do with exception
-					// (for example if exception is raised during creation of
-					// new vector storage).
-					// So the switching is done during insertion. If there is a few
-					// items in map then storage is switched to vector and new
-					// item is placed into that vector.
-					if( m_map.size() < size_limits::switch_to_vector )
-						switch_storage_to_vector();
-				}
 
 			if( is_vector() )
 				insert_to_vector( std::move( info ) );
@@ -581,7 +589,13 @@ public :
 			if( is_vector() )
 				m_vector.erase( it.m_it_v );
 			else
-				m_map.erase( it.m_it_m );
+				{
+					m_map.erase( it.m_it_m );
+
+					// May be it is a time for switching to smaller storage?
+					if( m_map.size() < size_limits::switch_to_vector )
+						switch_storage_to_vector();
+				}
 		}
 
 	iterator
