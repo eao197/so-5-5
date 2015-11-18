@@ -94,7 +94,7 @@ class a_benchmarker_t : public so_5::rt::agent_t
 			:	so_5::rt::agent_t{ ctx }
 			,	m_cfg{ std::move(cfg) }
 			,	m_binder_generator{ std::move(binder_generator) }
-			,	m_root_coop_name{ "root" }
+			,	m_root_coop_name( "root" )
 			{
 				m_child_mboxes.reserve( cfg.m_coop_count * cfg.m_coop_size );
 			}
