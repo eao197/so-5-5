@@ -19,6 +19,7 @@ set(SO_5_SRC exception.cpp
 	rt/message.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp
+	rt/msg_bag.cpp
 	rt/event_queue.cpp
 	rt/event_exception_logger.cpp
 	rt/agent.cpp

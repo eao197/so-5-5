@@ -38,6 +38,7 @@ MxxRu::Cpp::dll_target {
 		cpp_source 'message_limit.cpp'
 
 		cpp_source 'mbox.cpp'
+		cpp_source 'msg_bag.cpp'
 
 		cpp_source 'event_queue.cpp'
 
