@@ -298,6 +298,17 @@ const int rc_msg_tracing_disabled = 140;
 
 //! \}
 
+//! \name Error codes for message bags.
+//! \{
+
+//! Attempt to get message from empty message queue.
+const int rc_msg_bag_is_empty = 160;
+
+//! Attempt to push a message to full message queue.
+const int rc_msg_bag_is_full = 161;
+
+//! \}
+
 //! \name Common error codes.
 //! \{
 

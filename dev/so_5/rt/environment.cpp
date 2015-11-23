@@ -13,6 +13,8 @@
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 
+#include <so_5/rt/impl/h/msg_bag_details.hpp>
+
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
 #include <so_5/rt/stats/impl/h/ds_mbox_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
