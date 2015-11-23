@@ -17,6 +17,8 @@
 
 #include <deque>
 #include <vector>
+#include <mutex>
+#include <condition_variable>
 
 namespace so_5 {
 
@@ -160,6 +162,11 @@ ensure_queue_not_full( Q && queue )
 class unlimited_demand_queue_t
 	{
 	public :
+		/*!
+		 * \note This constructor is necessary just for a convinience.
+		 */
+		unlimited_demand_queue_t( const capacity_t & ) {}
+
 		//! Is queue full?
 		/*!
 		 * \note Unlimited queue can't be null. Because of that this
@@ -217,9 +224,8 @@ class limited_dynamic_demand_queue_t
 	public :
 		//! Initializing constructor.
 		limited_dynamic_demand_queue_t(
-			//! Maximun size of the queue.
-			std::size_t max_size )
-			:	m_max_size{ max_size }
+			const capacity_t & capacity )
+			:	m_max_size{ capacity.max_size() }
 			{}
 
 		//! Is queue full?
@@ -278,10 +284,9 @@ class limited_preallocated_demand_queue_t
 	public :
 		//! Initializing constructor.
 		limited_preallocated_demand_queue_t(
-			//! Maximun size of the queue.
-			std::size_t max_size )
-			:	m_storage( max_size, bag_demand_t{} )
-			,	m_max_size{ max_size }
+			const capacity_t & capacity )
+			:	m_storage( capacity.max_size(), bag_demand_t{} )
+			,	m_max_size{ capacity.max_size() }
 			,	m_head{ 0 }
 			,	m_size{ 0 }
 			{}
@@ -339,6 +344,269 @@ class limited_preallocated_demand_queue_t
 	};
 
 } /* namespace details */
+
+//
+// extraction_sink_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief An interace for receiver of messages from bag to be processed
+ * by message handlers.
+ *
+ * \note This class doens't have virtual destructor because usage of
+ * instances of derived class as dynamically allocated objects is not
+ * planned.
+ */
+class extraction_sink_t
+	{
+	public :
+		virtual void
+		push( details::bag_demand_t && demand ) = 0;
+	};
+
+//
+// msg_bag_template_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Template-based implementation of message bag.
+ *
+ * \tparam QUEUE type of demand queue for message bag.
+ */
+template< typename QUEUE >
+class msg_bag_template_t : public abstract_message_bag_t
+	{
+	public :
+		//! Initializing constructor.
+		msg_bag_template_t(
+			//! Mbox ID for this bag.
+			mbox_id_t id,
+			//! Bag's capacity.
+			const capacity_t & capacity )
+			:	m_id{ id }
+			,	m_capacity{ capacity }
+			,	m_queue{ capacity }
+			{}
+
+		virtual mbox_id_t
+		id() const override
+			{
+				return m_id;
+			}
+
+		virtual void
+		subscribe_event_handler(
+			const std::type_index & /*msg_type*/,
+			const so_5::rt::message_limit::control_block_t * /*limit*/,
+			agent_t * /*subscriber*/ ) override
+			{
+				SO_5_THROW_EXCEPTION(
+						rc_msg_bag_doesnt_support_subscriptions,
+						"msg_bag doesn't suppor subscription" );
+			}
+
+		virtual void
+		unsubscribe_event_handlers(
+			const std::type_index & /*msg_type*/,
+			agent_t * /*subscriber*/ ) override
+			{}
+
+		virtual std::string
+		query_name() const override
+			{
+				std::ostringstream s;
+				s << "<msgbag:id=" << m_id << ">";
+
+				return s.str();
+			}
+
+		virtual mbox_type_t
+		type() const override
+			{
+				return mbox_type_t::multi_producer_single_consumer;
+			}
+
+		virtual void
+		do_deliver_message(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int /*overlimit_reaction_deep*/ ) const override
+			{
+				auto t = const_cast< msg_bag_template_t * >(this);
+				t->try_to_store_message_to_queue(
+						msg_type,
+						message,
+						details::demand_type_t::async_message );
+			}
+
+		virtual void
+		do_deliver_service_request(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			unsigned int overlimit_reaction_deep ) const override
+			{
+				auto t = const_cast< msg_bag_template_t * >(this);
+				t->try_to_store_message_to_queue(
+						msg_type,
+						message,
+						details::demand_type_t::svc_request );
+			}
+
+		/*!
+		 * \attention Will throw an exception because delivery
+		 * filter is not applicable to MPSC-mboxes.
+		 */
+		virtual void
+		set_delivery_filter(
+			const std::type_index & /*msg_type*/,
+			const delivery_filter_t & /*filter*/,
+			agent_t & /*subscriber*/ ) override
+			{
+				SO_5_THROW_EXCEPTION(
+						rc_msg_bag_doesnt_support_delivery_filters,
+						"set_delivery_filter is called for msg_bag" );
+			}
+
+		virtual void
+		drop_delivery_filter(
+			const std::type_index & /*msg_type*/,
+			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
+			{}
+
+	protected :
+		virtual std::size_t
+		extract_messages(
+			extraction_sink_t & dest,
+			std::size_t max_messages_to_extract,
+			clock::duration empty_queue_timeout ) override
+			{
+				std::unique_lock< std::mutex > lock{ m_lock };
+
+				// If queue is empty we must wait for some time.
+				bool queue_empty = m_queue.is_empty();
+				if( queue_empty )
+					{
+						m_underflow_cond.wait_for( lock, empty_queue_timeout,
+							[this, &queue_empty] {
+								return !(queue_empty = m_queue.is_empty());
+							} );
+					}
+				// If queue is still empty nothing can be extracted and
+				// we must stop operation.
+				if( queue_empty )
+					return 0;
+
+				// If queue was full then someone can wait on it.
+				const bool queue_was_full = m_queue.is_full();
+				std::size_t messages_extracted = 0;
+				do
+					{
+						dest.push( std::move( m_queue.front() ) );
+						m_queue.pop_front();
+					}
+				while( messages_extracted < max_messages_to_extract &&
+						!m_queue.is_empty() );
+
+				if( queue_was_full )
+					m_overflow_cond.notify_all();
+
+				return messages_extracted;
+			}
+
+	public :
+		virtual bool
+		empty() const override
+			{
+				return m_queue.is_empty();
+			}
+
+		virtual std::size_t
+		size() const override
+			{
+				return m_queue.size();
+			}
+
+	private :
+		//! Mbox ID for bag.
+		const mbox_id_t m_id;
+
+		//! Bag capacity.
+		const capacity_t m_capacity;
+
+		//! Bag's demands queue.
+		QUEUE m_queue;
+
+		//! Bag's lock.
+		std::mutex m_lock;
+
+		//! Condition variable for waiting on empty queue.
+		std::condition_variable m_underflow_cond;
+		//! Condition variable for waiting on full queue.
+		std::condition_variable m_overflow_cond;
+
+		//! Actual implementation of pushing message to the queue.
+		void
+		try_to_store_message_to_queue(
+			const std::type_index & msg_type,
+			const message_ref_t & message,
+			details::demand_type_t demand_type )
+			{
+				std::unique_lock< std::mutex > lock{ m_lock };
+
+				// If queue full and waiting on full queue is enabled we
+				// must wait for some time until there will be some space in
+				// the queue.
+				bool queue_full = m_queue.is_full();
+				if( m_queue.is_full() && m_capacity.is_overflow_timeout_defined() )
+					{
+						m_overflow_cond.wait_for(
+								lock,
+								m_capacity.overflow_timeout(),
+								[this, &queue_full] {
+									return !(queue_full = m_queue.is_full());
+								} );
+					}
+
+				// If queue still full we must perform some reaction.
+				if( queue_full )
+					{
+						if( overflow_reaction_t::drop_newest ==
+								m_capacity.overflow_reaction() )
+							{
+								// New message must be simply ignored.
+								return;
+							}
+						else if( overflow_reaction_t::remove_oldest ==
+								m_capacity.overlow_reaction() )
+							{
+								// The oldest message must be simply removed.
+								m_queue.pop_front();
+							}
+						else if( overflow_reaction_t::throw_exception )
+							{
+								SO_5_THROW_EXCEPTION(
+										rc_msg_bag_overflow,
+										"an attempt to push message to full msg_bag "
+										"with overflow_reaction::throw_exception policy" );
+							}
+						else
+							{
+								so_5::details::abort_on_fatal_error( [&] {
+//FIXME: implement this!
+									} );
+							}
+					}
+
+				// May be someone is waiting on empty queue?
+				const bool queue_was_empty = m_queue.is_empty();
+				
+				m_queue.push_back(
+						bag_demand_t{ msg_type, message, demand_type } );
+
+				if( queue_was_full )
+					m_underflow_cond.notify_one();
+			}
+	};
 
 } /* namespace msg_bag */
 

@@ -307,6 +307,16 @@ const int rc_msg_bag_is_empty = 160;
 //! Attempt to push a message to full message queue.
 const int rc_msg_bag_is_full = 161;
 
+//! Attempt to make subscription for message bag.
+const int rc_msg_bag_doesnt_support_subscriptions = 162;
+
+//! Attempt to set delivery_filter for message bag.
+const int rc_msg_bag_doesnt_support_delivery_filters = 163;
+
+//! Attempt to added a message to full message bag when
+//! throw_exception overflow reaction is used.
+const int rc_msg_bag_overflow = 164;
+
 //! \}
 
 //! \name Common error codes.

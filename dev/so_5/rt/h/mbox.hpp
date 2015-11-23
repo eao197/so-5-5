@@ -510,6 +510,8 @@ using delivery_filter_unique_ptr_t =
 /*!
  * \since v.5.5.3
  * \brief Type of the message box.
+ *
+ * \deprecated Will be removed in some future version.
  */
 enum class mbox_type_t
 	{
@@ -730,6 +732,8 @@ class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
 		 * \note This method is primarily intended for internal usage.
 		 * It is useful sometimes in subscription-related operations
 		 * because there is no need to do some actions for MPSC mboxes.
+		 *
+		 * \deprecated Will be removed in some future version.
 		 */
 		virtual mbox_type_t
 		type() const = 0;
