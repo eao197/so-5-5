@@ -21,6 +21,8 @@ namespace msg_bag {
 //
 // abstract_message_bag_t
 //
+abstract_message_bag_t::abstract_message_bag_t()
+	{}
 abstract_message_bag_t::~abstract_message_bag_t()
 	{}
 

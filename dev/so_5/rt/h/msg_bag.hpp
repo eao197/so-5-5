@@ -219,6 +219,7 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 		operator=( const abstract_message_bag_t & ) = delete;
 
 	protected :
+		abstract_message_bag_t();
 		virtual ~abstract_message_bag_t();
 
 		/*!
@@ -255,6 +256,42 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
  * \brief Short name for smart pointer to message bag.
  */
 using msg_bag_t = intrusive_ptr_t< abstract_message_bag_t >;
+
+//
+// bag_params_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Parameters for message bag.
+ */
+class bag_params_t
+	{
+		//! Bag's capacity.
+		msg_bag::capacity_t m_capacity;
+
+	public :
+		//! Initializing constructor.
+		bag_params_t(
+			//! Bag's capacity and related params.
+			msg_bag::capacity_t capacity )
+			:	m_capacity{ capacity }
+			{}
+
+		//! Set bag's capacity and related params.
+		bag_params_t &
+		capacity( msg_bag::capacity_t capacity )
+			{
+				m_capacity = capacity;
+				return *this;
+			}
+
+		//! Get bag's capacity and related params.
+		const msg_bag::capacity_t &
+		capacity() const
+			{
+				return m_capacity;
+			}
+	};
 
 } /* namespace rt */
 

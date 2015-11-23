@@ -570,19 +570,18 @@ class msg_bag_template_t : public abstract_message_bag_t
 				// If queue still full we must perform some reaction.
 				if( queue_full )
 					{
-						if( overflow_reaction_t::drop_newest ==
-								m_capacity.overflow_reaction() )
+						const auto reaction = m_capacity.overflow_reaction();
+						if( overflow_reaction_t::drop_newest == reaction )
 							{
 								// New message must be simply ignored.
 								return;
 							}
-						else if( overflow_reaction_t::remove_oldest ==
-								m_capacity.overlow_reaction() )
+						else if( overflow_reaction_t::remove_oldest == reaction )
 							{
 								// The oldest message must be simply removed.
 								m_queue.pop_front();
 							}
-						else if( overflow_reaction_t::throw_exception )
+						else if( overflow_reaction_t::throw_exception == reaction )
 							{
 								SO_5_THROW_EXCEPTION(
 										rc_msg_bag_overflow,
@@ -601,9 +600,9 @@ class msg_bag_template_t : public abstract_message_bag_t
 				const bool queue_was_empty = m_queue.is_empty();
 				
 				m_queue.push_back(
-						bag_demand_t{ msg_type, message, demand_type } );
+						details::bag_demand_t{ msg_type, message, demand_type } );
 
-				if( queue_was_full )
+				if( queue_was_empty )
 					m_underflow_cond.notify_one();
 			}
 	};

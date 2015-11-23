@@ -10,6 +10,7 @@
 #include <so_5/rt/impl/h/named_local_mbox.hpp>
 #include <so_5/rt/impl/h/mpsc_mbox.hpp>
 #include <so_5/rt/impl/h/mbox_core.hpp>
+#include <so_5/rt/impl/h/msg_bag_details.hpp>
 
 namespace so_5
 {
@@ -108,6 +109,32 @@ mbox_core_t::destroy_mbox(
 		if( 0 == ref_count )
 			m_named_mboxes_dictionary.erase( it );
 	}
+}
+
+msg_bag_t
+mbox_core_t::create_msg_bag(
+	const bag_params_t & params )
+{
+	using namespace so_5::rt::msg_bag;
+	using namespace so_5::rt::msg_bag::details;
+
+	auto id = ++m_mbox_id_counter;
+
+	if( params.capacity().unlimited() )
+		return msg_bag_t{
+			new msg_bag_template_t< unlimited_demand_queue_t >{
+				id,
+				params.capacity() } };
+	else if( storage_memory_t::dynamic == params.capacity().memory() )
+		return msg_bag_t{
+			new msg_bag_template_t< limited_dynamic_demand_queue_t >{
+				id,
+				params.capacity() } };
+	else
+		return msg_bag_t{
+			new msg_bag_template_t< limited_preallocated_demand_queue_t >{
+				id,
+				params.capacity() } };
 }
 
 mbox_core_stats_t

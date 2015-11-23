@@ -13,8 +13,6 @@
 #include <so_5/rt/impl/h/disp_repository.hpp>
 #include <so_5/rt/impl/h/layer_core.hpp>
 
-#include <so_5/rt/impl/h/msg_bag_details.hpp>
-
 #include <so_5/rt/stats/impl/h/std_controller.hpp>
 #include <so_5/rt/stats/impl/h/ds_mbox_core_stats.hpp>
 #include <so_5/rt/stats/impl/h/ds_agent_core_stats.hpp>
@@ -320,6 +318,13 @@ environment_t::create_local_mbox(
 	const nonempty_name_t & nonempty_name )
 {
 	return m_impl->m_mbox_core->create_local_mbox( nonempty_name );
+}
+
+msg_bag_t
+environment_t::create_msg_bag(
+	const bag_params_t & params )
+{
+	return m_impl->m_mbox_core->create_msg_bag( params );
 }
 
 dispatcher_t &

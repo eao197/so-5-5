@@ -21,6 +21,7 @@
 #include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/msg_bag.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/rt/h/message_limit.hpp>
@@ -114,6 +115,17 @@ class mbox_core_t
 		destroy_mbox(
 			//! Mbox name.
 			const std::string & name );
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief Create message bag.
+		 *
+		 * \par Usage examples:
+		 */
+		msg_bag_t
+		create_msg_bag(
+			//! Parameters for a new bag.
+			const bag_params_t & params );
 
 		/*!
 		 * \since v.5.5.4

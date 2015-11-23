@@ -547,7 +547,7 @@ enum class mbox_type_t
  *
  * \see environment_t::schedule_timer(), environment_t::single_timer().
  */
-class SO_5_TYPE abstract_message_box_t : private atomic_refcounted_t
+class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 {
 		friend class intrusive_ptr_t< abstract_message_box_t >;
 
