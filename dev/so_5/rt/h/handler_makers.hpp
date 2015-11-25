@@ -17,6 +17,8 @@
 
 #include <so_5/rt/h/execution_demand.hpp>
 
+#include <algorithm>
+
 namespace so_5 {
 
 namespace rt {
@@ -213,6 +215,136 @@ struct result_setter_t< void >
 	};
 
 } /* namespace promise_result_setting_details */
+
+//
+// handlers_bunch_basics_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Basic part of handlers_bunch implementation.
+ *
+ * \note This part is not depends on template parameters.
+ */
+struct handlers_bunch_basics_t
+	{
+//FIXME: Doxygen comments must be written!
+		static inline void
+		prepare_handlers(
+			msg_type_and_handler_pair_t * left,
+			msg_type_and_handler_pair_t * right )
+			{
+				std::sort( left, right );
+				auto duplicate = std::adjacent_find( left, right );
+				if( duplicate != right )
+					SO_5_THROW_EXCEPTION( rc_several_handlers_for_one_message_type,
+							std::string( "several handlers are defined for message; "
+									"msg_type: " ) + duplicate->m_msg_type.name() );
+			}
+
+//FIXME: Doxygen comments must be written!
+		static inline void
+		find_and_use_handler(
+			const msg_type_and_handler_pair_t * left,
+			const msg_type_and_handler_pair_t * right,
+			const std::type_index & msg_type,
+			message_ref_t & message,
+			invocation_type_t invocation )
+			{
+				msg_type_and_handler_pair_t key{ msg_type };
+				auto it = std::lower_bound( left, right, key );
+				if( it != right && it->m_msg_type == key.m_msg_type )
+					// Handler is found and must be called.
+					it->m_handler( invocation, message );
+			}
+	};
+
+//
+// handlers_bunch_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Template class for storing bunch of message handlers.
+ */
+template< std::size_t N >
+class handlers_bunch_t : private handlers_bunch_basics_t
+	{
+		//! Vector of message handlers.
+		/*!
+		 * Will be ordered by msg_type after invoking prepare() method.
+		 */
+		msg_type_and_handler_pair_t m_handlers[ N ];
+
+	public :
+		handlers_bunch_t()
+			{}
+
+		//! Add another handler to the specified index.
+		void
+		add_handler(
+			//! Index for new handler.
+			std::size_t index,
+			//! Message handler to be added.
+			msg_type_and_handler_pair_t && handler )
+			{
+				m_handlers[ index ] = std::move(handler);
+			}
+
+		//! Prepare bunch to use with actual messages.
+		/*!
+		 * \note This method must be called only after all handlers are
+		 * stored in m_handlers vector.
+		 */
+		void
+		prepare()
+			{
+				prepare_handlers( m_handlers, m_handlers + N );
+			}
+
+		//! Find handler for a message and execute it.
+		void
+		handle(
+			//! Type of a message or signal.
+			const std::type_index & msg_type,
+			//! Message instance to be processed.
+			message_ref_t & message,
+			//! It is async message or service handler?
+			invocation_type_t invocation )
+			{
+				find_and_use_handler(
+						m_handlers, m_handlers + N,
+						msg_type,
+						message,
+						invocation );
+			}
+	};
+
+//
+// fill_handlers_bunch
+//
+
+template< typename BUNCH >
+void
+fill_handlers_bunch( BUNCH & bunch, std::size_t )
+	{
+		bunch.prepare();
+	}
+
+template< typename BUNCH, typename... OTHERS >
+void
+fill_handlers_bunch(
+	//! What to fill.
+	BUNCH & bunch,
+	//! An index for next handler.
+	std::size_t index,
+	//! Next handler to be inserted.
+	msg_type_and_handler_pair_t && handler,
+	//! All other handlers.
+	OTHERS &&... other_handlers )
+	{
+		bunch.add_handler( index, std::move(handler) );
+		fill_handlers_bunch( bunch, index + 1,
+				std::forward< OTHERS >(other_handlers)... );
+	}
 
 } /* namespace details */
 

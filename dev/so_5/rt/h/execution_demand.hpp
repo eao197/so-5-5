@@ -211,6 +211,17 @@ struct msg_type_and_handler_pair_t
 		msg_type_and_handler_pair_t()
 			:	m_msg_type{ typeid(void) }
 			{}
+		//! Constructor for the case when only msg_type is known.
+		/*!
+		 * This constructor is intended for cases when
+		 * msg_type_and_handler_pair_t instance is used
+		 * as a key for searching in ordered sequences.
+		 */
+		msg_type_and_handler_pair_t(
+			//! Type of a message or signal.
+			std::type_index msg_type )
+			:	m_msg_type{ std::move(msg_type) }
+			{}
 		//! Initializing constructor.
 		msg_type_and_handler_pair_t(
 			//! Type of a message or signal.
@@ -256,6 +267,20 @@ struct msg_type_and_handler_pair_t
 				msg_type_and_handler_pair_t tmp{ std::move(o) };
 				tmp.swap( *this );
 				return *this;
+			}
+
+		//! Comparison (strictly less than).
+		bool
+		operator<( const msg_type_and_handler_pair_t & o ) const
+			{
+				return m_msg_type < o.m_msg_type;
+			}
+
+		//! Comparison (strictly equal).
+		bool
+		operator==( const msg_type_and_handler_pair_t & o ) const
+			{
+				return m_msg_type == o.m_msg_type;
 			}
 	};
 

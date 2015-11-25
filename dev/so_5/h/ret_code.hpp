@@ -317,6 +317,9 @@ const int rc_msg_bag_doesnt_support_delivery_filters = 163;
 //! throw_exception overflow reaction is used.
 const int rc_msg_bag_overflow = 164;
 
+//! Attempt to define several handlers for one msg_type.
+const int rc_several_handlers_for_one_message_type = 165;
+
 //! \}
 
 //! \name Common error codes.

@@ -11,6 +11,7 @@
 #pragma once
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/handler_makers.hpp>
 
 #include <chrono>
 
@@ -295,6 +296,34 @@ class bag_params_t
 	};
 
 } /* namespace rt */
+
+//
+// receive
+//
+//FIXME: Normal Doxygen comment must be written!
+/*!
+ * \since v.5.5.13
+ * \brief Receive and handle one message from message bag.
+ */
+template< typename... HANDLERS >
+inline std::size_t
+receive(
+	//! Message bag from which a message must be extracted.
+	const so_5::rt::msg_bag_t & /*bag*/,
+	//! Maximum timeout for waiting for message on empty bag.
+	so_5::rt::msg_bag::clock::duration /*waiting_timeout*/,
+	//! Handlers for message processing.
+	HANDLERS &&... handlers )
+	{
+		using namespace so_5::rt::details;
+
+		handlers_bunch_t< sizeof...(handlers) > bunch;
+		fill_handlers_bunch( bunch, 0,
+				std::forward< HANDLERS >(handlers)... );
+
+//FIXME: all other actions must be implemented here!
+return 0;
+	}
 
 } /* namespace so_5 */
 
