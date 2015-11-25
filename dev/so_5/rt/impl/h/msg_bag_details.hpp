@@ -29,81 +29,6 @@ namespace msg_bag {
 namespace details {
 
 //
-// bag_demand_t
-//
-/*!
- * \since v.5.5.13
- * \brief Description of one demand in message bag.
- */
-struct bag_demand_t
-	{
-		//! Type of the message.
-		std::type_index m_msg_type;
-		//! Event incident.
-		message_ref_t m_message_ref;
-		//! Type of demand.
-		invocation_type_t m_demand_type;
-
-// NOTE: the full set of constructors and copy/move operators is defined
-// because VC++12.0 doesn't generate move constructors/operators automatically
-// and doesn't support '=default' construct.
-
-		//! Default constructor.
-		bag_demand_t()
-			:	m_msg_type( typeid(void) )
-			{}
-		//! Initializing constructor.
-		bag_demand_t(
-			std::type_index msg_type,
-			message_ref_t message_ref,
-			invocation_type_t demand_type )
-			:	m_msg_type{ std::move(msg_type) }
-			,	m_message_ref{ std::move(message_ref) }
-			,	m_demand_type{ demand_type }
-			{}
-
-		//! Copy constructor.
-		bag_demand_t( const bag_demand_t & o )
-			:	m_msg_type{ o.m_msg_type }
-			,	m_message_ref{ o.m_message_ref }
-			,	m_demand_type{ o.m_demand_type }
-			{}
-		//! Move constructor.
-		bag_demand_t( bag_demand_t && o )
-			:	m_msg_type{ std::move(o.m_msg_type) }
-			,	m_message_ref{ std::move(o.m_message_ref) }
-			,	m_demand_type{ std::move(o.m_demand_type) }
-			{}
-
-		//! Swap operation.
-		void
-		swap( bag_demand_t & o )
-			{
-				std::swap( m_msg_type, o.m_msg_type );
-				m_message_ref.swap( o.m_message_ref );
-				std::swap( m_demand_type, o.m_demand_type );
-			}
-
-		//! Copy operator.
-		bag_demand_t &
-		operator=( const bag_demand_t & o )
-			{
-				bag_demand_t tmp{ o };
-				tmp.swap( *this );
-				return *this;
-			}
-
-		//! Move operator.
-		bag_demand_t &
-		operator=( bag_demand_t && o )
-			{
-				bag_demand_t tmp{ std::move(o) };
-				tmp.swap( *this );
-				return *this;
-			}
-	};
-
-//
 // ensure_queue_not_empty
 //
 /*!
@@ -331,25 +256,6 @@ class limited_preallocated_demand_queue_t
 } /* namespace details */
 
 //
-// extraction_sink_t
-//
-/*!
- * \since v.5.5.13
- * \brief An interace for receiver of messages from bag to be processed
- * by message handlers.
- *
- * \note This class doens't have virtual destructor because usage of
- * instances of derived class as dynamically allocated objects is not
- * planned.
- */
-class extraction_sink_t
-	{
-	public :
-		virtual void
-		push( details::bag_demand_t && demand ) = 0;
-	};
-
-//
 // msg_bag_template_t
 //
 /*!
@@ -458,11 +364,9 @@ class msg_bag_template_t : public abstract_message_bag_t
 			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
 			{}
 
-	protected :
-		virtual std::size_t
-		extract_messages(
-			extraction_sink_t & dest,
-			std::size_t max_messages_to_extract,
+		virtual extraction_result_t
+		extract(
+			bag_demand_t & dest,
 			clock::duration empty_queue_timeout ) override
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
@@ -479,26 +383,19 @@ class msg_bag_template_t : public abstract_message_bag_t
 				// If queue is still empty nothing can be extracted and
 				// we must stop operation.
 				if( queue_empty )
-					return 0;
+					return extraction_result_t::no_messages;
 
 				// If queue was full then someone can wait on it.
 				const bool queue_was_full = m_queue.is_full();
-				std::size_t messages_extracted = 0;
-				do
-					{
-						dest.push( std::move( m_queue.front() ) );
-						m_queue.pop_front();
-					}
-				while( messages_extracted < max_messages_to_extract &&
-						!m_queue.is_empty() );
+				dest = std::move( m_queue.front() );
+				m_queue.pop_front();
 
 				if( queue_was_full )
 					m_overflow_cond.notify_all();
 
-				return messages_extracted;
+				return extraction_result_t::msg_extracted;
 			}
 
-	public :
 		virtual bool
 		empty() const override
 			{
@@ -585,7 +482,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 				const bool queue_was_empty = m_queue.is_empty();
 				
 				m_queue.push_back(
-						details::bag_demand_t{ msg_type, message, demand_type } );
+						bag_demand_t{ msg_type, message, demand_type } );
 
 				if( queue_was_empty )
 					m_underflow_cond.notify_one();

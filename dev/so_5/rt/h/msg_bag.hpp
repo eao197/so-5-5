@@ -21,8 +21,80 @@ namespace rt {
 
 namespace msg_bag {
 
-class extraction_sink_t;
-class bag_iface_t;
+//
+// bag_demand_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Description of one demand in message bag.
+ */
+struct bag_demand_t
+	{
+		//! Type of the message.
+		std::type_index m_msg_type;
+		//! Event incident.
+		message_ref_t m_message_ref;
+		//! Type of demand.
+		invocation_type_t m_demand_type;
+
+// NOTE: the full set of constructors and copy/move operators is defined
+// because VC++12.0 doesn't generate move constructors/operators automatically
+// and doesn't support '=default' construct.
+
+		//! Default constructor.
+		bag_demand_t()
+			:	m_msg_type( typeid(void) )
+			{}
+		//! Initializing constructor.
+		bag_demand_t(
+			std::type_index msg_type,
+			message_ref_t message_ref,
+			invocation_type_t demand_type )
+			:	m_msg_type{ std::move(msg_type) }
+			,	m_message_ref{ std::move(message_ref) }
+			,	m_demand_type{ demand_type }
+			{}
+
+		//! Copy constructor.
+		bag_demand_t( const bag_demand_t & o )
+			:	m_msg_type{ o.m_msg_type }
+			,	m_message_ref{ o.m_message_ref }
+			,	m_demand_type{ o.m_demand_type }
+			{}
+		//! Move constructor.
+		bag_demand_t( bag_demand_t && o )
+			:	m_msg_type{ std::move(o.m_msg_type) }
+			,	m_message_ref{ std::move(o.m_message_ref) }
+			,	m_demand_type{ std::move(o.m_demand_type) }
+			{}
+
+		//! Swap operation.
+		void
+		swap( bag_demand_t & o )
+			{
+				std::swap( m_msg_type, o.m_msg_type );
+				m_message_ref.swap( o.m_message_ref );
+				std::swap( m_demand_type, o.m_demand_type );
+			}
+
+		//! Copy operator.
+		bag_demand_t &
+		operator=( const bag_demand_t & o )
+			{
+				bag_demand_t tmp{ o };
+				tmp.swap( *this );
+				return *this;
+			}
+
+		//! Move operator.
+		bag_demand_t &
+		operator=( bag_demand_t && o )
+			{
+				bag_demand_t tmp{ std::move(o) };
+				tmp.swap( *this );
+				return *this;
+			}
+	};
 
 using clock = std::chrono::high_resolution_clock;
 
@@ -202,6 +274,21 @@ class capacity_t
 			}
 	};
 
+//
+// extraction_result_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Result of extraction of message from a message bag.
+ */
+enum class extraction_result_t
+	{
+		//! No available messages in the bag.
+		no_messages,
+		//! Message extracted successfully.
+		msg_extracted
+	};
+
 } /* namespace msg_bag */
 
 //
@@ -214,7 +301,6 @@ class capacity_t
 class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 	{
 		friend class intrusive_ptr_t< abstract_message_bag_t >;
-		friend class msg_bag::bag_iface_t;
 
 		abstract_message_bag_t( const abstract_message_bag_t & ) = delete;
 		abstract_message_bag_t &
@@ -224,19 +310,14 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 		abstract_message_bag_t();
 		virtual ~abstract_message_bag_t();
 
-		/*!
-		 * \return count of messages extracted.
-		 */
-		virtual std::size_t
-		extract_messages(
+	public :
+		virtual msg_bag::extraction_result_t
+		extract(
 			//! Destination for extracted messages.
-			msg_bag::extraction_sink_t & dest,
-			//! Max count of messages to be extracted.
-			std::size_t max_messages_to_extract,
+			msg_bag::bag_demand_t & dest,
 			//! Max time to wait on empty queue.
 			msg_bag::clock::duration empty_queue_timeout ) = 0;
 
-	public :
 		//! Cast message bag to message box.
 		mbox_t
 		as_mbox();
@@ -309,20 +390,31 @@ template< typename... HANDLERS >
 inline std::size_t
 receive(
 	//! Message bag from which a message must be extracted.
-	const so_5::rt::msg_bag_t & /*bag*/,
+	const so_5::rt::msg_bag_t & bag,
 	//! Maximum timeout for waiting for message on empty bag.
-	so_5::rt::msg_bag::clock::duration /*waiting_timeout*/,
+	so_5::rt::msg_bag::clock::duration waiting_timeout,
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{
 		using namespace so_5::rt::details;
+		using namespace so_5::rt::msg_bag;
 
 		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
-//FIXME: all other actions must be implemented here!
-return 0;
+		bag_demand_t demand;
+		if( extraction_result_t::msg_extracted ==
+				bag->extract( demand, waiting_timeout ) )
+			{
+				bunch.handle(
+						demand.m_msg_type,
+						demand.m_message_ref,
+						demand.m_demand_type );
+				return 1;
+			}
+
+		return 0;
 	}
 
 } /* namespace so_5 */
