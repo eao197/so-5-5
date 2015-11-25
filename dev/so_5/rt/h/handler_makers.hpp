@@ -216,6 +216,8 @@ struct result_setter_t< void >
 
 } /* namespace details */
 
+} /* namespace rt */
+
 //
 // handler
 //
@@ -227,12 +229,14 @@ struct result_setter_t< void >
  * \note Must be used for the case when message is an ordinary message.
  */
 template< class LAMBDA >
-details::msg_type_and_handler_pair_t
+rt::details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
+		using namespace so_5::rt;
+		using namespace so_5::rt::details;
 		using namespace so_5::details::lambda_traits;
-		using namespace details::event_subscription_helpers;
-		using namespace details::promise_result_setting_details;
+		using namespace so_5::rt::details::event_subscription_helpers;
+		using namespace so_5::rt::details::promise_result_setting_details;
 
 		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
 		typedef typename TRAITS::result_type RESULT;
@@ -270,7 +274,7 @@ handler( LAMBDA && lambda )
 					}
 			};
 
-		return details::msg_type_and_handler_pair_t{
+		return msg_type_and_handler_pair_t{
 				message_payload_type< MESSAGE >::payload_type_index(),
 				method };
 	}
@@ -286,14 +290,16 @@ handler( LAMBDA && lambda )
  * \note Must be used for the case when message is a signal.
  */
 template< class SIGNAL, class LAMBDA >
-details::msg_type_and_handler_pair_t
+rt::details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
-		ensure_signal< SIGNAL >();
-
+		using namespace so_5::rt;
+		using namespace so_5::rt::details;
 		using namespace so_5::details::lambda_traits;
-		using namespace details::event_subscription_helpers;
-		using namespace details::promise_result_setting_details;
+		using namespace so_5::rt::details::event_subscription_helpers;
+		using namespace so_5::rt::details::promise_result_setting_details;
+
+		ensure_signal< SIGNAL >();
 
 		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
 		typedef typename TRAITS::result_type RESULT;
@@ -319,12 +325,10 @@ handler( LAMBDA && lambda )
 					}
 			};
 
-		return details::msg_type_and_handler_pair_t{
+		return msg_type_and_handler_pair_t{
 				message_payload_type< SIGNAL >::payload_type_index(),
 				method };
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 
