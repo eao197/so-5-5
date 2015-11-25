@@ -29,21 +29,6 @@ namespace msg_bag {
 namespace details {
 
 //
-// demand_type_t
-//
-/*!
- * \since v.5.5.13
- * \brief Type of demand in message bag.
- */
-enum class demand_type_t
-	{
-		//! Ordinary asynchonous message.
-		async_message,
-		//! Service request.
-		svc_request
-	};
-
-//
 // bag_demand_t
 //
 /*!
@@ -57,7 +42,7 @@ struct bag_demand_t
 		//! Event incident.
 		message_ref_t m_message_ref;
 		//! Type of demand.
-		demand_type_t m_demand_type;
+		invocation_type_t m_demand_type;
 
 // NOTE: the full set of constructors and copy/move operators is defined
 // because VC++12.0 doesn't generate move constructors/operators automatically
@@ -71,7 +56,7 @@ struct bag_demand_t
 		bag_demand_t(
 			std::type_index msg_type,
 			message_ref_t message_ref,
-			demand_type_t demand_type )
+			invocation_type_t demand_type )
 			:	m_msg_type{ std::move(msg_type) }
 			,	m_message_ref{ std::move(message_ref) }
 			,	m_demand_type{ demand_type }
@@ -436,7 +421,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 				t->try_to_store_message_to_queue(
 						msg_type,
 						message,
-						details::demand_type_t::async_message );
+						invocation_type_t::event );
 			}
 
 		virtual void
@@ -449,7 +434,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 				t->try_to_store_message_to_queue(
 						msg_type,
 						message,
-						details::demand_type_t::svc_request );
+						invocation_type_t::service_request );
 			}
 
 		/*!
@@ -549,7 +534,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 		try_to_store_message_to_queue(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			details::demand_type_t demand_type )
+			invocation_type_t demand_type )
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 
