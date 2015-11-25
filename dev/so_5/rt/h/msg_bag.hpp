@@ -97,6 +97,7 @@ class capacity_t
 			overflow_reaction_t overflow_reaction,
 			clock::duration overflow_timeout )
 			:	m_unlimited{ false }
+			,	m_max_size{ max_size }
 			,	m_memory{ memory }
 			,	m_overflow_reaction{ overflow_reaction }
 			,	m_overflow_timeout( overflow_timeout )
@@ -125,7 +126,7 @@ class capacity_t
 			//! Reaction on bag overflow.
 			overflow_reaction_t overflow_reaction )
 			{
-				capacity_t c{
+				return capacity_t{
 						max_size,
 						memory,
 						overflow_reaction,

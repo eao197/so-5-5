@@ -443,7 +443,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 		do_deliver_service_request(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			unsigned int overlimit_reaction_deep ) const override
+			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
 				auto t = const_cast< msg_bag_template_t * >(this);
 				t->try_to_store_message_to_queue(
