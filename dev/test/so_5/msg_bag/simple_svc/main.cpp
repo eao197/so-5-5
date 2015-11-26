@@ -18,7 +18,7 @@ do_check( const so_5::rt::msg_bag_t & bag )
 
 	for( int i = 0; i != 2; ++i )
 	{
-		auto r = so_5::receive(
+		auto r = receive(
 				bag,
 				so_5::rt::msg_bag::clock::duration::zero(),
 				so_5::handler( []( int i ) -> std::string {

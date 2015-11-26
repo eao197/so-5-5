@@ -30,7 +30,7 @@ main()
 
 					so_5::send< int >( bag->as_mbox(), 42 );
 
-					auto r = so_5::receive(
+					auto r = receive(
 							bag,
 							so_5::rt::msg_bag::clock::duration::zero(),
 							so_5::handler( []( int i ) {

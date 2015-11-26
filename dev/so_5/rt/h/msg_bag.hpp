@@ -365,6 +365,56 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 using msg_bag_t = intrusive_ptr_t< abstract_message_bag_t >;
 
 //
+// close_drop_content
+//
+/*!
+ * \since v.5.5.13
+ * \brief Helper function for closing a message bag with dropping
+ * all its content.
+ *
+ * \note Because of ADL it can be used without specifying namespaces.
+ *
+ * \par Usage example.
+	\code
+	so_5::rt::msg_bag_t & bag = ...;
+	... // Some work with bag.
+	close_drop_content( bag );
+	// Or:
+	bag->close( so_5::rt::msg_bag::close_mode::drop_content );
+	\endcode
+ */
+inline void
+close_drop_content( const msg_bag_t & bag )
+	{
+		bag->close( msg_bag::close_mode::drop_content );
+	}
+
+//
+// close_retain_content
+//
+/*!
+ * \since v.5.5.13
+ * \brief Helper function for closing a message bag with retaining
+ * all its content.
+ *
+ * \note Because of ADL it can be used without specifying namespaces.
+ *
+ * \par Usage example.
+	\code
+	so_5::rt::msg_bag_t & bag = ...;
+	... // Some work with bag.
+	close_retain_content( bag );
+	// Or:
+	bag->close( so_5::rt::msg_bag::close_mode::retain_content );
+	\endcode
+ */
+inline void
+close_retain_content( const msg_bag_t & bag )
+	{
+		bag->close( msg_bag::close_mode::retain_content );
+	}
+
+//
 // bag_params_t
 //
 /*!
@@ -399,8 +449,6 @@ class bag_params_t
 				return m_capacity;
 			}
 	};
-
-} /* namespace rt */
 
 //
 // receive
@@ -440,6 +488,8 @@ receive(
 
 		return 0;
 	}
+
+} /* namespace rt */
 
 } /* namespace so_5 */
 

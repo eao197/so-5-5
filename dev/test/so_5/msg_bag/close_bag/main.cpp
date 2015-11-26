@@ -16,9 +16,9 @@ check_drop_content( const so_5::rt::msg_bag_t & bag )
 	so_5::send< int >( bag->as_mbox(), 0 );
 	so_5::send< int >( bag->as_mbox(), 1 );
 
-	bag->close( so_5::rt::msg_bag::close_mode::drop_content );
+	close_drop_content( bag );
 
-	auto r = so_5::receive(
+	auto r = receive(
 			bag,
 			so_5::rt::msg_bag::clock::duration::zero(),
 			so_5::handler( []( int i ) {
@@ -36,10 +36,10 @@ check_retain_content( const so_5::rt::msg_bag_t & bag )
 	so_5::send< int >( bag->as_mbox(), 0 );
 	so_5::send< int >( bag->as_mbox(), 1 );
 
-	bag->close( so_5::rt::msg_bag::close_mode::retain_content );
+	close_retain_content( bag );
 
 	std::size_t r = 0;
-	r = so_5::receive(
+	r = receive(
 			bag,
 			so_5::rt::msg_bag::clock::duration::zero(),
 			so_5::handler( []( int i ) {
@@ -51,7 +51,7 @@ check_retain_content( const so_5::rt::msg_bag_t & bag )
 		throw runtime_error( "1: unexpected value of so_5::receive "
 				"return code: " + to_string( r ) );
 
-	r = so_5::receive(
+	r = receive(
 			bag,
 			so_5::rt::msg_bag::clock::duration::zero(),
 			so_5::handler( []( int i ) {
