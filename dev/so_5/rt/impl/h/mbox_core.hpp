@@ -32,6 +32,8 @@ namespace so_5
 namespace rt
 {
 
+class environment_t;
+
 namespace impl
 {
 
@@ -124,6 +126,8 @@ class mbox_core_t
 		 */
 		msg_bag_t
 		create_msg_bag(
+			//! SObjectizer Environment for which message bag will be created.
+			environment_t & env,
 			//! Parameters for a new bag.
 			const bag_params_t & params );
 

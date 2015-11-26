@@ -11,9 +11,11 @@
 #pragma once
 
 #include <so_5/rt/h/msg_bag.hpp>
+#include <so_5/rt/h/environment.hpp>
 
 #include <so_5/h/ret_code.hpp>
 #include <so_5/h/exception.hpp>
+#include <so_5/h/error_logger.hpp>
 
 #include <deque>
 #include <vector>
@@ -270,11 +272,14 @@ class msg_bag_template_t : public abstract_message_bag_t
 	public :
 		//! Initializing constructor.
 		msg_bag_template_t(
+			//! SObjectizer Environment for which message bag is created.
+			environment_t & env,
 			//! Mbox ID for this bag.
 			mbox_id_t id,
 			//! Bag's capacity.
 			const capacity_t & capacity )
-			:	m_id{ id }
+			:	m_env{ env }
+			,	m_id{ id }
 			,	m_capacity{ capacity }
 			,	m_queue{ capacity }
 			{}
@@ -409,6 +414,9 @@ class msg_bag_template_t : public abstract_message_bag_t
 			}
 
 	private :
+		//! SObjectizer Environment for which message bag is created.
+		environment_t & m_env;
+
 		//! Mbox ID for bag.
 		const mbox_id_t m_id;
 
@@ -473,7 +481,14 @@ class msg_bag_template_t : public abstract_message_bag_t
 						else
 							{
 								so_5::details::abort_on_fatal_error( [&] {
-//FIXME: implement this!
+										SO_5_LOG_ERROR( m_env, log_stream ) {
+											log_stream << "overflow_reaction::abort_app "
+													"will be performed for msg_bag (id="
+													<< m_id << "), msg_type: "
+													<< msg_type.name()
+													<< ". Application will be aborted"
+													<< std::endl;
+										}
 									} );
 							}
 					}

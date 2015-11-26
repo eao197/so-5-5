@@ -113,6 +113,7 @@ mbox_core_t::destroy_mbox(
 
 msg_bag_t
 mbox_core_t::create_msg_bag(
+	environment_t & env,
 	const bag_params_t & params )
 {
 	using namespace so_5::rt::msg_bag;
@@ -123,16 +124,19 @@ mbox_core_t::create_msg_bag(
 	if( params.capacity().unlimited() )
 		return msg_bag_t{
 			new msg_bag_template_t< unlimited_demand_queue_t >{
+				env,
 				id,
 				params.capacity() } };
 	else if( storage_memory::dynamic == params.capacity().memory() )
 		return msg_bag_t{
 			new msg_bag_template_t< limited_dynamic_demand_queue_t >{
+				env,
 				id,
 				params.capacity() } };
 	else
 		return msg_bag_t{
 			new msg_bag_template_t< limited_preallocated_demand_queue_t >{
+				env,
 				id,
 				params.capacity() } };
 }

@@ -324,7 +324,7 @@ msg_bag_t
 environment_t::create_msg_bag(
 	const bag_params_t & params )
 {
-	return m_impl->m_mbox_core->create_msg_bag( params );
+	return m_impl->m_mbox_core->create_msg_bag( *this, params );
 }
 
 dispatcher_t &
