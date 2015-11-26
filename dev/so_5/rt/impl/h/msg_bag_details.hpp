@@ -255,6 +255,21 @@ class limited_preallocated_demand_queue_t
 		std::size_t m_size;
 	};
 
+//
+// bag_status
+//
+/*!
+ * \since v.5.5.13
+ * \brief Status of the message bag.
+ */
+enum class bag_status
+	{
+		//! Bag is open and can be used for message sending.
+		open,
+		//! Bag is closed. New messages cannot be sent to it.
+		closed
+	};
+
 } /* namespace details */
 
 //
@@ -369,7 +384,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
 			{}
 
-		virtual extraction_result
+		virtual extraction_status
 		extract(
 			bag_demand_t & dest,
 			clock::duration empty_queue_timeout ) override
@@ -380,15 +395,27 @@ class msg_bag_template_t : public abstract_message_bag_t
 				bool queue_empty = m_queue.is_empty();
 				if( queue_empty )
 					{
+						if( details::bag_status::closed == m_status )
+							// Waiting for new messages has no sence because
+							// bag is closed.
+							return extraction_status::bag_closed;
+
 						m_underflow_cond.wait_for( lock, empty_queue_timeout,
 							[this, &queue_empty] {
-								return !(queue_empty = m_queue.is_empty());
+								queue_empty = m_queue.is_empty();
+								return !queue_empty ||
+										details::bag_status::closed == m_status;
 							} );
 					}
+
 				// If queue is still empty nothing can be extracted and
 				// we must stop operation.
 				if( queue_empty )
-					return extraction_result::no_messages;
+					return details::bag_status::open == m_status ?
+							// The bag is still open so there must be this result
+							extraction_status::no_messages :
+							// The bag is closed and there must be different result
+							extraction_status::bag_closed;
 
 				// If queue was full then someone can wait on it.
 				const bool queue_was_full = m_queue.is_full();
@@ -398,7 +425,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 				if( queue_was_full )
 					m_overflow_cond.notify_all();
 
-				return extraction_result::msg_extracted;
+				return extraction_status::msg_extracted;
 			}
 
 		virtual bool
@@ -413,9 +440,40 @@ class msg_bag_template_t : public abstract_message_bag_t
 				return m_queue.size();
 			}
 
+		virtual void
+		close( close_mode mode ) override
+			{
+				std::lock_guard< std::mutex > lock{ m_lock };
+
+				if( details::bag_status::closed == m_status )
+					return;
+
+				const bool was_full = m_queue.is_full();
+
+				if( close_mode::drop_content == mode )
+					{
+						const bool was_empty = m_queue.is_empty();
+						while( !m_queue.is_empty() )
+							m_queue.pop_front();
+
+						if( was_empty )
+							// Someone can wait on empty bag for new messages.
+							// It must be informed that no new messages will be here.
+							m_underflow_cond.notify_all();
+					}
+
+				if( was_full )
+					// Someone can wait on full bag for free place for new message.
+					// It must be informed that the bag is closed.
+					m_overflow_cond.notify_all();
+			}
+
 	private :
 		//! SObjectizer Environment for which message bag is created.
 		environment_t & m_env;
+
+		//! Status of the bag.
+		details::bag_status m_status = { details::bag_status::open };
 
 		//! Mbox ID for bag.
 		const mbox_id_t m_id;
@@ -443,6 +501,10 @@ class msg_bag_template_t : public abstract_message_bag_t
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 
+				// Message cannot be stored to closed bag.
+				if( details::bag_status::closed == m_status )
+					return;
+
 				// If queue full and waiting on full queue is enabled we
 				// must wait for some time until there will be some space in
 				// the queue.
@@ -453,7 +515,9 @@ class msg_bag_template_t : public abstract_message_bag_t
 								lock,
 								m_capacity.overflow_timeout(),
 								[this, &queue_full] {
-									return !(queue_full = m_queue.is_full());
+									queue_full = m_queue.is_full();
+									return !queue_full ||
+											details::bag_status::closed == m_status;
 								} );
 					}
 

@@ -275,18 +275,36 @@ class capacity_t
 	};
 
 //
-// extraction_result
+// extraction_status
 //
 /*!
  * \since v.5.5.13
  * \brief Result of extraction of message from a message bag.
  */
-enum class extraction_result
+enum class extraction_status
 	{
 		//! No available messages in the bag.
 		no_messages,
 		//! Message extracted successfully.
-		msg_extracted
+		msg_extracted,
+		//! Message cannot be extracted because bag is closed.
+		bag_closed
+	};
+
+//
+// close_mode
+//
+/*!
+ * \since v.5.5.13
+ * \brief What to do with bag's content at close.
+ */
+enum class close_mode
+	{
+		//! All messages must be removed from bag.
+		drop_content,
+		//! All messages must be retained until they will be
+		//! processed at receiver's side.
+		retain_content
 	};
 
 } /* namespace msg_bag */
@@ -311,7 +329,7 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 		virtual ~abstract_message_bag_t();
 
 	public :
-		virtual msg_bag::extraction_result
+		virtual msg_bag::extraction_status
 		extract(
 			//! Destination for extracted messages.
 			msg_bag::bag_demand_t & dest,
@@ -329,6 +347,12 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 		//! Count of messages in the bag.
 		virtual std::size_t
 		size() const = 0;
+
+		//! Close the bag.
+		virtual void
+		close(
+			//! What to do with bag's content.
+			msg_bag::close_mode mode ) = 0;
 	};
 
 //
@@ -404,7 +428,7 @@ receive(
 				std::forward< HANDLERS >(handlers)... );
 
 		bag_demand_t demand;
-		if( extraction_result::msg_extracted ==
+		if( extraction_status::msg_extracted ==
 				bag->extract( demand, waiting_timeout ) )
 			{
 				bunch.handle(
