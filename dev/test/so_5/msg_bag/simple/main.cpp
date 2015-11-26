@@ -6,12 +6,9 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-#include <vector>
-#include <utility>
-#include <string>
+#include "../bag_params.hpp"
 
 using namespace std;
-namespace bag_ns = so_5::rt::msg_bag;
 
 int
 main()
@@ -23,36 +20,7 @@ main()
 			{
 				so_5::wrapped_env_t env;
 
-				vector< pair< string, so_5::rt::bag_params_t > > params;
-				params.emplace_back( "unlimited",
-						so_5::rt::bag_params_t{
-								bag_ns::capacity_t::make_unlimited() } );
-				params.emplace_back( "limited(dynamic,nowait)",
-						so_5::rt::bag_params_t{
-								bag_ns::capacity_t::make_limited_without_waiting(
-										5,
-										bag_ns::storage_memory_t::dynamic,
-										bag_ns::overflow_reaction_t::drop_newest ) } );
-				params.emplace_back( "limited(preallocated,nowait)",
-						so_5::rt::bag_params_t{
-								bag_ns::capacity_t::make_limited_without_waiting(
-										5,
-										bag_ns::storage_memory_t::preallocated,
-										bag_ns::overflow_reaction_t::drop_newest ) } );
-				params.emplace_back( "limited(dynamic,wait)",
-						so_5::rt::bag_params_t{
-								bag_ns::capacity_t::make_limited_with_waiting(
-										5,
-										bag_ns::storage_memory_t::dynamic,
-										bag_ns::overflow_reaction_t::drop_newest,
-										chrono::milliseconds(200) ) } );
-				params.emplace_back( "limited(preallocated,wait)",
-						so_5::rt::bag_params_t{
-								bag_ns::capacity_t::make_limited_with_waiting(
-										5,
-										bag_ns::storage_memory_t::preallocated,
-										bag_ns::overflow_reaction_t::drop_newest,
-										chrono::milliseconds(200) ) } );
+				auto params = build_bag_params();
 
 				for( const auto & p : params )
 				{
