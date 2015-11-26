@@ -99,13 +99,13 @@ struct bag_demand_t
 using clock = std::chrono::high_resolution_clock;
 
 //
-// storage_memory_t
+// storage_memory
 //
 /*!
  * \since v.5.5.13
  * \brief Memory allocation for storage for size-limited bags.
  */
-enum class storage_memory_t
+enum class storage_memory
 	{
 		//! Storage can be allocated and deallocated dynamically.
 		dynamic,
@@ -114,14 +114,14 @@ enum class storage_memory_t
 	};
 
 //
-// overflow_reaction_t
+// overflow_reaction
 //
 /*!
  * \since v.5.5.13
  * \brief What reaction must be performed on attempt to push new message to
  * the full message bag.
  */
-enum class overflow_reaction_t
+enum class overflow_reaction
 	{
 		//! Application must be aborted.
 		abort_app,
@@ -151,10 +151,10 @@ class capacity_t
 		std::size_t m_max_size;
 
 		//! Type of the storage for size-limited bag.
-		storage_memory_t m_memory;
+		storage_memory m_memory;
 
 		//! Type of reaction for bag overflow.
-		overflow_reaction_t m_overflow_reaction;
+		overflow_reaction m_overflow_reaction;
 
 		//! Timeout for waiting on full bag during 'message push' operation.
 		/*!
@@ -166,8 +166,8 @@ class capacity_t
 		//! Initializing constructor for size-limited message bag.
 		capacity_t(
 			std::size_t max_size,
-			storage_memory_t memory,
-			overflow_reaction_t overflow_reaction,
+			storage_memory memory,
+			overflow_reaction overflow_reaction,
 			clock::duration overflow_timeout )
 			:	m_unlimited{ false }
 			,	m_max_size{ max_size }
@@ -195,9 +195,9 @@ class capacity_t
 			//! Max size of the bag.
 			std::size_t max_size,
 			//! Type of bag storage.
-			storage_memory_t memory,
+			storage_memory memory,
 			//! Reaction on bag overflow.
-			overflow_reaction_t overflow_reaction )
+			overflow_reaction overflow_reaction )
 			{
 				return capacity_t{
 						max_size,
@@ -214,9 +214,9 @@ class capacity_t
 			//! Max size of the bag.
 			std::size_t max_size,
 			//! Type of bag storage.
-			storage_memory_t memory,
+			storage_memory memory,
 			//! Reaction on bag overflow.
-			overflow_reaction_t overflow_reaction,
+			overflow_reaction overflow_reaction,
 			//! Waiting time on full message bag.
 			clock::duration wait_timeout )
 			{
@@ -243,14 +243,14 @@ class capacity_t
 		/*!
 		 * \attention Has sence only for size-limited bags.
 		 */
-		storage_memory_t
+		storage_memory
 		memory() const { return m_memory; }
 
 		//! Overflow reaction for size-limited bag.
 		/*!
 		 * \attention Has sence only for size-limited bags.
 		 */
-		overflow_reaction_t
+		overflow_reaction
 		overflow_reaction() const { return m_overflow_reaction; }
 
 		//! Is waiting timeout for overflow case defined?

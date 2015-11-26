@@ -125,7 +125,7 @@ mbox_core_t::create_msg_bag(
 			new msg_bag_template_t< unlimited_demand_queue_t >{
 				id,
 				params.capacity() } };
-	else if( storage_memory_t::dynamic == params.capacity().memory() )
+	else if( storage_memory::dynamic == params.capacity().memory() )
 		return msg_bag_t{
 			new msg_bag_template_t< limited_dynamic_demand_queue_t >{
 				id,

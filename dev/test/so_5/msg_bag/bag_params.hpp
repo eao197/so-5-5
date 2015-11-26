@@ -21,27 +21,27 @@ build_bag_params()
 				so_5::rt::bag_params_t{
 						bag_ns::capacity_t::make_limited_without_waiting(
 								5,
-								bag_ns::storage_memory_t::dynamic,
-								bag_ns::overflow_reaction_t::drop_newest ) } );
+								bag_ns::storage_memory::dynamic,
+								bag_ns::overflow_reaction::drop_newest ) } );
 		params.emplace_back( "limited(preallocated,nowait)",
 				so_5::rt::bag_params_t{
 						bag_ns::capacity_t::make_limited_without_waiting(
 								5,
-								bag_ns::storage_memory_t::preallocated,
-								bag_ns::overflow_reaction_t::drop_newest ) } );
+								bag_ns::storage_memory::preallocated,
+								bag_ns::overflow_reaction::drop_newest ) } );
 		params.emplace_back( "limited(dynamic,wait)",
 				so_5::rt::bag_params_t{
 						bag_ns::capacity_t::make_limited_with_waiting(
 								5,
-								bag_ns::storage_memory_t::dynamic,
-								bag_ns::overflow_reaction_t::drop_newest,
+								bag_ns::storage_memory::dynamic,
+								bag_ns::overflow_reaction::drop_newest,
 								chrono::milliseconds(200) ) } );
 		params.emplace_back( "limited(preallocated,wait)",
 				so_5::rt::bag_params_t{
 						bag_ns::capacity_t::make_limited_with_waiting(
 								5,
-								bag_ns::storage_memory_t::preallocated,
-								bag_ns::overflow_reaction_t::drop_newest,
+								bag_ns::storage_memory::preallocated,
+								bag_ns::overflow_reaction::drop_newest,
 								chrono::milliseconds(200) ) } );
 		return params;
 	}

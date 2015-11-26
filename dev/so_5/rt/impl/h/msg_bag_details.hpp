@@ -453,17 +453,17 @@ class msg_bag_template_t : public abstract_message_bag_t
 				if( queue_full )
 					{
 						const auto reaction = m_capacity.overflow_reaction();
-						if( overflow_reaction_t::drop_newest == reaction )
+						if( overflow_reaction::drop_newest == reaction )
 							{
 								// New message must be simply ignored.
 								return;
 							}
-						else if( overflow_reaction_t::remove_oldest == reaction )
+						else if( overflow_reaction::remove_oldest == reaction )
 							{
 								// The oldest message must be simply removed.
 								m_queue.pop_front();
 							}
-						else if( overflow_reaction_t::throw_exception == reaction )
+						else if( overflow_reaction::throw_exception == reaction )
 							{
 								SO_5_THROW_EXCEPTION(
 										rc_msg_bag_overflow,
