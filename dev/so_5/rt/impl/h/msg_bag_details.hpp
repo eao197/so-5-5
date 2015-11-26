@@ -364,7 +364,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
 			{}
 
-		virtual extraction_result_t
+		virtual extraction_result
 		extract(
 			bag_demand_t & dest,
 			clock::duration empty_queue_timeout ) override
@@ -383,7 +383,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 				// If queue is still empty nothing can be extracted and
 				// we must stop operation.
 				if( queue_empty )
-					return extraction_result_t::no_messages;
+					return extraction_result::no_messages;
 
 				// If queue was full then someone can wait on it.
 				const bool queue_was_full = m_queue.is_full();
@@ -393,7 +393,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 				if( queue_was_full )
 					m_overflow_cond.notify_all();
 
-				return extraction_result_t::msg_extracted;
+				return extraction_result::msg_extracted;
 			}
 
 		virtual bool

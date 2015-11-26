@@ -275,13 +275,13 @@ class capacity_t
 	};
 
 //
-// extraction_result_t
+// extraction_result
 //
 /*!
  * \since v.5.5.13
  * \brief Result of extraction of message from a message bag.
  */
-enum class extraction_result_t
+enum class extraction_result
 	{
 		//! No available messages in the bag.
 		no_messages,
@@ -311,7 +311,7 @@ class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
 		virtual ~abstract_message_bag_t();
 
 	public :
-		virtual msg_bag::extraction_result_t
+		virtual msg_bag::extraction_result
 		extract(
 			//! Destination for extracted messages.
 			msg_bag::bag_demand_t & dest,
@@ -404,7 +404,7 @@ receive(
 				std::forward< HANDLERS >(handlers)... );
 
 		bag_demand_t demand;
-		if( extraction_result_t::msg_extracted ==
+		if( extraction_result::msg_extracted ==
 				bag->extract( demand, waiting_timeout ) )
 			{
 				bunch.handle(
