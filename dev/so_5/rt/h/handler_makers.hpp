@@ -253,8 +253,20 @@ struct handlers_bunch_basics_t
 				msg_type_and_handler_pair_t key{ msg_type };
 				auto it = std::lower_bound( left, right, key );
 				if( it != right && it->m_msg_type == key.m_msg_type )
-					// Handler is found and must be called.
-					it->m_handler( invocation, message );
+					{
+						// Handler is found and must be called.
+						if( invocation_type_t::event == invocation )
+							// This is a async message.
+							// Simple call is enough.
+							it->m_handler( invocation, message );
+						else if( invocation_type_t::service_request == invocation )
+							// Invocation should be done in a special wrapper.
+							msg_service_request_base_t::dispatch_wrapper(
+									message,
+									[&it, &message, invocation] {
+										it->m_handler( invocation, message );
+									} );
+					}
 			}
 	};
 
