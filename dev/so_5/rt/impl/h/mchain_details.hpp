@@ -343,8 +343,7 @@ class mchain_template_t : public abstract_message_chain_t
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
-				auto t = const_cast< mchain_template_t * >(this);
-				t->try_to_store_message_to_queue(
+				try_to_store_message_to_queue(
 						msg_type,
 						message,
 						invocation_type_t::event );
@@ -356,8 +355,7 @@ class mchain_template_t : public abstract_message_chain_t
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
-				auto t = const_cast< mchain_template_t * >(this);
-				t->try_to_store_message_to_queue(
+				try_to_store_message_to_queue(
 						msg_type,
 						message,
 						invocation_type_t::service_request );
@@ -482,22 +480,30 @@ class mchain_template_t : public abstract_message_chain_t
 		const capacity_t m_capacity;
 
 		//! Bag's demands queue.
-		QUEUE m_queue;
+		mutable QUEUE m_queue;
 
 		//! Bag's lock.
-		std::mutex m_lock;
+		mutable std::mutex m_lock;
 
 		//! Condition variable for waiting on empty queue.
-		std::condition_variable m_underflow_cond;
+		mutable std::condition_variable m_underflow_cond;
 		//! Condition variable for waiting on full queue.
-		std::condition_variable m_overflow_cond;
+		mutable std::condition_variable m_overflow_cond;
 
 		//! Actual implementation of pushing message to the queue.
+		/*!
+		 * \attention This method is marked as 'const' but it changes
+		 * state of the object. It is because this method is called
+		 * from do_deliver_message() and do_deliver_service_request() which
+		 * must be 'const'. It is a flaw in the mbox'es design but
+		 * this flaw must be fixed at different level (such as modification
+		 * of abstract_message_box_t interface).
+		 */
 		void
 		try_to_store_message_to_queue(
 			const std::type_index & msg_type,
 			const message_ref_t & message,
-			invocation_type_t demand_type )
+			invocation_type_t demand_type ) const
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 
