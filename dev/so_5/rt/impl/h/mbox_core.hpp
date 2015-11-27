@@ -21,7 +21,7 @@
 #include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/msg_bag.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/rt/h/message_limit.hpp>
@@ -120,16 +120,16 @@ class mbox_core_t
 
 		/*!
 		 * \since v.5.5.13
-		 * \brief Create message bag.
+		 * \brief Create message chain.
 		 *
 		 * \par Usage examples:
 		 */
-		msg_bag_t
-		create_msg_bag(
-			//! SObjectizer Environment for which message bag will be created.
+		mchain_t
+		create_mchain(
+			//! SObjectizer Environment for which message chain will be created.
 			environment_t & env,
-			//! Parameters for a new bag.
-			const bag_params_t & params );
+			//! Parameters for a new chain.
+			const mchain_params_t & params );
 
 		/*!
 		 * \since v.5.5.4

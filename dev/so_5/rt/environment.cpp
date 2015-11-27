@@ -320,11 +320,11 @@ environment_t::create_local_mbox(
 	return m_impl->m_mbox_core->create_local_mbox( nonempty_name );
 }
 
-msg_bag_t
-environment_t::create_msg_bag(
-	const bag_params_t & params )
+mchain_t
+environment_t::create_mchain(
+	const mchain_params_t & params )
 {
-	return m_impl->m_mbox_core->create_msg_bag( *this, params );
+	return m_impl->m_mbox_core->create_mchain( *this, params );
 }
 
 dispatcher_t &

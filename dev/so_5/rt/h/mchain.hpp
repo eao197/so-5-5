@@ -5,7 +5,7 @@
 /*!
  * \since v.5.5.13
  * \file
- * \brief Public part of message bag related stuff.
+ * \brief Public part of message chain related stuff.
  */
 
 #pragma once
@@ -19,16 +19,16 @@ namespace so_5 {
 
 namespace rt {
 
-namespace msg_bag {
+namespace mchain_props {
 
 //
-// bag_demand_t
+// demand_t
 //
 /*!
  * \since v.5.5.13
- * \brief Description of one demand in message bag.
+ * \brief Description of one demand in message chain.
  */
-struct bag_demand_t
+struct demand_t
 	{
 		//! Type of the message.
 		std::type_index m_msg_type;
@@ -42,11 +42,11 @@ struct bag_demand_t
 // and doesn't support '=default' construct.
 
 		//! Default constructor.
-		bag_demand_t()
+		demand_t()
 			:	m_msg_type( typeid(void) )
 			{}
 		//! Initializing constructor.
-		bag_demand_t(
+		demand_t(
 			std::type_index msg_type,
 			message_ref_t message_ref,
 			invocation_type_t demand_type )
@@ -56,13 +56,13 @@ struct bag_demand_t
 			{}
 
 		//! Copy constructor.
-		bag_demand_t( const bag_demand_t & o )
+		demand_t( const demand_t & o )
 			:	m_msg_type{ o.m_msg_type }
 			,	m_message_ref{ o.m_message_ref }
 			,	m_demand_type{ o.m_demand_type }
 			{}
 		//! Move constructor.
-		bag_demand_t( bag_demand_t && o )
+		demand_t( demand_t && o )
 			:	m_msg_type{ std::move(o.m_msg_type) }
 			,	m_message_ref{ std::move(o.m_message_ref) }
 			,	m_demand_type{ std::move(o.m_demand_type) }
@@ -70,7 +70,7 @@ struct bag_demand_t
 
 		//! Swap operation.
 		void
-		swap( bag_demand_t & o )
+		swap( demand_t & o )
 			{
 				std::swap( m_msg_type, o.m_msg_type );
 				m_message_ref.swap( o.m_message_ref );
@@ -78,19 +78,19 @@ struct bag_demand_t
 			}
 
 		//! Copy operator.
-		bag_demand_t &
-		operator=( const bag_demand_t & o )
+		demand_t &
+		operator=( const demand_t & o )
 			{
-				bag_demand_t tmp{ o };
+				demand_t tmp{ o };
 				tmp.swap( *this );
 				return *this;
 			}
 
 		//! Move operator.
-		bag_demand_t &
-		operator=( bag_demand_t && o )
+		demand_t &
+		operator=( demand_t && o )
 			{
-				bag_demand_t tmp{ std::move(o) };
+				demand_t tmp{ std::move(o) };
 				tmp.swap( *this );
 				return *this;
 			}
@@ -98,12 +98,14 @@ struct bag_demand_t
 
 using clock = std::chrono::high_resolution_clock;
 
+//FIXME: it is not a good name. A better name must be found
+//(something like memory_consumption).
 //
 // storage_memory
 //
 /*!
  * \since v.5.5.13
- * \brief Memory allocation for storage for size-limited bags.
+ * \brief Memory allocation for storage for size-limited chains.
  */
 enum class storage_memory
 	{
@@ -119,7 +121,7 @@ enum class storage_memory
 /*!
  * \since v.5.5.13
  * \brief What reaction must be performed on attempt to push new message to
- * the full message bag.
+ * the full message chain.
  */
 enum class overflow_reaction
 	{
@@ -129,7 +131,7 @@ enum class overflow_reaction
 		throw_exception,
 		//! New message must be ignored and droped.
 		drop_newest,
-		//! Oldest message in bag must be removed.
+		//! Oldest message in chain must be removed.
 		remove_oldest
 	};
 
@@ -138,32 +140,32 @@ enum class overflow_reaction
 //
 /*!
  * \since v.5.5.13
- * \brief Parameters for defining bag size.
+ * \brief Parameters for defining chain size.
  */
 class capacity_t
 	{
-		//! Has bag unlimited size?
+		//! Has chain unlimited size?
 		bool m_unlimited = { true };
 
 		// NOTE: all other atributes have sence only if m_unlimited != true.
 
-		//! Max size of the bag with limited size.
+		//! Max size of the chain with limited size.
 		std::size_t m_max_size;
 
-		//! Type of the storage for size-limited bag.
+		//! Type of the storage for size-limited chain.
 		storage_memory m_memory;
 
-		//! Type of reaction for bag overflow.
+		//! Type of reaction for chain overflow.
 		overflow_reaction m_overflow_reaction;
 
-		//! Timeout for waiting on full bag during 'message push' operation.
+		//! Timeout for waiting on full chain during 'message push' operation.
 		/*!
 		 * \note Value 'zero' means that there must not be waiting on
-		 * full bag.
+		 * full chain.
 		 */
 		clock::duration m_overflow_timeout;
 
-		//! Initializing constructor for size-limited message bag.
+		//! Initializing constructor for size-limited message chain.
 		capacity_t(
 			std::size_t max_size,
 			storage_memory memory,
@@ -179,24 +181,24 @@ class capacity_t
 	public :
 		//! Default constructor.
 		/*!
-		 * Creates description for size-unlimited bag.
+		 * Creates description for size-unlimited chain.
 		 */
 		capacity_t()
 			{}
 
-		//! Create capacity description for size-unlimited message bag.
+		//! Create capacity description for size-unlimited message chain.
 		inline static capacity_t
 		make_unlimited() { return capacity_t{}; }
 
-		//! Create capacity description for size-limited message bag
+		//! Create capacity description for size-limited message chain
 		//! without waiting on full queue during 'push message' operation.
 		inline static capacity_t
 		make_limited_without_waiting(
-			//! Max size of the bag.
+			//! Max size of the chain.
 			std::size_t max_size,
-			//! Type of bag storage.
+			//! Type of chain storage.
 			storage_memory memory,
-			//! Reaction on bag overflow.
+			//! Reaction on chain overflow.
 			overflow_reaction overflow_reaction )
 			{
 				return capacity_t{
@@ -207,17 +209,17 @@ class capacity_t
 				};
 			}
 
-		//! Create capacity description for size-limited message bag
+		//! Create capacity description for size-limited message chain
 		//! with waiting on full queue during 'push message' operation.
 		inline static capacity_t
 		make_limited_with_waiting(
-			//! Max size of the bag.
+			//! Max size of the chain.
 			std::size_t max_size,
-			//! Type of bag storage.
+			//! Type of chain storage.
 			storage_memory memory,
-			//! Reaction on bag overflow.
+			//! Reaction on chain overflow.
 			overflow_reaction overflow_reaction,
-			//! Waiting time on full message bag.
+			//! Waiting time on full message chain.
 			clock::duration wait_timeout )
 			{
 				return capacity_t{
@@ -228,34 +230,34 @@ class capacity_t
 				};
 			}
 
-		//! Is message bag have no size limit?
+		//! Is message chain have no size limit?
 		bool
 		unlimited() const { return m_unlimited; }
 
-		//! Max size for size-limited bag.
+		//! Max size for size-limited chain.
 		/*!
-		 * \attention Has sence only for size-limited bags.
+		 * \attention Has sence only for size-limited chain.
 		 */
 		std::size_t
 		max_size() const { return m_max_size; }
 
-		//! Memory allocation type for size-limited bag.
+		//! Memory allocation type for size-limited chain.
 		/*!
-		 * \attention Has sence only for size-limited bags.
+		 * \attention Has sence only for size-limited chain.
 		 */
 		storage_memory
 		memory() const { return m_memory; }
 
-		//! Overflow reaction for size-limited bag.
+		//! Overflow reaction for size-limited chain.
 		/*!
-		 * \attention Has sence only for size-limited bags.
+		 * \attention Has sence only for size-limited chain.
 		 */
 		overflow_reaction
 		overflow_reaction() const { return m_overflow_reaction; }
 
 		//! Is waiting timeout for overflow case defined?
 		/*!
-		 * \attention Has sence only for size-limited bags.
+		 * \attention Has sence only for size-limited chain.
 		 */
 		bool
 		is_overflow_timeout_defined() const
@@ -265,7 +267,7 @@ class capacity_t
 
 		//! Get the value of waiting timeout for overflow case.
 		/*!
-		 * \attention Has sence only for size-limited bags.
+		 * \attention Has sence only for size-limited chain.
 		 */
 		clock::duration
 		overflow_timeout() const
@@ -279,16 +281,16 @@ class capacity_t
 //
 /*!
  * \since v.5.5.13
- * \brief Result of extraction of message from a message bag.
+ * \brief Result of extraction of message from a message chain.
  */
 enum class extraction_status
 	{
-		//! No available messages in the bag.
+		//! No available messages in the chain.
 		no_messages,
 		//! Message extracted successfully.
 		msg_extracted,
-		//! Message cannot be extracted because bag is closed.
-		bag_closed
+		//! Message cannot be extracted because chain is closed.
+		chain_closed
 	};
 
 //
@@ -296,97 +298,97 @@ enum class extraction_status
 //
 /*!
  * \since v.5.5.13
- * \brief What to do with bag's content at close.
+ * \brief What to do with chain's content at close.
  */
 enum class close_mode
 	{
-		//! All messages must be removed from bag.
+		//! All messages must be removed from chain.
 		drop_content,
 		//! All messages must be retained until they will be
 		//! processed at receiver's side.
 		retain_content
 	};
 
-} /* namespace msg_bag */
+} /* namespace mchain_props */
 
 //
-// abstract_message_bag_t
+// abstract_message_chain_t
 //
 /*!
  * \since v.5.5.13
- * \brief An interace of message bag.
+ * \brief An interace of message chain.
  */
-class SO_5_TYPE abstract_message_bag_t : protected abstract_message_box_t
+class SO_5_TYPE abstract_message_chain_t : protected abstract_message_box_t
 	{
-		friend class intrusive_ptr_t< abstract_message_bag_t >;
+		friend class intrusive_ptr_t< abstract_message_chain_t >;
 
-		abstract_message_bag_t( const abstract_message_bag_t & ) = delete;
-		abstract_message_bag_t &
-		operator=( const abstract_message_bag_t & ) = delete;
+		abstract_message_chain_t( const abstract_message_chain_t & ) = delete;
+		abstract_message_chain_t &
+		operator=( const abstract_message_chain_t & ) = delete;
 
 	protected :
-		abstract_message_bag_t();
-		virtual ~abstract_message_bag_t();
+		abstract_message_chain_t();
+		virtual ~abstract_message_chain_t();
 
 	public :
-		virtual msg_bag::extraction_status
+		virtual mchain_props::extraction_status
 		extract(
 			//! Destination for extracted messages.
-			msg_bag::bag_demand_t & dest,
+			mchain_props::demand_t & dest,
 			//! Max time to wait on empty queue.
-			msg_bag::clock::duration empty_queue_timeout ) = 0;
+			mchain_props::clock::duration empty_queue_timeout ) = 0;
 
-		//! Cast message bag to message box.
+		//! Cast message chain to message box.
 		mbox_t
 		as_mbox();
 
-		//! Is message bag empty?
+		//! Is message chain empty?
 		virtual bool
 		empty() const = 0;
 
-		//! Count of messages in the bag.
+		//! Count of messages in the chain.
 		virtual std::size_t
 		size() const = 0;
 
-		//! Close the bag.
+		//! Close the chain.
 		virtual void
 		close(
-			//! What to do with bag's content.
-			msg_bag::close_mode mode ) = 0;
+			//! What to do with chain's content.
+			mchain_props::close_mode mode ) = 0;
 	};
 
 //
-// msg_bag_t
+// mchain_t
 //
 /*!
  * \since v.5.5.13
- * \brief Short name for smart pointer to message bag.
+ * \brief Short name for smart pointer to message chain.
  */
-using msg_bag_t = intrusive_ptr_t< abstract_message_bag_t >;
+using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 
 //
 // close_drop_content
 //
 /*!
  * \since v.5.5.13
- * \brief Helper function for closing a message bag with dropping
+ * \brief Helper function for closing a message chain with dropping
  * all its content.
  *
  * \note Because of ADL it can be used without specifying namespaces.
  *
  * \par Usage example.
 	\code
-	so_5::rt::msg_bag_t & bag = ...;
-	... // Some work with bag.
-	close_drop_content( bag );
+	so_5::rt::chain_t & ch = ...;
+	... // Some work with chain.
+	close_drop_content( ch );
 	// Or:
-	bag->close( so_5::rt::msg_bag::close_mode::drop_content );
+	ch->close( so_5::rt::mchain_props::close_mode::drop_content );
 	\endcode
  */
 inline void
-close_drop_content( const msg_bag_t & bag )
+close_drop_content( const mchain_t & ch )
 	{
-		bag->close( msg_bag::close_mode::drop_content );
+		ch->close( mchain_props::close_mode::drop_content );
 	}
 
 //
@@ -394,56 +396,56 @@ close_drop_content( const msg_bag_t & bag )
 //
 /*!
  * \since v.5.5.13
- * \brief Helper function for closing a message bag with retaining
+ * \brief Helper function for closing a message chain with retaining
  * all its content.
  *
  * \note Because of ADL it can be used without specifying namespaces.
  *
  * \par Usage example.
 	\code
-	so_5::rt::msg_bag_t & bag = ...;
-	... // Some work with bag.
-	close_retain_content( bag );
+	so_5::rt::mchain_t & ch = ...;
+	... // Some work with chain.
+	close_retain_content( ch );
 	// Or:
-	bag->close( so_5::rt::msg_bag::close_mode::retain_content );
+	ch->close( so_5::rt::mchain_props::close_mode::retain_content );
 	\endcode
  */
 inline void
-close_retain_content( const msg_bag_t & bag )
+close_retain_content( const mchain_t & ch )
 	{
-		bag->close( msg_bag::close_mode::retain_content );
+		ch->close( mchain_props::close_mode::retain_content );
 	}
 
 //
-// bag_params_t
+// mchain_params_t
 //
 /*!
  * \since v.5.5.13
- * \brief Parameters for message bag.
+ * \brief Parameters for message chain.
  */
-class bag_params_t
+class mchain_params_t
 	{
 		//! Bag's capacity.
-		msg_bag::capacity_t m_capacity;
+		mchain_props::capacity_t m_capacity;
 
 	public :
 		//! Initializing constructor.
-		bag_params_t(
+		mchain_params_t(
 			//! Bag's capacity and related params.
-			msg_bag::capacity_t capacity )
+			mchain_props::capacity_t capacity )
 			:	m_capacity{ capacity }
 			{}
 
-		//! Set bag's capacity and related params.
-		bag_params_t &
-		capacity( msg_bag::capacity_t capacity )
+		//! Set chain's capacity and related params.
+		mchain_params_t &
+		capacity( mchain_props::capacity_t capacity )
 			{
 				m_capacity = capacity;
 				return *this;
 			}
 
 		//! Get bag's capacity and related params.
-		const msg_bag::capacity_t &
+		const mchain_props::capacity_t &
 		capacity() const
 			{
 				return m_capacity;
@@ -456,28 +458,28 @@ class bag_params_t
 //FIXME: Normal Doxygen comment must be written!
 /*!
  * \since v.5.5.13
- * \brief Receive and handle one message from message bag.
+ * \brief Receive and handle one message from message chain.
  */
 template< typename... HANDLERS >
 inline std::size_t
 receive(
-	//! Message bag from which a message must be extracted.
-	const so_5::rt::msg_bag_t & bag,
+	//! Message chain from which a message must be extracted.
+	const so_5::rt::mchain_t & chain,
 	//! Maximum timeout for waiting for message on empty bag.
-	so_5::rt::msg_bag::clock::duration waiting_timeout,
+	mchain_props::clock::duration waiting_timeout,
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{
 		using namespace so_5::rt::details;
-		using namespace so_5::rt::msg_bag;
+		using namespace so_5::rt::mchain_props;
 
 		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
-		bag_demand_t demand;
+		demand_t demand;
 		if( extraction_status::msg_extracted ==
-				bag->extract( demand, waiting_timeout ) )
+				chain->extract( demand, waiting_timeout ) )
 			{
 				bunch.handle(
 						demand.m_msg_type,

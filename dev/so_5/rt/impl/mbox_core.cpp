@@ -10,7 +10,7 @@
 #include <so_5/rt/impl/h/named_local_mbox.hpp>
 #include <so_5/rt/impl/h/mpsc_mbox.hpp>
 #include <so_5/rt/impl/h/mbox_core.hpp>
-#include <so_5/rt/impl/h/msg_bag_details.hpp>
+#include <so_5/rt/impl/h/mchain_details.hpp>
 
 namespace so_5
 {
@@ -111,31 +111,31 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
-msg_bag_t
-mbox_core_t::create_msg_bag(
+mchain_t
+mbox_core_t::create_mchain(
 	environment_t & env,
-	const bag_params_t & params )
+	const mchain_params_t & params )
 {
-	using namespace so_5::rt::msg_bag;
-	using namespace so_5::rt::msg_bag::details;
+	using namespace so_5::rt::mchain_props;
+	using namespace so_5::rt::mchain_props::details;
 
 	auto id = ++m_mbox_id_counter;
 
 	if( params.capacity().unlimited() )
-		return msg_bag_t{
-			new msg_bag_template_t< unlimited_demand_queue_t >{
+		return mchain_t{
+			new mchain_template_t< unlimited_demand_queue_t >{
 				env,
 				id,
 				params.capacity() } };
 	else if( storage_memory::dynamic == params.capacity().memory() )
-		return msg_bag_t{
-			new msg_bag_template_t< limited_dynamic_demand_queue_t >{
+		return mchain_t{
+			new mchain_template_t< limited_dynamic_demand_queue_t >{
 				env,
 				id,
 				params.capacity() } };
 	else
-		return msg_bag_t{
-			new msg_bag_template_t< limited_preallocated_demand_queue_t >{
+		return mchain_t{
+			new mchain_template_t< limited_preallocated_demand_queue_t >{
 				env,
 				id,
 				params.capacity() } };

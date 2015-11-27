@@ -5,12 +5,12 @@
 /*!
  * \since v.5.5.13
  * \file
- * \brief Implementation details for message bags.
+ * \brief Implementation details for message chains.
  */
 
 #pragma once
 
-#include <so_5/rt/h/msg_bag.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/environment.hpp>
 
 #include <so_5/h/ret_code.hpp>
@@ -26,7 +26,7 @@ namespace so_5 {
 
 namespace rt {
 
-namespace msg_bag {
+namespace mchain_props {
 
 namespace details {
 
@@ -43,7 +43,7 @@ ensure_queue_not_empty( Q && queue )
 	{
 		if( queue.is_empty() )
 			SO_5_THROW_EXCEPTION(
-					rc_msg_bag_is_empty,
+					rc_msg_chain_is_empty,
 					"an attempt to get message from empty demand queue" );
 	}
 
@@ -60,7 +60,7 @@ ensure_queue_not_full( Q && queue )
 	{
 		if( queue.is_full() )
 			SO_5_THROW_EXCEPTION(
-					rc_msg_bag_is_full,
+					rc_msg_chain_is_full,
 					"an attempt to push a message to full demand queue" );
 	}
 
@@ -69,7 +69,7 @@ ensure_queue_not_full( Q && queue )
 //
 /*!
  * \since v.5.5.13
- * \brief Implementation of demands queue for size-unlimited message bag.
+ * \brief Implementation of demands queue for size-unlimited message chain.
  */
 class unlimited_demand_queue_t
 	{
@@ -92,7 +92,7 @@ class unlimited_demand_queue_t
 		is_empty() const { return m_queue.empty(); }
 
 		//! Access to front item from queue.
-		bag_demand_t &
+		demand_t &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -109,7 +109,7 @@ class unlimited_demand_queue_t
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( bag_demand_t && demand )
+		push_back( demand_t && demand )
 			{
 				m_queue.push_back( std::move(demand) );
 			}
@@ -120,7 +120,7 @@ class unlimited_demand_queue_t
 
 	private :
 		//! Queue's storage.
-		std::deque< bag_demand_t > m_queue;
+		std::deque< demand_t > m_queue;
 	};
 
 //
@@ -128,7 +128,7 @@ class unlimited_demand_queue_t
 //
 /*!
  * \since v.5.5.13
- * \brief Implementation of demands queue for size-limited message bag with
+ * \brief Implementation of demands queue for size-limited message chain with
  * dynamically allocated storage.
  */
 class limited_dynamic_demand_queue_t
@@ -149,7 +149,7 @@ class limited_dynamic_demand_queue_t
 		is_empty() const { return m_queue.empty(); }
 
 		//! Access to front item from queue.
-		bag_demand_t &
+		demand_t &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -166,7 +166,7 @@ class limited_dynamic_demand_queue_t
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( bag_demand_t && demand )
+		push_back( demand_t && demand )
 			{
 				ensure_queue_not_full( *this );
 				m_queue.push_back( std::move(demand) );
@@ -178,7 +178,7 @@ class limited_dynamic_demand_queue_t
 
 	private :
 		//! Queue's storage.
-		std::deque< bag_demand_t > m_queue;
+		std::deque< demand_t > m_queue;
 		//! Maximum size of the queue.
 		const std::size_t m_max_size;
 	};
@@ -188,7 +188,7 @@ class limited_dynamic_demand_queue_t
 //
 /*!
  * \since v.5.5.13
- * \brief Implementation of demands queue for size-limited message bag with
+ * \brief Implementation of demands queue for size-limited message chain with
  * preallocated storage.
  */
 class limited_preallocated_demand_queue_t
@@ -197,7 +197,7 @@ class limited_preallocated_demand_queue_t
 		//! Initializing constructor.
 		limited_preallocated_demand_queue_t(
 			const capacity_t & capacity )
-			:	m_storage( capacity.max_size(), bag_demand_t{} )
+			:	m_storage( capacity.max_size(), demand_t{} )
 			,	m_max_size{ capacity.max_size() }
 			,	m_head{ 0 }
 			,	m_size{ 0 }
@@ -212,7 +212,7 @@ class limited_preallocated_demand_queue_t
 		is_empty() const { return 0 == m_size; }
 
 		//! Access to front item from queue.
-		bag_demand_t &
+		demand_t &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -224,14 +224,14 @@ class limited_preallocated_demand_queue_t
 		pop_front()
 			{
 				ensure_queue_not_empty( *this );
-				m_storage[ m_head ] = bag_demand_t{};
+				m_storage[ m_head ] = demand_t{};
 				m_head = (m_head + 1) % m_max_size;
 				--m_size;
 			}
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( bag_demand_t && demand )
+		push_back( demand_t && demand )
 			{
 				ensure_queue_not_full( *this );
 				auto index = (m_head + m_size) % m_max_size;
@@ -245,7 +245,7 @@ class limited_preallocated_demand_queue_t
 
 	private :
 		//! Queue's storage.
-		std::vector< bag_demand_t > m_storage;
+		std::vector< demand_t > m_storage;
 		//! Maximum size of the queue.
 		const std::size_t m_max_size;
 
@@ -256,13 +256,13 @@ class limited_preallocated_demand_queue_t
 	};
 
 //
-// bag_status
+// status
 //
 /*!
  * \since v.5.5.13
- * \brief Status of the message bag.
+ * \brief Status of the message chain.
  */
-enum class bag_status
+enum class status
 	{
 		//! Bag is open and can be used for message sending.
 		open,
@@ -273,23 +273,23 @@ enum class bag_status
 } /* namespace details */
 
 //
-// msg_bag_template_t
+// mchain_template_t
 //
 /*!
  * \since v.5.5.13
- * \brief Template-based implementation of message bag.
+ * \brief Template-based implementation of message chain.
  *
- * \tparam QUEUE type of demand queue for message bag.
+ * \tparam QUEUE type of demand queue for message chain.
  */
 template< typename QUEUE >
-class msg_bag_template_t : public abstract_message_bag_t
+class mchain_template_t : public abstract_message_chain_t
 	{
 	public :
 		//! Initializing constructor.
-		msg_bag_template_t(
-			//! SObjectizer Environment for which message bag is created.
+		mchain_template_t(
+			//! SObjectizer Environment for which message chain is created.
 			environment_t & env,
-			//! Mbox ID for this bag.
+			//! Mbox ID for this chain.
 			mbox_id_t id,
 			//! Bag's capacity.
 			const capacity_t & capacity )
@@ -312,8 +312,8 @@ class msg_bag_template_t : public abstract_message_bag_t
 			agent_t * /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
-						rc_msg_bag_doesnt_support_subscriptions,
-						"msg_bag doesn't suppor subscription" );
+						rc_msg_chain_doesnt_support_subscriptions,
+						"mchain doesn't suppor subscription" );
 			}
 
 		virtual void
@@ -326,7 +326,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 		query_name() const override
 			{
 				std::ostringstream s;
-				s << "<msgbag:id=" << m_id << ">";
+				s << "<mchain:id=" << m_id << ">";
 
 				return s.str();
 			}
@@ -343,7 +343,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
-				auto t = const_cast< msg_bag_template_t * >(this);
+				auto t = const_cast< mchain_template_t * >(this);
 				t->try_to_store_message_to_queue(
 						msg_type,
 						message,
@@ -356,7 +356,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
-				auto t = const_cast< msg_bag_template_t * >(this);
+				auto t = const_cast< mchain_template_t * >(this);
 				t->try_to_store_message_to_queue(
 						msg_type,
 						message,
@@ -374,8 +374,8 @@ class msg_bag_template_t : public abstract_message_bag_t
 			agent_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
-						rc_msg_bag_doesnt_support_delivery_filters,
-						"set_delivery_filter is called for msg_bag" );
+						rc_msg_chain_doesnt_support_delivery_filters,
+						"set_delivery_filter is called for mchain" );
 			}
 
 		virtual void
@@ -386,7 +386,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 
 		virtual extraction_status
 		extract(
-			bag_demand_t & dest,
+			demand_t & dest,
 			clock::duration empty_queue_timeout ) override
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
@@ -395,27 +395,27 @@ class msg_bag_template_t : public abstract_message_bag_t
 				bool queue_empty = m_queue.is_empty();
 				if( queue_empty )
 					{
-						if( details::bag_status::closed == m_status )
+						if( details::status::closed == m_status )
 							// Waiting for new messages has no sence because
-							// bag is closed.
-							return extraction_status::bag_closed;
+							// chain is closed.
+							return extraction_status::chain_closed;
 
 						m_underflow_cond.wait_for( lock, empty_queue_timeout,
 							[this, &queue_empty] {
 								queue_empty = m_queue.is_empty();
 								return !queue_empty ||
-										details::bag_status::closed == m_status;
+										details::status::closed == m_status;
 							} );
 					}
 
 				// If queue is still empty nothing can be extracted and
 				// we must stop operation.
 				if( queue_empty )
-					return details::bag_status::open == m_status ?
-							// The bag is still open so there must be this result
+					return details::status::open == m_status ?
+							// The chain is still open so there must be this result
 							extraction_status::no_messages :
-							// The bag is closed and there must be different result
-							extraction_status::bag_closed;
+							// The chain is closed and there must be different result
+							extraction_status::chain_closed;
 
 				// If queue was full then someone can wait on it.
 				const bool queue_was_full = m_queue.is_full();
@@ -445,7 +445,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
-				if( details::bag_status::closed == m_status )
+				if( details::status::closed == m_status )
 					return;
 
 				const bool was_full = m_queue.is_full();
@@ -457,25 +457,25 @@ class msg_bag_template_t : public abstract_message_bag_t
 							m_queue.pop_front();
 
 						if( was_empty )
-							// Someone can wait on empty bag for new messages.
+							// Someone can wait on empty chain for new messages.
 							// It must be informed that no new messages will be here.
 							m_underflow_cond.notify_all();
 					}
 
 				if( was_full )
-					// Someone can wait on full bag for free place for new message.
-					// It must be informed that the bag is closed.
+					// Someone can wait on full chain for free place for new message.
+					// It must be informed that the chain is closed.
 					m_overflow_cond.notify_all();
 			}
 
 	private :
-		//! SObjectizer Environment for which message bag is created.
+		//! SObjectizer Environment for which message chain is created.
 		environment_t & m_env;
 
-		//! Status of the bag.
-		details::bag_status m_status = { details::bag_status::open };
+		//! Status of the chain.
+		details::status m_status = { details::status::open };
 
-		//! Mbox ID for bag.
+		//! Mbox ID for chain.
 		const mbox_id_t m_id;
 
 		//! Bag capacity.
@@ -501,8 +501,8 @@ class msg_bag_template_t : public abstract_message_bag_t
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 
-				// Message cannot be stored to closed bag.
-				if( details::bag_status::closed == m_status )
+				// Message cannot be stored to closed chain.
+				if( details::status::closed == m_status )
 					return;
 
 				// If queue full and waiting on full queue is enabled we
@@ -517,7 +517,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 								[this, &queue_full] {
 									queue_full = m_queue.is_full();
 									return !queue_full ||
-											details::bag_status::closed == m_status;
+											details::status::closed == m_status;
 								} );
 					}
 
@@ -538,8 +538,8 @@ class msg_bag_template_t : public abstract_message_bag_t
 						else if( overflow_reaction::throw_exception == reaction )
 							{
 								SO_5_THROW_EXCEPTION(
-										rc_msg_bag_overflow,
-										"an attempt to push message to full msg_bag "
+										rc_msg_chain_overflow,
+										"an attempt to push message to full mchain "
 										"with overflow_reaction::throw_exception policy" );
 							}
 						else
@@ -547,7 +547,7 @@ class msg_bag_template_t : public abstract_message_bag_t
 								so_5::details::abort_on_fatal_error( [&] {
 										SO_5_LOG_ERROR( m_env, log_stream ) {
 											log_stream << "overflow_reaction::abort_app "
-													"will be performed for msg_bag (id="
+													"will be performed for mchain (id="
 													<< m_id << "), msg_type: "
 													<< msg_type.name()
 													<< ". Application will be aborted"
@@ -561,14 +561,14 @@ class msg_bag_template_t : public abstract_message_bag_t
 				const bool queue_was_empty = m_queue.is_empty();
 				
 				m_queue.push_back(
-						bag_demand_t{ msg_type, message, demand_type } );
+						demand_t{ msg_type, message, demand_type } );
 
 				if( queue_was_empty )
 					m_underflow_cond.notify_one();
 			}
 	};
 
-} /* namespace msg_bag */
+} /* namespace mchain_props */
 
 } /* namespace rt */
 

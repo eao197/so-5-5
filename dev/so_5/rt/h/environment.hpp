@@ -23,7 +23,7 @@
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
-#include <so_5/rt/h/msg_bag.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/disp.hpp>
@@ -582,21 +582,21 @@ class SO_5_TYPE environment_t
 		 */
 
 		/*!
-		 * \name Method for working with message bags.
+		 * \name Method for working with message chains.
 		 * \{
 		 */
 
 //FIXME: actual usage examples must be included into comment here!
 		/*!
 		 * \since v.5.5.13
-		 * \brief Create message bag.
+		 * \brief Create message chain.
 		 *
 		 * \par Usage examples:
 		 */
-		msg_bag_t
-		create_msg_bag(
+		mchain_t
+		create_mchain(
 			//! Parameters for a new bag.
-			const bag_params_t & params );
+			const mchain_params_t & params );
 		/*!
 		 * \}
 		 */
