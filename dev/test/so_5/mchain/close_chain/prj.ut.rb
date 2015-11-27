@@ -1,6 +1,6 @@
 require 'mxx_ru/binary_unittest'
 
-path = 'test/so_5/mchain/close_bag'
+path = 'test/so_5/mchain/close_chain'
 
 MxxRu::setup_target(
 	MxxRu::BinaryUnittestTarget.new(
