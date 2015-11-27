@@ -1,12 +1,12 @@
 /*
- * A simple test for msg_bag.
+ * A simple test for mchain.
  */
 
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-#include "../bag_params.hpp"
+#include "../mchain_params.hpp"
 
 using namespace std;
 
@@ -20,19 +20,19 @@ main()
 			{
 				so_5::wrapped_env_t env;
 
-				auto params = build_bag_params();
+				auto params = build_mchain_params();
 
 				for( const auto & p : params )
 				{
 					cout << "=== " << p.first << " ===" << endl;
 
-					auto bag = env.environment().create_msg_bag( p.second );
+					auto chain = env.environment().create_mchain( p.second );
 
-					so_5::send< int >( bag->as_mbox(), 42 );
+					so_5::send< int >( chain->as_mbox(), 42 );
 
 					auto r = receive(
-							bag,
-							so_5::rt::msg_bag::clock::duration::zero(),
+							chain,
+							so_5::rt::mchain_props::clock::duration::zero(),
 							so_5::handler( []( int i ) {
 								if( 42 != i )
 									throw runtime_error( "unexpected int-message: "
@@ -48,7 +48,7 @@ main()
 				}
 			},
 			4,
-			"simple test for msg_bag" );
+			"simple test for mchain" );
 	}
 	catch( const exception & ex )
 	{

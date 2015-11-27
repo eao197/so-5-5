@@ -3,7 +3,7 @@ require 'mxx_ru/cpp'
 
 MxxRu::Cpp::composite_target {
 
-	path = 'test/so_5/msg_bag'
+	path = 'test/so_5/mchain'
 
 	required_prj( "#{path}/simple/prj.ut.rb" )
 	required_prj( "#{path}/simple_svc/prj.ut.rb" )

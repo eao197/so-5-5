@@ -1,26 +1,26 @@
 /*
- * A simple test for msg_bag.
+ * A simple test for mchain.
  */
 
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-#include "../bag_params.hpp"
+#include "../mchain_params.hpp"
 
 using namespace std;
 
 void
-check_drop_content( const so_5::rt::msg_bag_t & bag )
+check_drop_content( const so_5::rt::mchain_t & chain )
 {
-	so_5::send< int >( bag->as_mbox(), 0 );
-	so_5::send< int >( bag->as_mbox(), 1 );
+	so_5::send< int >( chain->as_mbox(), 0 );
+	so_5::send< int >( chain->as_mbox(), 1 );
 
-	close_drop_content( bag );
+	close_drop_content( chain );
 
 	auto r = receive(
-			bag,
-			so_5::rt::msg_bag::clock::duration::zero(),
+			chain,
+			so_5::rt::mchain_props::clock::duration::zero(),
 			so_5::handler( []( int i ) {
 				throw runtime_error( "unexpected message: " + to_string(i) );
 			} ) );
@@ -31,17 +31,17 @@ check_drop_content( const so_5::rt::msg_bag_t & bag )
 }
 
 void
-check_retain_content( const so_5::rt::msg_bag_t & bag )
+check_retain_content( const so_5::rt::mchain_t & chain )
 {
-	so_5::send< int >( bag->as_mbox(), 0 );
-	so_5::send< int >( bag->as_mbox(), 1 );
+	so_5::send< int >( chain->as_mbox(), 0 );
+	so_5::send< int >( chain->as_mbox(), 1 );
 
-	close_retain_content( bag );
+	close_retain_content( chain );
 
 	std::size_t r = 0;
 	r = receive(
-			bag,
-			so_5::rt::msg_bag::clock::duration::zero(),
+			chain,
+			so_5::rt::mchain_props::clock::duration::zero(),
 			so_5::handler( []( int i ) {
 				if( i != 0 )
 					throw runtime_error( "unexpected message: " + to_string(i) );
@@ -52,8 +52,8 @@ check_retain_content( const so_5::rt::msg_bag_t & bag )
 				"return code: " + to_string( r ) );
 
 	r = receive(
-			bag,
-			so_5::rt::msg_bag::clock::duration::zero(),
+			chain,
+			so_5::rt::mchain_props::clock::duration::zero(),
 			so_5::handler( []( int i ) {
 				if( i != 1 )
 					throw runtime_error( "unexpected message: " + to_string(i) );
@@ -74,20 +74,20 @@ main()
 			{
 				so_5::wrapped_env_t env;
 
-				auto params = build_bag_params();
+				auto params = build_mchain_params();
 
 				for( const auto & p : params )
 				{
 					cout << "=== " << p.first << " ===" << endl;
 
 					check_drop_content(
-							env.environment().create_msg_bag( p.second ) );
+							env.environment().create_mchain( p.second ) );
 					check_retain_content(
-							env.environment().create_msg_bag( p.second ) );
+							env.environment().create_mchain( p.second ) );
 				}
 			},
 			4,
-			"simple test for msg_bag" );
+			"simple test for mchain" );
 	}
 	catch( const exception & ex )
 	{

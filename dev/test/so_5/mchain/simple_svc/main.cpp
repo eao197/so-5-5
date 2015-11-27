@@ -1,26 +1,26 @@
 /*
- * A simple test for msg_bag.
+ * A simple test for mchain.
  */
 
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-#include "../bag_params.hpp"
+#include "../mchain_params.hpp"
 
 using namespace std;
 
 void
-do_check( const so_5::rt::msg_bag_t & bag )
+do_check( const so_5::rt::mchain_t & chain )
 {
-	auto f1 = so_5::request_future< std::string, int >( bag->as_mbox(), 42 );
-	auto f2 = so_5::request_future< std::string, int >( bag->as_mbox(), -1 );
+	auto f1 = so_5::request_future< std::string, int >( chain->as_mbox(), 42 );
+	auto f2 = so_5::request_future< std::string, int >( chain->as_mbox(), -1 );
 
 	for( int i = 0; i != 2; ++i )
 	{
 		auto r = receive(
-				bag,
-				so_5::rt::msg_bag::clock::duration::zero(),
+				chain,
+				so_5::rt::mchain_props::clock::duration::zero(),
 				so_5::handler( []( int i ) -> std::string {
 					if( i < 0 )
 						throw invalid_argument( "negative value" );
@@ -58,13 +58,13 @@ main()
 			{
 				so_5::wrapped_env_t env;
 
-				auto params = build_bag_params();
+				auto params = build_mchain_params();
 
 				for( const auto & p : params )
 				{
 					cout << "=== " << p.first << " ===" << endl;
 
-					do_check( env.environment().create_msg_bag( p.second ) );
+					do_check( env.environment().create_mchain( p.second ) );
 				}
 			},
 			4,

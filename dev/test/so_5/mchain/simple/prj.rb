@@ -4,7 +4,7 @@ MxxRu::Cpp::exe_target {
 
 	required_prj 'so_5/prj.rb'
 
-	target '_unit.test.msg_bag.simple'
+	target '_unit.test.mchain.simple'
 
 	cpp_source 'main.cpp'
 }
