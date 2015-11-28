@@ -307,6 +307,51 @@ enum class close_mode
 		retain_content
 	};
 
+namespace details {
+
+//
+// actual_timeout
+//
+
+/*!
+ * \since v.5.5.13
+ * \brief Helper function for detection of actual value for waiting timeout.
+ *
+ * \note This helper implements convention that infinite waiting is
+ * represented as clock::duration::max() value.
+ */
+inline clock::duration
+actual_timeout( infinite_wait_indication )
+	{
+		return clock::duration::max();
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief Helper function for detection of actual value for waiting timeout.
+ *
+ * \note This helper implements convention that no waiting is
+ * represented as clock::duration::zero() value.
+ */
+inline clock::duration
+actual_timeout( no_wait_indication )
+	{
+		return clock::duration::zero();
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief Helper function for detection of actual value for waiting timeout.
+ */
+template< typename V >
+clock::duration
+actual_timeout( V value )
+	{
+		return clock::duration( value );
+	}
+
+} /* namespace details */
+
 } /* namespace mchain_props */
 
 //
@@ -508,25 +553,28 @@ class mchain_receive_result
  * \since v.5.5.13
  * \brief Receive and handle one message from message chain.
  */
-template< typename... HANDLERS >
+template< typename TIMEOUT, typename... HANDLERS >
 inline mchain_receive_result
 receive(
 	//! Message chain from which a message must be extracted.
 	const so_5::mchain & chain,
 	//! Maximum timeout for waiting for message on empty bag.
-	mchain_props::clock::duration waiting_timeout,
+	TIMEOUT waiting_timeout,
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{
 		using namespace so_5::rt::details;
 		using namespace so_5::mchain_props;
+		using namespace so_5::mchain_props::details;
 
 		handlers_bunch< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
 		demand extracted_demand;
-		const auto status = chain->extract( extracted_demand, waiting_timeout );
+		const auto status = chain->extract(
+				extracted_demand,
+				actual_timeout( waiting_timeout ) );
 		if( extraction_status::msg_extracted == status )
 			{
 				const bool handled = bunch.handle(

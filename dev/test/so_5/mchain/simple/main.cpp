@@ -32,7 +32,7 @@ main()
 
 					auto r = receive(
 							chain,
-							so_5::mchain_props::clock::duration::zero(),
+							so_5::no_wait,
 							so_5::handler( []( int i ) {
 								if( 42 != i )
 									throw runtime_error( "unexpected int-message: "

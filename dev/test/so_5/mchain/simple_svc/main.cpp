@@ -20,7 +20,7 @@ do_check( const so_5::mchain & chain )
 	{
 		auto r = receive(
 				chain,
-				so_5::mchain_props::clock::duration::zero(),
+				so_5::no_wait,
 				so_5::handler( []( int i ) -> std::string {
 					if( i < 0 )
 						throw invalid_argument( "negative value" );

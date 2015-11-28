@@ -396,12 +396,19 @@ class mchain_template : public abstract_message_chain
 							// chain is closed.
 							return extraction_status::chain_closed;
 
-						m_underflow_cond.wait_for( lock, empty_queue_timeout,
-							[this, &queue_empty] {
+						auto predicate = [this, &queue_empty]() -> bool {
 								queue_empty = m_queue.is_empty();
 								return !queue_empty ||
 										details::status::closed == m_status;
-							} );
+							};
+
+						if( clock::duration::max() != empty_queue_timeout )
+							// A wait with finite timeout must be performed.
+							m_underflow_cond.wait_for(
+									lock, empty_queue_timeout, predicate );
+						else
+							// Wait until arrival of any message or closing of chain.
+							m_underflow_cond.wait( lock, predicate );
 					}
 
 				// If queue is still empty nothing can be extracted and

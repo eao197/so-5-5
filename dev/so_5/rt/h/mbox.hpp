@@ -19,7 +19,7 @@
 
 #include <so_5/h/exception.hpp>
 
-#include <so_5/h/infinite_wait.hpp>
+#include <so_5/h/wait_indication.hpp>
 
 #include <so_5/rt/h/mbox_fwd.hpp>
 #include <so_5/rt/h/message.hpp>

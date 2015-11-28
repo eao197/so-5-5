@@ -20,7 +20,7 @@ check_drop_content( const so_5::mchain & chain )
 
 	auto r = receive(
 			chain,
-			so_5::mchain_props::clock::duration::zero(),
+			so_5::no_wait,
 			so_5::handler( []( int i ) {
 				throw runtime_error( "unexpected message: " + to_string(i) );
 			} ) );
@@ -41,7 +41,7 @@ check_retain_content( const so_5::mchain & chain )
 	so_5::mchain_receive_result r;
 	r = receive(
 			chain,
-			so_5::mchain_props::clock::duration::zero(),
+			so_5::no_wait,
 			so_5::handler( []( int i ) {
 				if( i != 0 )
 					throw runtime_error( "unexpected message: " + to_string(i) );
@@ -53,7 +53,7 @@ check_retain_content( const so_5::mchain & chain )
 
 	r = receive(
 			chain,
-			so_5::mchain_props::clock::duration::zero(),
+			so_5::no_wait,
 			so_5::handler( []( int i ) {
 				if( i != 1 )
 					throw runtime_error( "unexpected message: " + to_string(i) );
