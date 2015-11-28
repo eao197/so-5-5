@@ -11,7 +11,7 @@
 using namespace std;
 
 void
-check_drop_content( const so_5::rt::mchain_t & chain )
+check_drop_content( const so_5::mchain_t & chain )
 {
 	so_5::send< int >( chain->as_mbox(), 0 );
 	so_5::send< int >( chain->as_mbox(), 1 );
@@ -20,7 +20,7 @@ check_drop_content( const so_5::rt::mchain_t & chain )
 
 	auto r = receive(
 			chain,
-			so_5::rt::mchain_props::clock::duration::zero(),
+			so_5::mchain_props::clock::duration::zero(),
 			so_5::handler( []( int i ) {
 				throw runtime_error( "unexpected message: " + to_string(i) );
 			} ) );
@@ -31,7 +31,7 @@ check_drop_content( const so_5::rt::mchain_t & chain )
 }
 
 void
-check_retain_content( const so_5::rt::mchain_t & chain )
+check_retain_content( const so_5::mchain_t & chain )
 {
 	so_5::send< int >( chain->as_mbox(), 0 );
 	so_5::send< int >( chain->as_mbox(), 1 );
@@ -41,7 +41,7 @@ check_retain_content( const so_5::rt::mchain_t & chain )
 	std::size_t r = 0;
 	r = receive(
 			chain,
-			so_5::rt::mchain_props::clock::duration::zero(),
+			so_5::mchain_props::clock::duration::zero(),
 			so_5::handler( []( int i ) {
 				if( i != 0 )
 					throw runtime_error( "unexpected message: " + to_string(i) );
@@ -53,7 +53,7 @@ check_retain_content( const so_5::rt::mchain_t & chain )
 
 	r = receive(
 			chain,
-			so_5::rt::mchain_props::clock::duration::zero(),
+			so_5::mchain_props::clock::duration::zero(),
 			so_5::handler( []( int i ) {
 				if( i != 1 )
 					throw runtime_error( "unexpected message: " + to_string(i) );

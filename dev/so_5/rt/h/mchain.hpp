@@ -17,8 +17,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace mchain_props {
 
 //
@@ -33,9 +31,9 @@ struct demand_t
 		//! Type of the message.
 		std::type_index m_msg_type;
 		//! Event incident.
-		message_ref_t m_message_ref;
+		so_5::rt::message_ref_t m_message_ref;
 		//! Type of demand.
-		invocation_type_t m_demand_type;
+		so_5::rt::invocation_type_t m_demand_type;
 
 // NOTE: the full set of constructors and copy/move operators is defined
 // because VC++12.0 doesn't generate move constructors/operators automatically
@@ -48,8 +46,8 @@ struct demand_t
 		//! Initializing constructor.
 		demand_t(
 			std::type_index msg_type,
-			message_ref_t message_ref,
-			invocation_type_t demand_type )
+			so_5::rt::message_ref_t message_ref,
+			so_5::rt::invocation_type_t demand_type )
 			:	m_msg_type{ std::move(msg_type) }
 			,	m_message_ref{ std::move(message_ref) }
 			,	m_demand_type{ demand_type }
@@ -318,7 +316,7 @@ enum class close_mode
  * \since v.5.5.13
  * \brief An interace of message chain.
  */
-class SO_5_TYPE abstract_message_chain_t : protected abstract_message_box_t
+class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_box_t
 	{
 		friend class intrusive_ptr_t< abstract_message_chain_t >;
 
@@ -339,7 +337,7 @@ class SO_5_TYPE abstract_message_chain_t : protected abstract_message_box_t
 			mchain_props::clock::duration empty_queue_timeout ) = 0;
 
 		//! Cast message chain to message box.
-		mbox_t
+		so_5::rt::mbox_t
 		as_mbox();
 
 		//! Is message chain empty?
@@ -378,11 +376,11 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
  *
  * \par Usage example.
 	\code
-	so_5::rt::chain_t & ch = ...;
+	so_5::mchain_t & ch = ...;
 	... // Some work with chain.
 	close_drop_content( ch );
 	// Or:
-	ch->close( so_5::rt::mchain_props::close_mode::drop_content );
+	ch->close( so_5::mchain_props::close_mode::drop_content );
 	\endcode
  */
 inline void
@@ -403,11 +401,11 @@ close_drop_content( const mchain_t & ch )
  *
  * \par Usage example.
 	\code
-	so_5::rt::mchain_t & ch = ...;
+	so_5::mchain_t & ch = ...;
 	... // Some work with chain.
 	close_retain_content( ch );
 	// Or:
-	ch->close( so_5::rt::mchain_props::close_mode::retain_content );
+	ch->close( so_5::mchain_props::close_mode::retain_content );
 	\endcode
  */
 inline void
@@ -464,14 +462,14 @@ template< typename... HANDLERS >
 inline std::size_t
 receive(
 	//! Message chain from which a message must be extracted.
-	const so_5::rt::mchain_t & chain,
+	const so_5::mchain_t & chain,
 	//! Maximum timeout for waiting for message on empty bag.
 	mchain_props::clock::duration waiting_timeout,
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{
 		using namespace so_5::rt::details;
-		using namespace so_5::rt::mchain_props;
+		using namespace so_5::mchain_props;
 
 		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
@@ -490,8 +488,6 @@ receive(
 
 		return 0;
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -12,8 +12,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 //
 // abstract_message_chain_t
 //
@@ -22,13 +20,11 @@ abstract_message_chain_t::abstract_message_chain_t()
 abstract_message_chain_t::~abstract_message_chain_t()
 	{}
 
-mbox_t
+so_5::rt::mbox_t
 abstract_message_chain_t::as_mbox()
 	{
-		return mbox_t{ this };
+		return so_5::rt::mbox_t{ this };
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

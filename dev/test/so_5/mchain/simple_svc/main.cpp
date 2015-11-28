@@ -11,7 +11,7 @@
 using namespace std;
 
 void
-do_check( const so_5::rt::mchain_t & chain )
+do_check( const so_5::mchain_t & chain )
 {
 	auto f1 = so_5::request_future< std::string, int >( chain->as_mbox(), 42 );
 	auto f2 = so_5::request_future< std::string, int >( chain->as_mbox(), -1 );
@@ -20,7 +20,7 @@ do_check( const so_5::rt::mchain_t & chain )
 	{
 		auto r = receive(
 				chain,
-				so_5::rt::mchain_props::clock::duration::zero(),
+				so_5::mchain_props::clock::duration::zero(),
 				so_5::handler( []( int i ) -> std::string {
 					if( i < 0 )
 						throw invalid_argument( "negative value" );

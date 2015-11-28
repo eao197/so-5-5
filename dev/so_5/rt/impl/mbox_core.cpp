@@ -116,8 +116,8 @@ mbox_core_t::create_mchain(
 	environment_t & env,
 	const mchain_params_t & params )
 {
-	using namespace so_5::rt::mchain_props;
-	using namespace so_5::rt::mchain_props::details;
+	using namespace so_5::mchain_props;
+	using namespace so_5::mchain_props::details;
 
 	auto id = ++m_mbox_id_counter;
 
