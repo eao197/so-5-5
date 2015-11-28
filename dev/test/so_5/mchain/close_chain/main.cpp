@@ -25,9 +25,9 @@ check_drop_content( const so_5::mchain & chain )
 				throw runtime_error( "unexpected message: " + to_string(i) );
 			} ) );
 
-	if( r != 0 )
+	if( r.status() != so_5::mchain_props::extraction_status::chain_closed )
 		throw runtime_error( "unexpected value of so_5::receive "
-				"return code: " + to_string( r ) );
+				"return code: " + to_string( static_cast<int>(r.status()) ) );
 }
 
 void
@@ -38,7 +38,7 @@ check_retain_content( const so_5::mchain & chain )
 
 	close_retain_content( chain );
 
-	std::size_t r = 0;
+	so_5::mchain_receive_result r;
 	r = receive(
 			chain,
 			so_5::mchain_props::clock::duration::zero(),
@@ -47,9 +47,9 @@ check_retain_content( const so_5::mchain & chain )
 					throw runtime_error( "unexpected message: " + to_string(i) );
 			} ) );
 
-	if( r != 1 )
+	if( r.handled() != 1 )
 		throw runtime_error( "1: unexpected value of so_5::receive "
-				"return code: " + to_string( r ) );
+				"return code: " + to_string( r.handled() ) );
 
 	r = receive(
 			chain,
@@ -59,9 +59,9 @@ check_retain_content( const so_5::mchain & chain )
 					throw runtime_error( "unexpected message: " + to_string(i) );
 			} ) );
 
-	if( r != 1 )
+	if( r.handled() != 1 )
 		throw runtime_error( "2: unexpected value of so_5::receive "
-				"return code: " + to_string( r ) );
+				"return code: " + to_string( r.handled() ) );
 }
 
 int

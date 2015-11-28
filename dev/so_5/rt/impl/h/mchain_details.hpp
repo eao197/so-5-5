@@ -444,6 +444,8 @@ class mchain_template : public abstract_message_chain
 				if( details::status::closed == m_status )
 					return;
 
+				m_status = details::status::closed;
+
 				const bool was_full = m_queue.is_full();
 
 				if( close_mode::drop_content == mode )

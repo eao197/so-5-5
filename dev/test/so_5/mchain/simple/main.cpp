@@ -42,9 +42,9 @@ main()
 								throw runtime_error( "unexpected string msg: " + s );
 							} ) );
 
-					if( r != 1 )
+					if( r.handled() != 1 )
 						throw runtime_error( "unexpected value of so_5::receive "
-								"return code: " + to_string( r ) );
+								"return code: " + to_string( r.handled() ) );
 				}
 			},
 			4,

@@ -242,7 +242,7 @@ struct handlers_bunch_basics
 			}
 
 //FIXME: Doxygen comments must be written!
-		static inline void
+		static inline bool
 		find_and_use_handler(
 			const msg_type_and_handler_pair * left,
 			const msg_type_and_handler_pair * right,
@@ -250,11 +250,14 @@ struct handlers_bunch_basics
 			message_ref_t & message,
 			invocation_type_t invocation )
 			{
+				bool ret_value = false;
+
 				msg_type_and_handler_pair key{ msg_type };
 				auto it = std::lower_bound( left, right, key );
 				if( it != right && it->m_msg_type == key.m_msg_type )
 					{
 						// Handler is found and must be called.
+						ret_value = true;
 						if( invocation_type_t::event == invocation )
 							// This is a async message.
 							// Simple call is enough.
@@ -267,6 +270,8 @@ struct handlers_bunch_basics
 										it->m_handler( invocation, message );
 									} );
 					}
+
+				return ret_value;
 			}
 	};
 
@@ -313,7 +318,11 @@ class handlers_bunch : private handlers_bunch_basics
 			}
 
 		//! Find handler for a message and execute it.
-		void
+		/*!
+		 * \retval true if handler was found.
+		 * \retval false if handler was not found.
+		 */
+		bool
 		handle(
 			//! Type of a message or signal.
 			const std::type_index & msg_type,
@@ -322,7 +331,7 @@ class handlers_bunch : private handlers_bunch_basics
 			//! It is async message or service handler?
 			invocation_type_t invocation )
 			{
-				find_and_use_handler(
+				return find_and_use_handler(
 						m_handlers, m_handlers + N,
 						msg_type,
 						message,

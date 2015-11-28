@@ -451,6 +451,56 @@ class mchain_params
 	};
 
 //
+// mchain_receive_result
+//
+/*!
+ * \since v.5.5.13
+ * \brief A result of receive from %mchain.
+ */
+class mchain_receive_result
+	{
+		//! Count of extracted messages.
+		std::size_t m_extracted;
+		//! Count of handled messages.
+		std::size_t m_handled;
+		//! Extraction status (e.g. no messages, chain closed and so on).
+		mchain_props::extraction_status m_status;
+
+	public :
+		//! Default constructor.
+		mchain_receive_result()
+			:	m_extracted{ 0 }
+			,	m_handled{ 0 }
+			,	m_status{ mchain_props::extraction_status::no_messages }
+			{}
+
+		//! Initializing constructor.
+		mchain_receive_result(
+			//! Count of extracted messages.
+			std::size_t extracted,
+			//! Count of handled messages.
+			std::size_t handled,
+			//! Status of extraction operation.
+			mchain_props::extraction_status status )
+			:	m_extracted{ extracted }
+			,	m_handled{ handled }
+			,	m_status{ status }
+			{}
+
+		//! Count of extracted messages.
+		std::size_t
+		extracted() const { return m_extracted; }
+
+		//! Count of handled messages.
+		std::size_t
+		handled() const { return m_handled; }
+
+		//! Extraction status (e.g. no messages, chain closed and so on).
+		mchain_props::extraction_status
+		status() const { return m_status; }
+	};
+
+//
 // receive
 //
 //FIXME: Normal Doxygen comment must be written!
@@ -459,7 +509,7 @@ class mchain_params
  * \brief Receive and handle one message from message chain.
  */
 template< typename... HANDLERS >
-inline std::size_t
+inline mchain_receive_result
 receive(
 	//! Message chain from which a message must be extracted.
 	const so_5::mchain & chain,
@@ -476,17 +526,18 @@ receive(
 				std::forward< HANDLERS >(handlers)... );
 
 		demand extracted_demand;
-		if( extraction_status::msg_extracted ==
-				chain->extract( extracted_demand, waiting_timeout ) )
+		const auto status = chain->extract( extracted_demand, waiting_timeout );
+		if( extraction_status::msg_extracted == status )
 			{
-				bunch.handle(
+				const bool handled = bunch.handle(
 						extracted_demand.m_msg_type,
 						extracted_demand.m_message_ref,
 						extracted_demand.m_demand_type );
-				return 1;
+
+				return mchain_receive_result{ 1u, handled ? 1u : 0u, status };
 			}
 
-		return 0;
+		return mchain_receive_result{ 0u, 0u, status };
 	}
 
 } /* namespace so_5 */
