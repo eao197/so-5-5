@@ -217,7 +217,7 @@ struct result_setter_t< void >
 } /* namespace promise_result_setting_details */
 
 //
-// handlers_bunch_basics_t
+// handlers_bunch_basics
 //
 /*!
  * \since v.5.5.13
@@ -225,13 +225,13 @@ struct result_setter_t< void >
  *
  * \note This part is not depends on template parameters.
  */
-struct handlers_bunch_basics_t
+struct handlers_bunch_basics
 	{
 //FIXME: Doxygen comments must be written!
 		static inline void
 		prepare_handlers(
-			msg_type_and_handler_pair_t * left,
-			msg_type_and_handler_pair_t * right )
+			msg_type_and_handler_pair * left,
+			msg_type_and_handler_pair * right )
 			{
 				std::sort( left, right );
 				auto duplicate = std::adjacent_find( left, right );
@@ -244,13 +244,13 @@ struct handlers_bunch_basics_t
 //FIXME: Doxygen comments must be written!
 		static inline void
 		find_and_use_handler(
-			const msg_type_and_handler_pair_t * left,
-			const msg_type_and_handler_pair_t * right,
+			const msg_type_and_handler_pair * left,
+			const msg_type_and_handler_pair * right,
 			const std::type_index & msg_type,
 			message_ref_t & message,
 			invocation_type_t invocation )
 			{
-				msg_type_and_handler_pair_t key{ msg_type };
+				msg_type_and_handler_pair key{ msg_type };
 				auto it = std::lower_bound( left, right, key );
 				if( it != right && it->m_msg_type == key.m_msg_type )
 					{
@@ -271,23 +271,23 @@ struct handlers_bunch_basics_t
 	};
 
 //
-// handlers_bunch_t
+// handlers_bunch
 //
 /*!
  * \since v.5.5.13
  * \brief Template class for storing bunch of message handlers.
  */
 template< std::size_t N >
-class handlers_bunch_t : private handlers_bunch_basics_t
+class handlers_bunch : private handlers_bunch_basics
 	{
 		//! Vector of message handlers.
 		/*!
 		 * Will be ordered by msg_type after invoking prepare() method.
 		 */
-		msg_type_and_handler_pair_t m_handlers[ N ];
+		msg_type_and_handler_pair m_handlers[ N ];
 
 	public :
-		handlers_bunch_t()
+		handlers_bunch()
 			{}
 
 		//! Add another handler to the specified index.
@@ -296,7 +296,7 @@ class handlers_bunch_t : private handlers_bunch_basics_t
 			//! Index for new handler.
 			std::size_t index,
 			//! Message handler to be added.
-			msg_type_and_handler_pair_t && handler )
+			msg_type_and_handler_pair && handler )
 			{
 				m_handlers[ index ] = std::move(handler);
 			}
@@ -349,7 +349,7 @@ fill_handlers_bunch(
 	//! An index for next handler.
 	std::size_t index,
 	//! Next handler to be inserted.
-	msg_type_and_handler_pair_t && handler,
+	msg_type_and_handler_pair && handler,
 	//! All other handlers.
 	OTHERS &&... other_handlers )
 	{
@@ -373,7 +373,7 @@ fill_handlers_bunch(
  * \note Must be used for the case when message is an ordinary message.
  */
 template< class LAMBDA >
-rt::details::msg_type_and_handler_pair_t
+rt::details::msg_type_and_handler_pair
 handler( LAMBDA && lambda )
 	{
 		using namespace so_5::rt;
@@ -418,7 +418,7 @@ handler( LAMBDA && lambda )
 					}
 			};
 
-		return msg_type_and_handler_pair_t{
+		return msg_type_and_handler_pair{
 				message_payload_type< MESSAGE >::payload_type_index(),
 				method };
 	}
@@ -434,7 +434,7 @@ handler( LAMBDA && lambda )
  * \note Must be used for the case when message is a signal.
  */
 template< class SIGNAL, class LAMBDA >
-rt::details::msg_type_and_handler_pair_t
+rt::details::msg_type_and_handler_pair
 handler( LAMBDA && lambda )
 	{
 		using namespace so_5::rt;
@@ -469,7 +469,7 @@ handler( LAMBDA && lambda )
 					}
 			};
 
-		return msg_type_and_handler_pair_t{
+		return msg_type_and_handler_pair{
 				message_payload_type< SIGNAL >::payload_type_index(),
 				method };
 	}

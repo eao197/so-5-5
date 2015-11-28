@@ -8,37 +8,37 @@
 
 using namespace std;
 
-vector< pair< string, so_5::mchain_params_t > >
+vector< pair< string, so_5::mchain_params > >
 build_mchain_params()
 	{
 		namespace props = so_5::mchain_props;
 
-		vector< pair< string, so_5::mchain_params_t > > params;
+		vector< pair< string, so_5::mchain_params > > params;
 		params.emplace_back( "unlimited",
-				so_5::mchain_params_t{
-						props::capacity_t::make_unlimited() } );
+				so_5::mchain_params{
+						props::capacity::make_unlimited() } );
 		params.emplace_back( "limited(dynamic,nowait)",
-				so_5::mchain_params_t{
-						props::capacity_t::make_limited_without_waiting(
+				so_5::mchain_params{
+						props::capacity::make_limited_without_waiting(
 								5,
 								props::storage_memory::dynamic,
 								props::overflow_reaction::drop_newest ) } );
 		params.emplace_back( "limited(preallocated,nowait)",
-				so_5::mchain_params_t{
-						props::capacity_t::make_limited_without_waiting(
+				so_5::mchain_params{
+						props::capacity::make_limited_without_waiting(
 								5,
 								props::storage_memory::preallocated,
 								props::overflow_reaction::drop_newest ) } );
 		params.emplace_back( "limited(dynamic,wait)",
-				so_5::mchain_params_t{
-						props::capacity_t::make_limited_with_waiting(
+				so_5::mchain_params{
+						props::capacity::make_limited_with_waiting(
 								5,
 								props::storage_memory::dynamic,
 								props::overflow_reaction::drop_newest,
 								chrono::milliseconds(200) ) } );
 		params.emplace_back( "limited(preallocated,wait)",
-				so_5::mchain_params_t{
-						props::capacity_t::make_limited_with_waiting(
+				so_5::mchain_params{
+						props::capacity::make_limited_with_waiting(
 								5,
 								props::storage_memory::preallocated,
 								props::overflow_reaction::drop_newest,

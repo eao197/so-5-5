@@ -20,13 +20,13 @@ namespace so_5 {
 namespace mchain_props {
 
 //
-// demand_t
+// demand
 //
 /*!
  * \since v.5.5.13
  * \brief Description of one demand in message chain.
  */
-struct demand_t
+struct demand
 	{
 		//! Type of the message.
 		std::type_index m_msg_type;
@@ -40,11 +40,11 @@ struct demand_t
 // and doesn't support '=default' construct.
 
 		//! Default constructor.
-		demand_t()
+		demand()
 			:	m_msg_type( typeid(void) )
 			{}
 		//! Initializing constructor.
-		demand_t(
+		demand(
 			std::type_index msg_type,
 			so_5::rt::message_ref_t message_ref,
 			so_5::rt::invocation_type_t demand_type )
@@ -54,13 +54,13 @@ struct demand_t
 			{}
 
 		//! Copy constructor.
-		demand_t( const demand_t & o )
+		demand( const demand& o )
 			:	m_msg_type{ o.m_msg_type }
 			,	m_message_ref{ o.m_message_ref }
 			,	m_demand_type{ o.m_demand_type }
 			{}
 		//! Move constructor.
-		demand_t( demand_t && o )
+		demand( demand && o )
 			:	m_msg_type{ std::move(o.m_msg_type) }
 			,	m_message_ref{ std::move(o.m_message_ref) }
 			,	m_demand_type{ std::move(o.m_demand_type) }
@@ -68,7 +68,7 @@ struct demand_t
 
 		//! Swap operation.
 		void
-		swap( demand_t & o )
+		swap( demand & o )
 			{
 				std::swap( m_msg_type, o.m_msg_type );
 				m_message_ref.swap( o.m_message_ref );
@@ -76,19 +76,19 @@ struct demand_t
 			}
 
 		//! Copy operator.
-		demand_t &
-		operator=( const demand_t & o )
+		demand &
+		operator=( const demand & o )
 			{
-				demand_t tmp{ o };
+				demand tmp{ o };
 				tmp.swap( *this );
 				return *this;
 			}
 
 		//! Move operator.
-		demand_t &
-		operator=( demand_t && o )
+		demand &
+		operator=( demand && o )
 			{
-				demand_t tmp{ std::move(o) };
+				demand tmp{ std::move(o) };
 				tmp.swap( *this );
 				return *this;
 			}
@@ -134,13 +134,13 @@ enum class overflow_reaction
 	};
 
 //
-// capacity_t
+// capacity
 //
 /*!
  * \since v.5.5.13
  * \brief Parameters for defining chain size.
  */
-class capacity_t
+class capacity
 	{
 		//! Has chain unlimited size?
 		bool m_unlimited = { true };
@@ -164,7 +164,7 @@ class capacity_t
 		clock::duration m_overflow_timeout;
 
 		//! Initializing constructor for size-limited message chain.
-		capacity_t(
+		capacity(
 			std::size_t max_size,
 			storage_memory memory,
 			overflow_reaction overflow_reaction,
@@ -181,16 +181,16 @@ class capacity_t
 		/*!
 		 * Creates description for size-unlimited chain.
 		 */
-		capacity_t()
+		capacity()
 			{}
 
 		//! Create capacity description for size-unlimited message chain.
-		inline static capacity_t
-		make_unlimited() { return capacity_t{}; }
+		inline static capacity
+		make_unlimited() { return capacity{}; }
 
 		//! Create capacity description for size-limited message chain
 		//! without waiting on full queue during 'push message' operation.
-		inline static capacity_t
+		inline static capacity
 		make_limited_without_waiting(
 			//! Max size of the chain.
 			std::size_t max_size,
@@ -199,7 +199,7 @@ class capacity_t
 			//! Reaction on chain overflow.
 			overflow_reaction overflow_reaction )
 			{
-				return capacity_t{
+				return capacity{
 						max_size,
 						memory,
 						overflow_reaction,
@@ -209,7 +209,7 @@ class capacity_t
 
 		//! Create capacity description for size-limited message chain
 		//! with waiting on full queue during 'push message' operation.
-		inline static capacity_t
+		inline static capacity
 		make_limited_with_waiting(
 			//! Max size of the chain.
 			std::size_t max_size,
@@ -220,7 +220,7 @@ class capacity_t
 			//! Waiting time on full message chain.
 			clock::duration wait_timeout )
 			{
-				return capacity_t{
+				return capacity{
 						max_size,
 						memory,
 						overflow_reaction,
@@ -310,29 +310,29 @@ enum class close_mode
 } /* namespace mchain_props */
 
 //
-// abstract_message_chain_t
+// abstract_message_chain
 //
 /*!
  * \since v.5.5.13
  * \brief An interace of message chain.
  */
-class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_box_t
+class SO_5_TYPE abstract_message_chain : protected so_5::rt::abstract_message_box_t
 	{
-		friend class intrusive_ptr_t< abstract_message_chain_t >;
+		friend class intrusive_ptr_t< abstract_message_chain >;
 
-		abstract_message_chain_t( const abstract_message_chain_t & ) = delete;
-		abstract_message_chain_t &
-		operator=( const abstract_message_chain_t & ) = delete;
+		abstract_message_chain( const abstract_message_chain & ) = delete;
+		abstract_message_chain &
+		operator=( const abstract_message_chain & ) = delete;
 
 	protected :
-		abstract_message_chain_t();
-		virtual ~abstract_message_chain_t();
+		abstract_message_chain();
+		virtual ~abstract_message_chain();
 
 	public :
 		virtual mchain_props::extraction_status
 		extract(
 			//! Destination for extracted messages.
-			mchain_props::demand_t & dest,
+			mchain_props::demand & dest,
 			//! Max time to wait on empty queue.
 			mchain_props::clock::duration empty_queue_timeout ) = 0;
 
@@ -356,13 +356,13 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_
 	};
 
 //
-// mchain_t
+// mchain
 //
 /*!
  * \since v.5.5.13
  * \brief Short name for smart pointer to message chain.
  */
-using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
+using mchain = intrusive_ptr_t< abstract_message_chain >;
 
 //
 // close_drop_content
@@ -376,7 +376,7 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
  *
  * \par Usage example.
 	\code
-	so_5::mchain_t & ch = ...;
+	so_5::mchain & ch = ...;
 	... // Some work with chain.
 	close_drop_content( ch );
 	// Or:
@@ -384,7 +384,7 @@ using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 	\endcode
  */
 inline void
-close_drop_content( const mchain_t & ch )
+close_drop_content( const mchain & ch )
 	{
 		ch->close( mchain_props::close_mode::drop_content );
 	}
@@ -401,7 +401,7 @@ close_drop_content( const mchain_t & ch )
  *
  * \par Usage example.
 	\code
-	so_5::mchain_t & ch = ...;
+	so_5::mchain & ch = ...;
 	... // Some work with chain.
 	close_retain_content( ch );
 	// Or:
@@ -409,41 +409,41 @@ close_drop_content( const mchain_t & ch )
 	\endcode
  */
 inline void
-close_retain_content( const mchain_t & ch )
+close_retain_content( const mchain & ch )
 	{
 		ch->close( mchain_props::close_mode::retain_content );
 	}
 
 //
-// mchain_params_t
+// mchain_params
 //
 /*!
  * \since v.5.5.13
  * \brief Parameters for message chain.
  */
-class mchain_params_t
+class mchain_params
 	{
 		//! Bag's capacity.
-		mchain_props::capacity_t m_capacity;
+		mchain_props::capacity m_capacity;
 
 	public :
 		//! Initializing constructor.
-		mchain_params_t(
+		mchain_params(
 			//! Bag's capacity and related params.
-			mchain_props::capacity_t capacity )
+			mchain_props::capacity capacity )
 			:	m_capacity{ capacity }
 			{}
 
 		//! Set chain's capacity and related params.
-		mchain_params_t &
-		capacity( mchain_props::capacity_t capacity )
+		mchain_params &
+		capacity( mchain_props::capacity capacity )
 			{
 				m_capacity = capacity;
 				return *this;
 			}
 
 		//! Get bag's capacity and related params.
-		const mchain_props::capacity_t &
+		const mchain_props::capacity &
 		capacity() const
 			{
 				return m_capacity;
@@ -462,7 +462,7 @@ template< typename... HANDLERS >
 inline std::size_t
 receive(
 	//! Message chain from which a message must be extracted.
-	const so_5::mchain_t & chain,
+	const so_5::mchain & chain,
 	//! Maximum timeout for waiting for message on empty bag.
 	mchain_props::clock::duration waiting_timeout,
 	//! Handlers for message processing.
@@ -471,18 +471,18 @@ receive(
 		using namespace so_5::rt::details;
 		using namespace so_5::mchain_props;
 
-		handlers_bunch_t< sizeof...(handlers) > bunch;
+		handlers_bunch< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
-		demand_t demand;
+		demand extracted_demand;
 		if( extraction_status::msg_extracted ==
-				chain->extract( demand, waiting_timeout ) )
+				chain->extract( extracted_demand, waiting_timeout ) )
 			{
 				bunch.handle(
-						demand.m_msg_type,
-						demand.m_message_ref,
-						demand.m_demand_type );
+						extracted_demand.m_msg_type,
+						extracted_demand.m_message_ref,
+						extracted_demand.m_demand_type );
 				return 1;
 			}
 

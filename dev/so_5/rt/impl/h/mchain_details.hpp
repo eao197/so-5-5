@@ -63,19 +63,19 @@ ensure_queue_not_full( Q && queue )
 	}
 
 //
-// unlimited_demand_queue_t
+// unlimited_demand_queue
 //
 /*!
  * \since v.5.5.13
  * \brief Implementation of demands queue for size-unlimited message chain.
  */
-class unlimited_demand_queue_t
+class unlimited_demand_queue
 	{
 	public :
 		/*!
 		 * \note This constructor is necessary just for a convinience.
 		 */
-		unlimited_demand_queue_t( const capacity_t & ) {}
+		unlimited_demand_queue( const capacity & ) {}
 
 		//! Is queue full?
 		/*!
@@ -90,7 +90,7 @@ class unlimited_demand_queue_t
 		is_empty() const { return m_queue.empty(); }
 
 		//! Access to front item from queue.
-		demand_t &
+		demand &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -107,7 +107,7 @@ class unlimited_demand_queue_t
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( demand_t && demand )
+		push_back( demand && demand )
 			{
 				m_queue.push_back( std::move(demand) );
 			}
@@ -118,23 +118,23 @@ class unlimited_demand_queue_t
 
 	private :
 		//! Queue's storage.
-		std::deque< demand_t > m_queue;
+		std::deque< demand > m_queue;
 	};
 
 //
-// limited_dynamic_demand_queue_t
+// limited_dynamic_demand_queue
 //
 /*!
  * \since v.5.5.13
  * \brief Implementation of demands queue for size-limited message chain with
  * dynamically allocated storage.
  */
-class limited_dynamic_demand_queue_t
+class limited_dynamic_demand_queue
 	{
 	public :
 		//! Initializing constructor.
-		limited_dynamic_demand_queue_t(
-			const capacity_t & capacity )
+		limited_dynamic_demand_queue(
+			const capacity & capacity )
 			:	m_max_size{ capacity.max_size() }
 			{}
 
@@ -147,7 +147,7 @@ class limited_dynamic_demand_queue_t
 		is_empty() const { return m_queue.empty(); }
 
 		//! Access to front item from queue.
-		demand_t &
+		demand &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -164,7 +164,7 @@ class limited_dynamic_demand_queue_t
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( demand_t && demand )
+		push_back( demand && demand )
 			{
 				ensure_queue_not_full( *this );
 				m_queue.push_back( std::move(demand) );
@@ -176,26 +176,26 @@ class limited_dynamic_demand_queue_t
 
 	private :
 		//! Queue's storage.
-		std::deque< demand_t > m_queue;
+		std::deque< demand > m_queue;
 		//! Maximum size of the queue.
 		const std::size_t m_max_size;
 	};
 
 //
-// limited_preallocated_demand_queue_t
+// limited_preallocated_demand_queue
 //
 /*!
  * \since v.5.5.13
  * \brief Implementation of demands queue for size-limited message chain with
  * preallocated storage.
  */
-class limited_preallocated_demand_queue_t
+class limited_preallocated_demand_queue
 	{
 	public :
 		//! Initializing constructor.
-		limited_preallocated_demand_queue_t(
-			const capacity_t & capacity )
-			:	m_storage( capacity.max_size(), demand_t{} )
+		limited_preallocated_demand_queue(
+			const capacity & capacity )
+			:	m_storage( capacity.max_size(), demand{} )
 			,	m_max_size{ capacity.max_size() }
 			,	m_head{ 0 }
 			,	m_size{ 0 }
@@ -210,7 +210,7 @@ class limited_preallocated_demand_queue_t
 		is_empty() const { return 0 == m_size; }
 
 		//! Access to front item from queue.
-		demand_t &
+		demand &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -222,14 +222,14 @@ class limited_preallocated_demand_queue_t
 		pop_front()
 			{
 				ensure_queue_not_empty( *this );
-				m_storage[ m_head ] = demand_t{};
+				m_storage[ m_head ] = demand{};
 				m_head = (m_head + 1) % m_max_size;
 				--m_size;
 			}
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( demand_t && demand )
+		push_back( demand && demand )
 			{
 				ensure_queue_not_full( *this );
 				auto index = (m_head + m_size) % m_max_size;
@@ -243,7 +243,7 @@ class limited_preallocated_demand_queue_t
 
 	private :
 		//! Queue's storage.
-		std::vector< demand_t > m_storage;
+		std::vector< demand > m_storage;
 		//! Maximum size of the queue.
 		const std::size_t m_max_size;
 
@@ -271,7 +271,7 @@ enum class status
 } /* namespace details */
 
 //
-// mchain_template_t
+// mchain_template
 //
 /*!
  * \since v.5.5.13
@@ -280,17 +280,17 @@ enum class status
  * \tparam QUEUE type of demand queue for message chain.
  */
 template< typename QUEUE >
-class mchain_template_t : public abstract_message_chain_t
+class mchain_template : public abstract_message_chain
 	{
 	public :
 		//! Initializing constructor.
-		mchain_template_t(
+		mchain_template(
 			//! SObjectizer Environment for which message chain is created.
 			so_5::rt::environment_t & env,
 			//! Mbox ID for this chain.
 			mbox_id_t id,
 			//! Bag's capacity.
-			const capacity_t & capacity )
+			const capacity & capacity )
 			:	m_env{ env }
 			,	m_id{ id }
 			,	m_capacity{ capacity }
@@ -382,7 +382,7 @@ class mchain_template_t : public abstract_message_chain_t
 
 		virtual extraction_status
 		extract(
-			demand_t & dest,
+			demand & dest,
 			clock::duration empty_queue_timeout ) override
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
@@ -475,7 +475,7 @@ class mchain_template_t : public abstract_message_chain_t
 		const mbox_id_t m_id;
 
 		//! Bag capacity.
-		const capacity_t m_capacity;
+		const capacity m_capacity;
 
 		//! Bag's demands queue.
 		mutable QUEUE m_queue;
@@ -565,7 +565,7 @@ class mchain_template_t : public abstract_message_chain_t
 				const bool queue_was_empty = m_queue.is_empty();
 				
 				m_queue.push_back(
-						demand_t{ msg_type, message, demand_type } );
+						demand{ msg_type, message, demand_type } );
 
 				if( queue_was_empty )
 					m_underflow_cond.notify_one();

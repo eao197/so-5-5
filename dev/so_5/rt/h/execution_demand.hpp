@@ -194,13 +194,13 @@ public :
 namespace details {
 
 //
-// msg_type_and_handler_pair_t
+// msg_type_and_handler_pair
 //
 /*!
  * \since v.5.5.13
  * \brief Description of an event handler.
  */
-struct msg_type_and_handler_pair_t
+struct msg_type_and_handler_pair
 	{
 		//! Type of a message or signal.
 		std::type_index m_msg_type;
@@ -208,7 +208,7 @@ struct msg_type_and_handler_pair_t
 		event_handler_method_t m_handler;
 
 		//! Default constructor.
-		msg_type_and_handler_pair_t()
+		msg_type_and_handler_pair()
 			:	m_msg_type{ typeid(void) }
 			{}
 		//! Constructor for the case when only msg_type is known.
@@ -217,13 +217,13 @@ struct msg_type_and_handler_pair_t
 		 * msg_type_and_handler_pair_t instance is used
 		 * as a key for searching in ordered sequences.
 		 */
-		msg_type_and_handler_pair_t(
+		msg_type_and_handler_pair(
 			//! Type of a message or signal.
 			std::type_index msg_type )
 			:	m_msg_type{ std::move(msg_type) }
 			{}
 		//! Initializing constructor.
-		msg_type_and_handler_pair_t(
+		msg_type_and_handler_pair(
 			//! Type of a message or signal.
 			std::type_index msg_type,
 			//! A handler for processing this message or signal.
@@ -232,53 +232,53 @@ struct msg_type_and_handler_pair_t
 			,	m_handler{ std::move(handler) }
 			{}
 		//! Copy constructor.
-		msg_type_and_handler_pair_t(
-			const msg_type_and_handler_pair_t & o )
+		msg_type_and_handler_pair(
+			const msg_type_and_handler_pair & o )
 			:	m_msg_type{ o.m_msg_type }
 			,	m_handler{ o.m_handler }
 			{}
 		//! Move constructor.
-		msg_type_and_handler_pair_t(
-			msg_type_and_handler_pair_t && o )
+		msg_type_and_handler_pair(
+			msg_type_and_handler_pair && o )
 			:	m_msg_type{ std::move(o.m_msg_type) }
 			,	m_handler{ std::move(o.m_handler) }
 			{}
 
 		//! Swap operation.
-		void swap( msg_type_and_handler_pair_t & o ) SO_5_NOEXCEPT
+		void swap( msg_type_and_handler_pair & o ) SO_5_NOEXCEPT
 			{
 				std::swap( m_msg_type, o.m_msg_type );
 				m_handler.swap( o.m_handler );
 			}
 
 		//! Copy operator.
-		msg_type_and_handler_pair_t &
-		operator=( const msg_type_and_handler_pair_t & o )
+		msg_type_and_handler_pair &
+		operator=( const msg_type_and_handler_pair & o )
 			{
-				msg_type_and_handler_pair_t tmp{ o };
+				msg_type_and_handler_pair tmp{ o };
 				tmp.swap( *this );
 				return *this;
 			}
 
 		//! Move operator.
-		msg_type_and_handler_pair_t &
-		operator=( msg_type_and_handler_pair_t && o )
+		msg_type_and_handler_pair &
+		operator=( msg_type_and_handler_pair && o )
 			{
-				msg_type_and_handler_pair_t tmp{ std::move(o) };
+				msg_type_and_handler_pair tmp{ std::move(o) };
 				tmp.swap( *this );
 				return *this;
 			}
 
 		//! Comparison (strictly less than).
 		bool
-		operator<( const msg_type_and_handler_pair_t & o ) const
+		operator<( const msg_type_and_handler_pair & o ) const
 			{
 				return m_msg_type < o.m_msg_type;
 			}
 
 		//! Comparison (strictly equal).
 		bool
-		operator==( const msg_type_and_handler_pair_t & o ) const
+		operator==( const msg_type_and_handler_pair & o ) const
 			{
 				return m_msg_type == o.m_msg_type;
 			}

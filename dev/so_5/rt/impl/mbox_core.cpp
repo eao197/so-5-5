@@ -111,10 +111,10 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
-mchain_t
+mchain
 mbox_core_t::create_mchain(
 	environment_t & env,
-	const mchain_params_t & params )
+	const mchain_params & params )
 {
 	using namespace so_5::mchain_props;
 	using namespace so_5::mchain_props::details;
@@ -122,20 +122,20 @@ mbox_core_t::create_mchain(
 	auto id = ++m_mbox_id_counter;
 
 	if( params.capacity().unlimited() )
-		return mchain_t{
-			new mchain_template_t< unlimited_demand_queue_t >{
+		return mchain{
+			new mchain_template< unlimited_demand_queue >{
 				env,
 				id,
 				params.capacity() } };
 	else if( storage_memory::dynamic == params.capacity().memory() )
-		return mchain_t{
-			new mchain_template_t< limited_dynamic_demand_queue_t >{
+		return mchain{
+			new mchain_template< limited_dynamic_demand_queue >{
 				env,
 				id,
 				params.capacity() } };
 	else
-		return mchain_t{
-			new mchain_template_t< limited_preallocated_demand_queue_t >{
+		return mchain{
+			new mchain_template< limited_preallocated_demand_queue >{
 				env,
 				id,
 				params.capacity() } };

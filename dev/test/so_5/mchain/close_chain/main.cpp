@@ -11,7 +11,7 @@
 using namespace std;
 
 void
-check_drop_content( const so_5::mchain_t & chain )
+check_drop_content( const so_5::mchain & chain )
 {
 	so_5::send< int >( chain->as_mbox(), 0 );
 	so_5::send< int >( chain->as_mbox(), 1 );
@@ -31,7 +31,7 @@ check_drop_content( const so_5::mchain_t & chain )
 }
 
 void
-check_retain_content( const so_5::mchain_t & chain )
+check_retain_content( const so_5::mchain & chain )
 {
 	so_5::send< int >( chain->as_mbox(), 0 );
 	so_5::send< int >( chain->as_mbox(), 1 );

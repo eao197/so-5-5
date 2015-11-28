@@ -593,10 +593,10 @@ class SO_5_TYPE environment_t
 		 *
 		 * \par Usage examples:
 		 */
-		mchain_t
+		mchain
 		create_mchain(
 			//! Parameters for a new bag.
-			const mchain_params_t & params );
+			const mchain_params & params );
 		/*!
 		 * \}
 		 */

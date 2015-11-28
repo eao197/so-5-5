@@ -13,15 +13,15 @@
 namespace so_5 {
 
 //
-// abstract_message_chain_t
+// abstract_message_chain
 //
-abstract_message_chain_t::abstract_message_chain_t()
+abstract_message_chain::abstract_message_chain()
 	{}
-abstract_message_chain_t::~abstract_message_chain_t()
+abstract_message_chain::~abstract_message_chain()
 	{}
 
 so_5::rt::mbox_t
-abstract_message_chain_t::as_mbox()
+abstract_message_chain::as_mbox()
 	{
 		return so_5::rt::mbox_t{ this };
 	}
