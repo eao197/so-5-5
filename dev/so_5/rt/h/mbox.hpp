@@ -19,25 +19,14 @@
 
 #include <so_5/h/exception.hpp>
 
+#include <so_5/h/infinite_wait.hpp>
+
 #include <so_5/rt/h/mbox_fwd.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/event_data.hpp>
 
 namespace so_5
 {
-
-/*!
- * \since v.5.5.9
- * \brief A type for special marker for infitite waiting on service request.
- */
-enum class service_request_infinite_waiting_t { inifitite_waiting };
-
-/*!
- * \since v.5.5.9
- * \brief A special indicator for infinite waiting on service request.
- */
-const service_request_infinite_waiting_t infinite_wait =
-		service_request_infinite_waiting_t::inifitite_waiting;
 
 namespace rt
 {
@@ -397,7 +386,7 @@ class service_invoke_proxy_t
 		 * on service request.
 		 */
 		infinite_wait_service_invoke_proxy_t< RESULT >
-		get_wait_proxy( service_request_infinite_waiting_t ) const
+		get_wait_proxy( infinite_wait_indication ) const
 			{
 				return this->wait_forever();
 			}
