@@ -192,6 +192,60 @@ UT_UNIT_TEST( test_extract_n )
 	}
 }
 
+void
+do_check_stop_pred(
+	const so_5::mchain & ch1,
+	const so_5::mchain & ch2 )
+{
+	std::thread child{ [&] {
+		int last_received = 0;
+		auto r = receive(
+				from( ch1 ).stop_on(
+						[&last_received] { return last_received > 10; } ),
+				so_5::handler( [&ch2, &last_received]( int i ) {
+					last_received = i;
+					so_5::send< int >( ch2, i );
+				} ) );
+
+		UT_CHECK_CONDITION( r.extracted() > 10 );
+		UT_CHECK_CONDITION( r.handled() > 10 );
+	} };
+
+	int i = 0;
+	so_5::send< int >( ch1, i );
+	auto r = receive(
+			from( ch2 ).stop_on( [&i] { return i > 10; } ),
+			so_5::handler( [&ch1, &i]( int ) {
+				++i;
+				so_5::send< int >( ch1, i );
+			} ) );
+
+	UT_CHECK_CONDITION( r.extracted() > 10 );
+	UT_CHECK_CONDITION( r.handled() > 10 );
+
+	child.join();
+}
+
+UT_UNIT_TEST( test_stop_pred )
+{
+	auto params = build_mchain_params();
+	for( const auto & p : params )
+	{
+		cout << "=== " << p.first << " ===" << endl;
+
+		run_with_time_limit(
+			[&p]()
+			{
+				so_5::wrapped_env_t env;
+
+				do_check_stop_pred(
+						env.environment().create_mchain( p.second ),
+						env.environment().create_mchain( p.second ) );
+			},
+			4,
+			"test_stop_pred: " + p.first );
+	}
+}
 int
 main()
 {
@@ -199,6 +253,7 @@ main()
 	UT_RUN_UNIT_TEST( test_total_time )
 	UT_RUN_UNIT_TEST( test_handle_n )
 	UT_RUN_UNIT_TEST( test_extract_n )
+	UT_RUN_UNIT_TEST( test_stop_pred )
 
 	return 0;
 }

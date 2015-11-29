@@ -644,6 +644,14 @@ receive(
  */
 class mchain_receive_params
 	{
+	public :
+		//! Type of stop-predicate.
+		/*!
+		 * Must return \a true if receive procedure should be stopped.
+		 */
+		using stop_predicate = std::function< bool() >;
+
+	private :
 		//! Chain from which messages must be extracted and handled.
 		mchain m_chain;
 
@@ -665,6 +673,9 @@ class mchain_receive_params
 		//! Total time for all work of advanced receive.
 		mchain_props::clock::duration m_total_time =
 				{ mchain_props::details::infinite_wait_special_timevalue() };
+
+		//! Optional stop-predicate.
+		stop_predicate m_stop_predicate;
 
 	public :
 		//! Initializing constructor.
@@ -738,6 +749,25 @@ class mchain_receive_params
 		//! Get total time for the whole receive operation.
 		const mchain_props::clock::duration &
 		total_time() const { return m_total_time; }
+
+		//! Set user condition for stopping receive operation.
+		/*!
+		 * \note \a predicate should return \a true if receive must
+		 * be stopped.
+		 */
+		mchain_receive_params &
+		stop_on( stop_predicate predicate )
+			{
+				m_stop_predicate = std::move(predicate);
+				return *this;
+			}
+
+		//! Get user condition for stopping receive operation.
+		const stop_predicate &
+		stop_on() const
+			{
+				return m_stop_predicate;
+			}
 	};
 
 //
@@ -818,6 +848,9 @@ class receive_actions_performer
 
 				if( m_params.to_extract() &&
 						m_extracted_messages >= m_params.to_extract() )
+					return false;
+
+				if( m_params.stop_on() && m_params.stop_on()() )
 					return false;
 
 				return true;
