@@ -51,9 +51,9 @@ UT_UNIT_TEST( test_timeout_on_empty_queue )
 void
 do_check_total_time( const so_5::mchain & chain )
 {
-	so_5::send< int >( chain->as_mbox(), 0 );
-	so_5::send< int >( chain->as_mbox(), 1 );
-	so_5::send< string >( chain->as_mbox(), "hello!" );
+	so_5::send< int >( chain, 0 );
+	so_5::send< int >( chain, 1 );
+	so_5::send< string >( chain, "hello!" );
 
 	std::thread child{ [&] {
 		auto r = receive(
@@ -98,18 +98,18 @@ do_check_handle_n(
 		auto r = receive(
 				from( ch1 ).handle_n( 3 ),
 				so_5::handler( [&ch2]( int i ) {
-					so_5::send< int >( ch2->as_mbox(), i );
+					so_5::send< int >( ch2, i );
 				} ) );
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 3 == r.handled() );
 	} };
 
-	so_5::send< int >( ch1->as_mbox(), 0 );
+	so_5::send< int >( ch1, 0 );
 	auto r = receive(
 			from( ch2 ).handle_n( 2 ),
 			so_5::handler( [&ch1]( int i ) {
-				so_5::send< int >( ch1->as_mbox(), i + 1 );
+				so_5::send< int >( ch1, i + 1 );
 			} ) );
 
 	UT_CHECK_CONDITION( 2 == r.extracted() );
@@ -148,21 +148,21 @@ do_check_extract_n(
 		auto r = receive(
 				from( ch1 ).handle_n( 3 ).extract_n( 3 ),
 				so_5::handler( [&ch2]( int i ) {
-					so_5::send< int >( ch2->as_mbox(), i );
+					so_5::send< int >( ch2, i );
 				} ) );
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
 	} };
 
-	so_5::send< string >( ch1->as_mbox(), "0" );
-	so_5::send< int >( ch1->as_mbox(), 0 );
+	so_5::send< string >( ch1, "0" );
+	so_5::send< int >( ch1, 0 );
 
 	auto r = receive(
 			from( ch2 ).handle_n( 1 ),
 			so_5::handler( [&ch1]( int i ) {
-				so_5::send< string >( ch1->as_mbox(), to_string( i + 1 ) );
-				so_5::send< int >( ch1->as_mbox(), i + 1 );
+				so_5::send< string >( ch1, to_string( i + 1 ) );
+				so_5::send< int >( ch1, i + 1 );
 			} ) );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );

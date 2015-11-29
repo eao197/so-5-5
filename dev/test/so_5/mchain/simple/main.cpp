@@ -28,7 +28,7 @@ main()
 
 					auto chain = env.environment().create_mchain( p.second );
 
-					so_5::send< int >( chain->as_mbox(), 42 );
+					so_5::send< int >( chain, 42 );
 
 					auto r = receive(
 							chain,

@@ -15,8 +15,8 @@ using namespace std;
 void
 do_check( const so_5::mchain & chain )
 {
-	auto f1 = so_5::request_future< std::string, int >( chain->as_mbox(), 42 );
-	auto f2 = so_5::request_future< std::string, int >( chain->as_mbox(), -1 );
+	auto f1 = so_5::request_future< std::string, int >( chain, 42 );
+	auto f2 = so_5::request_future< std::string, int >( chain, -1 );
 
 	auto r = receive(
 			from( chain ).handle_n( 2 ),

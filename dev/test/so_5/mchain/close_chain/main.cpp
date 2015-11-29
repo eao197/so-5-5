@@ -13,8 +13,8 @@ using namespace std;
 void
 check_drop_content( const so_5::mchain & chain )
 {
-	so_5::send< int >( chain->as_mbox(), 0 );
-	so_5::send< int >( chain->as_mbox(), 1 );
+	so_5::send< int >( chain, 0 );
+	so_5::send< int >( chain, 1 );
 
 	close_drop_content( chain );
 
@@ -33,8 +33,8 @@ check_drop_content( const so_5::mchain & chain )
 void
 check_retain_content( const so_5::mchain & chain )
 {
-	so_5::send< int >( chain->as_mbox(), 0 );
-	so_5::send< int >( chain->as_mbox(), 1 );
+	so_5::send< int >( chain, 0 );
+	so_5::send< int >( chain, 1 );
 
 	close_retain_content( chain );
 

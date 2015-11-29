@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/environment.hpp>
 
 namespace so_5
@@ -78,6 +77,9 @@ arg_to_mbox( const so_5::rt::agent_t & agent ) { return agent.so_direct_mbox(); 
 
 inline const so_5::rt::mbox_t &
 arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
+
+inline so_5::rt::mbox_t
+arg_to_mbox( const so_5::mchain & chain ) { return chain->as_mbox(); }
 
 } /* namespace send_functions_details */
 
