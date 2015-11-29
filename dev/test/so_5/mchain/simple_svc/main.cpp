@@ -16,21 +16,17 @@ do_check( const so_5::mchain & chain )
 	auto f1 = so_5::request_future< std::string, int >( chain->as_mbox(), 42 );
 	auto f2 = so_5::request_future< std::string, int >( chain->as_mbox(), -1 );
 
-	for( int i = 0; i != 2; ++i )
-	{
-		auto r = receive(
-				chain,
-				so_5::no_wait,
-				so_5::handler( []( int i ) -> std::string {
-					if( i < 0 )
-						throw invalid_argument( "negative value" );
-					return std::to_string( i );
-				} ) );
+	auto r = receive(
+			from( chain ).handle_n( 2 ),
+			so_5::handler( []( int i ) -> std::string {
+				if( i < 0 )
+					throw invalid_argument( "negative value" );
+				return std::to_string( i );
+			} ) );
 
-		if( r.handled() != 1 )
-			throw runtime_error( "unexpected value of so_5::receive "
-					"return code: " + to_string( r.handled() ) );
-	}
+	if( r.handled() != 2 )
+		throw runtime_error( "unexpected value of so_5::receive "
+				"return code: " + to_string( r.handled() ) );
 
 	if( "42" != f1.get() )
 		throw runtime_error( "invalid value of f1.get(): " + f1.get() );

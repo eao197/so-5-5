@@ -664,7 +664,7 @@ class mchain_receive_params
 
 		//! Total time for all work of advanced receive.
 		mchain_props::clock::duration m_total_time =
-				{ mchain_props::details::no_wait_special_timevalue() };
+				{ mchain_props::details::infinite_wait_special_timevalue() };
 
 	public :
 		//! Initializing constructor.
@@ -678,27 +678,27 @@ class mchain_receive_params
 		const mchain &
 		chain() const { return m_chain; }
 
-		//! Set minimal count of messages to be extracted.
+		//! Set limit for count of messages to be extracted.
 		mchain_receive_params &
-		extract_at_least( std::size_t v )
+		extract_n( std::size_t v )
 			{
 				m_to_extract = v;
 				return *this;
 			}
 
-		//! Get minimal count of messages to be extracted.
+		//! Get limit for count of messages to be extracted.
 		std::size_t
 		to_extract() const { return m_to_extract; }
 
-		//! Set minimal count of messages to be handled.
+		//! Set limit for count of messages to be handled.
 		mchain_receive_params &
-		handle_handle_at_least( std::size_t v )
+		handle_n( std::size_t v )
 			{
 				m_to_handle = v;
 				return *this;
 			}
 
-		//! Get minimal count of message to be handled.
+		//! Get limit for count of message to be handled.
 		std::size_t
 		to_handle() const { return m_to_handle; }
 
