@@ -216,6 +216,127 @@ struct result_setter_t< void >
 
 } /* namespace promise_result_setting_details */
 
+
+} /* namespace details */
+
+} /* namespace rt */
+
+//
+// handler
+//
+//FIXME: examples of usage of this function must be provided in Doxygen comment.
+/*!
+ * \since v.5.5.13
+ * \brief A function for creation event handler.
+ *
+ * \note Must be used for the case when message is an ordinary message.
+ */
+template< class LAMBDA >
+rt::details::msg_type_and_handler_pair
+handler( LAMBDA && lambda )
+	{
+		using namespace so_5::rt;
+		using namespace so_5::rt::details;
+		using namespace so_5::details::lambda_traits;
+		using namespace so_5::rt::details::event_subscription_helpers;
+		using namespace so_5::rt::details::promise_result_setting_details;
+
+		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
+		typedef typename TRAITS::result_type RESULT;
+		typedef typename TRAITS::argument_type MESSAGE;
+
+		ensure_not_signal< MESSAGE >();
+
+		auto method = [lambda](
+				invocation_type_t invocation_type,
+				message_ref_t & message_ref)
+			{
+				if( invocation_type_t::service_request == invocation_type )
+					{
+						auto actual_request_ptr =
+								get_actual_service_request_pointer< RESULT, MESSAGE >(
+										message_ref );
+
+						auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+								actual_request_ptr->m_param );
+						ensure_message_with_actual_data( msg );
+
+						// All exceptions will be processed in service_handler_on_message.
+						result_setter_t< RESULT >().call_event_lambda_and_set_result(
+								actual_request_ptr->m_promise,
+								lambda,
+								*msg );
+					}
+				else
+					{
+						auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
+								message_ref );
+						ensure_message_with_actual_data( msg );
+
+						TRAITS::call_with_arg( lambda, *msg );
+					}
+			};
+
+		return msg_type_and_handler_pair{
+				message_payload_type< MESSAGE >::payload_type_index(),
+				method };
+	}
+
+//
+// handler
+//
+//FIXME: examples of usage of this function must be provided in Doxygen comment.
+/*!
+ * \since v.5.5.13
+ * \brief A function for creation event handler.
+ *
+ * \note Must be used for the case when message is a signal.
+ */
+template< class SIGNAL, class LAMBDA >
+rt::details::msg_type_and_handler_pair
+handler( LAMBDA && lambda )
+	{
+		using namespace so_5::rt;
+		using namespace so_5::rt::details;
+		using namespace so_5::details::lambda_traits;
+		using namespace so_5::rt::details::event_subscription_helpers;
+		using namespace so_5::rt::details::promise_result_setting_details;
+
+		ensure_signal< SIGNAL >();
+
+		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
+		typedef typename TRAITS::result_type RESULT;
+
+		auto method = [lambda](
+				invocation_type_t invocation_type,
+				message_ref_t & message_ref)
+			{
+				if( invocation_type_t::service_request == invocation_type )
+					{
+						auto actual_request_ptr =
+								get_actual_service_request_pointer< RESULT, SIGNAL >(
+										message_ref );
+
+						// All exceptions will be processed in service_handler_on_message.
+						result_setter_t< RESULT >().call_signal_lambda_and_set_result(
+								actual_request_ptr->m_promise,
+								lambda );
+					}
+				else
+					{
+						TRAITS::call_without_arg( lambda );
+					}
+			};
+
+		return msg_type_and_handler_pair{
+				message_payload_type< SIGNAL >::payload_type_index(),
+				method };
+	}
+
+namespace rt {
+
+namespace details {
+
 //
 // handlers_bunch_basics
 //
@@ -395,121 +516,27 @@ fill_handlers_bunch(
 				std::forward< OTHERS >(other_handlers)... );
 	}
 
+template< typename BUNCH, typename LAMBDA, typename... OTHERS >
+void
+fill_handlers_bunch(
+	//! What to fill.
+	BUNCH & bunch,
+	//! An index for next handler.
+	std::size_t index,
+	//! Next handler to be inserted.
+	LAMBDA && lambda,
+	//! All other handlers.
+	OTHERS &&... other_handlers )
+	{
+		bunch.add_handler( index,
+				handler( std::forward<LAMBDA>( lambda ) ) );
+		fill_handlers_bunch( bunch, index + 1,
+				std::forward< OTHERS >(other_handlers)... );
+	}
+
 } /* namespace details */
 
 } /* namespace rt */
-
-//
-// handler
-//
-//FIXME: examples of usage of this function must be provided in Doxygen comment.
-/*!
- * \since v.5.5.13
- * \brief A function for creation event handler.
- *
- * \note Must be used for the case when message is an ordinary message.
- */
-template< class LAMBDA >
-rt::details::msg_type_and_handler_pair
-handler( LAMBDA && lambda )
-	{
-		using namespace so_5::rt;
-		using namespace so_5::rt::details;
-		using namespace so_5::details::lambda_traits;
-		using namespace so_5::rt::details::event_subscription_helpers;
-		using namespace so_5::rt::details::promise_result_setting_details;
-
-		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
-		typedef typename TRAITS::result_type RESULT;
-		typedef typename TRAITS::argument_type MESSAGE;
-
-		ensure_not_signal< MESSAGE >();
-
-		auto method = [lambda](
-				invocation_type_t invocation_type,
-				message_ref_t & message_ref)
-			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer< RESULT, MESSAGE >(
-										message_ref );
-
-						auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-								actual_request_ptr->m_param );
-						ensure_message_with_actual_data( msg );
-
-						// All exceptions will be processed in service_handler_on_message.
-						result_setter_t< RESULT >().call_event_lambda_and_set_result(
-								actual_request_ptr->m_promise,
-								lambda,
-								*msg );
-					}
-				else
-					{
-						auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-								message_ref );
-						ensure_message_with_actual_data( msg );
-
-						TRAITS::call_with_arg( lambda, *msg );
-					}
-			};
-
-		return msg_type_and_handler_pair{
-				message_payload_type< MESSAGE >::payload_type_index(),
-				method };
-	}
-
-//
-// handler
-//
-//FIXME: examples of usage of this function must be provided in Doxygen comment.
-/*!
- * \since v.5.5.13
- * \brief A function for creation event handler.
- *
- * \note Must be used for the case when message is a signal.
- */
-template< class SIGNAL, class LAMBDA >
-rt::details::msg_type_and_handler_pair
-handler( LAMBDA && lambda )
-	{
-		using namespace so_5::rt;
-		using namespace so_5::rt::details;
-		using namespace so_5::details::lambda_traits;
-		using namespace so_5::rt::details::event_subscription_helpers;
-		using namespace so_5::rt::details::promise_result_setting_details;
-
-		ensure_signal< SIGNAL >();
-
-		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
-		typedef typename TRAITS::result_type RESULT;
-
-		auto method = [lambda](
-				invocation_type_t invocation_type,
-				message_ref_t & message_ref)
-			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer< RESULT, SIGNAL >(
-										message_ref );
-
-						// All exceptions will be processed in service_handler_on_message.
-						result_setter_t< RESULT >().call_signal_lambda_and_set_result(
-								actual_request_ptr->m_promise,
-								lambda );
-					}
-				else
-					{
-						TRAITS::call_without_arg( lambda );
-					}
-			};
-
-		return msg_type_and_handler_pair{
-				message_payload_type< SIGNAL >::payload_type_index(),
-				method };
-	}
 
 } /* namespace so_5 */
 

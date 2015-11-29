@@ -20,11 +20,11 @@ do_check( const so_5::mchain & chain )
 
 	auto r = receive(
 			from( chain ).handle_n( 2 ),
-			so_5::handler( []( int i ) -> std::string {
+			[]( int i ) -> std::string {
 				if( i < 0 )
 					throw invalid_argument( "negative value" );
 				return std::to_string( i );
-			} ) );
+			} );
 
 	UT_CHECK_CONDITION( r.handled() == 2 );
 

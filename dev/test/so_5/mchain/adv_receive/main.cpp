@@ -58,7 +58,7 @@ do_check_total_time( const so_5::mchain & chain )
 	std::thread child{ [&] {
 		auto r = receive(
 				from( chain ).total_time( milliseconds( 500 ) ),
-				so_5::handler( []( const std::string & ) {} ) );
+				[]( const std::string & ) {} );
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
@@ -97,9 +97,9 @@ do_check_handle_n(
 	std::thread child{ [&] {
 		auto r = receive(
 				from( ch1 ).handle_n( 3 ),
-				so_5::handler( [&ch2]( int i ) {
+				[&ch2]( int i ) {
 					so_5::send< int >( ch2, i );
-				} ) );
+				} );
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 3 == r.handled() );
@@ -108,9 +108,9 @@ do_check_handle_n(
 	so_5::send< int >( ch1, 0 );
 	auto r = receive(
 			from( ch2 ).handle_n( 2 ),
-			so_5::handler( [&ch1]( int i ) {
+			[&ch1]( int i ) {
 				so_5::send< int >( ch1, i + 1 );
-			} ) );
+			} );
 
 	UT_CHECK_CONDITION( 2 == r.extracted() );
 	UT_CHECK_CONDITION( 2 == r.handled() );
@@ -147,9 +147,9 @@ do_check_extract_n(
 	std::thread child{ [&] {
 		auto r = receive(
 				from( ch1 ).handle_n( 3 ).extract_n( 3 ),
-				so_5::handler( [&ch2]( int i ) {
+				[&ch2]( int i ) {
 					so_5::send< int >( ch2, i );
-				} ) );
+				} );
 
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
@@ -160,10 +160,10 @@ do_check_extract_n(
 
 	auto r = receive(
 			from( ch2 ).handle_n( 1 ),
-			so_5::handler( [&ch1]( int i ) {
+			[&ch1]( int i ) {
 				so_5::send< string >( ch1, to_string( i + 1 ) );
 				so_5::send< int >( ch1, i + 1 );
-			} ) );
+			} );
 
 	UT_CHECK_CONDITION( 1 == r.extracted() );
 	UT_CHECK_CONDITION( 1 == r.handled() );
@@ -202,10 +202,10 @@ do_check_stop_pred(
 		auto r = receive(
 				from( ch1 ).stop_on(
 						[&last_received] { return last_received > 10; } ),
-				so_5::handler( [&ch2, &last_received]( int i ) {
+				[&ch2, &last_received]( int i ) {
 					last_received = i;
 					so_5::send< int >( ch2, i );
-				} ) );
+				} );
 
 		UT_CHECK_CONDITION( r.extracted() > 10 );
 		UT_CHECK_CONDITION( r.handled() > 10 );
@@ -215,10 +215,10 @@ do_check_stop_pred(
 	so_5::send< int >( ch1, i );
 	auto r = receive(
 			from( ch2 ).stop_on( [&i] { return i > 10; } ),
-			so_5::handler( [&ch1, &i]( int ) {
+			[&ch1, &i]( int ) {
 				++i;
 				so_5::send< int >( ch1, i );
-			} ) );
+			} );
 
 	UT_CHECK_CONDITION( r.extracted() > 10 );
 	UT_CHECK_CONDITION( r.handled() > 10 );
