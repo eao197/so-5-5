@@ -6,6 +6,8 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
+#include <utest_helper_1/h/helper.hpp>
+
 #include "../mchain_params.hpp"
 
 using namespace std;
@@ -24,24 +26,11 @@ do_check( const so_5::mchain & chain )
 				return std::to_string( i );
 			} ) );
 
-	if( r.handled() != 2 )
-		throw runtime_error( "unexpected value of so_5::receive "
-				"return code: " + to_string( r.handled() ) );
+	UT_CHECK_CONDITION( r.handled() == 2 );
 
-	if( "42" != f1.get() )
-		throw runtime_error( "invalid value of f1.get(): " + f1.get() );
+	UT_CHECK_CONDITION( "42" == f1.get() );
 
-	try
-	{
-		const auto v2 = f2.get();
-		throw runtime_error( "value from f2 received: " + v2 );
-	}
-	catch( const invalid_argument & ex )
-	{
-		const std::string expected = "negative value";
-		if( expected != ex.what() )
-			throw;
-	}
+	UT_CHECK_THROW( invalid_argument, f2.get() );
 }
 
 int

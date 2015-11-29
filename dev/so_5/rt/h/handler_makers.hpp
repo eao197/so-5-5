@@ -339,6 +339,34 @@ class handlers_bunch : private handlers_bunch_basics
 			}
 	};
 
+/*!
+ * \since v.5.5.13
+ * \brief A specialization of handlers_bunch for the case when there
+ * is no any handlers.
+ */
+template<>
+class handlers_bunch< 0 >
+	{
+	public :
+		handlers_bunch()
+			{}
+
+		void
+		prepare()
+			{
+				/* NOTHING TO DO! */
+			}
+
+		bool
+		handle(
+			const std::type_index & /*msg_type*/,
+			message_ref_t & /*message*/,
+			invocation_type_t /*invocation*/ ) const
+			{
+				return false;
+			}
+	};
+
 //
 // fill_handlers_bunch
 //

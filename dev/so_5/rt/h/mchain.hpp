@@ -803,6 +803,9 @@ class receive_actions_performer
 					}
 			}
 
+		extraction_status
+		last_status() const { return m_status; }
+
 		bool
 		can_continue() const
 			{
@@ -881,6 +884,14 @@ receive_without_total_time(
 		do
 			{
 				performer.handle_next( params.empty_timeout() );
+
+				if( extraction_status::no_messages == performer.last_status() )
+					// There is no need to continue.
+					// This status means that empty_timeout has some value
+					// and there is no any new message during empty_timeout.
+					// And this means a condition for return from advanced
+					// receive.
+					break;
 			}
 		while( performer.can_continue() );
 
