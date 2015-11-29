@@ -310,6 +310,52 @@ enum class close_mode
 namespace details {
 
 //
+// no_wait_special_timevalue
+//
+/*!
+ * \since v.5.5.13
+ * \brief Special value of %clock::duration to indicate 'no_wait' case.
+ */
+inline clock::duration
+no_wait_special_timevalue() { return clock::duration::zero(); }
+
+//
+// infinite_wait_special_timevalue
+//
+/*!
+ * \since v.5.5.13
+ * \brief Special value of %clock::duration to indicate 'infinite_wait' case.
+ */
+inline clock::duration
+infinite_wait_special_timevalue() { return clock::duration::max(); }
+
+//
+// is_no_wait_timevalue
+//
+/*!
+ * \since v.5.5.13
+ * \brief Is time value means 'no_wait'?
+ */
+inline bool
+is_no_wait_timevalue( clock::duration v )
+	{
+		return v == no_wait_special_timevalue();
+	}
+
+//
+// is_infinite_wait_timevalue
+//
+/*!
+ * \since v.5.5.13
+ * \brief Is time value means 'infinite_wait'?
+ */
+inline bool
+is_infinite_wait_timevalue( clock::duration v )
+	{
+		return v == infinite_wait_special_timevalue();
+	}
+
+//
 // actual_timeout
 //
 
@@ -323,7 +369,7 @@ namespace details {
 inline clock::duration
 actual_timeout( infinite_wait_indication )
 	{
-		return clock::duration::max();
+		return infinite_wait_special_timevalue();
 	}
 
 /*!
@@ -336,7 +382,7 @@ actual_timeout( infinite_wait_indication )
 inline clock::duration
 actual_timeout( no_wait_indication )
 	{
-		return clock::duration::zero();
+		return no_wait_special_timevalue();
 	}
 
 /*!
@@ -586,6 +632,294 @@ receive(
 			}
 
 		return mchain_receive_result{ 0u, 0u, status };
+	}
+
+//
+// mchain_receive_params
+//
+//FIXME: Examples must be provided in Doxygen comment!
+/*!
+ * \since v.5.5.13
+ * \brief Parameters for advanced receive from %mchain.
+ */
+class mchain_receive_params
+	{
+		//! Chain from which messages must be extracted and handled.
+		mchain m_chain;
+
+		//! Minimal count of messages to be extracted.
+		/*!
+		 * Value 0 means that this parameter is not set.
+		 */
+		std::size_t m_to_extract = { 0 };
+		//! Minimal count of messages to be handled.
+		/*!
+		 * Value 0 means that this parameter it not set.
+		 */
+		std::size_t m_to_handle = { 0 };
+
+		//! Timeout for waiting on empty queue.
+		mchain_props::clock::duration m_empty_timeout =
+				{ mchain_props::details::infinite_wait_special_timevalue() };
+
+		//! Total time for all work of advanced receive.
+		mchain_props::clock::duration m_total_time =
+				{ mchain_props::details::no_wait_special_timevalue() };
+
+	public :
+		//! Initializing constructor.
+		mchain_receive_params(
+			//! Chain from which messages must be extracted and handled.
+			mchain chain )
+			:	m_chain{ std::move(chain) }
+			{}
+
+		//! Chain from which messages must be extracted and handled.
+		const mchain &
+		chain() const { return m_chain; }
+
+		//! Set minimal count of messages to be extracted.
+		mchain_receive_params &
+		extract_at_least( std::size_t v )
+			{
+				m_to_extract = v;
+				return *this;
+			}
+
+		//! Get minimal count of messages to be extracted.
+		std::size_t
+		to_extract() const { return m_to_extract; }
+
+		//! Set minimal count of messages to be handled.
+		mchain_receive_params &
+		handle_handle_at_least( std::size_t v )
+			{
+				m_to_handle = v;
+				return *this;
+			}
+
+		//! Get minimal count of message to be handled.
+		std::size_t
+		to_handle() const { return m_to_handle; }
+
+		//! Set timeout for waiting on empty chain.
+		/*!
+		 * \note This value will be ignored if total_time() is also used
+		 * to set total receive time.
+		 *
+		 * \note Argument \a v can be of type clock::duration or
+		 * so_5::infinite_wait or so_5::no_wait.
+		 */
+		template< typename TIMEOUT >
+		mchain_receive_params &
+		empty_timeout( TIMEOUT v )
+			{
+				m_empty_timeout = mchain_props::details::actual_timeout( v );
+				return *this;
+			}
+
+		//! Get timeout for waiting on empty chain.
+		const mchain_props::clock::duration &
+		empty_timeout() const { return m_empty_timeout; }
+
+		//! Set total time for the whole receive operation.
+		/*!
+		 * \note Argument \a v can be of type clock::duration or
+		 * so_5::infinite_wait or so_5::no_wait.
+		 */
+		template< typename TIMEOUT >
+		mchain_receive_params &
+		total_time( TIMEOUT v )
+			{
+				m_total_time = mchain_props::details::actual_timeout( v );
+				return *this;
+			}
+
+		//! Get total time for the whole receive operation.
+		const mchain_props::clock::duration &
+		total_time() const { return m_total_time; }
+	};
+
+//
+// from
+//
+//FIXME: Examples must be provided in Doxygen comment!
+/*!
+ * \since v.5.5.13
+ * \brief A helper function for simplification of creation of %mchain_receive_params instance.
+ */
+inline mchain_receive_params
+from( mchain chain )
+	{
+		return mchain_receive_params{ std::move(chain) };
+	}
+
+namespace mchain_props {
+
+namespace details {
+
+//
+// receive_actions_performer
+//
+/*!
+ * \since v.5.5.13
+ * \brief Helper class with implementation of main actions of
+ * advanced receive operation.
+ */
+template< typename BUNCH >
+class receive_actions_performer
+	{
+		const mchain_receive_params & m_params;
+		const BUNCH & m_bunch;
+
+		std::size_t m_extracted_messages = 0;
+		std::size_t m_handled_messages = 0;
+		extraction_status m_status;
+
+	public :
+		receive_actions_performer(
+			const mchain_receive_params & params,
+			const BUNCH & bunch )
+			:	m_params{ params }
+			,	m_bunch{ bunch }
+			{}
+
+		void
+		handle_next( clock::duration empty_timeout )
+			{
+				demand extracted_demand;
+				m_status = m_params.chain()->extract(
+						extracted_demand, empty_timeout );
+
+				if( extraction_status::msg_extracted == m_status )
+					{
+						++m_extracted_messages;
+						const bool handled = m_bunch.handle(
+								extracted_demand.m_msg_type,
+								extracted_demand.m_message_ref,
+								extracted_demand.m_demand_type );
+						if( handled )
+							++m_handled_messages;
+					}
+			}
+
+		bool
+		can_continue() const
+			{
+				if( extraction_status::chain_closed == m_status )
+					return false;
+
+				if( m_params.to_handle() &&
+						m_handled_messages >= m_params.to_handle() )
+					return false;
+
+				if( m_params.to_extract() &&
+						m_extracted_messages >= m_params.to_extract() )
+					return false;
+
+				return true;
+			}
+
+		mchain_receive_result
+		make_result() const
+			{
+				return mchain_receive_result{
+						m_extracted_messages,
+						m_handled_messages,
+						m_extracted_messages ? extraction_status::msg_extracted :
+								m_status
+					};
+			}
+	};
+
+/*!
+ * \since v.5.5.13
+ * \brief An implementation of advanced receive when a limit for total
+ * operation time is defined.
+ */
+template< typename BUNCH >
+inline mchain_receive_result
+receive_with_finite_total_time(
+	const mchain_receive_params & params,
+	const BUNCH & bunch )
+	{
+		receive_actions_performer< BUNCH > performer{ params, bunch };
+
+		clock::duration remaining_time = params.total_time();
+		const auto start_point = std::chrono::steady_clock::now();
+
+		do
+			{
+				performer.handle_next( remaining_time );
+				if( !performer.can_continue() )
+					break;
+
+				const auto elapsed = std::chrono::steady_clock::now() - start_point;
+				if( elapsed < remaining_time )
+					remaining_time -= elapsed;
+				else
+					remaining_time = clock::duration::zero();
+			}
+		while( remaining_time > clock::duration::zero() );
+
+		return performer.make_result();
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief An implementation of advanced receive when there is no
+ * limit for total operation time is defined.
+ */
+template< typename BUNCH >
+inline mchain_receive_result
+receive_without_total_time(
+	const mchain_receive_params & params,
+	const BUNCH & bunch )
+	{
+		receive_actions_performer< BUNCH > performer{ params, bunch };
+
+		do
+			{
+				performer.handle_next( params.empty_timeout() );
+			}
+		while( performer.can_continue() );
+
+		return performer.make_result();
+	}
+
+} /* namespace details */
+
+} /* namespace mchain_props */
+
+//
+// receve (advanced version)
+//
+
+//FIXME: Examples must be provided in Doxygen comment!
+/*!
+ * \since v.5.5.13
+ * \brief Advanced version of receive from %mchain.
+ */
+template< typename... HANDLERS >
+inline mchain_receive_result
+receive(
+	//! Parameters for receive.
+	const mchain_receive_params & params,
+	//! Handlers for message processing.
+	HANDLERS &&... handlers )
+	{
+		using namespace so_5::rt::details;
+		using namespace so_5::mchain_props;
+		using namespace so_5::mchain_props::details;
+
+		handlers_bunch< sizeof...(handlers) > bunch;
+		fill_handlers_bunch( bunch, 0,
+				std::forward< HANDLERS >(handlers)... );
+
+		if( !is_infinite_wait_timevalue( params.total_time() ) )
+			return receive_with_finite_total_time( params, bunch );
+		else
+			return receive_without_total_time( params, bunch );
 	}
 
 } /* namespace so_5 */

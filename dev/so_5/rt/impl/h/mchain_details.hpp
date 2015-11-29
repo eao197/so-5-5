@@ -402,7 +402,7 @@ class mchain_template : public abstract_message_chain
 										details::status::closed == m_status;
 							};
 
-						if( clock::duration::max() != empty_queue_timeout )
+						if( !details::is_infinite_wait_timevalue( empty_queue_timeout ) )
 							// A wait with finite timeout must be performed.
 							m_underflow_cond.wait_for(
 									lock, empty_queue_timeout, predicate );

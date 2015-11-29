@@ -329,7 +329,7 @@ class handlers_bunch : private handlers_bunch_basics
 			//! Message instance to be processed.
 			message_ref_t & message,
 			//! It is async message or service handler?
-			invocation_type_t invocation )
+			invocation_type_t invocation ) const
 			{
 				return find_and_use_handler(
 						m_handlers, m_handlers + N,
