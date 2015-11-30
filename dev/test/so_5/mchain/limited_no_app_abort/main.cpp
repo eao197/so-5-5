@@ -21,11 +21,11 @@ do_check_no_wait_drop_newest_impl(
 {
 	cout << "no_wait, drop_newest, " << case_name << ": " << std::flush;
 
-	auto ch = env.create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_without_waiting(
+	auto ch = env.create_mchain(
+			so_5::make_limited_without_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction::drop_newest ) } );
+					props::overflow_reaction::drop_newest ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -55,11 +55,11 @@ do_check_no_wait_remove_oldest_impl(
 {
 	cout << "no_wait, remove_oldest, " << case_name << ": " << std::flush;
 
-	auto ch = env.create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_without_waiting(
+	auto ch = env.create_mchain(
+			so_5::make_limited_without_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction::remove_oldest ) } );
+					props::overflow_reaction::remove_oldest ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -89,11 +89,11 @@ do_check_no_wait_throw_exception_impl(
 {
 	cout << "no_wait, throw_exception, " << case_name << ": " << std::flush;
 
-	auto ch = env.create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_without_waiting(
+	auto ch = env.create_mchain(
+			so_5::make_limited_without_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction::throw_exception ) } );
+					props::overflow_reaction::throw_exception ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -155,12 +155,12 @@ do_check_wait_drop_newest_impl(
 {
 	cout << "wait, drop_newest, " << case_name << ": " << std::flush;
 
-	auto ch = env.create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_with_waiting(
+	auto ch = env.create_mchain(
+			so_5::make_limited_with_waiting_mchain_params(
 					3,
 					memory,
 					props::overflow_reaction::drop_newest,
-					wait_timeout ) } );
+					wait_timeout ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -190,12 +190,12 @@ do_check_wait_remove_oldest_impl(
 {
 	cout << "wait, remove_oldest, " << case_name << ": " << std::flush;
 
-	auto ch = env.create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_with_waiting(
+	auto ch = env.create_mchain(
+			so_5::make_limited_with_waiting_mchain_params(
 					3,
 					memory,
 					props::overflow_reaction::remove_oldest,
-					wait_timeout ) } );
+					wait_timeout ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -225,12 +225,12 @@ do_check_wait_throw_exception_impl(
 {
 	cout << "wait, throw_exception, " << case_name << ": " << std::flush;
 
-	auto ch = env.create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_with_waiting(
+	auto ch = env.create_mchain(
+			so_5::make_limited_with_waiting_mchain_params(
 					3,
 					memory,
 					props::overflow_reaction::throw_exception,
-					wait_timeout ) } );
+					wait_timeout ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );

@@ -383,7 +383,7 @@ class mchain_template : public abstract_message_chain
 		virtual extraction_status
 		extract(
 			demand & dest,
-			clock::duration empty_queue_timeout ) override
+			duration empty_queue_timeout ) override
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 
