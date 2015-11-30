@@ -42,9 +42,9 @@ mbox_core_t::create_local_mbox()
 {
 	auto id = ++m_mbox_id_counter;
 	if( !m_tracer )
-		return mbox_t{ new local_mbox_without_tracing_t{ id } };
+		return mbox_t{ new local_mbox_without_tracing{ id } };
 	else
-		return mbox_t{ new local_mbox_with_tracing_t{ id, *m_tracer } };
+		return mbox_t{ new local_mbox_with_tracing{ id, *m_tracer } };
 }
 
 mbox_t
@@ -67,12 +67,12 @@ mbox_core_t::create_mpsc_mbox(
 	if( limits_storage )
 	{
 		if( !m_tracer )
-			actual_mbox.reset( new limitful_mpsc_mbox_without_tracing_t{
+			actual_mbox.reset( new limitful_mpsc_mbox_without_tracing{
 					id,
 					single_consumer,
 					*limits_storage } );
 		else
-			actual_mbox.reset( new limitful_mpsc_mbox_with_tracing_t{
+			actual_mbox.reset( new limitful_mpsc_mbox_with_tracing{
 					id,
 					single_consumer,
 					*limits_storage,
@@ -81,11 +81,11 @@ mbox_core_t::create_mpsc_mbox(
 	else
 	{
 		if( !m_tracer )
-			actual_mbox.reset( new limitless_mpsc_mbox_without_tracing_t{
+			actual_mbox.reset( new limitless_mpsc_mbox_without_tracing{
 					id,
 					single_consumer } );
 		else
-			actual_mbox.reset( new limitless_mpsc_mbox_with_tracing_t{
+			actual_mbox.reset( new limitless_mpsc_mbox_with_tracing{
 					id,
 					single_consumer,
 					*m_tracer } );

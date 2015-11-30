@@ -522,7 +522,7 @@ class mchain_template : public abstract_message_chain
 				// must wait for some time until there will be some space in
 				// the queue.
 				bool queue_full = m_queue.is_full();
-				if( m_queue.is_full() && m_capacity.is_overflow_timeout_defined() )
+				if( queue_full && m_capacity.is_overflow_timeout_defined() )
 					{
 						m_overflow_cond.wait_for(
 								lock,

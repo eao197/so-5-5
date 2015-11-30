@@ -37,32 +37,32 @@ namespace details {
 
 using namespace so_5::details::ios_helpers;
 
-struct overlimit_deep_t
+struct overlimit_deep
 	{
 		unsigned int m_deep;
 
 		// NOTE: this constructor is necessary for compatibility with MSVC++2013.
-		overlimit_deep_t( unsigned int deep ) : m_deep{ deep } {}
+		overlimit_deep( unsigned int deep ) : m_deep{ deep } {}
 	};
 
-struct mbox_identification_t
+struct mbox_identification
 	{
 		mbox_id_t m_id;
 	};
 
-struct text_separator_t
+struct text_separator
 	{
 		const char * m_text;
 	};
 
-struct composed_action_name_t
+struct composed_action_name
 	{
 		const char * m_1;
 		const char * m_2;
 	};
 
 inline void
-make_trace_to_1( std::ostream & s, mbox_identification_t id )
+make_trace_to_1( std::ostream & s, mbox_identification id )
 	{
 		s << "[mbox_id=" << id.m_id << "]";
 	}
@@ -70,7 +70,7 @@ make_trace_to_1( std::ostream & s, mbox_identification_t id )
 inline void
 make_trace_to_1( std::ostream & s, const abstract_message_box_t & mbox )
 	{
-		make_trace_to_1( s, mbox_identification_t{ mbox.id() } );
+		make_trace_to_1( s, mbox_identification{ mbox.id() } );
 	}
 
 inline void
@@ -115,9 +115,9 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	{
 		// The first pointer is a pointer to envelope.
 		// The second pointer is a pointer to payload.
-		using msg_pointers_t = std::tuple< const void *, const void * >;
+		using msg_pointers = std::tuple< const void *, const void * >;
 
-		auto detect_pointers = [&message]() -> msg_pointers_t {
+		auto detect_pointers = [&message]() -> msg_pointers {
 			if( const message_t * envelope = message.get() )
 				{
 					// We can try cases with service requests and user-type messages.
@@ -126,14 +126,14 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 
 					if( payload != envelope )
 						// There are an envelope and payload inside it.
-						return msg_pointers_t{ envelope, payload };
+						return msg_pointers{ envelope, payload };
 					else
 						// There is only payload.
-						return msg_pointers_t{ nullptr, envelope };
+						return msg_pointers{ nullptr, envelope };
 				}
 			else
 				// It is a signal there is nothing.
-				return msg_pointers_t{ nullptr, nullptr };
+				return msg_pointers{ nullptr, nullptr };
 		};
 
 		const void * envelope = nullptr;
@@ -150,19 +150,19 @@ make_trace_to_1( std::ostream & s, const message_ref_t & message )
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const overlimit_deep_t limit )
+make_trace_to_1( std::ostream & s, const overlimit_deep limit )
 	{
 		s << "[overlimit_deep=" << limit.m_deep << "]";
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const composed_action_name_t name )
+make_trace_to_1( std::ostream & s, const composed_action_name name )
 	{
 		s << " " << name.m_1 << "." << name.m_2 << " ";
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const text_separator_t text )
+make_trace_to_1( std::ostream & s, const text_separator text )
 	{
 		s << " " << text.m_text << " ";
 	}
@@ -198,20 +198,20 @@ make_trace(
 } /* namespace details */
 
 //
-// tracing_disabled_base_t
+// tracing_disabled_base
 //
 /*!
  * \since v.5.5.9
  * \brief Base class for an mbox for the case when message delivery
  * tracing is disabled.
  */
-struct tracing_disabled_base_t
+struct tracing_disabled_base
 	{
-		class deliver_op_tracer_t
+		class deliver_op_tracer
 			{
 			public :
-				deliver_op_tracer_t(
-					const tracing_disabled_base_t &,
+				deliver_op_tracer(
+					const tracing_disabled_base &,
 					const abstract_message_box_t &,
 					const char *,
 					const std::type_index &,
@@ -236,20 +236,20 @@ struct tracing_disabled_base_t
 	};
 
 //
-// tracing_enabled_base_t
+// tracing_enabled_base
 //
 /*!
  * \since v.5.5.9
  * \brief Base class for an mbox for the case when message delivery
  * tracing is enabled.
  */
-class tracing_enabled_base_t
+class tracing_enabled_base
 	{
 	private :
 		so_5::msg_tracing::tracer_t & m_tracer;
 
 	public :
-		tracing_enabled_base_t( so_5::msg_tracing::tracer_t & tracer )
+		tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
 			:	m_tracer{ tracer }
 			{}
 
@@ -259,7 +259,7 @@ class tracing_enabled_base_t
 				return m_tracer;
 			}
 
-		class deliver_op_tracer_t
+		class deliver_op_tracer
 			:	protected so_5::rt::message_limit::impl::action_msg_tracer_t
 			{
 			private :
@@ -268,7 +268,7 @@ class tracing_enabled_base_t
 				const char * m_op_name;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
-				const details::overlimit_deep_t m_overlimit_deep;
+				const details::overlimit_deep m_overlimit_deep;
 
 				template< typename... ARGS >
 				void
@@ -279,7 +279,7 @@ class tracing_enabled_base_t
 						details::make_trace(
 								m_tracer,
 								m_mbox,
-								details::composed_action_name_t{
+								details::composed_action_name{
 										m_op_name, action_name_suffix },
 								m_msg_type,
 								m_message,
@@ -288,8 +288,8 @@ class tracing_enabled_base_t
 					}
 
 			public :
-				deliver_op_tracer_t(
-					const tracing_enabled_base_t & tracing_base,
+				deliver_op_tracer(
+					const tracing_enabled_base & tracing_base,
 					const abstract_message_box_t & mbox,
 					const char * op_name,
 					const std::type_index & msg_type,
@@ -354,7 +354,7 @@ class tracing_enabled_base_t
 						make_trace(
 								"overlimit.redirect",
 								subscriber,
-								details::text_separator_t{ "==>" },
+								details::text_separator{ "==>" },
 								*target );
 					}
 
@@ -368,7 +368,7 @@ class tracing_enabled_base_t
 						make_trace(
 								"overlimit.transform",
 								subscriber,
-								details::text_separator_t{ "==>" },
+								details::text_separator{ "==>" },
 								*target,
 								msg_type,
 								transformed );
@@ -389,8 +389,8 @@ trace_event_handler_search_result(
 		details::make_trace(
 			internal_env_iface_t{ demand.m_receiver->so_environment() }.msg_tracer(),
 			demand.m_receiver,
-			details::composed_action_name_t{ context_marker, "find_handler" },
-			details::mbox_identification_t{ demand.m_mbox_id },
+			details::composed_action_name{ context_marker, "find_handler" },
+			details::mbox_identification{ demand.m_mbox_id },
 			demand.m_msg_type,
 			demand.m_message_ref,
 			&(demand.m_receiver->so_current_state()),

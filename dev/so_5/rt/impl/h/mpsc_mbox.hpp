@@ -32,7 +32,7 @@ namespace impl
 {
 
 //
-// limitless_mpsc_mbox_template_t
+// limitless_mpsc_mbox_template
 //
 
 /*!
@@ -41,17 +41,17 @@ namespace impl
  *
  * \note Since v.5.5.4 is used for implementation of direct mboxes
  * without controling message limits.
- * \note Renamed from limitless_mpsc_mbox_t to limitless_mpsc_mbox_template_t
+ * \note Renamed from limitless_mpsc_mbox_t to limitless_mpsc_mbox_template
  * in v.5.5.9.
  */
 template< typename TRACING_BASE >
-class limitless_mpsc_mbox_template_t
+class limitless_mpsc_mbox_template
 	:	public abstract_message_box_t
 	,	protected TRACING_BASE
 {
 	public:
 		template< typename... TRACING_ARGS >
-		limitless_mpsc_mbox_template_t(
+		limitless_mpsc_mbox_template(
 			mbox_id_t id,
 			agent_t * single_consumer,
 			TRACING_ARGS &&... tracing_args )
@@ -119,7 +119,7 @@ class limitless_mpsc_mbox_template_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer_t tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_message",
@@ -143,7 +143,7 @@ class limitless_mpsc_mbox_template_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer_t tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
@@ -219,7 +219,7 @@ class limitless_mpsc_mbox_template_t
 		void
 		do_delivery(
 			//! Tracer object to log the case of abscense of subscriptions.
-			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			typename TRACING_BASE::deliver_op_tracer const & tracer,
 			//! Lambda with actual delivery actions.
 			L l ) const
 		{
@@ -236,18 +236,18 @@ class limitless_mpsc_mbox_template_t
  * \since v.5.5.9
  * \brief Alias for limitless_mpsc_mbox without message delivery tracing.
  */
-using limitless_mpsc_mbox_without_tracing_t =
-	limitless_mpsc_mbox_template_t< msg_tracing_helpers::tracing_disabled_base_t >;
+using limitless_mpsc_mbox_without_tracing =
+	limitless_mpsc_mbox_template< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
  * \since v.5.5.9
  * \brief Alias for limitless_mpsc_mbox with message delivery tracing.
  */
-using limitless_mpsc_mbox_with_tracing_t =
-	limitless_mpsc_mbox_template_t< msg_tracing_helpers::tracing_enabled_base_t >;
+using limitless_mpsc_mbox_with_tracing =
+	limitless_mpsc_mbox_template< msg_tracing_helpers::tracing_enabled_base >;
 
 //
-// limitful_mpsc_mbox_template_t
+// limitful_mpsc_mbox_template
 //
 
 /*!
@@ -255,7 +255,7 @@ using limitless_mpsc_mbox_with_tracing_t =
  * \brief A multi-producer/single-consumer mbox with message limit
  * control.
  *
- * \note Renamed from limitful_mpsc_mbox_t to limitful_mpsc_mbox_template_t
+ * \note Renamed from limitful_mpsc_mbox_t to limitful_mpsc_mbox_template
  * in v.5.5.9.
  *
  * \attention Stores a reference to message limits storage. Because of that
@@ -263,13 +263,13 @@ using limitless_mpsc_mbox_with_tracing_t =
  *
  */
 template< typename TRACING_BASE >
-class limitful_mpsc_mbox_template_t
-	:	public limitless_mpsc_mbox_template_t< TRACING_BASE >
+class limitful_mpsc_mbox_template
+	:	public limitless_mpsc_mbox_template< TRACING_BASE >
 {
-		using base_type_t = limitless_mpsc_mbox_template_t< TRACING_BASE >;
+		using base_type = limitless_mpsc_mbox_template< TRACING_BASE >;
 	public:
 		template< typename... TRACING_ARGS >
-		limitful_mpsc_mbox_template_t(
+		limitful_mpsc_mbox_template(
 			//! ID of that mbox.
 			mbox_id_t id,
 			//! The owner of that mbox.
@@ -279,7 +279,7 @@ class limitful_mpsc_mbox_template_t
 			const so_5::rt::message_limit::impl::info_storage_t & limits_storage,
 			//! Optional arguments for TRACING_BASE.
 			TRACING_ARGS &&... tracing_args )
-			:	base_type_t{
+			:	base_type{
 					id,
 					single_consumer,
 					std::forward< TRACING_ARGS >( tracing_args )... }
@@ -292,7 +292,7 @@ class limitful_mpsc_mbox_template_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer_t tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_message",
@@ -330,7 +330,7 @@ class limitful_mpsc_mbox_template_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer_t tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
@@ -373,15 +373,15 @@ class limitful_mpsc_mbox_template_t
  * \since v.5.5.9
  * \brief Alias for limitful_mpsc_mbox without message delivery tracing.
  */
-using limitful_mpsc_mbox_without_tracing_t =
-	limitful_mpsc_mbox_template_t< msg_tracing_helpers::tracing_disabled_base_t >;
+using limitful_mpsc_mbox_without_tracing =
+	limitful_mpsc_mbox_template< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
  * \since v.5.5.9
  * \brief Alias for limitful_mpsc_mbox with message delivery tracing.
  */
-using limitful_mpsc_mbox_with_tracing_t =
-	limitful_mpsc_mbox_template_t< msg_tracing_helpers::tracing_enabled_base_t >;
+using limitful_mpsc_mbox_with_tracing =
+	limitful_mpsc_mbox_template< msg_tracing_helpers::tracing_enabled_base >;
 
 } /* namespace impl */
 
