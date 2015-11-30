@@ -424,6 +424,8 @@ class SO_5_TYPE abstract_message_chain : protected so_5::rt::abstract_message_bo
 		virtual ~abstract_message_chain();
 
 	public :
+		using abstract_message_box_t::id;
+
 		virtual mchain_props::extraction_status
 		extract(
 			//! Destination for extracted messages.

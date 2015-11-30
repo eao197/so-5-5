@@ -118,27 +118,67 @@ mbox_core_t::create_mchain(
 {
 	using namespace so_5::mchain_props;
 	using namespace so_5::mchain_props::details;
+	using namespace so_5::rt::impl::msg_tracing_helpers;
 
 	auto id = ++m_mbox_id_counter;
 
-	if( params.capacity().unlimited() )
-		return mchain{
-			new mchain_template< unlimited_demand_queue >{
-				env,
-				id,
-				params.capacity() } };
-	else if( storage_memory::dynamic == params.capacity().memory() )
-		return mchain{
-			new mchain_template< limited_dynamic_demand_queue >{
-				env,
-				id,
-				params.capacity() } };
+	if( !m_tracer )
+	{
+		if( params.capacity().unlimited() )
+			return mchain{
+				new mchain_template<
+							unlimited_demand_queue,
+							mchain_tracing_disabled_base >{
+					env,
+					id,
+					params.capacity() } };
+		else if( storage_memory::dynamic == params.capacity().memory() )
+			return mchain{
+				new mchain_template<
+							limited_dynamic_demand_queue,
+							mchain_tracing_disabled_base >{
+					env,
+					id,
+					params.capacity() } };
+		else
+			return mchain{
+				new mchain_template<
+							limited_preallocated_demand_queue,
+							mchain_tracing_disabled_base >{
+					env,
+					id,
+					params.capacity() } };
+	}
 	else
-		return mchain{
-			new mchain_template< limited_preallocated_demand_queue >{
-				env,
-				id,
-				params.capacity() } };
+	{
+		if( params.capacity().unlimited() )
+			return mchain{
+				new mchain_template<
+							unlimited_demand_queue,
+							mchain_tracing_enabled_base >{
+					env,
+					id,
+					params.capacity(),
+					*m_tracer } };
+		else if( storage_memory::dynamic == params.capacity().memory() )
+			return mchain{
+				new mchain_template<
+							limited_dynamic_demand_queue,
+							mchain_tracing_enabled_base >{
+					env,
+					id,
+					params.capacity(),
+					*m_tracer } };
+		else
+			return mchain{
+				new mchain_template<
+							limited_preallocated_demand_queue,
+							mchain_tracing_enabled_base >{
+					env,
+					id,
+					params.capacity(),
+					*m_tracer } };
+	}
 }
 
 mbox_core_stats_t

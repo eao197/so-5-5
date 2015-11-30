@@ -278,20 +278,27 @@ enum class status
  * \brief Template-based implementation of message chain.
  *
  * \tparam QUEUE type of demand queue for message chain.
+ * \tparam TRACING_BASE type with message tracing implementation details.
  */
-template< typename QUEUE >
-class mchain_template : public abstract_message_chain
+template< typename QUEUE, typename TRACING_BASE >
+class mchain_template
+	:	public abstract_message_chain
+	,	private TRACING_BASE
 	{
 	public :
 		//! Initializing constructor.
+		template< typename... TRACING_ARGS >
 		mchain_template(
 			//! SObjectizer Environment for which message chain is created.
 			so_5::rt::environment_t & env,
 			//! Mbox ID for this chain.
 			mbox_id_t id,
 			//! Bag's capacity.
-			const capacity & capacity )
-			:	m_env{ env }
+			const capacity & capacity,
+			//! Arguments for TRACING_BASE's constructor.
+			TRACING_ARGS &&... tracing_args )
+			:	TRACING_BASE{ std::forward<TRACING_ARGS>(tracing_args)... }
+			,	m_env{ env }
 			,	m_id{ id }
 			,	m_capacity{ capacity }
 			,	m_queue{ capacity }

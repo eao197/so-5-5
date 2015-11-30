@@ -13,6 +13,7 @@
 #include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/agent.hpp>
 
 #include <so_5/rt/impl/h/internal_env_iface.hpp>
@@ -50,6 +51,11 @@ struct mbox_identification
 		mbox_id_t m_id;
 	};
 
+struct mchain_identification
+	{
+		mbox_id_t m_id;
+	};
+
 struct text_separator
 	{
 		const char * m_text;
@@ -68,9 +74,21 @@ make_trace_to_1( std::ostream & s, mbox_identification id )
 	}
 
 inline void
+make_trace_to_1( std::ostream & s, mchain_identification id )
+	{
+		s << "[mchain_id=" << id.m_id << "]";
+	}
+
+inline void
 make_trace_to_1( std::ostream & s, const abstract_message_box_t & mbox )
 	{
 		make_trace_to_1( s, mbox_identification{ mbox.id() } );
+	}
+
+inline void
+make_trace_to_1( std::ostream & s, const abstract_message_chain & chain )
+	{
+		make_trace_to_1( s, mchain_identification{ chain.id() } );
 	}
 
 inline void
@@ -202,7 +220,7 @@ make_trace(
 //
 /*!
  * \since v.5.5.9
- * \brief Base class for an mbox for the case when message delivery
+ * \brief Base class for a mbox for the case when message delivery
  * tracing is disabled.
  */
 struct tracing_disabled_base
@@ -240,7 +258,7 @@ struct tracing_disabled_base
 //
 /*!
  * \since v.5.5.9
- * \brief Base class for an mbox for the case when message delivery
+ * \brief Base class for a mbox for the case when message delivery
  * tracing is enabled.
  */
 class tracing_enabled_base
@@ -396,6 +414,95 @@ trace_event_handler_search_result(
 			&(demand.m_receiver->so_current_state()),
 			search_result );
 	}
+
+//
+// mchain_tracing_disabled_base
+//
+/*!
+ * \since v.5.5.13
+ * \brief Base class for a mchain for the case when message delivery
+ * tracing is disabled.
+ */
+struct mchain_tracing_disabled_base
+	{
+		class deliver_op_tracer
+			{
+			public :
+				deliver_op_tracer(
+					const mchain_tracing_disabled_base &,
+					const abstract_message_chain &,
+					const std::type_index &,
+					const message_ref_t &,
+					const invocation_type_t )
+					{}
+			};
+	};
+
+//
+// mchain_tracing_enabled_base
+//
+/*!
+ * \since v.5.5.13
+ * \brief Base class for a mchain for the case when message delivery
+ * tracing is enabled.
+ */
+class mchain_tracing_enabled_base
+	{
+	private :
+		so_5::msg_tracing::tracer_t & m_tracer;
+
+	public :
+		mchain_tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
+			:	m_tracer{ tracer }
+			{}
+
+		so_5::msg_tracing::tracer_t &
+		tracer() const
+			{
+				return m_tracer;
+			}
+
+		class deliver_op_tracer
+			{
+			private :
+				so_5::msg_tracing::tracer_t & m_tracer;
+				const abstract_message_chain & m_chain;
+				const char * m_op_name;
+				const std::type_index & m_msg_type;
+				const message_ref_t & m_message;
+
+				template< typename... ARGS >
+				void
+				make_trace(
+					const char * action_name_suffix,
+					ARGS &&... args ) const
+					{
+						details::make_trace(
+								m_tracer,
+								m_chain,
+								details::composed_action_name{
+										m_op_name, action_name_suffix },
+								m_msg_type,
+								m_message,
+								std::forward< ARGS >(args)... );
+					}
+
+			public :
+				deliver_op_tracer(
+					const mchain_tracing_enabled_base & tracing_base,
+					const abstract_message_chain & chain,
+					const std::type_index & msg_type,
+					const message_ref_t & message,
+					const invocation_type_t invocation )
+					:	m_tracer{ tracing_base.tracer() }
+					,	m_chain{ chain }
+					,	m_op_name{ invocation_type_t::event == invocation ?
+							"deliver_message" : "deliver_service_request" }
+					,	m_msg_type{ msg_type }
+					,	m_message{ message }
+					{}
+			};
+	};
 
 } /* namespace msg_tracing_helpers */
 
