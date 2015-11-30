@@ -555,15 +555,18 @@ class mchain_template
 						if( overflow_reaction::drop_newest == reaction )
 							{
 								// New message must be simply ignored.
+								tracer.overflow_drop_newest();
 								return;
 							}
 						else if( overflow_reaction::remove_oldest == reaction )
 							{
 								// The oldest message must be simply removed.
+								tracer.overflow_remove_oldest( m_queue.front() );
 								m_queue.pop_front();
 							}
 						else if( overflow_reaction::throw_exception == reaction )
 							{
+								tracer.overflow_throw_exception();
 								SO_5_THROW_EXCEPTION(
 										rc_msg_chain_overflow,
 										"an attempt to push message to full mchain "
@@ -572,6 +575,7 @@ class mchain_template
 						else
 							{
 								so_5::details::abort_on_fatal_error( [&] {
+										tracer.overflow_throw_exception();
 										SO_5_LOG_ERROR( m_env, log_stream ) {
 											log_stream << "overflow_reaction::abort_app "
 													"will be performed for mchain (id="

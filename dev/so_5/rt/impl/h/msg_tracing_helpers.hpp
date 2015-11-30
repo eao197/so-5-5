@@ -448,8 +448,15 @@ struct mchain_tracing_disabled_base
 					{}
 
 				template< typename QUEUE >
-				void
-				stored( const QUEUE & /*queue*/ ) {}
+				void stored( const QUEUE & /*queue*/ ) {}
+
+				void overflow_drop_newest() {}
+
+				void overflow_remove_oldest( const so_5::mchain_props::demand & ) {}
+
+				void overflow_throw_exception() {}
+
+				void overflow_abort_app() {}
 			};
 	};
 
@@ -522,6 +529,33 @@ class mchain_tracing_enabled_base
 				stored( const QUEUE & queue )
 					{
 						make_trace( "stored", details::chain_size{ queue.size() } );
+					}
+
+				void
+				overflow_drop_newest()
+					{
+						make_trace( "overflow.drop_newest" );
+					}
+
+				void
+				overflow_remove_oldest( const so_5::mchain_props::demand & d )
+					{
+						make_trace( "overflow.remove_oldest",
+								details::text_separator{ "removed:" },
+								d.m_msg_type,
+								d.m_message_ref );
+					}
+
+				void
+				overflow_throw_exception()
+					{
+						make_trace( "overflow.throw_exception" );
+					}
+
+				void
+				overflow_abort_app()
+					{
+						make_trace( "overflow.abort_app" );
 					}
 			};
 	};
