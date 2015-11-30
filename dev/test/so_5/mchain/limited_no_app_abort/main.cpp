@@ -120,18 +120,33 @@ do_check_no_wait_throw_exception( so_5::rt::environment_t & env )
 			env, "prealloc", props::storage_memory::preallocated );
 }
 
-UT_UNIT_TEST( test_no_wait )
+void
+do_test_no_wait( bool use_tracer )
 {
+	const std::string env_desc = use_tracer ? "msg_tracing" : "no_msg_tracing";
+	cout << "test_no_wait + " << env_desc << ": " << std::endl;
+
 	run_with_time_limit(
-		[] {
-			so_5::wrapped_env_t env;
+		[use_tracer] {
+			so_5::wrapped_env_t env{
+				[]( so_5::rt::environment_t & ) {},
+				[use_tracer]( so_5::rt::environment_params_t & params ) {
+					if( use_tracer )
+						params.message_delivery_tracer(
+								so_5::msg_tracing::std_clog_tracer() );
+				} };
 
 			do_check_no_wait_drop_newest( env.environment() );
 			do_check_no_wait_remove_oldest( env.environment() );
 			do_check_no_wait_throw_exception( env.environment() );
 		},
 		4,
-		"test_no_wait" );
+		"test_no_wait + " + env_desc );
+}
+UT_UNIT_TEST( test_no_wait )
+{
+	do_test_no_wait( false );
+	do_test_no_wait( true );
 }
 
 const chrono::milliseconds wait_timeout{ 100 };
@@ -259,18 +274,34 @@ do_check_wait_throw_exception( so_5::rt::environment_t & env )
 			env, "prealloc", props::storage_memory::preallocated );
 }
 
-UT_UNIT_TEST( test_wait )
+void
+do_test_wait( bool use_tracer )
 {
+	const std::string env_desc = use_tracer ? "msg_tracing" : "no_msg_tracing";
+	cout << "test_wait + " << env_desc << ": " << std::endl;
+
 	run_with_time_limit(
-		[] {
-			so_5::wrapped_env_t env;
+		[use_tracer] {
+			so_5::wrapped_env_t env{
+				[]( so_5::rt::environment_t & ) {},
+				[use_tracer]( so_5::rt::environment_params_t & params ) {
+					if( use_tracer )
+						params.message_delivery_tracer(
+								so_5::msg_tracing::std_clog_tracer() );
+				} };
 
 			do_check_wait_drop_newest( env.environment() );
 			do_check_wait_remove_oldest( env.environment() );
 			do_check_wait_throw_exception( env.environment() );
 		},
 		4,
-		"test_wait" );
+		"test_wait + " + env_desc );
+}
+
+UT_UNIT_TEST( test_wait )
+{
+	do_test_wait( false );
+	do_test_wait( true );
 }
 
 int

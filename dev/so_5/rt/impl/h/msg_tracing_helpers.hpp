@@ -67,6 +67,11 @@ struct composed_action_name
 		const char * m_2;
 	};
 
+struct chain_size
+	{
+		std::size_t m_size;
+	};
+
 inline void
 make_trace_to_1( std::ostream & s, mbox_identification id )
 	{
@@ -183,6 +188,12 @@ inline void
 make_trace_to_1( std::ostream & s, const text_separator text )
 	{
 		s << " " << text.m_text << " ";
+	}
+
+inline void
+make_trace_to_1( std::ostream & s, chain_size size )
+	{
+		s << "[chain_size=" << size.m_size << "]";
 	}
 
 inline void
@@ -435,6 +446,10 @@ struct mchain_tracing_disabled_base
 					const message_ref_t &,
 					const invocation_type_t )
 					{}
+
+				template< typename QUEUE >
+				void
+				stored( const QUEUE & /*queue*/ ) {}
 			};
 	};
 
@@ -501,6 +516,13 @@ class mchain_tracing_enabled_base
 					,	m_msg_type{ msg_type }
 					,	m_message{ message }
 					{}
+
+				template< typename QUEUE >
+				void
+				stored( const QUEUE & queue )
+					{
+						make_trace( "stored", details::chain_size{ queue.size() } );
+					}
 			};
 	};
 

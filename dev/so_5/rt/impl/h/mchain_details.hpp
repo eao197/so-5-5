@@ -519,6 +519,13 @@ class mchain_template
 			const so_5::rt::message_ref_t & message,
 			so_5::rt::invocation_type_t demand_type ) const
 			{
+				typename TRACING_BASE::deliver_op_tracer tracer{
+						*this, // as tracing base.
+						*this, // as chain.
+						msg_type,
+						message,
+						demand_type };
+
 				std::unique_lock< std::mutex > lock{ m_lock };
 
 				// Message cannot be stored to closed chain.
@@ -582,6 +589,8 @@ class mchain_template
 				
 				m_queue.push_back(
 						demand{ msg_type, message, demand_type } );
+
+				tracer.stored( m_queue );
 
 				if( queue_was_empty )
 					m_underflow_cond.notify_one();
