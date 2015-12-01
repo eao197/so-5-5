@@ -436,6 +436,10 @@ trace_event_handler_search_result(
  */
 struct mchain_tracing_disabled_base
 	{
+		void trace_extracted_demand(
+			const abstract_message_chain &,
+			const mchain_props::demand & ) {}
+
 		class deliver_op_tracer
 			{
 			public :
@@ -482,6 +486,22 @@ class mchain_tracing_enabled_base
 		tracer() const
 			{
 				return m_tracer;
+			}
+
+		void
+		trace_extracted_demand(
+			const abstract_message_chain & chain,
+			const mchain_props::demand & d )
+			{
+				details::make_trace(
+						m_tracer,
+						chain,
+						details::composed_action_name{
+								(invocation_type_t::event == d.m_demand_type ?
+										"message" : "service_request" ),
+								"extracted" },
+						d.m_msg_type,
+						d.m_message_ref );
 			}
 
 		class deliver_op_tracer

@@ -432,6 +432,8 @@ class mchain_template
 				dest = std::move( m_queue.front() );
 				m_queue.pop_front();
 
+				this->trace_extracted_demand( *this, dest );
+
 				if( queue_was_full )
 					m_overflow_cond.notify_all();
 

@@ -243,7 +243,24 @@ UT_UNIT_TEST( test_stop_pred )
 						env.environment().create_mchain( p.second ) );
 			},
 			4,
-			"test_stop_pred: " + p.first );
+			"test_stop_pred(no_msg_tracing): " + p.first );
+
+		run_with_time_limit(
+			[&p]()
+			{
+				so_5::wrapped_env_t env(
+						[]( so_5::rt::environment_t & ) {},
+						[]( so_5::rt::environment_params_t & params ) {
+							params.message_delivery_tracer(
+									so_5::msg_tracing::std_clog_tracer() );
+						} );
+
+				do_check_stop_pred(
+						env.environment().create_mchain( p.second ),
+						env.environment().create_mchain( p.second ) );
+			},
+			4,
+			"test_stop_pred(msg_tracing): " + p.first );
 	}
 }
 int
