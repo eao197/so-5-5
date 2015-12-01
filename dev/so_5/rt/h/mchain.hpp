@@ -416,6 +416,8 @@ enum class close_mode
  * \since v.5.5.13
  * \brief Type of functor for notifies about arrival of a message to
  * the empty chain.
+ *
+ * \attention This function must be noexcept.
  */
 using not_empty_notification_func = std::function< void() >;
 

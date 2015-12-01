@@ -616,7 +616,9 @@ class mchain_template
 
 						// Custom 'not_empty' notificator should be used if defined.
 						if( m_not_empty_notificator )
-							m_not_empty_notificator();
+							so_5::details::invoke_noexcept_code( [this] {
+								m_not_empty_notificator();
+							} );
 					}
 			}
 	};
