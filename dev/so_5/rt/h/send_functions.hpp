@@ -283,6 +283,26 @@ send_delayed(
 	}
 
 /*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a delayed message.
+ *
+ * Gets the Environment from the chain specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_delayed(
+	//! A chain for receiving the delayed message.
+	const mchain & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >( to->environment(), to->as_mbox(), pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for creating and delivering a delayed message
  * to the agent's direct mbox.
@@ -368,6 +388,21 @@ send_delayed(
 	std::chrono::steady_clock::duration pause )
 	{
 		send_delayed< MESSAGE >( agent.so_environment(), to, pause );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for delivering a delayed signal to %mchain.
+ */
+template< typename MESSAGE >
+void
+send_delayed(
+	//! Chain for the message to be sent to.
+	const mchain & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause )
+	{
+		send_delayed< MESSAGE >( to->environment(), to->as_mbox(), pause );
 	}
 
 /*!
