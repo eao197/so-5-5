@@ -12,4 +12,5 @@ MxxRu::Cpp::composite_target {
 	required_prj( "#{path}/limited_no_app_abort/prj.ut.rb" )
 	required_prj( "#{path}/limited_app_abort/prj.ut.rb" )
 	required_prj( "#{path}/adv_receive/prj.ut.rb" )
+	required_prj( "#{path}/not_empty_notify/prj.ut.rb" )
 }

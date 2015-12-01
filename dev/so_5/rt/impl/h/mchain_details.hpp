@@ -293,15 +293,16 @@ class mchain_template
 			so_5::rt::environment_t & env,
 			//! Mbox ID for this chain.
 			mbox_id_t id,
-			//! Bag's capacity.
-			const capacity & capacity,
+			//! Chain parameters.
+			const mchain_params & params,
 			//! Arguments for TRACING_BASE's constructor.
 			TRACING_ARGS &&... tracing_args )
 			:	TRACING_BASE{ std::forward<TRACING_ARGS>(tracing_args)... }
 			,	m_env{ env }
 			,	m_id{ id }
-			,	m_capacity{ capacity }
-			,	m_queue{ capacity }
+			,	m_capacity{ params.capacity() }
+			,	m_not_empty_notificator( params.not_empty_notificator() )
+			,	m_queue{ params.capacity() }
 			{}
 
 		virtual mbox_id_t
@@ -468,6 +469,7 @@ class mchain_template
 					{
 						const bool was_empty = m_queue.is_empty();
 						while( !m_queue.is_empty() )
+//FIXME: there should be used msg_tracing to register removed messages.
 							m_queue.pop_front();
 
 						if( was_empty )
@@ -498,13 +500,16 @@ class mchain_template
 		//! Mbox ID for chain.
 		const mbox_id_t m_id;
 
-		//! Bag capacity.
+		//! Chain capacity.
 		const capacity m_capacity;
 
-		//! Bag's demands queue.
+		//! Optional notificator for 'not_empty' condition.
+		const not_empty_notification_func m_not_empty_notificator;
+
+		//! Chain's demands queue.
 		mutable QUEUE m_queue;
 
-		//! Bag's lock.
+		//! Chain's lock.
 		mutable std::mutex m_lock;
 
 		//! Condition variable for waiting on empty queue.
@@ -605,7 +610,14 @@ class mchain_template
 				tracer.stored( m_queue );
 
 				if( queue_was_empty )
-					m_underflow_cond.notify_one();
+					{
+						// Someone can wait on empty queue.
+						m_underflow_cond.notify_one();
+
+						// Custom 'not_empty' notificator should be used if defined.
+						if( m_not_empty_notificator )
+							m_not_empty_notificator();
+					}
 			}
 	};
 

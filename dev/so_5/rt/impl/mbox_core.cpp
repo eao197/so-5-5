@@ -165,19 +165,19 @@ mbox_core_t::create_mchain(
 				m_tracer,
 				env,
 				id,
-				params.capacity() );
+				params );
 	else if( storage_memory::dynamic == params.capacity().memory() )
 		return make_mchain< limited_dynamic_demand_queue >(
 				m_tracer,
 				env,
 				id,
-				params.capacity() );
+				params );
 	else
 		return make_mchain< limited_preallocated_demand_queue >(
 				m_tracer,
 				env,
 				id,
-				params.capacity() );
+				params );
 }
 
 mbox_core_stats_t

@@ -14,6 +14,7 @@
 #include <so_5/rt/h/handler_makers.hpp>
 
 #include <chrono>
+#include <functional>
 
 namespace so_5 {
 
@@ -408,6 +409,16 @@ enum class close_mode
 		retain_content
 	};
 
+//
+// not_empty_notification_func
+//
+/*!
+ * \since v.5.5.13
+ * \brief Type of functor for notifies about arrival of a message to
+ * the empty chain.
+ */
+using not_empty_notification_func = std::function< void() >;
+
 } /* namespace mchain_props */
 
 //
@@ -530,13 +541,16 @@ close_retain_content( const mchain & ch )
  */
 class mchain_params
 	{
-		//! Bag's capacity.
+		//! Chain's capacity.
 		mchain_props::capacity m_capacity;
+
+		//! An optional notificator for 'not_empty' condition.
+		mchain_props::not_empty_notification_func m_not_empty_notificator;
 
 	public :
 		//! Initializing constructor.
 		mchain_params(
-			//! Bag's capacity and related params.
+			//! Chain's capacity and related params.
 			mchain_props::capacity capacity )
 			:	m_capacity{ capacity }
 			{}
@@ -549,11 +563,31 @@ class mchain_params
 				return *this;
 			}
 
-		//! Get bag's capacity and related params.
+		//! Get chain's capacity and related params.
 		const mchain_props::capacity &
 		capacity() const
 			{
 				return m_capacity;
+			}
+
+		//! Set chain's notificator for 'not_empty' condition.
+		/*!
+		 * This notificator will be called when a message is stored to
+		 * the empty chain and chain becomes not empty.
+		 */
+		mchain_params &
+		not_empty_notificator(
+			mchain_props::not_empty_notification_func notificator )
+			{
+				m_not_empty_notificator = std::move(notificator);
+				return *this;
+			}
+
+		//! Get chain's notificator for 'not_empty' condition.
+		const mchain_props::not_empty_notification_func &
+		not_empty_notificator() const
+			{
+				return m_not_empty_notificator;
 			}
 	};
 
