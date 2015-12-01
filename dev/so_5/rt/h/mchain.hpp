@@ -17,6 +17,12 @@
 
 namespace so_5 {
 
+namespace rt {
+
+class environment_t;
+
+} /* namespace rt */
+
 namespace mchain_props {
 
 /*!
@@ -450,6 +456,10 @@ class SO_5_TYPE abstract_message_chain : protected so_5::rt::abstract_message_bo
 		close(
 			//! What to do with chain's content.
 			mchain_props::close_mode mode ) = 0;
+
+		//! SObjectizer Environment for which the chain is created.
+		virtual so_5::rt::environment_t &
+		environment() const = 0;
 	};
 
 //

@@ -482,6 +482,12 @@ class mchain_template
 					m_overflow_cond.notify_all();
 			}
 
+		virtual so_5::rt::environment_t &
+		environment() const override
+			{
+				return m_env;
+			}
+
 	private :
 		//! SObjectizer Environment for which message chain is created.
 		so_5::rt::environment_t & m_env;
