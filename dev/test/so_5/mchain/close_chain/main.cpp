@@ -64,30 +64,43 @@ check_retain_content( const so_5::mchain & chain )
 				"return code: " + to_string( r.handled() ) );
 }
 
+void
+do_check( bool msg_tracing_enabled )
+{
+	run_with_time_limit(
+		[msg_tracing_enabled]()
+		{
+			so_5::wrapped_env_t env{
+				[]( so_5::rt::environment_t & ) {},
+				[msg_tracing_enabled]( so_5::rt::environment_params_t & params ) {
+					if( msg_tracing_enabled )
+						params.message_delivery_tracer(
+								so_5::msg_tracing::std_clog_tracer() );
+				} };
+
+			auto params = build_mchain_params();
+
+			for( const auto & p : params )
+			{
+				cout << "=== " << p.first << " ===" << endl;
+
+				check_drop_content(
+						env.environment().create_mchain( p.second ) );
+				check_retain_content(
+						env.environment().create_mchain( p.second ) );
+			}
+		},
+		4,
+		"close_chain" );
+}
+
 int
 main()
 {
 	try
 	{
-		run_with_time_limit(
-			[]()
-			{
-				so_5::wrapped_env_t env;
-
-				auto params = build_mchain_params();
-
-				for( const auto & p : params )
-				{
-					cout << "=== " << p.first << " ===" << endl;
-
-					check_drop_content(
-							env.environment().create_mchain( p.second ) );
-					check_retain_content(
-							env.environment().create_mchain( p.second ) );
-				}
-			},
-			4,
-			"simple test for mchain" );
+		do_check( false );
+		do_check( true );
 	}
 	catch( const exception & ex )
 	{

@@ -440,6 +440,10 @@ struct mchain_tracing_disabled_base
 			const abstract_message_chain &,
 			const mchain_props::demand & ) {}
 
+		void trace_demand_drop_on_close(
+			const abstract_message_chain &,
+			const mchain_props::demand & ) {}
+
 		class deliver_op_tracer
 			{
 			public :
@@ -477,6 +481,14 @@ class mchain_tracing_enabled_base
 	private :
 		so_5::msg_tracing::tracer_t & m_tracer;
 
+		static const char *
+		message_or_svc_request(
+			invocation_type_t invocation )
+			{
+				return invocation_type_t::event == invocation ?
+						"message" : "service_request";
+			}
+
 	public :
 		mchain_tracing_enabled_base( so_5::msg_tracing::tracer_t & tracer )
 			:	m_tracer{ tracer }
@@ -497,9 +509,23 @@ class mchain_tracing_enabled_base
 						m_tracer,
 						chain,
 						details::composed_action_name{
-								(invocation_type_t::event == d.m_demand_type ?
-										"message" : "service_request" ),
+								message_or_svc_request( d.m_demand_type ),
 								"extracted" },
+						d.m_msg_type,
+						d.m_message_ref );
+			}
+
+		void
+		trace_demand_drop_on_close(
+			const abstract_message_chain & chain,
+			const mchain_props::demand & d )
+			{
+				details::make_trace(
+						m_tracer,
+						chain,
+						details::composed_action_name{
+								message_or_svc_request( d.m_demand_type ),
+								"dropped_on_close" },
 						d.m_msg_type,
 						d.m_message_ref );
 			}
@@ -538,8 +564,7 @@ class mchain_tracing_enabled_base
 					const invocation_type_t invocation )
 					:	m_tracer{ tracing_base.tracer() }
 					,	m_chain{ chain }
-					,	m_op_name{ invocation_type_t::event == invocation ?
-							"deliver_message" : "deliver_service_request" }
+					,	m_op_name{ message_or_svc_request( invocation ) }
 					,	m_msg_type{ msg_type }
 					,	m_message{ message }
 					{}

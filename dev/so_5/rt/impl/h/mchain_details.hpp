@@ -469,8 +469,11 @@ class mchain_template
 					{
 						const bool was_empty = m_queue.is_empty();
 						while( !m_queue.is_empty() )
-//FIXME: there should be used msg_tracing to register removed messages.
-							m_queue.pop_front();
+							{
+								this->trace_demand_drop_on_close(
+										*this, m_queue.front() );
+								m_queue.pop_front();
+							}
 
 						if( was_empty )
 							// Someone can wait on empty chain for new messages.
