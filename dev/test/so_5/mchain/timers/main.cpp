@@ -29,11 +29,29 @@ void check_pause(
 void
 check_delayed( const so_5::mchain & chain )
 {
+	cout << "check_delayed..." << endl;
 	check_pause(
 			chrono::milliseconds(100),
 			[&] {
 				so_5::send_delayed< int >( chain, chrono::milliseconds(100), 1 );
 				receive( chain, so_5::infinite_wait,
+						[]( int i ) { UT_CHECK_CONDITION( i == 1 ); } );
+			} );
+}
+
+void
+check_periodic( const so_5::mchain & chain )
+{
+	cout << "check_periodic..." << endl;
+	check_pause(
+			chrono::milliseconds(400),
+			[&] {
+				auto t = so_5::send_periodic< int >(
+						chain,
+						chrono::milliseconds(100),
+						chrono::milliseconds(100),
+						1 );
+				receive( from(chain).handle_n(4),
 						[]( int i ) { UT_CHECK_CONDITION( i == 1 ); } );
 			} );
 }
@@ -59,6 +77,8 @@ do_check( bool msg_tracing_enabled )
 				cout << "=== " << p.first << " ===" << endl;
 
 				check_delayed(
+						env.environment().create_mchain( p.second ) );
+				check_periodic(
 						env.environment().create_mchain( p.second ) );
 			}
 		},

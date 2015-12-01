@@ -500,6 +500,31 @@ send_periodic(
 	}
 
 /*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a periodic message
+ * to %mchain.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! Chain for the message to be sent to.
+	const mchain & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				to->environment(),
+				to->as_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for creating and delivering a periodic message
  * to the agent's direct mbox.
@@ -597,6 +622,29 @@ send_periodic(
 		return send_periodic< MESSAGE >(
 				agent.so_environment(),
 				to,
+				pause,
+				period );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for delivering a periodic signal to %mchain.
+ *
+ * Gets the Environment from the chain specified.
+ */
+template< typename MESSAGE >
+timer_id_t
+send_periodic(
+	//! Chain for the message to be sent to.
+	const mchain & to,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period )
+	{
+		return send_periodic< MESSAGE >(
+				to->environment(),
+				to->as_mbox(),
 				pause,
 				period );
 	}
