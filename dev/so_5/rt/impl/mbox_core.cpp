@@ -111,6 +111,32 @@ mbox_core_t::destroy_mbox(
 	}
 }
 
+namespace {
+
+template< typename Q, typename... A >
+mchain
+make_mchain(
+	so_5::msg_tracing::tracer_t * tracer,
+	A &&... args )
+	{
+		using namespace so_5::mchain_props;
+		using namespace so_5::rt::impl::msg_tracing_helpers;
+		using D = mchain_tracing_disabled_base;
+		using E = mchain_tracing_enabled_base;
+
+		if( tracer )
+			return mchain{
+					new mchain_template< Q, E >{
+						std::forward<A>(args)...,
+						*tracer } };
+		else
+			return mchain{
+					new mchain_template< Q, D >{
+						std::forward<A>(args)... } };
+	}
+
+} /* namespace anonymous */
+
 mchain
 mbox_core_t::create_mchain(
 	environment_t & env,
@@ -118,67 +144,27 @@ mbox_core_t::create_mchain(
 {
 	using namespace so_5::mchain_props;
 	using namespace so_5::mchain_props::details;
-	using namespace so_5::rt::impl::msg_tracing_helpers;
 
 	auto id = ++m_mbox_id_counter;
 
-	if( !m_tracer )
-	{
-		if( params.capacity().unlimited() )
-			return mchain{
-				new mchain_template<
-							unlimited_demand_queue,
-							mchain_tracing_disabled_base >{
-					env,
-					id,
-					params.capacity() } };
-		else if( storage_memory::dynamic == params.capacity().memory() )
-			return mchain{
-				new mchain_template<
-							limited_dynamic_demand_queue,
-							mchain_tracing_disabled_base >{
-					env,
-					id,
-					params.capacity() } };
-		else
-			return mchain{
-				new mchain_template<
-							limited_preallocated_demand_queue,
-							mchain_tracing_disabled_base >{
-					env,
-					id,
-					params.capacity() } };
-	}
+	if( params.capacity().unlimited() )
+		return make_mchain< unlimited_demand_queue >(
+				m_tracer,
+				env,
+				id,
+				params.capacity() );
+	else if( storage_memory::dynamic == params.capacity().memory() )
+		return make_mchain< limited_dynamic_demand_queue >(
+				m_tracer,
+				env,
+				id,
+				params.capacity() );
 	else
-	{
-		if( params.capacity().unlimited() )
-			return mchain{
-				new mchain_template<
-							unlimited_demand_queue,
-							mchain_tracing_enabled_base >{
-					env,
-					id,
-					params.capacity(),
-					*m_tracer } };
-		else if( storage_memory::dynamic == params.capacity().memory() )
-			return mchain{
-				new mchain_template<
-							limited_dynamic_demand_queue,
-							mchain_tracing_enabled_base >{
-					env,
-					id,
-					params.capacity(),
-					*m_tracer } };
-		else
-			return mchain{
-				new mchain_template<
-							limited_preallocated_demand_queue,
-							mchain_tracing_enabled_base >{
-					env,
-					id,
-					params.capacity(),
-					*m_tracer } };
-	}
+		return make_mchain< limited_preallocated_demand_queue >(
+				m_tracer,
+				env,
+				id,
+				params.capacity() );
 }
 
 mbox_core_stats_t
