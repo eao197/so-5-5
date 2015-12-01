@@ -56,6 +56,24 @@ mbox_core_t::create_local_mbox(
 			[this]() { return create_local_mbox(); } );
 }
 
+namespace {
+
+template< typename M1, typename M2, typename... A >
+std::unique_ptr< abstract_message_box_t >
+make_actual_mbox(
+	so_5::msg_tracing::tracer_t * tracer,
+	A &&... args )
+	{
+		std::unique_ptr< abstract_message_box_t > result;
+		if( !tracer )
+			result.reset( new M1{ std::forward<A>(args)... } );
+		else
+			result.reset( new M2{ std::forward<A>(args)..., *tracer } );
+		return result;
+	}
+
+} /* namespace anonymous */
+
 mbox_t
 mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
@@ -66,29 +84,24 @@ mbox_core_t::create_mpsc_mbox(
 	std::unique_ptr< abstract_message_box_t > actual_mbox;
 	if( limits_storage )
 	{
-		if( !m_tracer )
-			actual_mbox.reset( new limitful_mpsc_mbox_without_tracing{
+		actual_mbox =
+				make_actual_mbox<
+						limitful_mpsc_mbox_without_tracing,
+						limitful_mpsc_mbox_with_tracing >(
+					m_tracer,
 					id,
 					single_consumer,
-					*limits_storage } );
-		else
-			actual_mbox.reset( new limitful_mpsc_mbox_with_tracing{
-					id,
-					single_consumer,
-					*limits_storage,
-					*m_tracer } );
+					*limits_storage );
 	}
 	else
 	{
-		if( !m_tracer )
-			actual_mbox.reset( new limitless_mpsc_mbox_without_tracing{
+		actual_mbox =
+				make_actual_mbox<
+						limitless_mpsc_mbox_without_tracing,
+						limitless_mpsc_mbox_with_tracing >(
+					m_tracer,
 					id,
-					single_consumer } );
-		else
-			actual_mbox.reset( new limitless_mpsc_mbox_with_tracing{
-					id,
-					single_consumer,
-					*m_tracer } );
+					single_consumer );
 	}
 
 	return mbox_t{ actual_mbox.release() };
