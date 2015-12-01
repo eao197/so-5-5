@@ -26,20 +26,49 @@ namespace impl
 	 */
 
 	template< class MESSAGE, bool IS_SIGNAL >
-	struct instantiator_and_sender_t
+	struct instantiator_and_sender_base
 		{
+			static void
+			send( const so_5::rt::mbox_t & to )
+				{
+					to->deliver_message(
+						so_5::rt::details::make_message_instance< MESSAGE >() );
+				}
+
+			static void
+			send_delayed(
+				so_5::rt::environment_t & env,
+				const so_5::rt::mbox_t & to,
+				std::chrono::steady_clock::duration pause )
+				{
+					env.single_timer(
+							so_5::rt::details::make_message_instance< MESSAGE >(),
+							to, pause );
+				}
+
+			static timer_id_t
+			send_periodic(
+				so_5::rt::environment_t & env,
+				const so_5::rt::mbox_t & to,
+				std::chrono::steady_clock::duration pause,
+				std::chrono::steady_clock::duration period )
+				{
+					return env.schedule_timer( 
+							so_5::rt::details::make_message_instance< MESSAGE >(),
+							to, pause, period );
+				}
 		};
 
 	template< class MESSAGE >
-	struct instantiator_and_sender_t< MESSAGE, true >
+	struct instantiator_and_sender_base< MESSAGE, true >
 		{
-			void
+			static void
 			send( const so_5::rt::mbox_t & to )
 				{
 					to->deliver_signal< MESSAGE >();
 				}
 
-			void
+			static void
 			send_delayed(
 				so_5::rt::environment_t & env,
 				const so_5::rt::mbox_t & to,
@@ -48,7 +77,7 @@ namespace impl
 					env.single_timer< MESSAGE >( to, pause );
 				}
 
-			timer_id_t
+			static timer_id_t
 			send_periodic(
 				so_5::rt::environment_t & env,
 				const so_5::rt::mbox_t & to,
@@ -58,6 +87,11 @@ namespace impl
 					return env.schedule_timer< MESSAGE >( to, pause, period );
 				}
 		};
+
+	template< class MESSAGE >
+	struct instantiator_and_sender
+		:	public instantiator_and_sender_base< MESSAGE, is_signal< MESSAGE >::value >
+		{};
 
 } /* namespace impl */
 
@@ -183,11 +217,8 @@ template< typename MESSAGE, typename TARGET >
 void
 send( TARGET && to )
 	{
-		so_5::rt::impl::instantiator_and_sender_t<
-				MESSAGE,
-				so_5::rt::is_signal< MESSAGE >::value > helper;
-
-		helper.send( send_functions_details::arg_to_mbox( to ) );
+		so_5::rt::impl::instantiator_and_sender< MESSAGE >::send(
+				send_functions_details::arg_to_mbox( to ) );
 	}
 
 /*!
@@ -364,11 +395,8 @@ send_delayed(
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause )
 	{
-		so_5::rt::impl::instantiator_and_sender_t<
-				MESSAGE,
-				so_5::rt::is_signal< MESSAGE >::value > helper;
-
-		helper.send_delayed( env, to, pause );
+		so_5::rt::impl::instantiator_and_sender< MESSAGE >::send_delayed(
+				env, to, pause );
 	}
 
 /*!
@@ -594,11 +622,8 @@ send_periodic(
 	//! Period of message repetitions.
 	std::chrono::steady_clock::duration period )
 	{
-		so_5::rt::impl::instantiator_and_sender_t<
-				MESSAGE,
-				so_5::rt::is_signal< MESSAGE >::value > helper;
-
-		return helper.send_periodic( env, to, pause, period );
+		return so_5::rt::impl::instantiator_and_sender< MESSAGE >::send_periodic(
+				env, to, pause, period );
 	}
 
 /*!
