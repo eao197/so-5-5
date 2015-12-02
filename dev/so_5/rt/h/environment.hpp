@@ -586,12 +586,44 @@ class SO_5_TYPE environment_t
 		 * \{
 		 */
 
-//FIXME: actual usage examples must be included into comment here!
 		/*!
 		 * \since v.5.5.13
 		 * \brief Create message chain.
 		 *
 		 * \par Usage examples:
+			\code
+			so_5::rt::environment_t & env = ...;
+			// Create mchain with size-unlimited queue.
+			auto ch1 = env.create_mchain(
+				so_5::make_unlimited_mchain_params() );
+			// Create mchain with size-limited queue without a timeout
+			// on attempt to push another message to full mchain...
+			auto ch2 = env.create_mchain(
+				so_5::make_limited_without_waiting_mchain_params(
+					// ...maximum size of the chain.
+					100,
+					// ...memory for chain will be allocated and deallocated dynamically...
+					so_5::mchain_props::storage_memory::dynamic,
+					// ...an exception will be thrown on overflow.
+					so_5::mchain_props::overflow_reaction::throw_exception ) );
+			// Create mchain with size-limited queue with a timeout for 200ms
+			// on attempt to push another message to full mchain...
+			auto ch3 = env.create_mchain(
+				so_5::make_limited_with_waiting_mchain_params(
+					// ...maximum size of the chain.
+					100,
+					// ...memory for chain will be preallocated...
+					so_5::mchain_props::storage_memory::preallocated,
+					// ...an oldest message from mchain will be removed on overflow...
+					so_5::mchain_props::overflow_reaction::remove_oldest,
+					// ...timeout for waiting on attempt to push a message into full mchain.
+					std::chrono::milliseconds(200) ) );
+			// Create size-unlimited mchain with custom notificator for
+			// 'not_empty' situations.
+			auto ch4 = env.create_mchain(
+				so_5::make_unlimited_mchain_params().not_empty_notificator(
+					[&] { some_widget.send_notify(); } ) );
+			\endcode
 		 */
 		mchain
 		create_mchain(

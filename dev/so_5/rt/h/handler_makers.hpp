@@ -224,12 +224,13 @@ struct result_setter_t< void >
 //
 // handler
 //
-//FIXME: examples of usage of this function must be provided in Doxygen comment.
 /*!
  * \since v.5.5.13
  * \brief A function for creation event handler.
  *
  * \note Must be used for the case when message is an ordinary message.
+ *
+ * \note This function is intended to be used only by SObjectizer itself.
  */
 template< class LAMBDA >
 rt::details::msg_type_and_handler_pair
@@ -285,12 +286,13 @@ handler( LAMBDA && lambda )
 //
 // handler
 //
-//FIXME: examples of usage of this function must be provided in Doxygen comment.
 /*!
  * \since v.5.5.13
  * \brief A function for creation event handler.
  *
  * \note Must be used for the case when message is a signal.
+ *
+ * \note This function is intended to be used only by SObjectizer itself.
  */
 template< class SIGNAL, class LAMBDA >
 rt::details::msg_type_and_handler_pair
