@@ -59,16 +59,36 @@ public :
 				.event( m_req_mbox, [this]( ask_status ) {
 					so_5::send< status_idle >( m_chain );
 				} )
+				// Ping-pong start requires more actions so it is implemented
+				// as separate method.
 				.event( m_req_mbox, &a_supervisor::evt_start_ping_pong );
 
 			st_started
-				.event( m_req_mbox, &a_supervisor::evt_ask_status_when_started )
-				.event( &a_supervisor::evt_finish_ping_pong );
+				// On status request will reply by sending
+				// status_in_progress to the chain.
+				.event( m_req_mbox, [this]( ask_status ) {
+					so_5::send< status_in_progress >( m_chain );
+				} )
+				// Reaction to the end of ping-pong.
+				.event( [this]( ping_pong_stopped ) {
+					// Storing time for the future ask_status requests.
+					m_last_duration_ms = duration_cast< milliseconds >(
+							clock::now() - m_started_at ).count();
+
+					// Reflect the end of ping-pong by changing state of supervisor.
+					this >>= st_finished;
+					// Send the result of ping-pong to the main thread.
+					so_5::send< status_finished >( m_chain, m_last_duration_ms );
+				} );
 
 			st_finished
+				// On status request will reply by sending
+				// status_finished to the chain.
 				.event( m_req_mbox, [this]( ask_status ) {
 					so_5::send< status_finished >( m_chain, m_last_duration_ms );
 				} )
+				// Star of ping-pong will be handled exactly same way
+				// as in st_idle state.
 				.event( m_req_mbox, &a_supervisor::evt_start_ping_pong );
 		}
 
@@ -81,26 +101,34 @@ private :
 
 	void evt_start_ping_pong( start_ping_pong evt )
 	{
-		namespace ao_disp = so_5::disp::active_obj;
-
 		this >>= st_started;
 
 		m_started_at = clock::now();
 
+		// Pinger and ponger will be started inside a new coop.
+		// They will work on different threads (management of those
+		// threads will be done by private active_obj dispatcher).
 		so_5::rt::introduce_child_coop( *this,
-				ao_disp::create_private_disp( so_environment() )->binder(),
+				so_5::disp::active_obj::create_private_disp(
+						so_environment() )->binder(),
 				[this, evt]( so_5::rt::agent_coop_t & coop )
 				{
+					// Types of messages to be used by pinger and ponger.
 					struct ping{ unsigned int m_v; };
 					struct pong{ unsigned int m_v; };
 
+					// Pinger and ponger itself.
 					auto pinger = coop.define_agent();
 					auto ponger = coop.define_agent();
+
+					// Pinger should know mbox of its parent agent.
 					auto parent_mbox = so_direct_mbox();
 
+					// Pinger will send the first ping on the start...
 					pinger.on_start( [ponger, evt] {
 							so_5::send< ping >( ponger, evt.m_pings );
 						} )
+						// ...and the next ping on the pong from ponger agent.
 						.event( pinger,
 							[ponger, parent_mbox, &coop]( pong reply ) {
 							if( reply.m_v )
@@ -112,24 +140,11 @@ private :
 							}
 						} );
 
+					// Ponger will handle just one ping message.
 					ponger.event( ponger, [pinger]( ping req ) {
 							so_5::send< pong >( pinger, req.m_v );
 						} );
 				} );
-	}
-
-	void evt_ask_status_when_started( ask_status )
-	{
-		so_5::send< status_in_progress >( m_chain );
-	}
-
-	void evt_finish_ping_pong( ping_pong_stopped )
-	{
-		m_last_duration_ms = duration_cast< milliseconds >(
-				clock::now() - m_started_at ).count();
-
-		this >>= st_finished;
-		so_5::send< status_finished >( m_chain, m_last_duration_ms );
 	}
 };
 
@@ -152,7 +167,8 @@ void demo()
 			coop.make_agent< a_supervisor >( req_mbox, chain );
 		} );
 
-	// Main loop. The demo will be finished when user enter 'exit' or 'quit' command.
+	// Main loop. The demo will be finished when user enter
+	// 'exit' or 'quit' command.
 	while( true )
 	{
 		cout << "Enter command (status,start,exit): " << flush;
