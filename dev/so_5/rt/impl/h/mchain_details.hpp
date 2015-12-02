@@ -135,7 +135,7 @@ class limited_dynamic_demand_queue
 		//! Initializing constructor.
 		limited_dynamic_demand_queue(
 			const capacity & capacity )
-			:	m_max_size{ capacity.max_size() }
+			:	m_max_size{ capacity.get_max_size() }
 			{}
 
 		//! Is queue full?
@@ -195,8 +195,8 @@ class limited_preallocated_demand_queue
 		//! Initializing constructor.
 		limited_preallocated_demand_queue(
 			const capacity & capacity )
-			:	m_storage( capacity.max_size(), demand{} )
-			,	m_max_size{ capacity.max_size() }
+			:	m_storage( capacity.get_max_size(), demand{} )
+			,	m_max_size{ capacity.get_max_size() }
 			,	m_head{ 0 }
 			,	m_size{ 0 }
 			{}
@@ -556,7 +556,7 @@ class mchain_template
 					{
 						m_overflow_cond.wait_for(
 								lock,
-								m_capacity.overflow_timeout(),
+								m_capacity.get_overflow_timeout(),
 								[this, &queue_full] {
 									queue_full = m_queue.is_full();
 									return !queue_full ||
@@ -567,7 +567,7 @@ class mchain_template
 				// If queue still full we must perform some reaction.
 				if( queue_full )
 					{
-						const auto reaction = m_capacity.overflow_reaction();
+						const auto reaction = m_capacity.get_overflow_reaction();
 						if( overflow_reaction::drop_newest == reaction )
 							{
 								// New message must be simply ignored.

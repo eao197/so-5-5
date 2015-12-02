@@ -339,21 +339,21 @@ class capacity
 		 * \attention Has sence only for size-limited chain.
 		 */
 		std::size_t
-		max_size() const { return m_max_size; }
+		get_max_size() const { return m_max_size; }
 
 		//! Memory allocation type for size-limited chain.
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
 		storage_memory
-		memory() const { return m_memory; }
+		get_memory() const { return m_memory; }
 
 		//! Overflow reaction for size-limited chain.
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
 		overflow_reaction
-		overflow_reaction() const { return m_overflow_reaction; }
+		get_overflow_reaction() const { return m_overflow_reaction; }
 
 		//! Is waiting timeout for overflow case defined?
 		/*!
@@ -370,7 +370,7 @@ class capacity
 		 * \attention Has sence only for size-limited chain.
 		 */
 		duration
-		overflow_timeout() const
+		get_overflow_timeout() const
 			{
 				return m_overflow_timeout;
 			}

@@ -166,7 +166,7 @@ mbox_core_t::create_mchain(
 				env,
 				id,
 				params );
-	else if( storage_memory::dynamic == params.capacity().memory() )
+	else if( storage_memory::dynamic == params.capacity().get_memory() )
 		return make_mchain< limited_dynamic_demand_queue >(
 				m_tracer,
 				env,
