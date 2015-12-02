@@ -742,10 +742,30 @@ class mchain_receive_result
 //
 // receive
 //
-//FIXME: Normal Doxygen comment must be written!
 /*!
  * \since v.5.5.13
  * \brief Receive and handle one message from message chain.
+ *
+ * \note Just one message will be extracted from the chain (if chain is not
+ * empty). Then a handler for that message fill be searched in the \a handlers
+ * list. If a handler is found then message will be passed to it. If not the
+ * message will be discarded.
+ *
+ * \par Usage examples:
+	\code
+	so_5::rt::environment_t & env = ...;
+	so_5::mchain ch = env.create_mchain(...);
+
+	// Extract and handle one message without waiting if the mchain is empty.
+	auto r1 = receive(ch, so_5::no_wait, []( const my_message & m ) {...}, ...);
+
+	// Extract and handle one message with infinite waiting if the mchain is empty.
+	// The receive returns when message is extracted or mchain is closed.
+	auto r2 = receive(ch, so_5::infinite_wait, ...);
+	
+	// Extract and handle one message with waiting no more than 200ms on empty mchain.
+	auto r3 = receive(ch, std::chrono::milliseconds(200), ...);
+	\endcode
  */
 template< typename TIMEOUT, typename... HANDLERS >
 inline mchain_receive_result
@@ -785,10 +805,11 @@ receive(
 //
 // mchain_receive_params
 //
-//FIXME: Examples must be provided in Doxygen comment!
 /*!
  * \since v.5.5.13
  * \brief Parameters for advanced receive from %mchain.
+ *
+ * \sa so_5::from().
  */
 class mchain_receive_params
 	{
@@ -921,10 +942,47 @@ class mchain_receive_params
 //
 // from
 //
-//FIXME: Examples must be provided in Doxygen comment!
 /*!
  * \since v.5.5.13
  * \brief A helper function for simplification of creation of %mchain_receive_params instance.
+ *
+ * \par Usage examples:
+	\code
+	so_5::mchain chain = env.create_mchain(...);
+
+	// Receive and handle 3 messages.
+	// If there is no 3 messages in the mchain the receive will wait infinitely.
+	// A return from receive will be after handling of 3 messages or
+	// if the mchain is closed explicitely.
+	receive( from(chain).handle_n( 3 ),
+			handlers... );
+
+	// Receive and handle 3 messages.
+	// If there is no 3 messages in the mchain the receive will wait
+	// no more that 200ms.
+	// A return from receive will be after handling of 3 messages or
+	// if the mchain is closed explicitely, or if there is no messages
+	// for more than 200ms.
+	receive( from(chain).handle_n( 3 ).empty_timeout( milliseconds(200) ),
+			handlers... );
+
+	// Receive all messages from the chain.
+	// If there is no message in the chain then wait no more than 500ms.
+	// A return from receive will be after explicit close of the chain
+	// or if there is no messages for more than 500ms.
+	receive( from(chain).empty_timeout( milliseconds(500) ),
+			handlers... );
+
+	// Receve any number of messages from the chain but do waiting and
+	// handling for no more than 2s.
+	receive( from(chain).total_time( seconds(2) ),
+			handlers... );
+
+	// Receve 1000 messages from the chain but do waiting and
+	// handling for no more than 2s.
+	receive( from(chain).extract_n( 1000 ).total_time( seconds(2) ),
+			handlers... );
+	\endcode
  */
 inline mchain_receive_params
 from( mchain chain )
