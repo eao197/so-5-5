@@ -350,7 +350,17 @@ namespace details {
  */
 struct handlers_bunch_basics
 	{
-//FIXME: Doxygen comments must be written!
+		/*!
+		 * \brief Preparation of message handlers vector.
+		 *
+		 * Message handlers vector must be ordered by msg_type.
+		 * And must not contain two or more handlers for the same msg_type.
+		 *
+		 * Vector to be processed is defined by range [left, right).
+		 *
+		 * \throw so_5::exception_t if there are several handlers for
+		 * the same message type.
+		 */
 		static inline void
 		prepare_handlers(
 			msg_type_and_handler_pair * left,
@@ -364,7 +374,18 @@ struct handlers_bunch_basics
 									"msg_type: " ) + duplicate->m_msg_type.name() );
 			}
 
-//FIXME: Doxygen comments must be written!
+		/*!
+		 * \brief Find and exec message handler.
+		 *
+		 * Message handlers vector to be used in handling of message
+		 * is defined by range [left, right).
+		 *
+		 * \note The message handler vector [left, right) must be previously
+		 * prepared by prepare_handlers().
+		 *
+		 * \retval true if handler has been found
+		 * \retval false if handler has not been found.
+		 */
 		static inline bool
 		find_and_use_handler(
 			const msg_type_and_handler_pair * left,

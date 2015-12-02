@@ -751,6 +751,9 @@ class mchain_receive_result
  * list. If a handler is found then message will be passed to it. If not the
  * message will be discarded.
  *
+ * \attention It is an error if there are more than one handler for the
+ * same message type in \a handlers.
+ *
  * \par Usage examples:
 	\code
 	so_5::rt::environment_t & env = ...;
@@ -1145,10 +1148,55 @@ receive_without_total_time(
 // receve (advanced version)
 //
 
-//FIXME: Examples must be provided in Doxygen comment!
 /*!
  * \since v.5.5.13
  * \brief Advanced version of receive from %mchain.
+ *
+ * \attention It is an error if there are more than one handler for the
+ * same message type in \a handlers.
+ *
+ * \par Usage examples:
+	\code
+	so_5::mchain chain = env.create_mchain(...);
+
+	// Receive and handle 3 messages.
+	// If there is no 3 messages in the mchain the receive will wait infinitely.
+	// A return from receive will be after handling of 3 messages or
+	// if the mchain is closed explicitely.
+	receive( from(chain).handle_n( 3 ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+
+	// Receive and handle 3 messages.
+	// If there is no 3 messages in the mchain the receive will wait
+	// no more that 200ms.
+	// A return from receive will be after handling of 3 messages or
+	// if the mchain is closed explicitely, or if there is no messages
+	// for more than 200ms.
+	receive( from(chain).handle_n( 3 ).empty_timeout( milliseconds(200) ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+
+	// Receive all messages from the chain.
+	// If there is no message in the chain then wait no more than 500ms.
+	// A return from receive will be after explicit close of the chain
+	// or if there is no messages for more than 500ms.
+	receive( from(chain).empty_timeout( milliseconds(500) ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+
+	// Receve any number of messages from the chain but do waiting and
+	// handling for no more than 2s.
+	receive( from(chain).total_time( seconds(2) ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+
+	// Receve 1000 messages from the chain but do waiting and
+	// handling for no more than 2s.
+	receive( from(chain).extract_n( 1000 ).total_time( seconds(2) ),
+			[]( const first_message_type & msg ) { ... },
+			[]( const second_message_type & msg ) { ... }, ... );
+	\endcode
  */
 template< typename... HANDLERS >
 inline mchain_receive_result
