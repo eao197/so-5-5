@@ -198,16 +198,14 @@ struct demand
 			}
 	};
 
-//FIXME: it is not a good name. A better name must be found
-//(something like memory_consumption).
 //
-// storage_memory
+// memory_usage_type
 //
 /*!
  * \since v.5.5.13
  * \brief Memory allocation for storage for size-limited chains.
  */
-enum class storage_memory
+enum class memory_usage_type
 	{
 		//! Storage can be allocated and deallocated dynamically.
 		dynamic,
@@ -216,14 +214,14 @@ enum class storage_memory
 	};
 
 //
-// overflow_reaction
+// overflow_reaction_type
 //
 /*!
  * \since v.5.5.13
  * \brief What reaction must be performed on attempt to push new message to
  * the full message chain.
  */
-enum class overflow_reaction
+enum class overflow_reaction_type
 	{
 		//! Application must be aborted.
 		abort_app,
@@ -253,10 +251,10 @@ class capacity
 		std::size_t m_max_size;
 
 		//! Type of the storage for size-limited chain.
-		storage_memory m_memory;
+		memory_usage_type m_memory;
 
 		//! Type of reaction for chain overflow.
-		overflow_reaction m_overflow_reaction;
+		overflow_reaction_type m_overflow_reaction;
 
 		//! Timeout for waiting on full chain during 'message push' operation.
 		/*!
@@ -268,12 +266,12 @@ class capacity
 		//! Initializing constructor for size-limited message chain.
 		capacity(
 			std::size_t max_size,
-			storage_memory memory,
-			overflow_reaction overflow_reaction,
+			memory_usage_type memory_usage,
+			overflow_reaction_type overflow_reaction,
 			duration overflow_timeout )
 			:	m_unlimited{ false }
 			,	m_max_size{ max_size }
-			,	m_memory{ memory }
+			,	m_memory{ memory_usage }
 			,	m_overflow_reaction{ overflow_reaction }
 			,	m_overflow_timeout( overflow_timeout )
 			{}
@@ -297,13 +295,13 @@ class capacity
 			//! Max size of the chain.
 			std::size_t max_size,
 			//! Type of chain storage.
-			storage_memory memory,
+			memory_usage_type memory_usage,
 			//! Reaction on chain overflow.
-			overflow_reaction overflow_reaction )
+			overflow_reaction_type overflow_reaction )
 			{
 				return capacity{
 						max_size,
-						memory,
+						memory_usage,
 						overflow_reaction,
 						details::no_wait_special_timevalue()
 				};
@@ -316,15 +314,15 @@ class capacity
 			//! Max size of the chain.
 			std::size_t max_size,
 			//! Type of chain storage.
-			storage_memory memory,
+			memory_usage_type memory_usage,
 			//! Reaction on chain overflow.
-			overflow_reaction overflow_reaction,
+			overflow_reaction_type overflow_reaction,
 			//! Waiting time on full message chain.
 			duration wait_timeout )
 			{
 				return capacity{
 						max_size,
-						memory,
+						memory_usage,
 						overflow_reaction,
 						wait_timeout
 				};
@@ -339,21 +337,21 @@ class capacity
 		 * \attention Has sence only for size-limited chain.
 		 */
 		std::size_t
-		get_max_size() const { return m_max_size; }
+		max_size() const { return m_max_size; }
 
 		//! Memory allocation type for size-limited chain.
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
-		storage_memory
-		get_memory() const { return m_memory; }
+		memory_usage_type
+		memory_usage() const { return m_memory; }
 
 		//! Overflow reaction for size-limited chain.
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
-		overflow_reaction
-		get_overflow_reaction() const { return m_overflow_reaction; }
+		overflow_reaction_type
+		overflow_reaction() const { return m_overflow_reaction; }
 
 		//! Is waiting timeout for overflow case defined?
 		/*!
@@ -370,7 +368,7 @@ class capacity
 		 * \attention Has sence only for size-limited chain.
 		 */
 		duration
-		get_overflow_timeout() const
+		overflow_timeout() const
 			{
 				return m_overflow_timeout;
 			}
@@ -625,9 +623,9 @@ make_unlimited_mchain_params()
 			// No more than 200 messages in the chain.
 			200,
 			// Memory will be allocated dynamically.
-			so_5::mchain_props::storage_memory::dynamic,
+			so_5::mchain_props::memory_usage_type::dynamic,
 			// New messages will be ignored on chain's overflow.
-			so_5::mchain_props::overflow_reaction::drop_newest ) );
+			so_5::mchain_props::overflow_reaction_type::drop_newest ) );
 	\endcode
  */
 inline mchain_params
@@ -635,14 +633,14 @@ make_limited_without_waiting_mchain_params(
 	//! Max capacity of %mchain.
 	std::size_t max_size,
 	//! Type of chain storage.
-	mchain_props::storage_memory memory,
+	mchain_props::memory_usage_type memory_usage,
 	//! Reaction on chain overflow.
-	mchain_props::overflow_reaction overflow_reaction )
+	mchain_props::overflow_reaction_type overflow_reaction )
 	{
 		return mchain_params{
 				mchain_props::capacity::make_limited_without_waiting(
 						max_size,
-						memory,
+						memory_usage,
 						overflow_reaction )
 		};
 	}
@@ -658,9 +656,9 @@ make_limited_without_waiting_mchain_params(
 			// No more than 200 messages in the chain.
 			200,
 			// Memory will be preallocated.
-			so_5::mchain_props::storage_memory::preallocated,
+			so_5::mchain_props::memory_usage_type::preallocated,
 			// New messages will be ignored on chain's overflow.
-			so_5::mchain_props::overflow_reaction::drop_newest,
+			so_5::mchain_props::overflow_reaction_type::drop_newest,
 			// But before dropping a new message there will be 500ms timeout
 			std::chrono::milliseconds(500) ) );
 	\endcode
@@ -670,16 +668,16 @@ make_limited_with_waiting_mchain_params(
 	//! Max size of the chain.
 	std::size_t max_size,
 	//! Type of chain storage.
-	mchain_props::storage_memory memory,
+	mchain_props::memory_usage_type memory_usage,
 	//! Reaction on chain overflow.
-	mchain_props::overflow_reaction overflow_reaction,
+	mchain_props::overflow_reaction_type overflow_reaction,
 	//! Waiting time on full message chain.
 	mchain_props::duration wait_timeout )
 	{
 		return mchain_params {
 				mchain_props::capacity::make_limited_with_waiting(
 						max_size,
-						memory,
+						memory_usage,
 						overflow_reaction,
 						wait_timeout )
 		};

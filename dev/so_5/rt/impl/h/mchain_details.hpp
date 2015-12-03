@@ -135,7 +135,7 @@ class limited_dynamic_demand_queue
 		//! Initializing constructor.
 		limited_dynamic_demand_queue(
 			const capacity & capacity )
-			:	m_max_size{ capacity.get_max_size() }
+			:	m_max_size{ capacity.max_size() }
 			{}
 
 		//! Is queue full?
@@ -195,8 +195,8 @@ class limited_preallocated_demand_queue
 		//! Initializing constructor.
 		limited_preallocated_demand_queue(
 			const capacity & capacity )
-			:	m_storage( capacity.get_max_size(), demand{} )
-			,	m_max_size{ capacity.get_max_size() }
+			:	m_storage( capacity.max_size(), demand{} )
+			,	m_max_size{ capacity.max_size() }
 			,	m_head{ 0 }
 			,	m_size{ 0 }
 			{}
@@ -556,7 +556,7 @@ class mchain_template
 					{
 						m_overflow_cond.wait_for(
 								lock,
-								m_capacity.get_overflow_timeout(),
+								m_capacity.overflow_timeout(),
 								[this, &queue_full] {
 									queue_full = m_queue.is_full();
 									return !queue_full ||
@@ -567,33 +567,33 @@ class mchain_template
 				// If queue still full we must perform some reaction.
 				if( queue_full )
 					{
-						const auto reaction = m_capacity.get_overflow_reaction();
-						if( overflow_reaction::drop_newest == reaction )
+						const auto reaction = m_capacity.overflow_reaction();
+						if( overflow_reaction_type::drop_newest == reaction )
 							{
 								// New message must be simply ignored.
 								tracer.overflow_drop_newest();
 								return;
 							}
-						else if( overflow_reaction::remove_oldest == reaction )
+						else if( overflow_reaction_type::remove_oldest == reaction )
 							{
 								// The oldest message must be simply removed.
 								tracer.overflow_remove_oldest( m_queue.front() );
 								m_queue.pop_front();
 							}
-						else if( overflow_reaction::throw_exception == reaction )
+						else if( overflow_reaction_type::throw_exception == reaction )
 							{
 								tracer.overflow_throw_exception();
 								SO_5_THROW_EXCEPTION(
 										rc_msg_chain_overflow,
 										"an attempt to push message to full mchain "
-										"with overflow_reaction::throw_exception policy" );
+										"with overflow_reaction_type::throw_exception policy" );
 							}
 						else
 							{
 								so_5::details::abort_on_fatal_error( [&] {
 										tracer.overflow_throw_exception();
 										SO_5_LOG_ERROR( m_env, log_stream ) {
-											log_stream << "overflow_reaction::abort_app "
+											log_stream << "overflow_reaction_type::abort_app "
 													"will be performed for mchain (id="
 													<< m_id << "), msg_type: "
 													<< msg_type.name()

@@ -21,8 +21,8 @@ main()
 	auto ch = env.environment().create_mchain( so_5::mchain_params{
 			props::capacity::make_limited_without_waiting(
 					3,
-					props::storage_memory::dynamic,
-					props::overflow_reaction::abort_app ) } );
+					props::memory_usage_type::dynamic,
+					props::overflow_reaction_type::abort_app ) } );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );

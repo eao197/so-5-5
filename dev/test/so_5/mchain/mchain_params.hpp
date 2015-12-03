@@ -19,24 +19,24 @@ build_mchain_params()
 		params.emplace_back( "limited(dynamic,nowait)",
 				so_5::make_limited_without_waiting_mchain_params(
 						5,
-						props::storage_memory::dynamic,
-						props::overflow_reaction::drop_newest ) );
+						props::memory_usage_type::dynamic,
+						props::overflow_reaction_type::drop_newest ) );
 		params.emplace_back( "limited(preallocated,nowait)",
 				so_5::make_limited_without_waiting_mchain_params(
 						5,
-						props::storage_memory::preallocated,
-						props::overflow_reaction::drop_newest ) );
+						props::memory_usage_type::preallocated,
+						props::overflow_reaction_type::drop_newest ) );
 		params.emplace_back( "limited(dynamic,wait)",
 				so_5::make_limited_with_waiting_mchain_params(
 						5,
-						props::storage_memory::dynamic,
-						props::overflow_reaction::drop_newest,
+						props::memory_usage_type::dynamic,
+						props::overflow_reaction_type::drop_newest,
 						chrono::milliseconds(200) ) );
 		params.emplace_back( "limited(preallocated,wait)",
 				so_5::make_limited_with_waiting_mchain_params(
 						5,
-						props::storage_memory::preallocated,
-						props::overflow_reaction::drop_newest,
+						props::memory_usage_type::preallocated,
+						props::overflow_reaction_type::drop_newest,
 						chrono::milliseconds(200) ) );
 
 		return params;
