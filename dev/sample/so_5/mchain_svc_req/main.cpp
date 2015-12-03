@@ -19,7 +19,7 @@ void demo()
 			so_5::make_unlimited_mchain_params() );
 
 	// Create an agent for sending service requests.
-	sobj.environment().introduce_coop( [&ch]( so_5::rt::agent_coop_t & coop ) {
+	sobj.environment().introduce_coop( [&ch]( so_5::rt::coop_t & coop ) {
 			auto a = coop.define_agent();
 			a.on_start( [a] {
 					// Start service requests sending loop by sending

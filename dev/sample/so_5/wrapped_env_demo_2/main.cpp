@@ -111,7 +111,7 @@ private :
 		so_5::rt::introduce_child_coop( *this,
 				so_5::disp::active_obj::create_private_disp(
 						so_environment() )->binder(),
-				[this, evt]( so_5::rt::agent_coop_t & coop )
+				[this, evt]( so_5::rt::coop_t & coop )
 				{
 					// Types of messages to be used by pinger and ponger.
 					struct ping{ unsigned int m_v; };
@@ -163,7 +163,7 @@ void demo()
 			so_5::make_unlimited_mchain_params() );
 
 	// Start SO-part of the app.
-	sobj.environment().introduce_coop( [&]( so_5::rt::agent_coop_t & coop ) {
+	sobj.environment().introduce_coop( [&]( so_5::rt::coop_t & coop ) {
 			coop.make_agent< a_supervisor >( req_mbox, chain );
 		} );
 
