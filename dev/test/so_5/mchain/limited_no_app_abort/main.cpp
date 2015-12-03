@@ -128,13 +128,12 @@ do_test_no_wait( bool use_tracer )
 
 	run_with_time_limit(
 		[use_tracer] {
-			so_5::wrapped_env_t env{
-				[]( so_5::rt::environment_t & ) {},
-				[use_tracer]( so_5::rt::environment_params_t & params ) {
-					if( use_tracer )
-						params.message_delivery_tracer(
-								so_5::msg_tracing::std_clog_tracer() );
-				} };
+			so_5::rt::environment_params_t params;
+			if( use_tracer )
+				params.message_delivery_tracer(
+						so_5::msg_tracing::std_clog_tracer() );
+
+			so_5::wrapped_env_t env{ std::move(params) };
 
 			do_check_no_wait_drop_newest( env.environment() );
 			do_check_no_wait_remove_oldest( env.environment() );
@@ -282,13 +281,12 @@ do_test_wait( bool use_tracer )
 
 	run_with_time_limit(
 		[use_tracer] {
-			so_5::wrapped_env_t env{
-				[]( so_5::rt::environment_t & ) {},
-				[use_tracer]( so_5::rt::environment_params_t & params ) {
-					if( use_tracer )
-						params.message_delivery_tracer(
-								so_5::msg_tracing::std_clog_tracer() );
-				} };
+			so_5::rt::environment_params_t params;
+			if( use_tracer )
+				params.message_delivery_tracer(
+						so_5::msg_tracing::std_clog_tracer() );
+
+			so_5::wrapped_env_t env{ std::move(params) };
 
 			do_check_wait_drop_newest( env.environment() );
 			do_check_wait_remove_oldest( env.environment() );

@@ -185,6 +185,13 @@ wrapped_env_t::wrapped_env_t(
 		m_impl->start();
 	}
 
+wrapped_env_t::wrapped_env_t(
+	so_5::rt::environment_params_t && params )
+	:	wrapped_env_t{
+			[]( so_5::rt::environment_t & ) {},
+			make_necessary_tuning( std::move( params ) ) }
+	{}
+
 wrapped_env_t::~wrapped_env_t()
 	{
 		stop_then_join();
