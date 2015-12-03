@@ -130,6 +130,7 @@ template< typename Q, typename... A >
 mchain
 make_mchain(
 	so_5::msg_tracing::tracer_t * tracer,
+	const mchain_params & params,
 	A &&... args )
 	{
 		using namespace so_5::mchain_props;
@@ -137,15 +138,16 @@ make_mchain(
 		using D = mchain_tracing_disabled_base;
 		using E = mchain_tracing_enabled_base;
 
-		if( tracer )
+		if( tracer && !params.msg_tracing_disabled() )
 			return mchain{
 					new mchain_template< Q, E >{
 						std::forward<A>(args)...,
+						params,
 						*tracer } };
 		else
 			return mchain{
 					new mchain_template< Q, D >{
-						std::forward<A>(args)... } };
+						std::forward<A>(args)..., params } };
 	}
 
 } /* namespace anonymous */
@@ -162,22 +164,13 @@ mbox_core_t::create_mchain(
 
 	if( params.capacity().unlimited() )
 		return make_mchain< unlimited_demand_queue >(
-				m_tracer,
-				env,
-				id,
-				params );
+				m_tracer, params, env, id );
 	else if( memory_usage_type::dynamic == params.capacity().memory_usage() )
 		return make_mchain< limited_dynamic_demand_queue >(
-				m_tracer,
-				env,
-				id,
-				params );
+				m_tracer, params, env, id );
 	else
 		return make_mchain< limited_preallocated_demand_queue >(
-				m_tracer,
-				env,
-				id,
-				params );
+				m_tracer, params, env, id );
 }
 
 mbox_core_stats_t

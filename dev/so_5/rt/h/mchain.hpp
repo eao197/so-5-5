@@ -547,6 +547,9 @@ class mchain_params
 		//! An optional notificator for 'not_empty' condition.
 		mchain_props::not_empty_notification_func m_not_empty_notificator;
 
+		//! Is message delivery tracing disabled explicitly?
+		bool m_msg_tracing_disabled = { false };
+
 	public :
 		//! Initializing constructor.
 		mchain_params(
@@ -588,6 +591,26 @@ class mchain_params
 		not_empty_notificator() const
 			{
 				return m_not_empty_notificator;
+			}
+
+		//! Disable message delivery tracing explicitly.
+		/*!
+		 * If this method called then message delivery tracing will
+		 * not be used for that mchain even if message delivery
+		 * tracing will be used for the whole SObjectizer Environment.
+		 */
+		mchain_params &
+		disable_msg_tracing()
+			{
+				m_msg_tracing_disabled = true;
+				return *this;
+			}
+
+		//! Is message delivery tracing disabled explicitly?
+		bool
+		msg_tracing_disabled() const
+			{
+				return m_msg_tracing_disabled;
 			}
 	};
 

@@ -46,9 +46,6 @@ set(SO_5_SRC exception.cpp
 	rt/impl/layer_core.cpp
 	rt/impl/state_listener_controller.cpp
 	
-	rt/impl/coop_dereg/coop_dereg_executor_thread.cpp
-	rt/impl/coop_dereg/dereg_demand_queue.cpp
-	
 	rt/stats/controller.cpp
 	rt/stats/repository.cpp
 	rt/stats/std_names.cpp
