@@ -7,18 +7,13 @@
 	\brief Definition of the template class event_data.
 */
 
-
-#if !defined( _SO_5__RT__EVENT_DATA_HPP_ )
-#define _SO_5__RT__EVENT_DATA_HPP_
+#pragma once
 
 #include <so_5/rt/h/message.hpp>
 
 #include <type_traits>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 //! Template for the message incapsulation.
@@ -87,9 +82,16 @@ class event_data_t
 		MSG * const m_message_instance;
 };
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::event_data_t instead.
+ */
+template< class MSG >
+using event_data_t = so_5::event_data_t< MSG >;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

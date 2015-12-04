@@ -60,9 +60,6 @@ struct autoname_indicator_t {};
 inline autoname_indicator_t
 autoname() { return autoname_indicator_t(); }
 
-namespace rt
-{
-
 //
 // environment_params_t
 //
@@ -419,21 +416,6 @@ class SO_5_TYPE environment_params_t
 };
 
 //
-// so_environment_params_t
-//
-/*!
- * \brief Old name for compatibility with previous versions.
- * \deprecated Obsolete in 5.5.0
- */
-typedef environment_params_t so_environment_params_t;
-
-namespace impl {
-
-class internal_env_iface_t;
-
-} /* namespace impl */
-
-//
 // environment_t
 //
 
@@ -535,7 +517,7 @@ class internal_env_iface_t;
  */
 class SO_5_TYPE environment_t
 {
-	friend class so_5::rt::impl::internal_env_iface_t;
+	friend class so_5::impl::internal_env_iface_t;
 
 		//! Auxiliary methods for getting reference to itself.
 		/*!
@@ -1406,7 +1388,7 @@ class SO_5_TYPE environment_t
 			// dispatcher binder is specified.
 			env.introduce_coop(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::coop_t & coop ) {
+				[]( so_5::coop_t & coop ) {
 					coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
 				} );
@@ -1416,7 +1398,7 @@ class SO_5_TYPE environment_t
 			env.introduce_coop(
 				"main-coop",
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
-				[]( so_5::rt::coop_t & coop ) {
+				[]( so_5::coop_t & coop ) {
 					coop.make_agent< first_agent >(...);
 					coop.make_agent< second_agent >(...);
 				} );
@@ -1538,15 +1520,6 @@ class SO_5_TYPE environment_t
 		 * \}
 		 */
 };
-
-//
-// so_environment_t
-//
-/*!
- * \brief Old name for compatibility with previous versions.
- * \deprecated Obsolete in 5.5.0
- */
-typedef environment_t so_environment_t;
 
 namespace details
 {
@@ -1714,7 +1687,7 @@ environment_t::introduce_coop( ARGS &&... args )
 		virtual void
 		so_evt_start() override
 		{
-			auto child = so_5::rt::create_child_coop( *this, so_5::autoname );
+			auto child = so_5::create_child_coop( *this, so_5::autoname );
 			child->make_agent< worker >();
 			...
 			so_environment().register_coop( std::move( child ) );
@@ -1746,7 +1719,7 @@ create_child_coop(
 	\code
 	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		coop.define_agent().on_start( [&coop] {
-			auto child = so_5::rt::create_child_coop( coop, so_5::autoname );
+			auto child = so_5::create_child_coop( coop, so_5::autoname );
 			child->make_agent< worker >();
 			...
 			coop.environment().register_coop( std::move( child ) );
@@ -1783,7 +1756,7 @@ create_child_coop(
 		virtual void
 		so_evt_start() override
 		{
-			so_5::rt::introduce_child_coop( *this, []( so_5::rt::coop_t & coop ) {
+			so_5::introduce_child_coop( *this, []( so_5::rt::coop_t & coop ) {
 				coop.make_agent< worker >();
 			} );
 		}
@@ -1815,10 +1788,10 @@ introduce_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::coop_t & parent ) {
+	env.introduce_coop( []( so_5::coop_t & parent ) {
 		coop.define_agent().on_start( [&parent] {
-			so_5::rt::introduce_child_coop( parent,
-				[]( so_5::rt::coop_t & child ) {
+			so_5::introduce_child_coop( parent,
+				[]( so_5::coop_t & child ) {
 					child.make_agent< worker >();
 					...
 				} );
@@ -1829,7 +1802,7 @@ introduce_child_coop(
 	\endcode
 
  * \note This function is just a tiny wrapper around
- * so_5::rt::environment_t::introduce_coop() helper method. For more
+ * so_5::environment_t::introduce_coop() helper method. For more
  * examples with usage of introduce_coop() please see description of
  * that method.
  */
@@ -1844,6 +1817,55 @@ introduce_child_coop(
 	details::introduce_coop_helper_t{
 			parent.environment(),
 			parent.query_coop_name() }.introduce( std::forward< ARGS >(args)... );
+}
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::environment_params_t
+ * instead.
+ */
+using environment_params_t = so_5::environment_params_t;
+
+/*!
+ * \brief Old name for compatibility with previous versions.
+ * \deprecated Obsolete in 5.5.0. Will be removed in v.5.6.0.
+ */
+typedef so_5::environment_params_t so_environment_params_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::environment_t
+ * instead.
+ */
+using environment_t = so_5::environment_t;
+
+/*!
+ * \brief Old name for compatibility with previous versions.
+ * \deprecated Obsolete in 5.5.0. Will be removed in v.5.6.0
+ */
+typedef so_5::environment_t so_environment_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::create_child_coop()
+ * instead.
+ */
+template< typename... ARGS >
+coop_unique_ptr_t
+create_child_coop( ARGS&&... args )
+{
+	return so_5::create_child_coop( std::forward<ARGS>(args)... );
+}
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::introduce_child_coop()
+ * instead.
+ */
+template< typename... ARGS >
+void
+introduce_child_coop( ARGS&&... args )
+{
+	so_5::introduce_child_coop( std::forward<ARGS>(args)... );
 }
 
 } /* namespace rt */
