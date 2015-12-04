@@ -2381,31 +2381,31 @@ using exception_reaction_t = so_5::exception_reaction_t;
  * \deprecated Will be removed in v.5.6.0. Use so_5::abort_on_exception
  * instead.
  */
-so_5::exception_reaction_t abort_on_exception = so_5::abort_on_exception;
+const so_5::exception_reaction_t abort_on_exception = so_5::abort_on_exception;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::shutdown_sobjectizer_on_exception instead.
  */
-so_5::exception_reaction_t shutdown_sobjectizer_on_exception = so_5::shutdown_sobjectizer_on_exception;
+const so_5::exception_reaction_t shutdown_sobjectizer_on_exception = so_5::shutdown_sobjectizer_on_exception;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::deregister_coop_on_exception instead.
  */
-so_5::exception_reaction_t deregister_coop_on_exception = so_5::deregister_coop_on_exception,
+const so_5::exception_reaction_t deregister_coop_on_exception = so_5::deregister_coop_on_exception;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::ignore_exception
  * instead.
  */
-so_5::exception_reaction_t ignore_exception = so_5::ignore_exception;
+const so_5::exception_reaction_t ignore_exception = so_5::ignore_exception;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::inherit_exception_reaction
  * instead.
  */
-so_5::exception_reaction_t inherit_exception_reaction = so_5::inherit_exception_reaction;
+const so_5::exception_reaction_t inherit_exception_reaction = so_5::inherit_exception_reaction;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::subscription_bind_t

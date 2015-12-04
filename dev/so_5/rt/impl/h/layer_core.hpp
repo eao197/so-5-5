@@ -36,10 +36,10 @@ namespace impl
 struct typed_layer_ref_t
 {
 	typed_layer_ref_t();
-	typed_layer_ref_t( const so_layer_map_t::value_type & v );
+	typed_layer_ref_t( const layer_map_t::value_type & v );
 	typed_layer_ref_t(
 		const std::type_index & type,
-		const so_layer_ref_t & layer );
+		const layer_ref_t & layer );
 
 	bool
 	operator < ( const typed_layer_ref_t & tl ) const;
@@ -48,7 +48,7 @@ struct typed_layer_ref_t
 	std::type_index m_true_type;
 
 	//! Layer itself.
-	so_layer_ref_t m_layer;
+	layer_ref_t m_layer;
 };
 
 //! Typedef for typed_layer_ret container.
@@ -90,14 +90,14 @@ class layer_core_t
 			//! SObjectizer Environment to work with.
 			environment_t & env,
 			//! Layers which are known before SObjectizer start.
-			const so_layer_map_t & so_layers );
+			const layer_map_t & so_layers );
 		~layer_core_t();
 
 		//! Get a layer.
 		/*!
 		 * \retval nullptr if layer is not found.
 		 */
-		so_layer_t *
+		layer_t *
 		query_layer(
 			const std::type_index & type ) const;
 
@@ -116,7 +116,7 @@ class layer_core_t
 		void
 		add_extra_layer(
 			const std::type_index & type,
-			const so_layer_ref_t & layer );
+			const layer_ref_t & layer );
 
 	private:
 		//! SObjectizer Environment to work with.

@@ -309,7 +309,7 @@ class disp_binder_t
 		 */
 		disp_binding_activator_t
 		make_agent_binding(
-			dispatcher_t * disp,
+			so_5::dispatcher_t * disp,
 			agent_ref_t agent )
 		{
 			using namespace so_5::disp::reuse;
@@ -329,7 +329,7 @@ class disp_binder_t
 		 */
 		void
 		unbind_agent_from_disp(
-			dispatcher_t * disp,
+			so_5::dispatcher_t * disp,
 			agent_ref_t agent )
 		{
 			using namespace so_5::disp::reuse;

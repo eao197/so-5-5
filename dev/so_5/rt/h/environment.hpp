@@ -140,7 +140,7 @@ class SO_5_TYPE environment_params_t
 		{
 			if( layer_ptr.get() )
 			{
-				so_layer_unique_ptr_t ptr( layer_ptr.release() );
+				layer_unique_ptr_t ptr( layer_ptr.release() );
 
 				add_layer(
 					std::type_index( typeid( SO_LAYER ) ),
@@ -306,7 +306,7 @@ class SO_5_TYPE environment_params_t
 		}
 
 		//! Get map of default SObjectizer's layers.
-		const so_layer_map_t &
+		const layer_map_t &
 		so5__layers_map() const
 		{
 			return m_so_layers;
@@ -365,7 +365,7 @@ class SO_5_TYPE environment_params_t
 			//! Type identification for layer.
 			const std::type_index & type,
 			//! A layer to be added.
-			so_layer_unique_ptr_t layer_ptr );
+			layer_unique_ptr_t layer_ptr );
 
 		//! Named dispatchers.
 		named_dispatcher_map_t m_named_dispatcher_map;
@@ -374,7 +374,7 @@ class SO_5_TYPE environment_params_t
 		so_5::timer_thread_factory_t m_timer_thread_factory;
 
 		//! Additional layers.
-		so_layer_map_t m_so_layers;
+		layer_map_t m_so_layers;
 
 		//! Cooperation listener.
 		coop_listener_unique_ptr_t m_coop_listener;
@@ -1217,7 +1217,7 @@ class SO_5_TYPE environment_t
 		SO_LAYER *
 		query_layer_noexcept() const
 		{
-			static_assert( std::is_base_of< so_layer_t, SO_LAYER >::value,
+			static_assert( std::is_base_of< layer_t, SO_LAYER >::value,
 					"SO_LAYER must be derived from so_layer_t class" );
 
 			return dynamic_cast< SO_LAYER * >(
@@ -1440,7 +1440,7 @@ class SO_5_TYPE environment_t
 			std::chrono::steady_clock::duration pause );
 
 		//! Access to an additional layer.
-		so_layer_t *
+		layer_t *
 		query_layer(
 			const std::type_index & type ) const;
 
@@ -1448,7 +1448,7 @@ class SO_5_TYPE environment_t
 		void
 		add_extra_layer(
 			const std::type_index & type,
-			const so_layer_ref_t & layer );
+			const layer_ref_t & layer );
 
 		//! Remove an additional layer.
 		void

@@ -81,7 +81,7 @@ class SO_5_TYPE layer_t
 using layer_unique_ptr_t = std::unique_ptr< layer_t >;
 
 //! Typedef for the layer's smart pointer.
-using layer_ref_t = std::shared_ptr< so_layer_t >;
+using layer_ref_t = std::shared_ptr< layer_t >;
 
 //! Typedef for the map from a layer typeid to the layer.
 using layer_map_t = std::map< std::type_index, layer_ref_t >;

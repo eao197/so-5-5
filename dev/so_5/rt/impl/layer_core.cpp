@@ -26,7 +26,7 @@ typed_layer_ref_t::typed_layer_ref_t()
 }
 
 typed_layer_ref_t::typed_layer_ref_t(
-	const so_layer_map_t::value_type & v )
+	const layer_map_t::value_type & v )
 	:
 		m_true_type( v.first ),
 		m_layer( v.second )
@@ -35,7 +35,7 @@ typed_layer_ref_t::typed_layer_ref_t(
 
 typed_layer_ref_t::typed_layer_ref_t(
 	const std::type_index & type,
-	const so_layer_ref_t & layer )
+	const layer_ref_t & layer )
 	:
 		m_true_type( type ),
 		m_layer( layer )
@@ -54,7 +54,7 @@ typed_layer_ref_t::operator < ( const typed_layer_ref_t & tl ) const
 
 layer_core_t::layer_core_t(
 	environment_t & env,
-	const so_layer_map_t & so_layers )
+	const layer_map_t & so_layers )
 	:
 		m_env( env ),
 		m_default_layers( so_layers.begin(), so_layers.end() )
@@ -88,7 +88,7 @@ search_for_layer(
 	return layers.end();
 }
 
-so_layer_t *
+layer_t *
 layer_core_t::query_layer(
 	const std::type_index & type ) const
 {
@@ -153,7 +153,7 @@ layer_core_t::finish()
 void
 layer_core_t::add_extra_layer(
 	const std::type_index & type,
-	const so_layer_ref_t & layer )
+	const layer_ref_t & layer )
 {
 	if( nullptr == layer.get() )
 		SO_5_THROW_EXCEPTION(

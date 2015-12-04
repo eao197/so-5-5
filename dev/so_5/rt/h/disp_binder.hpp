@@ -82,7 +82,7 @@ namespace rt
  * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binding_activator_t
  * instead.
  */
-disp_binding_activator_t = so_5::disp_binding_activator_t;
+using disp_binding_activator_t = so_5::disp_binding_activator_t;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::disp_binder_t

@@ -1121,21 +1121,22 @@ using delivery_possibility_t = so_5::delivery_possibility_t;
  * instead.
  */
 template< class RESULT >
-using service_invoke_proxy_t = so_5::service_invoke_proxy_t;
+using service_invoke_proxy_t = so_5::service_invoke_proxy_t< RESULT >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::infinite_wait_service_invoke_proxy_t instead.
  */
 template< class RESULT >
-using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t;
+using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t< RESULT >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use
  * so_5::wait_for_service_invoke_proxy_t instead.
  */
 template< class RESULT, class DURATION >
-using wait_for_service_invoke_proxy_t = so_5::wait_for_service_invoke_proxy_t;
+using wait_for_service_invoke_proxy_t =
+	so_5::wait_for_service_invoke_proxy_t< RESULT, DURATION >;
 
 /*!
  * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_filter_t

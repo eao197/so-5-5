@@ -116,9 +116,9 @@ environment_params_t::event_exception_logger(
 void
 environment_params_t::add_layer(
 	const std::type_index & type,
-	so_layer_unique_ptr_t layer_ptr )
+	layer_unique_ptr_t layer_ptr )
 {
-	m_so_layers[ type ] = so_layer_ref_t( layer_ptr.release() );
+	m_so_layers[ type ] = layer_ref_t( layer_ptr.release() );
 }
 
 namespace 
@@ -440,7 +440,7 @@ environment_t::single_timer(
 			std::chrono::milliseconds::zero() );
 }
 
-so_layer_t *
+layer_t *
 environment_t::query_layer(
 	const std::type_index & type ) const
 {
@@ -450,7 +450,7 @@ environment_t::query_layer(
 void
 environment_t::add_extra_layer(
 	const std::type_index & type,
-	const so_layer_ref_t & layer )
+	const layer_ref_t & layer )
 {
 	m_impl->m_layer_core.add_extra_layer( type, layer );
 }

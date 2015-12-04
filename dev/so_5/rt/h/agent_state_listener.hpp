@@ -63,7 +63,7 @@ using agent_state_listener_unique_ptr_t =
 		std::unique_ptr< agent_state_listener_t >;
 
 //! Typedef for the agent_state_listener smart pointer.
-using agent_state_listener_t =
+using agent_state_listener_ref_t =
 		std::shared_ptr< agent_state_listener_t >;
 
 namespace rt
