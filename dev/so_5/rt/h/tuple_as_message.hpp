@@ -16,8 +16,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 #if defined( _MSC_VER ) && (_MSC_VER <= 1800)
 	#pragma warning(push)
 	#pragma warning(disable: 4520)
@@ -91,7 +89,7 @@ namespace rt {
 template< typename TAG, typename... TYPES >
 struct tuple_as_message_t
 	:	public std::tuple< TYPES... >
-	,	public so_5::rt::message_t
+	,	public so_5::message_t
 {
 	using base_tuple_type = std::tuple< TYPES... >;
 
@@ -135,7 +133,6 @@ struct tuple_as_message_t
  * \par Usage sample:
 	\code
 	using namespace std;
-	using namespace so_5::rt;
 
 	// Defining domain specific messages as tuples.
 	using process_range = tuple_as_message_t< mtag<0>, string, string >;
@@ -146,7 +143,6 @@ struct tuple_as_message_t
  * This is a short equivalent of:
 	\code
 	using namespace std;
-	using namespace so_5::rt;
 
 	// Defining domain specific messages as tuples.
 	using process_range = tuple_as_message_t<
@@ -168,13 +164,12 @@ using mtag = std::integral_constant< int, N >;
  * \brief A helper template for simplification of defining unique message tags
  * for tuple as message.
  *
- * Very similar to so_5::rt::mtag but allows to define message tags for
+ * Very similar to so_5::mtag but allows to define message tags for
  * different modules.
  *
  * \par Usage sample:
 	\code
 	using namespace std;
-	using namespace so_5::rt;
 
 	// The first module.
 	namespace first_module {
@@ -207,6 +202,27 @@ using mtag = std::integral_constant< int, N >;
  */
 template< typename T, int N >
 struct typed_mtag {};
+
+namespace rt {
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::tuple_as_message_t
+ * instead.
+ */
+template< typename TAG, typename... TYPES >
+using tuple_as_message_t = so_5::tuple_as_message_t< TAG, TYPES... >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::mtag instead.
+ */
+template< int N >
+using mtag = so_5::mtag< N >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::typed_mtag instead.
+ */
+template< typename T, int N >
+using typed_mtag = so_5::typed_mtag< T, N >;
 
 } /* namespace rt */
 

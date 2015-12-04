@@ -7,8 +7,7 @@
 	\brief A class for the agent state definition.
 */
 
-#if !defined( _SO_5__RT__STATE_HPP_ )
-#define _SO_5__RT__STATE_HPP_
+#pragma once
 
 #include <string>
 #include <map>
@@ -18,20 +17,15 @@
 #include <so_5/h/declspec.hpp>
 
 #include <so_5/rt/h/mbox_fwd.hpp>
+#include <so_5/rt/h/fwd.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 #if defined( SO_5_MSVC )
 	#pragma warning(push)
 	#pragma warning(disable: 4251)
 #endif
-
-class state_t;
-class agent_t;
 
 //
 // state_t
@@ -228,8 +222,15 @@ class SO_5_TYPE state_t
 	#pragma warning(pop)
 #endif
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::state_t instead.
+ */
+using state_t = so_5::state_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
 
-#endif
