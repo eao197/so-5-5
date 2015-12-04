@@ -22,9 +22,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -120,8 +117,6 @@ class std_controller_t
 } /* namespace impl */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

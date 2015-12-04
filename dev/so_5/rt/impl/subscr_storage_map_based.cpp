@@ -19,9 +19,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -446,8 +443,6 @@ map_based_subscription_storage_factory()
 					new impl::map_based_subscr_storage::storage_t( owner ) );
 		};
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

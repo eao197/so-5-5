@@ -17,8 +17,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace stats {
 
 namespace impl {
@@ -63,8 +61,6 @@ ds_agent_core_stats_t::distribute(
 } /* namespace impl */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -29,9 +29,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 class environment_t;
 
 namespace impl
@@ -281,8 +278,6 @@ class mbox_core_ref_t
 };
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

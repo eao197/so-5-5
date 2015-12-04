@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 /*
  * NOTE: copy and move constructors and copy operator is implemented
  * because Visual C++ 12.0 (MSVS2013) doesn't generate it by itself.

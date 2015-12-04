@@ -16,8 +16,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 namespace {
@@ -216,8 +214,6 @@ process_unhandled_exception(
 	}
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

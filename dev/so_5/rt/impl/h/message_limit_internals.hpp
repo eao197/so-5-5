@@ -19,9 +19,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace message_limit
 {
 
@@ -300,8 +297,6 @@ try_to_deliver_to_agent(
 } /* namespace impl */
 
 } /* namespace message_limit */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

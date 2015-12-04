@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -60,8 +57,6 @@ struct quantity : public message_t
 } /* namespace messages */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

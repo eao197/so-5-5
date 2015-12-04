@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -71,8 +68,6 @@ class state_listener_controller_t
 };
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

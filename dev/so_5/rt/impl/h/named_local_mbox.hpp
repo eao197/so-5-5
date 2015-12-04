@@ -20,9 +20,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -106,8 +103,6 @@ class named_local_mbox_t
 };
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

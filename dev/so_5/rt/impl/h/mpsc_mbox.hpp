@@ -25,9 +25,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -384,8 +381,6 @@ using limitful_mpsc_mbox_with_tracing =
 	limitful_mpsc_mbox_template< msg_tracing_helpers::tracing_enabled_base >;
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -28,9 +28,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -500,7 +497,5 @@ class agent_core_t
 };
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

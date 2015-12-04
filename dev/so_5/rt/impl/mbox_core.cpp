@@ -15,9 +15,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -274,7 +271,5 @@ mbox_core_ref_t::inc_mbox_core_ref_count()
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

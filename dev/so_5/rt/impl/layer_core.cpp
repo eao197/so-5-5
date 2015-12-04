@@ -12,9 +12,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -264,7 +261,5 @@ layer_core_t::wait_default_layers()
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

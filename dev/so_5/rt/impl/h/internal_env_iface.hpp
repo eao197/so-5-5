@@ -14,8 +14,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 //
@@ -76,8 +74,6 @@ class internal_env_iface_t
 	};
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

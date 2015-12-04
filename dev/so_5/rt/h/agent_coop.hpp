@@ -745,7 +745,7 @@ class SO_5_TYPE coop_t
 					coop.define_agent()
 						.event< some_signal >( some_mbox, [&coop] {
 							...
-							coop.deregister( so_4::rt::dereg_reason::user_defined_reason + 100 );
+							coop.deregister( so_4::dereg_reason::user_defined_reason + 100 );
 						} );
 				} );
 			\endcode
@@ -1130,8 +1130,6 @@ typedef std::unique_ptr< coop_t, coop_deleter_t >
 
 //! Typedef for the agent_coop smart pointer.
 typedef std::shared_ptr< coop_t > coop_ref_t;
-
-} /* namespace rt */
 
 namespace rt
 {

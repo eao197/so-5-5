@@ -20,9 +20,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -508,8 +505,6 @@ hash_table_based_subscription_storage_factory()
 					new impl::hash_table_subscr_storage::storage_t( owner ) );
 		};
 	}
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

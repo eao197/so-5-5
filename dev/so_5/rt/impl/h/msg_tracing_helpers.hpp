@@ -28,8 +28,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 namespace msg_tracing_helpers {
@@ -608,8 +606,6 @@ class mchain_tracing_enabled_base
 } /* namespace msg_tracing_helpers */
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -454,17 +454,12 @@ create_disp_binder( const std::string & disp_name )
 
 } /* namespace disp */
 
-namespace rt
-{
-
 SO_5_FUNC disp_binder_unique_ptr_t
 create_default_disp_binder()
 {
 	// Dispatcher with empty name means default dispatcher.
 	return so_5::disp::one_thread::create_disp_binder( std::string() );
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

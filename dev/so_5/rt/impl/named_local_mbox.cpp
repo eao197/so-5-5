@@ -9,9 +9,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -107,8 +104,6 @@ named_local_mbox_t::drop_delivery_filter(
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

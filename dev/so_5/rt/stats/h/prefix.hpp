@@ -17,9 +17,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace stats
 {
 
@@ -176,8 +173,6 @@ operator<<( std::ostream & to, const suffix_t & what )
 	}
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

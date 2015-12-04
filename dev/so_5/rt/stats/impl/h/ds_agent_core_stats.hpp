@@ -16,8 +16,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace stats {
 
 namespace impl {
@@ -51,8 +49,6 @@ class ds_agent_core_stats_t : public auto_registered_source_t
 } /* namespace impl */
 
 } /* namespace stats */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

@@ -23,9 +23,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 //
 // environment_params_t
 //
@@ -735,8 +732,6 @@ internal_env_iface_t::msg_tracer() const
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

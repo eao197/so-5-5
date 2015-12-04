@@ -15,9 +15,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -688,7 +685,5 @@ agent_core_t::do_coop_dereg_notification_if_necessary(
 }
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */

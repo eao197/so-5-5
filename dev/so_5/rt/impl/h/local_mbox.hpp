@@ -30,9 +30,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace impl
 {
 
@@ -1082,8 +1079,6 @@ using local_mbox_with_tracing =
 	local_mbox_template< msg_tracing_helpers::tracing_enabled_base >;
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 
