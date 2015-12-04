@@ -22,6 +22,7 @@ class delivery_filter_storage_t;
 class agent_core_t;
 class coop_private_iface_t;
 class internal_env_iface_t;
+class internal_message_iface_t;
 
 } /* namespace impl */
 

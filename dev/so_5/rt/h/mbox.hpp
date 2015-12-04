@@ -28,9 +28,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 /*!
  * \since v.5.5.9
  * \brief Result of checking delivery posibility.
@@ -500,7 +497,7 @@ using delivery_filter_unique_ptr_t =
  * \since v.5.5.3
  * \brief Type of the message box.
  *
- * \deprecated Will be removed in some future version.
+ * \deprecated Will be removed in v.5.6.0.
  */
 enum class mbox_type_t
 	{
@@ -521,7 +518,7 @@ enum class mbox_type_t
  * The class serves as an interface for sending and receiving messages.
  *
  * All mboxes can be created via the SObjectizer Environment. References to
- * mboxes are stored and manipulated by so_5::rt::mbox_t objects.
+ * mboxes are stored and manipulated by so_5::mbox_t objects.
  *
  * abstract_message_box_t has two versions of the deliver_message() method. 
  * The first one requires pointer to the actual message data and is intended 
@@ -1109,6 +1106,59 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 
 		return this->sync_get( std::move( msg ) );
 	}
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_possibility_t;
+ * instead.
+ */
+using delivery_possibility_t = so_5::delivery_possibility_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::service_invoke_proxy_t
+ * instead.
+ */
+template< class RESULT >
+using service_invoke_proxy_t = so_5::service_invoke_proxy_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::infinite_wait_service_invoke_proxy_t instead.
+ */
+template< class RESULT >
+using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::wait_for_service_invoke_proxy_t instead.
+ */
+template< class RESULT, class DURATION >
+using wait_for_service_invoke_proxy_t = so_5::wait_for_service_invoke_proxy_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_filter_t
+ * instead.
+ */
+using delivery_filter_t = so_5::delivery_filter_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::delivery_filter_unique_ptr_t instead.
+ */
+using delivery_filter_unique_ptr_t = so_5::delivery_filter_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0.
+ */
+using mbox_type_t = so_5::mbox_type_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::abstract_message_box_t
+ * instead.
+ */
+using abstract_message_box_t = so_5::abstract_message_box_t;
 
 } /* namespace rt */
 
