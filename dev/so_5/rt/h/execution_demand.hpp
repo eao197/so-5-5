@@ -191,6 +191,101 @@ public :
 #endif
 };
 
+namespace details {
+
+//
+// msg_type_and_handler_pair_t
+//
+/*!
+ * \since v.5.5.13
+ * \brief Description of an event handler.
+ */
+struct msg_type_and_handler_pair_t
+	{
+		//! Type of a message or signal.
+		std::type_index m_msg_type;
+		//! A handler for processing this message or signal.
+		event_handler_method_t m_handler;
+
+		//! Default constructor.
+		msg_type_and_handler_pair_t()
+			:	m_msg_type{ typeid(void) }
+			{}
+		//! Constructor for the case when only msg_type is known.
+		/*!
+		 * This constructor is intended for cases when
+		 * msg_type_and_handler_pair_t instance is used
+		 * as a key for searching in ordered sequences.
+		 */
+		msg_type_and_handler_pair_t(
+			//! Type of a message or signal.
+			std::type_index msg_type )
+			:	m_msg_type{ std::move(msg_type) }
+			{}
+		//! Initializing constructor.
+		msg_type_and_handler_pair_t(
+			//! Type of a message or signal.
+			std::type_index msg_type,
+			//! A handler for processing this message or signal.
+			event_handler_method_t handler )
+			:	m_msg_type{ std::move(msg_type) }
+			,	m_handler{ std::move(handler) }
+			{}
+		//! Copy constructor.
+		msg_type_and_handler_pair_t(
+			const msg_type_and_handler_pair_t & o )
+			:	m_msg_type{ o.m_msg_type }
+			,	m_handler{ o.m_handler }
+			{}
+		//! Move constructor.
+		msg_type_and_handler_pair_t(
+			msg_type_and_handler_pair_t && o )
+			:	m_msg_type{ std::move(o.m_msg_type) }
+			,	m_handler{ std::move(o.m_handler) }
+			{}
+
+		//! Swap operation.
+		void swap( msg_type_and_handler_pair_t & o ) SO_5_NOEXCEPT
+			{
+				std::swap( m_msg_type, o.m_msg_type );
+				m_handler.swap( o.m_handler );
+			}
+
+		//! Copy operator.
+		msg_type_and_handler_pair_t &
+		operator=( const msg_type_and_handler_pair_t & o )
+			{
+				msg_type_and_handler_pair_t tmp{ o };
+				tmp.swap( *this );
+				return *this;
+			}
+
+		//! Move operator.
+		msg_type_and_handler_pair_t &
+		operator=( msg_type_and_handler_pair_t && o )
+			{
+				msg_type_and_handler_pair_t tmp{ std::move(o) };
+				tmp.swap( *this );
+				return *this;
+			}
+
+		//! Comparison (strictly less than).
+		bool
+		operator<( const msg_type_and_handler_pair_t & o ) const
+			{
+				return m_msg_type < o.m_msg_type;
+			}
+
+		//! Comparison (strictly equal).
+		bool
+		operator==( const msg_type_and_handler_pair_t & o ) const
+			{
+				return m_msg_type == o.m_msg_type;
+			}
+	};
+
+} /* namespace details */
+
 } /* namespace rt */
 
 } /* namespace so_5 */

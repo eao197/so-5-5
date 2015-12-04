@@ -21,6 +21,7 @@
 #include <so_5/h/msg_tracing.hpp>
 
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/nonempty_name.hpp>
 
 #include <so_5/rt/h/message_limit.hpp>
@@ -30,6 +31,8 @@ namespace so_5
 
 namespace rt
 {
+
+class environment_t;
 
 namespace impl
 {
@@ -114,6 +117,19 @@ class mbox_core_t
 		destroy_mbox(
 			//! Mbox name.
 			const std::string & name );
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief Create message chain.
+		 *
+		 * \par Usage examples:
+		 */
+		mchain_t
+		create_mchain(
+			//! SObjectizer Environment for which message chain will be created.
+			environment_t & env,
+			//! Parameters for a new chain.
+			const mchain_params_t & params );
 
 		/*!
 		 * \since v.5.5.4

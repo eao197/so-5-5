@@ -23,6 +23,7 @@
 
 #include <so_5/rt/h/nonempty_name.hpp>
 #include <so_5/rt/h/mbox.hpp>
+#include <so_5/rt/h/mchain.hpp>
 #include <so_5/rt/h/message.hpp>
 #include <so_5/rt/h/agent_coop.hpp>
 #include <so_5/rt/h/disp.hpp>
@@ -575,6 +576,59 @@ class SO_5_TYPE environment_t
 		create_local_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
+
+		/*!
+		 * \}
+		 */
+
+		/*!
+		 * \name Method for working with message chains.
+		 * \{
+		 */
+
+		/*!
+		 * \since v.5.5.13
+		 * \brief Create message chain.
+		 *
+		 * \par Usage examples:
+			\code
+			so_5::rt::environment_t & env = ...;
+			// Create mchain with size-unlimited queue.
+			auto ch1 = env.create_mchain(
+				so_5::make_unlimited_mchain_params() );
+			// Create mchain with size-limited queue without a timeout
+			// on attempt to push another message to full mchain...
+			auto ch2 = env.create_mchain(
+				so_5::make_limited_without_waiting_mchain_params(
+					// ...maximum size of the chain.
+					100,
+					// ...memory for chain will be allocated and deallocated dynamically...
+					so_5::mchain_props::memory_usage_t::dynamic,
+					// ...an exception will be thrown on overflow.
+					so_5::mchain_props::overflow_reaction_t::throw_exception ) );
+			// Create mchain with size-limited queue with a timeout for 200ms
+			// on attempt to push another message to full mchain...
+			auto ch3 = env.create_mchain(
+				so_5::make_limited_with_waiting_mchain_params(
+					// ...maximum size of the chain.
+					100,
+					// ...memory for chain will be preallocated...
+					so_5::mchain_props::memory_usage_t::preallocated,
+					// ...an oldest message from mchain will be removed on overflow...
+					so_5::mchain_props::overflow_reaction_t::remove_oldest,
+					// ...timeout for waiting on attempt to push a message into full mchain.
+					std::chrono::milliseconds(200) ) );
+			// Create size-unlimited mchain with custom notificator for
+			// 'not_empty' situations.
+			auto ch4 = env.create_mchain(
+				so_5::make_unlimited_mchain_params().not_empty_notificator(
+					[&] { some_widget.send_notify(); } ) );
+			\endcode
+		 */
+		mchain_t
+		create_mchain(
+			//! Parameters for a new bag.
+			const mchain_params_t & params );
 		/*!
 		 * \}
 		 */

@@ -298,6 +298,30 @@ const int rc_msg_tracing_disabled = 140;
 
 //! \}
 
+//! \name Error codes for message chains.
+//! \{
+
+//! Attempt to get message from empty message queue.
+const int rc_msg_chain_is_empty = 160;
+
+//! Attempt to push a message to full message queue.
+const int rc_msg_chain_is_full = 161;
+
+//! Attempt to make subscription for message chain.
+const int rc_msg_chain_doesnt_support_subscriptions = 162;
+
+//! Attempt to set delivery_filter for message chain.
+const int rc_msg_chain_doesnt_support_delivery_filters = 163;
+
+//! Attempt to added a message to full message chain when
+//! throw_exception overflow reaction is used.
+const int rc_msg_chain_overflow = 164;
+
+//! Attempt to define several handlers for one msg_type.
+const int rc_several_handlers_for_one_message_type = 165;
+
+//! \}
+
 //! \name Common error codes.
 //! \{
 

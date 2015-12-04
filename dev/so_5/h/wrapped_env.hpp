@@ -159,6 +159,15 @@ class SO_5_TYPE wrapped_env_t
 			//! Environment's params.
 			so_5::rt::environment_params_t && params );
 
+		/*!
+		 * \since v.5.5.13
+		 * \brief A constructor which receives already prepared
+		 * environment's params.
+		 */
+		wrapped_env_t(
+			//! Environment's params.
+			so_5::rt::environment_params_t && params );
+
 		//! Destructor.
 		/*!
 		 * Stops the environment and waits it.

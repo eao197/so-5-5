@@ -320,6 +320,13 @@ environment_t::create_local_mbox(
 	return m_impl->m_mbox_core->create_local_mbox( nonempty_name );
 }
 
+mchain_t
+environment_t::create_mchain(
+	const mchain_params_t & params )
+{
+	return m_impl->m_mbox_core->create_mchain( *this, params );
+}
+
 dispatcher_t &
 environment_t::query_default_dispatcher()
 {

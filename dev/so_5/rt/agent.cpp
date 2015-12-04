@@ -730,8 +730,9 @@ agent_t::process_service_request(
 	execution_demand_t & d,
 	std::pair< bool, const impl::event_handler_data_t * > handler_data )
 {
-	try
-		{
+	msg_service_request_base_t::dispatch_wrapper(
+		d.m_message_ref,
+		[&] {
 			const impl::event_handler_data_t * handler =
 					handler_data.first ?
 							handler_data.second :
@@ -751,14 +752,7 @@ agent_t::process_service_request(
 						so_5::rc_svc_not_handled,
 						"service request handler is not found for "
 								"the current agent state" );
-		}
-	catch( ... )
-		{
-			auto & svc_request =
-					*(dynamic_cast< msg_service_request_base_t * >(
-							d.m_message_ref.get() ));
-			svc_request.set_exception( std::current_exception() );
-		}
+		} );
 }
 
 void

@@ -79,7 +79,7 @@ class a_test_t : public so_5::rt::agent_t
 
 		void
 		evt_coop_deregistered(
-			const so_5::rt::msg_coop_deregistered & cmd )
+			const so_5::rt::msg_coop_deregistered & )
 			{
 				if( m_live_coops.empty() )
 					{

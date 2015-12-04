@@ -698,7 +698,7 @@ struct data_t
 } /* namespace local_mbox_details */
 
 //
-// local_mbox_template_t
+// local_mbox_template
 //
 
 //! A template with implementation of local mbox.
@@ -708,14 +708,14 @@ struct data_t
  * delivery tracing methods.
  */
 template< typename TRACING_BASE >
-class local_mbox_template_t
+class local_mbox_template
 	:	public abstract_message_box_t
 	,	private local_mbox_details::data_t
 	,	private TRACING_BASE
 	{
 	public:
 		template< typename... TRACING_ARGS >
-		local_mbox_template_t(
+		local_mbox_template(
 			//! ID of this mbox.
 			mbox_id_t id,
 			//! Optional parameters for TRACING_BASE's constructor.
@@ -782,7 +782,7 @@ class local_mbox_template_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer_t tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_message",
@@ -801,7 +801,7 @@ class local_mbox_template_t
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const override
 			{
-				typename TRACING_BASE::deliver_op_tracer_t tracer{
+				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as TRACING_BASE
 						*this, // as abstract_message_box_t
 						"deliver_service_request",
@@ -916,7 +916,7 @@ class local_mbox_template_t
 
 		void
 		do_deliver_message_impl(
-			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			typename TRACING_BASE::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -941,7 +941,7 @@ class local_mbox_template_t
 		void
 		do_deliver_message_to_subscriber(
 			const local_mbox_details::subscriber_info_t & agent_info,
-			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			typename TRACING_BASE::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -979,7 +979,7 @@ class local_mbox_template_t
 
 		void
 		do_deliver_service_request_impl(
-			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			typename TRACING_BASE::deliver_op_tracer const & tracer,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
@@ -1017,7 +1017,7 @@ class local_mbox_template_t
 
 		void
 		do_deliver_service_request_to_subscriber(
-			typename TRACING_BASE::deliver_op_tracer_t const & tracer,
+			typename TRACING_BASE::deliver_op_tracer const & tracer,
 			const local_mbox_details::subscriber_info_t & agent_info,
 			const std::type_index & msg_type,
 			const message_ref_t & message,
@@ -1071,15 +1071,15 @@ class local_mbox_template_t
  * \since v.5.5.9
  * \brief Alias for local mbox without message delivery tracing.
  */
-using local_mbox_without_tracing_t =
-	local_mbox_template_t< msg_tracing_helpers::tracing_disabled_base_t >;
+using local_mbox_without_tracing =
+	local_mbox_template< msg_tracing_helpers::tracing_disabled_base >;
 
 /*!
  * \since v.5.5.9
  * \brief Alias for local mbox with message delivery tracing.
  */
-using local_mbox_with_tracing_t =
-	local_mbox_template_t< msg_tracing_helpers::tracing_enabled_base_t >;
+using local_mbox_with_tracing =
+	local_mbox_template< msg_tracing_helpers::tracing_enabled_base >;
 
 } /* namespace impl */
 

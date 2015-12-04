@@ -2,6 +2,11 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_13 5.5.13 "Cerro Dona Ana"
+
+	Another constructor implemented for class so_5::wrapped_env. It
+	receives just one argument: an instance of so_5::rt::environment_params.
+
 \section so_5__5_12 5.5.12 "Cerro Araral"
 
 	A performance degradation for local mboxes with large amount of
