@@ -298,7 +298,6 @@ do_test()
 {
 	using namespace std;
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	const std::size_t threshold = 4;
 

@@ -1247,7 +1247,7 @@ class SO_5_TYPE environment_t
 		{
 			add_extra_layer(
 				std::type_index( typeid( SO_LAYER ) ),
-				so_layer_ref_t( layer_ptr.release() ) );
+				layer_ref_t( layer_ptr.release() ) );
 		}
 
 		/*!

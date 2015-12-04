@@ -15,7 +15,6 @@ create_coop(
 	so_5::rt::agent_coop_t & coop )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 	using namespace std;
 
 	using hello = tuple_as_message_t< mtag< 0 >, string >;

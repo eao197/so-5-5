@@ -62,7 +62,6 @@ class a_test_t : public so_5::rt::agent_t
 UT_UNIT_TEST( no_handlers )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	test_environment_t env;
 
@@ -128,7 +127,6 @@ UT_UNIT_TEST( no_handlers )
 UT_UNIT_TEST( event_handler )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	test_environment_t env;
 
@@ -187,7 +185,6 @@ UT_UNIT_TEST( event_handler )
 UT_UNIT_TEST( service_handler )
 {
 	using namespace so_5;
-	using namespace so_5::rt;
 
 	test_environment_t env;
 

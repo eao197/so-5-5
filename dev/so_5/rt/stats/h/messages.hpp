@@ -58,5 +58,27 @@ struct quantity : public message_t
 
 } /* namespace stats */
 
+namespace rt
+{
+
+namespace stats
+{
+
+namespace messages
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::stats::messages::quantity
+ * instead.
+ */
+template< typename T >
+using quantity = so_5::stats::messages::quantity< T >;
+
+} /* namespace messages */
+
+} /* namespace stats */
+
+} /* namespace rt */
+
 } /* namespace so_5 */
 
