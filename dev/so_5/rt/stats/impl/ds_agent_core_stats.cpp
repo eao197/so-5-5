@@ -28,7 +28,7 @@ namespace impl {
 //
 ds_agent_core_stats_t::ds_agent_core_stats_t(
 	repository_t & repo,
-	so_5::rt::impl::agent_core_t & what )
+	so_5::impl::agent_core_t & what )
 	:	auto_registered_source_t( repo )
 	,	m_what( what )
 	{}

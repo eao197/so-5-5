@@ -190,16 +190,16 @@ class actual_thread_t : public timer_thread_t
 		virtual timer_id_t
 		schedule(
 			const std::type_index & type_index,
-			const so_5::rt::mbox_t & mbox_r,
-			const so_5::rt::message_ref_t & msg_r,
+			const mbox_t & mbox_r,
+			const message_ref_t & msg_r,
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override
 			{
 				std::unique_ptr< timer_demand_t > timer(
 						new timer_demand_t( m_thread.get() ) );
 
-				so_5::rt::mbox_t mbox{ mbox_r };
-				so_5::rt::message_ref_t msg{ msg_r };
+				mbox_t mbox{ mbox_r };
+				message_ref_t msg{ msg_r };
 				m_thread->activate( timer->timer_holder(),
 						pause,
 						period,
@@ -214,8 +214,8 @@ class actual_thread_t : public timer_thread_t
 		virtual void
 		schedule_anonymous(
 			const std::type_index & type_index,
-			const so_5::rt::mbox_t & mbox,
-			const so_5::rt::message_ref_t & msg,
+			const mbox_t & mbox,
+			const message_ref_t & msg,
 			std::chrono::steady_clock::duration pause,
 			std::chrono::steady_clock::duration period ) override
 			{

@@ -290,7 +290,7 @@ class mchain_template
 		template< typename... TRACING_ARGS >
 		mchain_template(
 			//! SObjectizer Environment for which message chain is created.
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			//! Mbox ID for this chain.
 			mbox_id_t id,
 			//! Chain parameters.
@@ -314,8 +314,8 @@ class mchain_template
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
-			const so_5::rt::message_limit::control_block_t * /*limit*/,
-			so_5::rt::agent_t * /*subscriber*/ ) override
+			const so_5::message_limit::control_block_t * /*limit*/,
+			agent_t * /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_subscriptions,
@@ -325,7 +325,7 @@ class mchain_template
 		virtual void
 		unsubscribe_event_handlers(
 			const std::type_index & /*msg_type*/,
-			so_5::rt::agent_t * /*subscriber*/ ) override
+			agent_t * /*subscriber*/ ) override
 			{}
 
 		virtual std::string
@@ -337,34 +337,34 @@ class mchain_template
 				return s.str();
 			}
 
-		virtual so_5::rt::mbox_type_t
+		virtual mbox_type_t
 		type() const override
 			{
-				return so_5::rt::mbox_type_t::multi_producer_single_consumer;
+				return mbox_type_t::multi_producer_single_consumer;
 			}
 
 		virtual void
 		do_deliver_message(
 			const std::type_index & msg_type,
-			const so_5::rt::message_ref_t & message,
+			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
 				try_to_store_message_to_queue(
 						msg_type,
 						message,
-						so_5::rt::invocation_type_t::event );
+						invocation_type_t::event );
 			}
 
 		virtual void
 		do_deliver_service_request(
 			const std::type_index & msg_type,
-			const so_5::rt::message_ref_t & message,
+			const message_ref_t & message,
 			unsigned int /*overlimit_reaction_deep*/ ) const override
 			{
 				try_to_store_message_to_queue(
 						msg_type,
 						message,
-						so_5::rt::invocation_type_t::service_request );
+						invocation_type_t::service_request );
 			}
 
 		/*!
@@ -374,8 +374,8 @@ class mchain_template
 		virtual void
 		set_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			const so_5::rt::delivery_filter_t & /*filter*/,
-			so_5::rt::agent_t & /*subscriber*/ ) override
+			const delivery_filter_t & /*filter*/,
+			agent_t & /*subscriber*/ ) override
 			{
 				SO_5_THROW_EXCEPTION(
 						rc_msg_chain_doesnt_support_delivery_filters,
@@ -385,7 +385,7 @@ class mchain_template
 		virtual void
 		drop_delivery_filter(
 			const std::type_index & /*msg_type*/,
-			so_5::rt::agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
+			agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
 			{}
 
 		virtual extraction_status_t
@@ -487,7 +487,7 @@ class mchain_template
 					m_overflow_cond.notify_all();
 			}
 
-		virtual so_5::rt::environment_t &
+		virtual environment_t &
 		environment() const override
 			{
 				return m_env;
@@ -495,7 +495,7 @@ class mchain_template
 
 	private :
 		//! SObjectizer Environment for which message chain is created.
-		so_5::rt::environment_t & m_env;
+		environment_t & m_env;
 
 		//! Status of the chain.
 		details::status m_status = { details::status::open };
@@ -532,8 +532,8 @@ class mchain_template
 		void
 		try_to_store_message_to_queue(
 			const std::type_index & msg_type,
-			const so_5::rt::message_ref_t & message,
-			so_5::rt::invocation_type_t demand_type ) const
+			const message_ref_t & message,
+			invocation_type_t demand_type ) const
 			{
 				typename TRACING_BASE::deliver_op_tracer tracer{
 						*this, // as tracing base.

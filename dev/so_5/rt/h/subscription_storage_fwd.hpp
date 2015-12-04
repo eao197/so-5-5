@@ -144,19 +144,19 @@ adaptive_subscription_storage_factory(
  * for 0..10 subscriptions. The seconds will be used for 11..100 subscriptions.
  * And the third for 100+ subscriptions:
 \code
-so_5::rt::adaptive_subscription_storage_factory(
+so_5::adaptive_subscription_storage_factory(
 	// First threshold for switching from the first storage to the second.
 	10,
 	// First storage -- simple vector-based.
-	so_5::rt::vector_based_subscription_storage_factory(10),
+	so_5::vector_based_subscription_storage_factory(10),
 	// There will be another adaptive storage.
-	so_5::rt::adaptive_subscription_storage_factory(
+	so_5::adaptive_subscription_storage_factory(
 		// Second threshold for switching from the second storage to the third.
 		100,
 		// Second storage.
-		so_5::rt::map_based_subscription_storage_factory(),
+		so_5::map_based_subscription_storage_factory(),
 		// Third storage.
-		so_5::rt::hash_table_based_subscription_storage_factory() ) );
+		so_5::hash_table_based_subscription_storage_factory() ) );
 \endcode
  *
  *

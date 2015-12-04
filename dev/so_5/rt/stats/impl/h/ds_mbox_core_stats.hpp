@@ -38,14 +38,14 @@ class ds_mbox_core_stats_t : public auto_registered_source_t
 			//! What to watch.
 			//! This reference must stay valid during all lifetime of
 			//! the data source object.
-			so_5::rt::impl::mbox_core_t & what );
+			so_5::impl::mbox_core_t & what );
 
 		virtual void
 		distribute(
 			const mbox_t & distribution_mbox ) override;
 
 	private :
-		so_5::rt::impl::mbox_core_t & m_what;
+		so_5::impl::mbox_core_t & m_what;
 	};
 
 } /* namespace impl */

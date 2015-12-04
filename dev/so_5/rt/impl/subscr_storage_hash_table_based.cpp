@@ -126,7 +126,7 @@ struct hash_t
 					(std::hash< std::type_index >()( ptr->m_msg_type ) +
 					 	0x9e3779b9 + (h1 << 6) + (h1 >> 2));
 
-				return h2 ^ (std::hash< const so_5::rt::state_t * >()(
+				return h2 ^ (std::hash< const state_t * >()(
 							ptr->m_state ) +
 						0x9e3779b9 + (h2 << 6) + (h2 >> 2));
 			}

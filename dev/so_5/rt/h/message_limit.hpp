@@ -394,7 +394,7 @@ struct transformed_message_maker
 		make( mbox_t mbox, ARGS &&... args )
 			{
 				return RESULT( std::move( mbox ),
-						so_5::rt::details::make_message_instance< MSG >(
+						so_5::details::make_message_instance< MSG >(
 								std::forward<ARGS>( args )... ) );
 			}
 	};
@@ -642,11 +642,11 @@ struct message_limit_methods_mixin_t
 		 *
 		 * \par Usage example:
 		 * \code
-			class a_request_processor_t : public so_5::rt::agent_t
+			class a_request_processor_t : public so_5::agent_t
 			{
 			public :
 				a_request_processor_t( context_t ctx )
-					:	so_5::rt::agent_t( ctx 
+					:	so_5::agent_t( ctx 
 							// Limit count of requests in the queue.
 							// If queue is full then request must be transformed
 							// to negative reply.
@@ -721,14 +721,14 @@ struct message_limit_methods_mixin_t
 		 *
 		 * \par Usage examples:
 			\code
-			class request_acceptor : public so_5::rt::agent_t
+			class request_acceptor : public so_5::agent_t
 				{
 				public :
 					request_acceptor(
 						context_t ctx,
-						so_5::rt::mbox_t interaction_mbox,
+						so_5::mbox_t interaction_mbox,
 						request_scheduling_data & data )
-						:	so_5::rt::agent_t( ctx
+						:	so_5::agent_t( ctx
 								// If there are to many pending requests then
 								// new requests must be rejected.
 								+ limit_then_transform( 10,

@@ -31,7 +31,7 @@ namespace so_5
 	\endcode
 
 	\tparam MSG type of the message. MSG must be derived from
-	so_5::message_t (or from so_5::rt::signal_t).
+	so_5::message_t (or from so_5::signal_t).
 */
 template< class MSG >
 class event_data_t

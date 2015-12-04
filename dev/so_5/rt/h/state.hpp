@@ -86,9 +86,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -112,9 +112,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -123,7 +123,7 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				so_5::rt::mbox_t m_owner;
+				so_5::mbox_t m_owner;
 			};
 			\endcode
 		 */
@@ -141,9 +141,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -168,9 +168,9 @@ class SO_5_TYPE state_t
 		 *
 		 * \par Usage example
 			\code
-			class my_agent : public so_5::rt::agent_t
+			class my_agent : public so_5::agent_t
 			{
-				const so_5::rt::state_t st_normal = so_make_state();
+				const so_5::state_t st_normal = so_make_state();
 			public :
 				...
 				virtual void so_define_agent() override {
@@ -179,7 +179,7 @@ class SO_5_TYPE state_t
 					...
 				}
 			private :
-				so_5::rt::mbox_t m_owner;
+				so_5::mbox_t m_owner;
 			};
 			\endcode
 		 */

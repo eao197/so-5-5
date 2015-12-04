@@ -38,7 +38,7 @@ namespace so_5 {
 	// This is recommended way to defining of messages.
 	// Separate class allows to easily extend or refactor
 	// message type in the future.
-	struct process_data : public so_5::rt::message_t
+	struct process_data : public so_5::message_t
 	{
 		const std::uint8_t * m_data;
 
@@ -62,7 +62,7 @@ namespace so_5 {
 	// with large code base and big amount of agents and messages.
 	// But can be useful for small to-be-thrown-out utilities.
 	struct process_data_tag {};
-	using process_data = so_5::rt::tuple_as_message_t< process_data_tag, const std::uint8_t * >;
+	using process_data = so_5::tuple_as_message_t< process_data_tag, const std::uint8_t * >;
 
 	// And the event-handler for this message.
 	void data_processing_agent::evt_process_data( const process_data & evt )
@@ -76,7 +76,7 @@ namespace so_5 {
 	\code
 	// This way of defining messages can be good only for very and very
 	// small to-be-thrown-out programs (like tests and samples).
-	using process_data = so_5::rt::tuple_as_message_t<
+	using process_data = so_5::tuple_as_message_t<
 				std::integral_constant<int, 0>, const std::uint8_t * >;
 
 	// And the event-handler for this message.

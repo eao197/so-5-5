@@ -77,7 +77,7 @@ make_actual_mbox(
 mbox_t
 mbox_core_t::create_mpsc_mbox(
 	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
+	const so_5::message_limit::impl::info_storage_t * limits_storage )
 {
 	const auto id = ++m_mbox_id_counter;
 
@@ -134,7 +134,7 @@ make_mchain(
 	A &&... args )
 	{
 		using namespace so_5::mchain_props;
-		using namespace so_5::rt::impl::msg_tracing_helpers;
+		using namespace so_5::impl::msg_tracing_helpers;
 		using D = mchain_tracing_disabled_base;
 		using E = mchain_tracing_enabled_base;
 

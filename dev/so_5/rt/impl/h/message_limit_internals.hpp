@@ -256,7 +256,7 @@ template< typename LAMBDA >
 void
 try_to_deliver_to_agent(
 	//! It is a message or service request?
-	so_5::rt::invocation_type_t invocation_type,
+	invocation_type_t invocation_type,
 	//! Receiver of the message or service request.
 	const agent_t & receiver,
 	//! Optional message limit.
@@ -269,7 +269,7 @@ try_to_deliver_to_agent(
 	//! Deep of overlimit reactions recursion.
 	unsigned int overlimit_reaction_deep,
 	//! Message delivery tracer to be used inside overlimit reaction.
-	const so_5::rt::message_limit::impl::action_msg_tracer_t * tracer,
+	const message_limit::impl::action_msg_tracer_t * tracer,
 	//! Actual delivery action.
 	LAMBDA delivery_action )
 {

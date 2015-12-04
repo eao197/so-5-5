@@ -131,7 +131,7 @@ class agent_core_t
 		void
 		operator = ( const agent_core_t & );
 
-		friend class so_5::rt::impl::agent_core_details::
+		friend class so_5::impl::agent_core_details::
 				deregistration_processor_t;
 
 	public:

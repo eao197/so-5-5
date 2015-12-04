@@ -31,7 +31,7 @@ namespace {
 void
 switch_agent_to_special_state_and_deregister_coop(
 	//! Agent who is the producer of the exception.
-	so_5::rt::agent_t & a_exception_producer )
+	so_5::agent_t & a_exception_producer )
 	{
 		const std::string coop_name = a_exception_producer.so_coop_name();
 		try
@@ -39,7 +39,7 @@ switch_agent_to_special_state_and_deregister_coop(
 			a_exception_producer.so_switch_to_awaiting_deregistration_state();
 			a_exception_producer.so_environment().deregister_coop(
 					coop_name,
-					so_5::rt::dereg_reason::unhandled_exception );
+					so_5::dereg_reason::unhandled_exception );
 		}
 		catch( const std::exception & x )
 		{
@@ -65,7 +65,7 @@ switch_agent_to_special_state_and_deregister_coop(
 void
 switch_agent_to_special_state_and_shutdown_sobjectizer(
 	//! Agent who is the producer of the exception.
-	so_5::rt::agent_t & a_exception_producer )
+	agent_t & a_exception_producer )
 	{
 		try
 		{
@@ -96,7 +96,7 @@ log_unhandled_exception(
 	//! Raised and caught exception.
 	const std::exception & ex_to_log,
 	//! Agent who is the producer of the exception.
-	so_5::rt::agent_t & a_exception_producer )
+	agent_t & a_exception_producer )
 	{
 		try
 		{
@@ -128,14 +128,14 @@ void
 process_unhandled_exception(
 	current_thread_id_t working_thread_id,
 	const std::exception & ex,
-	so_5::rt::agent_t & a_exception_producer )
+	agent_t & a_exception_producer )
 	{
 		log_unhandled_exception( ex, a_exception_producer );
 
 		auto reaction = a_exception_producer.so_exception_reaction();
 		if( working_thread_id == null_current_thread_id() &&
-				so_5::rt::ignore_exception != reaction &&
-				so_5::rt::abort_on_exception != reaction )
+				ignore_exception != reaction &&
+				abort_on_exception != reaction )
 		{
 			so_5::details::abort_on_fatal_error( [&] {
 				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
@@ -154,7 +154,7 @@ process_unhandled_exception(
 			} );
 		}
 
-		if( so_5::rt::abort_on_exception == reaction )
+		if( abort_on_exception == reaction )
 		{
 			so_5::details::abort_on_fatal_error( [&] {
 				SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
@@ -165,7 +165,7 @@ process_unhandled_exception(
 				}
 			} );
 		}
-		else if( so_5::rt::shutdown_sobjectizer_on_exception == reaction )
+		else if( shutdown_sobjectizer_on_exception == reaction )
 		{
 			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 			{
@@ -178,7 +178,7 @@ process_unhandled_exception(
 			switch_agent_to_special_state_and_shutdown_sobjectizer(
 					a_exception_producer );
 		}
-		else if( so_5::rt::deregister_coop_on_exception == reaction )
+		else if( deregister_coop_on_exception == reaction )
 		{
 			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 			{
@@ -191,7 +191,7 @@ process_unhandled_exception(
 			switch_agent_to_special_state_and_deregister_coop(
 					a_exception_producer );
 		}
-		else if( so_5::rt::ignore_exception == reaction )
+		else if( ignore_exception == reaction )
 		{
 			SO_5_LOG_ERROR( a_exception_producer.so_environment(), log_stream )
 			{
