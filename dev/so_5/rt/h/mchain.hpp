@@ -805,7 +805,7 @@ receive(
 		using namespace so_5::mchain_props;
 		using namespace so_5::mchain_props::details;
 
-		handlers_bunch< sizeof...(handlers) > bunch;
+		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
@@ -1231,7 +1231,7 @@ receive(
 		using namespace so_5::mchain_props;
 		using namespace so_5::mchain_props::details;
 
-		handlers_bunch< sizeof...(handlers) > bunch;
+		handlers_bunch_t< sizeof...(handlers) > bunch;
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 

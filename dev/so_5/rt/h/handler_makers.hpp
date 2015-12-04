@@ -233,7 +233,7 @@ struct result_setter_t< void >
  * \note This function is intended to be used only by SObjectizer itself.
  */
 template< class LAMBDA >
-rt::details::msg_type_and_handler_pair
+rt::details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
 		using namespace so_5::rt;
@@ -278,7 +278,7 @@ handler( LAMBDA && lambda )
 					}
 			};
 
-		return msg_type_and_handler_pair{
+		return msg_type_and_handler_pair_t{
 				message_payload_type< MESSAGE >::payload_type_index(),
 				method };
 	}
@@ -295,7 +295,7 @@ handler( LAMBDA && lambda )
  * \note This function is intended to be used only by SObjectizer itself.
  */
 template< class SIGNAL, class LAMBDA >
-rt::details::msg_type_and_handler_pair
+rt::details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
 		using namespace so_5::rt;
@@ -330,7 +330,7 @@ handler( LAMBDA && lambda )
 					}
 			};
 
-		return msg_type_and_handler_pair{
+		return msg_type_and_handler_pair_t{
 				message_payload_type< SIGNAL >::payload_type_index(),
 				method };
 	}
@@ -340,7 +340,7 @@ namespace rt {
 namespace details {
 
 //
-// handlers_bunch_basics
+// handlers_bunch_basics_t
 //
 /*!
  * \since v.5.5.13
@@ -348,7 +348,7 @@ namespace details {
  *
  * \note This part is not depends on template parameters.
  */
-struct handlers_bunch_basics
+struct handlers_bunch_basics_t
 	{
 		/*!
 		 * \brief Preparation of message handlers vector.
@@ -363,8 +363,8 @@ struct handlers_bunch_basics
 		 */
 		static inline void
 		prepare_handlers(
-			msg_type_and_handler_pair * left,
-			msg_type_and_handler_pair * right )
+			msg_type_and_handler_pair_t * left,
+			msg_type_and_handler_pair_t * right )
 			{
 				std::sort( left, right );
 				auto duplicate = std::adjacent_find( left, right );
@@ -388,15 +388,15 @@ struct handlers_bunch_basics
 		 */
 		static inline bool
 		find_and_use_handler(
-			const msg_type_and_handler_pair * left,
-			const msg_type_and_handler_pair * right,
+			const msg_type_and_handler_pair_t * left,
+			const msg_type_and_handler_pair_t * right,
 			const std::type_index & msg_type,
 			message_ref_t & message,
 			invocation_type_t invocation )
 			{
 				bool ret_value = false;
 
-				msg_type_and_handler_pair key{ msg_type };
+				msg_type_and_handler_pair_t key{ msg_type };
 				auto it = std::lower_bound( left, right, key );
 				if( it != right && it->m_msg_type == key.m_msg_type )
 					{
@@ -427,16 +427,16 @@ struct handlers_bunch_basics
  * \brief Template class for storing bunch of message handlers.
  */
 template< std::size_t N >
-class handlers_bunch : private handlers_bunch_basics
+class handlers_bunch_t : private handlers_bunch_basics_t
 	{
 		//! Vector of message handlers.
 		/*!
 		 * Will be ordered by msg_type after invoking prepare() method.
 		 */
-		msg_type_and_handler_pair m_handlers[ N ];
+		msg_type_and_handler_pair_t m_handlers[ N ];
 
 	public :
-		handlers_bunch()
+		handlers_bunch_t()
 			{}
 
 		//! Add another handler to the specified index.
@@ -445,7 +445,7 @@ class handlers_bunch : private handlers_bunch_basics
 			//! Index for new handler.
 			std::size_t index,
 			//! Message handler to be added.
-			msg_type_and_handler_pair && handler )
+			msg_type_and_handler_pair_t && handler )
 			{
 				m_handlers[ index ] = std::move(handler);
 			}
@@ -485,14 +485,14 @@ class handlers_bunch : private handlers_bunch_basics
 
 /*!
  * \since v.5.5.13
- * \brief A specialization of handlers_bunch for the case when there
+ * \brief A specialization of handlers_bunch_t for the case when there
  * is no any handlers.
  */
 template<>
-class handlers_bunch< 0 >
+class handlers_bunch_t< 0 >
 	{
 	public :
-		handlers_bunch()
+		handlers_bunch_t()
 			{}
 
 		void
@@ -530,7 +530,7 @@ fill_handlers_bunch(
 	//! An index for next handler.
 	std::size_t index,
 	//! Next handler to be inserted.
-	msg_type_and_handler_pair && handler,
+	msg_type_and_handler_pair_t && handler,
 	//! All other handlers.
 	OTHERS &&... other_handlers )
 	{

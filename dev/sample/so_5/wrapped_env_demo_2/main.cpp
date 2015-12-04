@@ -41,7 +41,7 @@ public :
 		// Mbox for requests from not-SO-part.
 		so_5::rt::mbox_t req_mbox,
 		// Chain for responses to not-SO-part.
-		so_5::mchain chain )
+		so_5::mchain_t chain )
 		:	so_5::rt::agent_t{ ctx }
 		,	m_req_mbox{ move(req_mbox) }
 		,	m_chain{ move(chain) }
@@ -94,7 +94,7 @@ public :
 
 private :
 	const so_5::rt::mbox_t m_req_mbox;
-	const so_5::mchain m_chain;
+	const so_5::mchain_t m_chain;
 
 	clock::time_point m_started_at;
 	unsigned long long m_last_duration_ms;
