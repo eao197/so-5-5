@@ -7,8 +7,7 @@
 	\brief Agent state listener definition.
 */
 
-#if !defined( _SO_5__RT__AGENT_STATE_LISTENER_HPP_ )
-#define _SO_5__RT__AGENT_STATE_LISTENER_HPP_
+#pragma once
 
 #include <memory>
 
@@ -17,11 +16,6 @@
 
 namespace so_5
 {
-
-namespace rt
-{
-
-class state_t;
 
 //
 // agent_state_listener_t
@@ -65,16 +59,35 @@ class SO_5_TYPE agent_state_listener_t
 };
 
 //! Typedef for the agent_state_listener autopointer.
-typedef std::unique_ptr< agent_state_listener_t >
-	agent_state_listener_unique_ptr_t;
+using agent_state_listener_unique_ptr_t =
+		std::unique_ptr< agent_state_listener_t >;
 
 //! Typedef for the agent_state_listener smart pointer.
-typedef std::shared_ptr< agent_state_listener_t >
-	agent_state_listener_ref_t;
+using agent_state_listener_t =
+		std::shared_ptr< agent_state_listener_t >;
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::agent_state_listener_t
+ * instead.
+ */
+using agent_state_listener_t = so_5::agent_state_listener_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::agent_state_listener_unique_ptr_t instead.
+ */
+using agent_state_listener_unique_ptr_t = so_5::agent_state_listener_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::agent_state_listener_ref_t
+ * instead.
+ */
+using agent_state_listener_ref_t = so_5::agent_state_listener_ref_t;
 
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

@@ -86,7 +86,7 @@ class agent_tuning_options_t
 		static subscription_storage_factory_t
 		default_subscription_storage_factory()
 			{
-				return so_5::rt::default_subscription_storage_factory();
+				return so_5::default_subscription_storage_factory();
 			}
 
 		message_limit::description_container_t
@@ -133,6 +133,15 @@ class agent_tuning_options_t
 		so_5::priority_t m_priority = so_5::prio::default_priority;
 	};
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::agent_tuning_options_t
+ * instead.
+ */
+using agent_tuning_options_t = so_5::agent_tuning_options_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
@@ -143,8 +152,8 @@ namespace std
 template<>
 inline void
 swap(
-	so_5::rt::agent_tuning_options_t & a,
-	so_5::rt::agent_tuning_options_t & b )
+	so_5::agent_tuning_options_t & a,
+	so_5::agent_tuning_options_t & b )
 	{
 		a.swap( b );
 	}
