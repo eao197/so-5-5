@@ -165,7 +165,7 @@ mbox_core_t::create_mchain(
 	if( params.capacity().unlimited() )
 		return make_mchain< unlimited_demand_queue >(
 				m_tracer, params, env, id );
-	else if( memory_usage_type::dynamic == params.capacity().memory_usage() )
+	else if( memory_usage_t::dynamic == params.capacity().memory_usage() )
 		return make_mchain< limited_dynamic_demand_queue >(
 				m_tracer, params, env, id );
 	else

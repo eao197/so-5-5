@@ -30,7 +30,7 @@ namespace mchain_props {
  * \since v.5.5.13
  * \brief An alias for type for repesenting timeout values.
  */
-using duration = std::chrono::high_resolution_clock::duration;
+using duration_t = std::chrono::high_resolution_clock::duration;
 
 namespace details {
 
@@ -41,8 +41,8 @@ namespace details {
  * \since v.5.5.13
  * \brief Special value of %duration to indicate 'no_wait' case.
  */
-inline duration
-no_wait_special_timevalue() { return duration::zero(); }
+inline duration_t
+no_wait_special_timevalue() { return duration_t::zero(); }
 
 //
 // infinite_wait_special_timevalue
@@ -51,8 +51,8 @@ no_wait_special_timevalue() { return duration::zero(); }
  * \since v.5.5.13
  * \brief Special value of %duration to indicate 'infinite_wait' case.
  */
-inline duration
-infinite_wait_special_timevalue() { return duration::max(); }
+inline duration_t
+infinite_wait_special_timevalue() { return duration_t::max(); }
 
 //
 // is_no_wait_timevalue
@@ -62,7 +62,7 @@ infinite_wait_special_timevalue() { return duration::max(); }
  * \brief Is time value means 'no_wait'?
  */
 inline bool
-is_no_wait_timevalue( duration v )
+is_no_wait_timevalue( duration_t v )
 	{
 		return v == no_wait_special_timevalue();
 	}
@@ -75,7 +75,7 @@ is_no_wait_timevalue( duration v )
  * \brief Is time value means 'infinite_wait'?
  */
 inline bool
-is_infinite_wait_timevalue( duration v )
+is_infinite_wait_timevalue( duration_t v )
 	{
 		return v == infinite_wait_special_timevalue();
 	}
@@ -89,9 +89,9 @@ is_infinite_wait_timevalue( duration v )
  * \brief Helper function for detection of actual value for waiting timeout.
  *
  * \note This helper implements convention that infinite waiting is
- * represented as duration::max() value.
+ * represented as duration_t::max() value.
  */
-inline duration
+inline duration_t
 actual_timeout( infinite_wait_indication )
 	{
 		return infinite_wait_special_timevalue();
@@ -102,9 +102,9 @@ actual_timeout( infinite_wait_indication )
  * \brief Helper function for detection of actual value for waiting timeout.
  *
  * \note This helper implements convention that no waiting is
- * represented as duration::zero() value.
+ * represented as duration_t::zero() value.
  */
-inline duration
+inline duration_t
 actual_timeout( no_wait_indication )
 	{
 		return no_wait_special_timevalue();
@@ -115,22 +115,22 @@ actual_timeout( no_wait_indication )
  * \brief Helper function for detection of actual value for waiting timeout.
  */
 template< typename V >
-duration
+duration_t
 actual_timeout( V value )
 	{
-		return duration( value );
+		return duration_t( value );
 	}
 
 } /* namespace details */
 
 //
-// demand
+// demand_t
 //
 /*!
  * \since v.5.5.13
  * \brief Description of one demand in message chain.
  */
-struct demand
+struct demand_t
 	{
 		//! Type of the message.
 		std::type_index m_msg_type;
@@ -144,11 +144,11 @@ struct demand
 // and doesn't support '=default' construct.
 
 		//! Default constructor.
-		demand()
+		demand_t()
 			:	m_msg_type( typeid(void) )
 			{}
 		//! Initializing constructor.
-		demand(
+		demand_t(
 			std::type_index msg_type,
 			so_5::rt::message_ref_t message_ref,
 			so_5::rt::invocation_type_t demand_type )
@@ -158,13 +158,13 @@ struct demand
 			{}
 
 		//! Copy constructor.
-		demand( const demand& o )
+		demand_t( const demand_t& o )
 			:	m_msg_type{ o.m_msg_type }
 			,	m_message_ref{ o.m_message_ref }
 			,	m_demand_type{ o.m_demand_type }
 			{}
 		//! Move constructor.
-		demand( demand && o )
+		demand_t( demand_t && o )
 			:	m_msg_type{ std::move(o.m_msg_type) }
 			,	m_message_ref{ std::move(o.m_message_ref) }
 			,	m_demand_type{ std::move(o.m_demand_type) }
@@ -172,7 +172,7 @@ struct demand
 
 		//! Swap operation.
 		void
-		swap( demand & o )
+		swap( demand_t & o )
 			{
 				std::swap( m_msg_type, o.m_msg_type );
 				m_message_ref.swap( o.m_message_ref );
@@ -180,32 +180,32 @@ struct demand
 			}
 
 		//! Copy operator.
-		demand &
-		operator=( const demand & o )
+		demand_t &
+		operator=( const demand_t & o )
 			{
-				demand tmp{ o };
+				demand_t tmp{ o };
 				tmp.swap( *this );
 				return *this;
 			}
 
 		//! Move operator.
-		demand &
-		operator=( demand && o )
+		demand_t &
+		operator=( demand_t && o )
 			{
-				demand tmp{ std::move(o) };
+				demand_t tmp{ std::move(o) };
 				tmp.swap( *this );
 				return *this;
 			}
 	};
 
 //
-// memory_usage_type
+// memory_usage_t
 //
 /*!
  * \since v.5.5.13
  * \brief Memory allocation for storage for size-limited chains.
  */
-enum class memory_usage_type
+enum class memory_usage_t
 	{
 		//! Storage can be allocated and deallocated dynamically.
 		dynamic,
@@ -214,14 +214,14 @@ enum class memory_usage_type
 	};
 
 //
-// overflow_reaction_type
+// overflow_reaction_t
 //
 /*!
  * \since v.5.5.13
  * \brief What reaction must be performed on attempt to push new message to
  * the full message chain.
  */
-enum class overflow_reaction_type
+enum class overflow_reaction_t
 	{
 		//! Application must be aborted.
 		abort_app,
@@ -234,13 +234,13 @@ enum class overflow_reaction_type
 	};
 
 //
-// capacity
+// capacity_t
 //
 /*!
  * \since v.5.5.13
  * \brief Parameters for defining chain size.
  */
-class capacity
+class capacity_t
 	{
 		//! Has chain unlimited size?
 		bool m_unlimited = { true };
@@ -251,24 +251,24 @@ class capacity
 		std::size_t m_max_size;
 
 		//! Type of the storage for size-limited chain.
-		memory_usage_type m_memory;
+		memory_usage_t m_memory;
 
 		//! Type of reaction for chain overflow.
-		overflow_reaction_type m_overflow_reaction;
+		overflow_reaction_t m_overflow_reaction;
 
 		//! Timeout for waiting on full chain during 'message push' operation.
 		/*!
 		 * \note Value 'zero' means that there must not be waiting on
 		 * full chain.
 		 */
-		duration m_overflow_timeout;
+		duration_t m_overflow_timeout;
 
 		//! Initializing constructor for size-limited message chain.
-		capacity(
+		capacity_t(
 			std::size_t max_size,
-			memory_usage_type memory_usage,
-			overflow_reaction_type overflow_reaction,
-			duration overflow_timeout )
+			memory_usage_t memory_usage,
+			overflow_reaction_t overflow_reaction,
+			duration_t overflow_timeout )
 			:	m_unlimited{ false }
 			,	m_max_size{ max_size }
 			,	m_memory{ memory_usage }
@@ -281,25 +281,25 @@ class capacity
 		/*!
 		 * Creates description for size-unlimited chain.
 		 */
-		capacity()
+		capacity_t()
 			{}
 
 		//! Create capacity description for size-unlimited message chain.
-		inline static capacity
-		make_unlimited() { return capacity{}; }
+		inline static capacity_t
+		make_unlimited() { return capacity_t{}; }
 
 		//! Create capacity description for size-limited message chain
 		//! without waiting on full queue during 'push message' operation.
-		inline static capacity
+		inline static capacity_t
 		make_limited_without_waiting(
 			//! Max size of the chain.
 			std::size_t max_size,
 			//! Type of chain storage.
-			memory_usage_type memory_usage,
+			memory_usage_t memory_usage,
 			//! Reaction on chain overflow.
-			overflow_reaction_type overflow_reaction )
+			overflow_reaction_t overflow_reaction )
 			{
-				return capacity{
+				return capacity_t{
 						max_size,
 						memory_usage,
 						overflow_reaction,
@@ -309,18 +309,18 @@ class capacity
 
 		//! Create capacity description for size-limited message chain
 		//! with waiting on full queue during 'push message' operation.
-		inline static capacity
+		inline static capacity_t
 		make_limited_with_waiting(
 			//! Max size of the chain.
 			std::size_t max_size,
 			//! Type of chain storage.
-			memory_usage_type memory_usage,
+			memory_usage_t memory_usage,
 			//! Reaction on chain overflow.
-			overflow_reaction_type overflow_reaction,
+			overflow_reaction_t overflow_reaction,
 			//! Waiting time on full message chain.
-			duration wait_timeout )
+			duration_t wait_timeout )
 			{
-				return capacity{
+				return capacity_t{
 						max_size,
 						memory_usage,
 						overflow_reaction,
@@ -343,14 +343,14 @@ class capacity
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
-		memory_usage_type
+		memory_usage_t
 		memory_usage() const { return m_memory; }
 
 		//! Overflow reaction for size-limited chain.
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
-		overflow_reaction_type
+		overflow_reaction_t
 		overflow_reaction() const { return m_overflow_reaction; }
 
 		//! Is waiting timeout for overflow case defined?
@@ -367,7 +367,7 @@ class capacity
 		/*!
 		 * \attention Has sence only for size-limited chain.
 		 */
-		duration
+		duration_t
 		overflow_timeout() const
 			{
 				return m_overflow_timeout;
@@ -422,23 +422,23 @@ using not_empty_notification_func = std::function< void() >;
 } /* namespace mchain_props */
 
 //
-// abstract_message_chain
+// abstract_message_chain_t
 //
 /*!
  * \since v.5.5.13
  * \brief An interace of message chain.
  */
-class SO_5_TYPE abstract_message_chain : protected so_5::rt::abstract_message_box_t
+class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_box_t
 	{
-		friend class intrusive_ptr_t< abstract_message_chain >;
+		friend class intrusive_ptr_t< abstract_message_chain_t >;
 
-		abstract_message_chain( const abstract_message_chain & ) = delete;
-		abstract_message_chain &
-		operator=( const abstract_message_chain & ) = delete;
+		abstract_message_chain_t( const abstract_message_chain_t & ) = delete;
+		abstract_message_chain_t &
+		operator=( const abstract_message_chain_t & ) = delete;
 
 	protected :
-		abstract_message_chain();
-		virtual ~abstract_message_chain();
+		abstract_message_chain_t();
+		virtual ~abstract_message_chain_t();
 
 	public :
 		using abstract_message_box_t::id;
@@ -446,9 +446,9 @@ class SO_5_TYPE abstract_message_chain : protected so_5::rt::abstract_message_bo
 		virtual mchain_props::extraction_status
 		extract(
 			//! Destination for extracted messages.
-			mchain_props::demand & dest,
+			mchain_props::demand_t & dest,
 			//! Max time to wait on empty queue.
-			mchain_props::duration empty_queue_timeout ) = 0;
+			mchain_props::duration_t empty_queue_timeout ) = 0;
 
 		//! Cast message chain to message box.
 		so_5::rt::mbox_t
@@ -480,7 +480,7 @@ class SO_5_TYPE abstract_message_chain : protected so_5::rt::abstract_message_bo
  * \since v.5.5.13
  * \brief Short name for smart pointer to message chain.
  */
-using mchain = intrusive_ptr_t< abstract_message_chain >;
+using mchain = intrusive_ptr_t< abstract_message_chain_t >;
 
 //
 // close_drop_content
@@ -542,7 +542,7 @@ close_retain_content( const mchain & ch )
 class mchain_params
 	{
 		//! Chain's capacity.
-		mchain_props::capacity m_capacity;
+		mchain_props::capacity_t m_capacity;
 
 		//! An optional notificator for 'not_empty' condition.
 		mchain_props::not_empty_notification_func m_not_empty_notificator;
@@ -554,20 +554,20 @@ class mchain_params
 		//! Initializing constructor.
 		mchain_params(
 			//! Chain's capacity and related params.
-			mchain_props::capacity capacity )
+			mchain_props::capacity_t capacity )
 			:	m_capacity{ capacity }
 			{}
 
 		//! Set chain's capacity and related params.
 		mchain_params &
-		capacity( mchain_props::capacity capacity )
+		capacity( mchain_props::capacity_t capacity )
 			{
 				m_capacity = capacity;
 				return *this;
 			}
 
 		//! Get chain's capacity and related params.
-		const mchain_props::capacity &
+		const mchain_props::capacity_t &
 		capacity() const
 			{
 				return m_capacity;
@@ -632,7 +632,7 @@ class mchain_params
 inline mchain_params
 make_unlimited_mchain_params()
 	{
-		return mchain_params{ mchain_props::capacity::make_unlimited() };
+		return mchain_params{ mchain_props::capacity_t::make_unlimited() };
 	}
 
 /*!
@@ -646,9 +646,9 @@ make_unlimited_mchain_params()
 			// No more than 200 messages in the chain.
 			200,
 			// Memory will be allocated dynamically.
-			so_5::mchain_props::memory_usage_type::dynamic,
+			so_5::mchain_props::memory_usage_t::dynamic,
 			// New messages will be ignored on chain's overflow.
-			so_5::mchain_props::overflow_reaction_type::drop_newest ) );
+			so_5::mchain_props::overflow_reaction_t::drop_newest ) );
 	\endcode
  */
 inline mchain_params
@@ -656,12 +656,12 @@ make_limited_without_waiting_mchain_params(
 	//! Max capacity of %mchain.
 	std::size_t max_size,
 	//! Type of chain storage.
-	mchain_props::memory_usage_type memory_usage,
+	mchain_props::memory_usage_t memory_usage,
 	//! Reaction on chain overflow.
-	mchain_props::overflow_reaction_type overflow_reaction )
+	mchain_props::overflow_reaction_t overflow_reaction )
 	{
 		return mchain_params{
-				mchain_props::capacity::make_limited_without_waiting(
+				mchain_props::capacity_t::make_limited_without_waiting(
 						max_size,
 						memory_usage,
 						overflow_reaction )
@@ -679,9 +679,9 @@ make_limited_without_waiting_mchain_params(
 			// No more than 200 messages in the chain.
 			200,
 			// Memory will be preallocated.
-			so_5::mchain_props::memory_usage_type::preallocated,
+			so_5::mchain_props::memory_usage_t::preallocated,
 			// New messages will be ignored on chain's overflow.
-			so_5::mchain_props::overflow_reaction_type::drop_newest,
+			so_5::mchain_props::overflow_reaction_t::drop_newest,
 			// But before dropping a new message there will be 500ms timeout
 			std::chrono::milliseconds(500) ) );
 	\endcode
@@ -691,14 +691,14 @@ make_limited_with_waiting_mchain_params(
 	//! Max size of the chain.
 	std::size_t max_size,
 	//! Type of chain storage.
-	mchain_props::memory_usage_type memory_usage,
+	mchain_props::memory_usage_t memory_usage,
 	//! Reaction on chain overflow.
-	mchain_props::overflow_reaction_type overflow_reaction,
+	mchain_props::overflow_reaction_t overflow_reaction,
 	//! Waiting time on full message chain.
-	mchain_props::duration wait_timeout )
+	mchain_props::duration_t wait_timeout )
 	{
 		return mchain_params {
-				mchain_props::capacity::make_limited_with_waiting(
+				mchain_props::capacity_t::make_limited_with_waiting(
 						max_size,
 						memory_usage,
 						overflow_reaction,
@@ -809,7 +809,7 @@ receive(
 		fill_handlers_bunch( bunch, 0,
 				std::forward< HANDLERS >(handlers)... );
 
-		demand extracted_demand;
+		demand_t extracted_demand;
 		const auto status = chain->extract(
 				extracted_demand,
 				actual_timeout( waiting_timeout ) );
@@ -860,11 +860,11 @@ class mchain_receive_params
 		std::size_t m_to_handle = { 0 };
 
 		//! Timeout for waiting on empty queue.
-		mchain_props::duration m_empty_timeout =
+		mchain_props::duration_t m_empty_timeout =
 				{ mchain_props::details::infinite_wait_special_timevalue() };
 
 		//! Total time for all work of advanced receive.
-		mchain_props::duration m_total_time =
+		mchain_props::duration_t m_total_time =
 				{ mchain_props::details::infinite_wait_special_timevalue() };
 
 		//! Optional stop-predicate.
@@ -911,7 +911,7 @@ class mchain_receive_params
 		 * \note This value will be ignored if total_time() is also used
 		 * to set total receive time.
 		 *
-		 * \note Argument \a v can be of type duration or
+		 * \note Argument \a v can be of type duration_t or
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
 		template< typename TIMEOUT >
@@ -923,12 +923,12 @@ class mchain_receive_params
 			}
 
 		//! Get timeout for waiting on empty chain.
-		const mchain_props::duration &
+		const mchain_props::duration_t &
 		empty_timeout() const { return m_empty_timeout; }
 
 		//! Set total time for the whole receive operation.
 		/*!
-		 * \note Argument \a v can be of type duration or
+		 * \note Argument \a v can be of type duration_t or
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
 		template< typename TIMEOUT >
@@ -940,7 +940,7 @@ class mchain_receive_params
 			}
 
 		//! Get total time for the whole receive operation.
-		const mchain_props::duration &
+		const mchain_props::duration_t &
 		total_time() const { return m_total_time; }
 
 		//! Set user condition for stopping receive operation.
@@ -1045,9 +1045,9 @@ class receive_actions_performer
 			{}
 
 		void
-		handle_next( duration empty_timeout )
+		handle_next( duration_t empty_timeout )
 			{
-				demand extracted_demand;
+				demand_t extracted_demand;
 				m_status = m_params.chain()->extract(
 						extracted_demand, empty_timeout );
 
@@ -1111,7 +1111,7 @@ receive_with_finite_total_time(
 	{
 		receive_actions_performer< BUNCH > performer{ params, bunch };
 
-		duration remaining_time = params.total_time();
+		duration_t remaining_time = params.total_time();
 		const auto start_point = std::chrono::steady_clock::now();
 
 		do
@@ -1124,9 +1124,9 @@ receive_with_finite_total_time(
 				if( elapsed < remaining_time )
 					remaining_time -= elapsed;
 				else
-					remaining_time = duration::zero();
+					remaining_time = duration_t::zero();
 			}
-		while( remaining_time > duration::zero() );
+		while( remaining_time > duration_t::zero() );
 
 		return performer.make_result();
 	}

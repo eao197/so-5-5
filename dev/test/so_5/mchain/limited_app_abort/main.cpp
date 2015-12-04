@@ -18,11 +18,11 @@ main()
 {
 	so_5::wrapped_env_t env;
 
-	auto ch = env.environment().create_mchain( so_5::mchain_params{
-			props::capacity::make_limited_without_waiting(
+	auto ch = env.environment().create_mchain(
+			so_5::make_limited_without_waiting_mchain_params(
 					3,
-					props::memory_usage_type::dynamic,
-					props::overflow_reaction_type::abort_app ) } );
+					props::memory_usage_t::dynamic,
+					props::overflow_reaction_t::abort_app ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );

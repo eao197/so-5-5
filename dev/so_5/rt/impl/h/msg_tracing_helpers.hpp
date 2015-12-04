@@ -91,7 +91,7 @@ make_trace_to_1( std::ostream & s, const abstract_message_box_t & mbox )
 	}
 
 inline void
-make_trace_to_1( std::ostream & s, const abstract_message_chain & chain )
+make_trace_to_1( std::ostream & s, const abstract_message_chain_t & chain )
 	{
 		make_trace_to_1( s, mchain_identification{ chain.id() } );
 	}
@@ -437,19 +437,19 @@ trace_event_handler_search_result(
 struct mchain_tracing_disabled_base
 	{
 		void trace_extracted_demand(
-			const abstract_message_chain &,
-			const mchain_props::demand & ) {}
+			const abstract_message_chain_t &,
+			const mchain_props::demand_t & ) {}
 
 		void trace_demand_drop_on_close(
-			const abstract_message_chain &,
-			const mchain_props::demand & ) {}
+			const abstract_message_chain_t &,
+			const mchain_props::demand_t & ) {}
 
 		class deliver_op_tracer
 			{
 			public :
 				deliver_op_tracer(
 					const mchain_tracing_disabled_base &,
-					const abstract_message_chain &,
+					const abstract_message_chain_t &,
 					const std::type_index &,
 					const message_ref_t &,
 					const invocation_type_t )
@@ -460,7 +460,7 @@ struct mchain_tracing_disabled_base
 
 				void overflow_drop_newest() {}
 
-				void overflow_remove_oldest( const so_5::mchain_props::demand & ) {}
+				void overflow_remove_oldest( const so_5::mchain_props::demand_t & ) {}
 
 				void overflow_throw_exception() {}
 
@@ -502,8 +502,8 @@ class mchain_tracing_enabled_base
 
 		void
 		trace_extracted_demand(
-			const abstract_message_chain & chain,
-			const mchain_props::demand & d )
+			const abstract_message_chain_t & chain,
+			const mchain_props::demand_t & d )
 			{
 				details::make_trace(
 						m_tracer,
@@ -517,8 +517,8 @@ class mchain_tracing_enabled_base
 
 		void
 		trace_demand_drop_on_close(
-			const abstract_message_chain & chain,
-			const mchain_props::demand & d )
+			const abstract_message_chain_t & chain,
+			const mchain_props::demand_t & d )
 			{
 				details::make_trace(
 						m_tracer,
@@ -534,7 +534,7 @@ class mchain_tracing_enabled_base
 			{
 			private :
 				so_5::msg_tracing::tracer_t & m_tracer;
-				const abstract_message_chain & m_chain;
+				const abstract_message_chain_t & m_chain;
 				const char * m_op_name;
 				const std::type_index & m_msg_type;
 				const message_ref_t & m_message;
@@ -558,7 +558,7 @@ class mchain_tracing_enabled_base
 			public :
 				deliver_op_tracer(
 					const mchain_tracing_enabled_base & tracing_base,
-					const abstract_message_chain & chain,
+					const abstract_message_chain_t & chain,
 					const std::type_index & msg_type,
 					const message_ref_t & message,
 					const invocation_type_t invocation )
@@ -583,7 +583,7 @@ class mchain_tracing_enabled_base
 					}
 
 				void
-				overflow_remove_oldest( const so_5::mchain_props::demand & d )
+				overflow_remove_oldest( const so_5::mchain_props::demand_t & d )
 					{
 						make_trace( "overflow.remove_oldest",
 								details::text_separator{ "removed:" },

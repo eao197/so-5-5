@@ -75,7 +75,7 @@ class unlimited_demand_queue
 		/*!
 		 * \note This constructor is necessary just for a convinience.
 		 */
-		unlimited_demand_queue( const capacity & ) {}
+		unlimited_demand_queue( const capacity_t & ) {}
 
 		//! Is queue full?
 		/*!
@@ -90,7 +90,7 @@ class unlimited_demand_queue
 		is_empty() const { return m_queue.empty(); }
 
 		//! Access to front item from queue.
-		demand &
+		demand_t &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -107,7 +107,7 @@ class unlimited_demand_queue
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( demand && demand )
+		push_back( demand_t && demand )
 			{
 				m_queue.push_back( std::move(demand) );
 			}
@@ -118,7 +118,7 @@ class unlimited_demand_queue
 
 	private :
 		//! Queue's storage.
-		std::deque< demand > m_queue;
+		std::deque< demand_t > m_queue;
 	};
 
 //
@@ -134,7 +134,7 @@ class limited_dynamic_demand_queue
 	public :
 		//! Initializing constructor.
 		limited_dynamic_demand_queue(
-			const capacity & capacity )
+			const capacity_t & capacity )
 			:	m_max_size{ capacity.max_size() }
 			{}
 
@@ -147,7 +147,7 @@ class limited_dynamic_demand_queue
 		is_empty() const { return m_queue.empty(); }
 
 		//! Access to front item from queue.
-		demand &
+		demand_t &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -164,7 +164,7 @@ class limited_dynamic_demand_queue
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( demand && demand )
+		push_back( demand_t && demand )
 			{
 				ensure_queue_not_full( *this );
 				m_queue.push_back( std::move(demand) );
@@ -176,7 +176,7 @@ class limited_dynamic_demand_queue
 
 	private :
 		//! Queue's storage.
-		std::deque< demand > m_queue;
+		std::deque< demand_t > m_queue;
 		//! Maximum size of the queue.
 		const std::size_t m_max_size;
 	};
@@ -194,8 +194,8 @@ class limited_preallocated_demand_queue
 	public :
 		//! Initializing constructor.
 		limited_preallocated_demand_queue(
-			const capacity & capacity )
-			:	m_storage( capacity.max_size(), demand{} )
+			const capacity_t & capacity )
+			:	m_storage( capacity.max_size(), demand_t{} )
 			,	m_max_size{ capacity.max_size() }
 			,	m_head{ 0 }
 			,	m_size{ 0 }
@@ -210,7 +210,7 @@ class limited_preallocated_demand_queue
 		is_empty() const { return 0 == m_size; }
 
 		//! Access to front item from queue.
-		demand &
+		demand_t &
 		front()
 			{
 				ensure_queue_not_empty( *this );
@@ -222,14 +222,14 @@ class limited_preallocated_demand_queue
 		pop_front()
 			{
 				ensure_queue_not_empty( *this );
-				m_storage[ m_head ] = demand{};
+				m_storage[ m_head ] = demand_t{};
 				m_head = (m_head + 1) % m_max_size;
 				--m_size;
 			}
 
 		//! Add a new item to the end of the queue.
 		void
-		push_back( demand && demand )
+		push_back( demand_t && demand )
 			{
 				ensure_queue_not_full( *this );
 				auto index = (m_head + m_size) % m_max_size;
@@ -243,7 +243,7 @@ class limited_preallocated_demand_queue
 
 	private :
 		//! Queue's storage.
-		std::vector< demand > m_storage;
+		std::vector< demand_t > m_storage;
 		//! Maximum size of the queue.
 		const std::size_t m_max_size;
 
@@ -282,7 +282,7 @@ enum class status
  */
 template< typename QUEUE, typename TRACING_BASE >
 class mchain_template
-	:	public abstract_message_chain
+	:	public abstract_message_chain_t
 	,	private TRACING_BASE
 	{
 	public :
@@ -390,8 +390,8 @@ class mchain_template
 
 		virtual extraction_status
 		extract(
-			demand & dest,
-			duration empty_queue_timeout ) override
+			demand_t & dest,
+			duration_t empty_queue_timeout ) override
 			{
 				std::unique_lock< std::mutex > lock{ m_lock };
 
@@ -504,7 +504,7 @@ class mchain_template
 		const mbox_id_t m_id;
 
 		//! Chain capacity.
-		const capacity m_capacity;
+		const capacity_t m_capacity;
 
 		//! Optional notificator for 'not_empty' condition.
 		const not_empty_notification_func m_not_empty_notificator;
@@ -568,32 +568,32 @@ class mchain_template
 				if( queue_full )
 					{
 						const auto reaction = m_capacity.overflow_reaction();
-						if( overflow_reaction_type::drop_newest == reaction )
+						if( overflow_reaction_t::drop_newest == reaction )
 							{
 								// New message must be simply ignored.
 								tracer.overflow_drop_newest();
 								return;
 							}
-						else if( overflow_reaction_type::remove_oldest == reaction )
+						else if( overflow_reaction_t::remove_oldest == reaction )
 							{
 								// The oldest message must be simply removed.
 								tracer.overflow_remove_oldest( m_queue.front() );
 								m_queue.pop_front();
 							}
-						else if( overflow_reaction_type::throw_exception == reaction )
+						else if( overflow_reaction_t::throw_exception == reaction )
 							{
 								tracer.overflow_throw_exception();
 								SO_5_THROW_EXCEPTION(
 										rc_msg_chain_overflow,
 										"an attempt to push message to full mchain "
-										"with overflow_reaction_type::throw_exception policy" );
+										"with overflow_reaction_t::throw_exception policy" );
 							}
 						else
 							{
 								so_5::details::abort_on_fatal_error( [&] {
 										tracer.overflow_throw_exception();
 										SO_5_LOG_ERROR( m_env, log_stream ) {
-											log_stream << "overflow_reaction_type::abort_app "
+											log_stream << "overflow_reaction_t::abort_app "
 													"will be performed for mchain (id="
 													<< m_id << "), msg_type: "
 													<< msg_type.name()
@@ -608,7 +608,7 @@ class mchain_template
 				const bool queue_was_empty = m_queue.is_empty();
 				
 				m_queue.push_back(
-						demand{ msg_type, message, demand_type } );
+						demand_t{ msg_type, message, demand_type } );
 
 				tracer.stored( m_queue );
 

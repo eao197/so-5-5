@@ -17,7 +17,7 @@ void
 do_check_no_wait_drop_newest_impl(
 	so_5::rt::environment_t & env,
 	const char * case_name,
-	props::memory_usage_type memory )
+	props::memory_usage_t memory )
 {
 	cout << "no_wait, drop_newest, " << case_name << ": " << std::flush;
 
@@ -25,7 +25,7 @@ do_check_no_wait_drop_newest_impl(
 			so_5::make_limited_without_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction_type::drop_newest ) );
+					props::overflow_reaction_t::drop_newest ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -42,16 +42,16 @@ void
 do_check_no_wait_drop_newest( so_5::rt::environment_t & env )
 {
 	do_check_no_wait_drop_newest_impl(
-			env, "dynamic", props::memory_usage_type::dynamic );
+			env, "dynamic", props::memory_usage_t::dynamic );
 	do_check_no_wait_drop_newest_impl(
-			env, "prealloc", props::memory_usage_type::preallocated );
+			env, "prealloc", props::memory_usage_t::preallocated );
 }
 
 void
 do_check_no_wait_remove_oldest_impl(
 	so_5::rt::environment_t & env,
 	const char * case_name,
-	props::memory_usage_type memory )
+	props::memory_usage_t memory )
 {
 	cout << "no_wait, remove_oldest, " << case_name << ": " << std::flush;
 
@@ -59,7 +59,7 @@ do_check_no_wait_remove_oldest_impl(
 			so_5::make_limited_without_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction_type::remove_oldest ) );
+					props::overflow_reaction_t::remove_oldest ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -76,16 +76,16 @@ void
 do_check_no_wait_remove_oldest( so_5::rt::environment_t & env )
 {
 	do_check_no_wait_remove_oldest_impl(
-			env, "dynamic", props::memory_usage_type::dynamic );
+			env, "dynamic", props::memory_usage_t::dynamic );
 	do_check_no_wait_remove_oldest_impl(
-			env, "prealloc", props::memory_usage_type::preallocated );
+			env, "prealloc", props::memory_usage_t::preallocated );
 }
 
 void
 do_check_no_wait_throw_exception_impl(
 	so_5::rt::environment_t & env,
 	const char * case_name,
-	props::memory_usage_type memory )
+	props::memory_usage_t memory )
 {
 	cout << "no_wait, throw_exception, " << case_name << ": " << std::flush;
 
@@ -93,7 +93,7 @@ do_check_no_wait_throw_exception_impl(
 			so_5::make_limited_without_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction_type::throw_exception ) );
+					props::overflow_reaction_t::throw_exception ) );
 
 	so_5::send< int >( ch, 1 );
 	so_5::send< int >( ch, 2 );
@@ -115,9 +115,9 @@ void
 do_check_no_wait_throw_exception( so_5::rt::environment_t & env )
 {
 	do_check_no_wait_throw_exception_impl(
-			env, "dynamic", props::memory_usage_type::dynamic );
+			env, "dynamic", props::memory_usage_t::dynamic );
 	do_check_no_wait_throw_exception_impl(
-			env, "prealloc", props::memory_usage_type::preallocated );
+			env, "prealloc", props::memory_usage_t::preallocated );
 }
 
 void
@@ -165,7 +165,7 @@ void
 do_check_wait_drop_newest_impl(
 	so_5::rt::environment_t & env,
 	const char * case_name,
-	props::memory_usage_type memory )
+	props::memory_usage_t memory )
 {
 	cout << "wait, drop_newest, " << case_name << ": " << std::flush;
 
@@ -173,7 +173,7 @@ do_check_wait_drop_newest_impl(
 			so_5::make_limited_with_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction_type::drop_newest,
+					props::overflow_reaction_t::drop_newest,
 					wait_timeout ) );
 
 	so_5::send< int >( ch, 1 );
@@ -191,16 +191,16 @@ void
 do_check_wait_drop_newest( so_5::rt::environment_t & env )
 {
 	do_check_wait_drop_newest_impl(
-			env, "dynamic", props::memory_usage_type::dynamic );
+			env, "dynamic", props::memory_usage_t::dynamic );
 	do_check_wait_drop_newest_impl(
-			env, "prealloc", props::memory_usage_type::preallocated );
+			env, "prealloc", props::memory_usage_t::preallocated );
 }
 
 void
 do_check_wait_remove_oldest_impl(
 	so_5::rt::environment_t & env,
 	const char * case_name,
-	props::memory_usage_type memory )
+	props::memory_usage_t memory )
 {
 	cout << "wait, remove_oldest, " << case_name << ": " << std::flush;
 
@@ -208,7 +208,7 @@ do_check_wait_remove_oldest_impl(
 			so_5::make_limited_with_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction_type::remove_oldest,
+					props::overflow_reaction_t::remove_oldest,
 					wait_timeout ) );
 
 	so_5::send< int >( ch, 1 );
@@ -226,16 +226,16 @@ void
 do_check_wait_remove_oldest( so_5::rt::environment_t & env )
 {
 	do_check_wait_remove_oldest_impl(
-			env, "dynamic", props::memory_usage_type::dynamic );
+			env, "dynamic", props::memory_usage_t::dynamic );
 	do_check_wait_remove_oldest_impl(
-			env, "prealloc", props::memory_usage_type::preallocated );
+			env, "prealloc", props::memory_usage_t::preallocated );
 }
 
 void
 do_check_wait_throw_exception_impl(
 	so_5::rt::environment_t & env,
 	const char * case_name,
-	props::memory_usage_type memory )
+	props::memory_usage_t memory )
 {
 	cout << "wait, throw_exception, " << case_name << ": " << std::flush;
 
@@ -243,7 +243,7 @@ do_check_wait_throw_exception_impl(
 			so_5::make_limited_with_waiting_mchain_params(
 					3,
 					memory,
-					props::overflow_reaction_type::throw_exception,
+					props::overflow_reaction_t::throw_exception,
 					wait_timeout ) );
 
 	so_5::send< int >( ch, 1 );
@@ -268,9 +268,9 @@ void
 do_check_wait_throw_exception( so_5::rt::environment_t & env )
 {
 	do_check_wait_throw_exception_impl(
-			env, "dynamic", props::memory_usage_type::dynamic );
+			env, "dynamic", props::memory_usage_t::dynamic );
 	do_check_wait_throw_exception_impl(
-			env, "prealloc", props::memory_usage_type::preallocated );
+			env, "prealloc", props::memory_usage_t::preallocated );
 }
 
 void
