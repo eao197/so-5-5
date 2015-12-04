@@ -11,7 +11,7 @@
 using namespace std;
 
 void
-check_drop_content( const so_5::mchain & chain )
+check_drop_content( const so_5::mchain_t & chain )
 {
 	so_5::send< int >( chain, 0 );
 	so_5::send< int >( chain, 1 );
@@ -25,20 +25,20 @@ check_drop_content( const so_5::mchain & chain )
 				throw runtime_error( "unexpected message: " + to_string(i) );
 			} );
 
-	if( r.status() != so_5::mchain_props::extraction_status::chain_closed )
+	if( r.status() != so_5::mchain_props::extraction_status_t::chain_closed )
 		throw runtime_error( "unexpected value of so_5::receive "
 				"return code: " + to_string( static_cast<int>(r.status()) ) );
 }
 
 void
-check_retain_content( const so_5::mchain & chain )
+check_retain_content( const so_5::mchain_t & chain )
 {
 	so_5::send< int >( chain, 0 );
 	so_5::send< int >( chain, 1 );
 
 	close_retain_content( chain );
 
-	so_5::mchain_receive_result r;
+	so_5::mchain_receive_result_t r;
 	r = receive(
 			chain,
 			so_5::no_wait,

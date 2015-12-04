@@ -13,7 +13,7 @@
 using namespace std;
 
 void
-do_check( const so_5::mchain & chain )
+do_check( const so_5::mchain_t & chain )
 {
 	auto f1 = so_5::request_future< std::string, int >( chain, 42 );
 	auto f2 = so_5::request_future< std::string, int >( chain, -1 );

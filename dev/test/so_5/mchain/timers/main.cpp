@@ -27,7 +27,7 @@ void check_pause(
 }
 
 void
-check_delayed( const so_5::mchain & chain )
+check_delayed( const so_5::mchain_t & chain )
 {
 	cout << "check_delayed..." << endl;
 	check_pause(
@@ -40,7 +40,7 @@ check_delayed( const so_5::mchain & chain )
 }
 
 void
-check_periodic( const so_5::mchain & chain )
+check_periodic( const so_5::mchain_t & chain )
 {
 	cout << "check_periodic..." << endl;
 	check_pause(

@@ -123,7 +123,7 @@ inline const so_5::rt::mbox_t &
 arg_to_mbox( const so_5::rt::adhoc_agent_definition_proxy_t & agent ) { return agent.direct_mbox(); }
 
 inline so_5::rt::mbox_t
-arg_to_mbox( const so_5::mchain & chain ) { return chain->as_mbox(); }
+arg_to_mbox( const so_5::mchain_t & chain ) { return chain->as_mbox(); }
 
 } /* namespace send_functions_details */
 
@@ -287,7 +287,7 @@ template< typename MESSAGE, typename... ARGS >
 void
 send_delayed(
 	//! A chain for receiving the delayed message.
-	const mchain & to,
+	const mchain_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Message constructor parameters.
@@ -404,7 +404,7 @@ template< typename MESSAGE, typename... ARGS >
 timer_id_t
 send_periodic(
 	//! Chain for the message to be sent to.
-	const mchain & to,
+	const mchain_t & to,
 	//! Pause for message delaying.
 	std::chrono::steady_clock::duration pause,
 	//! Period of message repetitions.

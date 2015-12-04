@@ -124,12 +124,12 @@ class mbox_core_t
 		 *
 		 * \par Usage examples:
 		 */
-		mchain
+		mchain_t
 		create_mchain(
 			//! SObjectizer Environment for which message chain will be created.
 			environment_t & env,
 			//! Parameters for a new chain.
-			const mchain_params & params );
+			const mchain_params_t & params );
 
 		/*!
 		 * \since v.5.5.4

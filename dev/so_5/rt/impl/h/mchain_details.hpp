@@ -294,7 +294,7 @@ class mchain_template
 			//! Mbox ID for this chain.
 			mbox_id_t id,
 			//! Chain parameters.
-			const mchain_params & params,
+			const mchain_params_t & params,
 			//! Arguments for TRACING_BASE's constructor.
 			TRACING_ARGS &&... tracing_args )
 			:	TRACING_BASE{ std::forward<TRACING_ARGS>(tracing_args)... }
@@ -388,7 +388,7 @@ class mchain_template
 			so_5::rt::agent_t & /*subscriber*/ ) SO_5_NOEXCEPT override
 			{}
 
-		virtual extraction_status
+		virtual extraction_status_t
 		extract(
 			demand_t & dest,
 			duration_t empty_queue_timeout ) override
@@ -402,7 +402,7 @@ class mchain_template
 						if( details::status::closed == m_status )
 							// Waiting for new messages has no sence because
 							// chain is closed.
-							return extraction_status::chain_closed;
+							return extraction_status_t::chain_closed;
 
 						auto predicate = [this, &queue_empty]() -> bool {
 								queue_empty = m_queue.is_empty();
@@ -424,9 +424,9 @@ class mchain_template
 				if( queue_empty )
 					return details::status::open == m_status ?
 							// The chain is still open so there must be this result
-							extraction_status::no_messages :
+							extraction_status_t::no_messages :
 							// The chain is closed and there must be different result
-							extraction_status::chain_closed;
+							extraction_status_t::chain_closed;
 
 				// If queue was full then someone can wait on it.
 				const bool queue_was_full = m_queue.is_full();
@@ -438,7 +438,7 @@ class mchain_template
 				if( queue_was_full )
 					m_overflow_cond.notify_all();
 
-				return extraction_status::msg_extracted;
+				return extraction_status_t::msg_extracted;
 			}
 
 		virtual bool
@@ -454,7 +454,7 @@ class mchain_template
 			}
 
 		virtual void
-		close( close_mode mode ) override
+		close( close_mode_t mode ) override
 			{
 				std::lock_guard< std::mutex > lock{ m_lock };
 
@@ -466,7 +466,7 @@ class mchain_template
 				const bool was_full = m_queue.is_full();
 				const bool was_empty = m_queue.is_empty();
 
-				if( close_mode::drop_content == mode )
+				if( close_mode_t::drop_content == mode )
 					{
 						while( !m_queue.is_empty() )
 							{
@@ -507,7 +507,7 @@ class mchain_template
 		const capacity_t m_capacity;
 
 		//! Optional notificator for 'not_empty' condition.
-		const not_empty_notification_func m_not_empty_notificator;
+		const not_empty_notification_func_t m_not_empty_notificator;
 
 		//! Chain's demands queue.
 		mutable QUEUE m_queue;

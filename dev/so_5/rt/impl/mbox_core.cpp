@@ -127,10 +127,10 @@ mbox_core_t::destroy_mbox(
 namespace {
 
 template< typename Q, typename... A >
-mchain
+mchain_t
 make_mchain(
 	so_5::msg_tracing::tracer_t * tracer,
-	const mchain_params & params,
+	const mchain_params_t & params,
 	A &&... args )
 	{
 		using namespace so_5::mchain_props;
@@ -139,23 +139,23 @@ make_mchain(
 		using E = mchain_tracing_enabled_base;
 
 		if( tracer && !params.msg_tracing_disabled() )
-			return mchain{
+			return mchain_t{
 					new mchain_template< Q, E >{
 						std::forward<A>(args)...,
 						params,
 						*tracer } };
 		else
-			return mchain{
+			return mchain_t{
 					new mchain_template< Q, D >{
 						std::forward<A>(args)..., params } };
 	}
 
 } /* namespace anonymous */
 
-mchain
+mchain_t
 mbox_core_t::create_mchain(
 	environment_t & env,
-	const mchain_params & params )
+	const mchain_params_t & params )
 {
 	using namespace so_5::mchain_props;
 	using namespace so_5::mchain_props::details;

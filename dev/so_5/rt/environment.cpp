@@ -320,9 +320,9 @@ environment_t::create_local_mbox(
 	return m_impl->m_mbox_core->create_local_mbox( nonempty_name );
 }
 
-mchain
+mchain_t
 environment_t::create_mchain(
-	const mchain_params & params )
+	const mchain_params_t & params )
 {
 	return m_impl->m_mbox_core->create_mchain( *this, params );
 }

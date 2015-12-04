@@ -603,9 +603,9 @@ class SO_5_TYPE environment_t
 					// ...maximum size of the chain.
 					100,
 					// ...memory for chain will be allocated and deallocated dynamically...
-					so_5::mchain_props::storage_memory::dynamic,
+					so_5::mchain_props::memory_usage_t::dynamic,
 					// ...an exception will be thrown on overflow.
-					so_5::mchain_props::overflow_reaction::throw_exception ) );
+					so_5::mchain_props::overflow_reaction_t::throw_exception ) );
 			// Create mchain with size-limited queue with a timeout for 200ms
 			// on attempt to push another message to full mchain...
 			auto ch3 = env.create_mchain(
@@ -613,9 +613,9 @@ class SO_5_TYPE environment_t
 					// ...maximum size of the chain.
 					100,
 					// ...memory for chain will be preallocated...
-					so_5::mchain_props::storage_memory::preallocated,
+					so_5::mchain_props::memory_usage_t::preallocated,
 					// ...an oldest message from mchain will be removed on overflow...
-					so_5::mchain_props::overflow_reaction::remove_oldest,
+					so_5::mchain_props::overflow_reaction_t::remove_oldest,
 					// ...timeout for waiting on attempt to push a message into full mchain.
 					std::chrono::milliseconds(200) ) );
 			// Create size-unlimited mchain with custom notificator for
@@ -625,10 +625,10 @@ class SO_5_TYPE environment_t
 					[&] { some_widget.send_notify(); } ) );
 			\endcode
 		 */
-		mchain
+		mchain_t
 		create_mchain(
 			//! Parameters for a new bag.
-			const mchain_params & params );
+			const mchain_params_t & params );
 		/*!
 		 * \}
 		 */

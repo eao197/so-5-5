@@ -14,7 +14,7 @@ using namespace std;
 using namespace chrono;
 
 void
-do_check_timeout_on_empty_queue( const so_5::mchain & chain )
+do_check_timeout_on_empty_queue( const so_5::mchain_t & chain )
 {
 	std::thread child{ [&] {
 		auto r = receive(
@@ -22,7 +22,7 @@ do_check_timeout_on_empty_queue( const so_5::mchain & chain )
 
 		UT_CHECK_CONDITION( 0 == r.extracted() );
 		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status::no_messages == r.status() );
+				so_5::mchain_props::extraction_status_t::no_messages == r.status() );
 	} };
 
 	child.join();
@@ -49,7 +49,7 @@ UT_UNIT_TEST( test_timeout_on_empty_queue )
 }
 
 void
-do_check_total_time( const so_5::mchain & chain )
+do_check_total_time( const so_5::mchain_t & chain )
 {
 	so_5::send< int >( chain, 0 );
 	so_5::send< int >( chain, 1 );
@@ -63,7 +63,7 @@ do_check_total_time( const so_5::mchain & chain )
 		UT_CHECK_CONDITION( 3 == r.extracted() );
 		UT_CHECK_CONDITION( 1 == r.handled() );
 		UT_CHECK_CONDITION(
-				so_5::mchain_props::extraction_status::msg_extracted == r.status() );
+				so_5::mchain_props::extraction_status_t::msg_extracted == r.status() );
 	} };
 
 	child.join();
@@ -91,8 +91,8 @@ UT_UNIT_TEST( test_total_time )
 
 void
 do_check_handle_n(
-	const so_5::mchain & ch1,
-	const so_5::mchain & ch2 )
+	const so_5::mchain_t & ch1,
+	const so_5::mchain_t & ch2 )
 {
 	std::thread child{ [&] {
 		auto r = receive(
@@ -141,8 +141,8 @@ UT_UNIT_TEST( test_handle_n )
 
 void
 do_check_extract_n(
-	const so_5::mchain & ch1,
-	const so_5::mchain & ch2 )
+	const so_5::mchain_t & ch1,
+	const so_5::mchain_t & ch2 )
 {
 	std::thread child{ [&] {
 		auto r = receive(
@@ -194,8 +194,8 @@ UT_UNIT_TEST( test_extract_n )
 
 void
 do_check_stop_pred(
-	const so_5::mchain & ch1,
-	const so_5::mchain & ch2 )
+	const so_5::mchain_t & ch1,
+	const so_5::mchain_t & ch2 )
 {
 	std::thread child{ [&] {
 		int last_received = 0;

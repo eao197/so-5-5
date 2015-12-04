@@ -375,13 +375,13 @@ class capacity_t
 	};
 
 //
-// extraction_status
+// extraction_status_t
 //
 /*!
  * \since v.5.5.13
  * \brief Result of extraction of message from a message chain.
  */
-enum class extraction_status
+enum class extraction_status_t
 	{
 		//! No available messages in the chain.
 		no_messages,
@@ -392,13 +392,13 @@ enum class extraction_status
 	};
 
 //
-// close_mode
+// close_mode_t
 //
 /*!
  * \since v.5.5.13
  * \brief What to do with chain's content at close.
  */
-enum class close_mode
+enum class close_mode_t
 	{
 		//! All messages must be removed from chain.
 		drop_content,
@@ -408,7 +408,7 @@ enum class close_mode
 	};
 
 //
-// not_empty_notification_func
+// not_empty_notification_func_t
 //
 /*!
  * \since v.5.5.13
@@ -417,7 +417,7 @@ enum class close_mode
  *
  * \attention This function must be noexcept.
  */
-using not_empty_notification_func = std::function< void() >;
+using not_empty_notification_func_t = std::function< void() >;
 
 } /* namespace mchain_props */
 
@@ -443,7 +443,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_
 	public :
 		using abstract_message_box_t::id;
 
-		virtual mchain_props::extraction_status
+		virtual mchain_props::extraction_status_t
 		extract(
 			//! Destination for extracted messages.
 			mchain_props::demand_t & dest,
@@ -466,7 +466,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_
 		virtual void
 		close(
 			//! What to do with chain's content.
-			mchain_props::close_mode mode ) = 0;
+			mchain_props::close_mode_t mode ) = 0;
 
 		//! SObjectizer Environment for which the chain is created.
 		virtual so_5::rt::environment_t &
@@ -474,13 +474,13 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_
 	};
 
 //
-// mchain
+// mchain_t
 //
 /*!
  * \since v.5.5.13
  * \brief Short name for smart pointer to message chain.
  */
-using mchain = intrusive_ptr_t< abstract_message_chain_t >;
+using mchain_t = intrusive_ptr_t< abstract_message_chain_t >;
 
 //
 // close_drop_content
@@ -494,17 +494,17 @@ using mchain = intrusive_ptr_t< abstract_message_chain_t >;
  *
  * \par Usage example.
 	\code
-	so_5::mchain & ch = ...;
+	so_5::mchain_t & ch = ...;
 	... // Some work with chain.
 	close_drop_content( ch );
 	// Or:
-	ch->close( so_5::mchain_props::close_mode::drop_content );
+	ch->close( so_5::mchain_props::close_mode_t::drop_content );
 	\endcode
  */
 inline void
-close_drop_content( const mchain & ch )
+close_drop_content( const mchain_t & ch )
 	{
-		ch->close( mchain_props::close_mode::drop_content );
+		ch->close( mchain_props::close_mode_t::drop_content );
 	}
 
 //
@@ -519,47 +519,47 @@ close_drop_content( const mchain & ch )
  *
  * \par Usage example.
 	\code
-	so_5::mchain & ch = ...;
+	so_5::mchain_t & ch = ...;
 	... // Some work with chain.
 	close_retain_content( ch );
 	// Or:
-	ch->close( so_5::mchain_props::close_mode::retain_content );
+	ch->close( so_5::mchain_props::close_mode_t::retain_content );
 	\endcode
  */
 inline void
-close_retain_content( const mchain & ch )
+close_retain_content( const mchain_t & ch )
 	{
-		ch->close( mchain_props::close_mode::retain_content );
+		ch->close( mchain_props::close_mode_t::retain_content );
 	}
 
 //
-// mchain_params
+// mchain_params_t
 //
 /*!
  * \since v.5.5.13
  * \brief Parameters for message chain.
  */
-class mchain_params
+class mchain_params_t
 	{
 		//! Chain's capacity.
 		mchain_props::capacity_t m_capacity;
 
 		//! An optional notificator for 'not_empty' condition.
-		mchain_props::not_empty_notification_func m_not_empty_notificator;
+		mchain_props::not_empty_notification_func_t m_not_empty_notificator;
 
 		//! Is message delivery tracing disabled explicitly?
 		bool m_msg_tracing_disabled = { false };
 
 	public :
 		//! Initializing constructor.
-		mchain_params(
+		mchain_params_t(
 			//! Chain's capacity and related params.
 			mchain_props::capacity_t capacity )
 			:	m_capacity{ capacity }
 			{}
 
 		//! Set chain's capacity and related params.
-		mchain_params &
+		mchain_params_t &
 		capacity( mchain_props::capacity_t capacity )
 			{
 				m_capacity = capacity;
@@ -578,16 +578,16 @@ class mchain_params
 		 * This notificator will be called when a message is stored to
 		 * the empty chain and chain becomes not empty.
 		 */
-		mchain_params &
+		mchain_params_t &
 		not_empty_notificator(
-			mchain_props::not_empty_notification_func notificator )
+			mchain_props::not_empty_notification_func_t notificator )
 			{
 				m_not_empty_notificator = std::move(notificator);
 				return *this;
 			}
 
 		//! Get chain's notificator for 'not_empty' condition.
-		const mchain_props::not_empty_notification_func &
+		const mchain_props::not_empty_notification_func_t &
 		not_empty_notificator() const
 			{
 				return m_not_empty_notificator;
@@ -599,7 +599,7 @@ class mchain_params
 		 * not be used for that mchain even if message delivery
 		 * tracing will be used for the whole SObjectizer Environment.
 		 */
-		mchain_params &
+		mchain_params_t &
 		disable_msg_tracing()
 			{
 				m_msg_tracing_disabled = true;
@@ -629,10 +629,10 @@ class mchain_params
 	auto chain = env.create_mchain( so_5::make_unlimited_mchain_params() );
 	\endcode
  */
-inline mchain_params
+inline mchain_params_t
 make_unlimited_mchain_params()
 	{
-		return mchain_params{ mchain_props::capacity_t::make_unlimited() };
+		return mchain_params_t{ mchain_props::capacity_t::make_unlimited() };
 	}
 
 /*!
@@ -651,7 +651,7 @@ make_unlimited_mchain_params()
 			so_5::mchain_props::overflow_reaction_t::drop_newest ) );
 	\endcode
  */
-inline mchain_params
+inline mchain_params_t
 make_limited_without_waiting_mchain_params(
 	//! Max capacity of %mchain.
 	std::size_t max_size,
@@ -660,7 +660,7 @@ make_limited_without_waiting_mchain_params(
 	//! Reaction on chain overflow.
 	mchain_props::overflow_reaction_t overflow_reaction )
 	{
-		return mchain_params{
+		return mchain_params_t{
 				mchain_props::capacity_t::make_limited_without_waiting(
 						max_size,
 						memory_usage,
@@ -686,7 +686,7 @@ make_limited_without_waiting_mchain_params(
 			std::chrono::milliseconds(500) ) );
 	\endcode
  */
-inline mchain_params
+inline mchain_params_t
 make_limited_with_waiting_mchain_params(
 	//! Max size of the chain.
 	std::size_t max_size,
@@ -697,7 +697,7 @@ make_limited_with_waiting_mchain_params(
 	//! Waiting time on full message chain.
 	mchain_props::duration_t wait_timeout )
 	{
-		return mchain_params {
+		return mchain_params_t {
 				mchain_props::capacity_t::make_limited_with_waiting(
 						max_size,
 						memory_usage,
@@ -711,37 +711,37 @@ make_limited_with_waiting_mchain_params(
  */
 
 //
-// mchain_receive_result
+// mchain_receive_result_t
 //
 /*!
  * \since v.5.5.13
  * \brief A result of receive from %mchain.
  */
-class mchain_receive_result
+class mchain_receive_result_t
 	{
 		//! Count of extracted messages.
 		std::size_t m_extracted;
 		//! Count of handled messages.
 		std::size_t m_handled;
 		//! Extraction status (e.g. no messages, chain closed and so on).
-		mchain_props::extraction_status m_status;
+		mchain_props::extraction_status_t m_status;
 
 	public :
 		//! Default constructor.
-		mchain_receive_result()
+		mchain_receive_result_t()
 			:	m_extracted{ 0 }
 			,	m_handled{ 0 }
-			,	m_status{ mchain_props::extraction_status::no_messages }
+			,	m_status{ mchain_props::extraction_status_t::no_messages }
 			{}
 
 		//! Initializing constructor.
-		mchain_receive_result(
+		mchain_receive_result_t(
 			//! Count of extracted messages.
 			std::size_t extracted,
 			//! Count of handled messages.
 			std::size_t handled,
 			//! Status of extraction operation.
-			mchain_props::extraction_status status )
+			mchain_props::extraction_status_t status )
 			:	m_extracted{ extracted }
 			,	m_handled{ handled }
 			,	m_status{ status }
@@ -756,7 +756,7 @@ class mchain_receive_result
 		handled() const { return m_handled; }
 
 		//! Extraction status (e.g. no messages, chain closed and so on).
-		mchain_props::extraction_status
+		mchain_props::extraction_status_t
 		status() const { return m_status; }
 	};
 
@@ -778,7 +778,7 @@ class mchain_receive_result
  * \par Usage examples:
 	\code
 	so_5::rt::environment_t & env = ...;
-	so_5::mchain ch = env.create_mchain(...);
+	so_5::mchain_t ch = env.create_mchain(...);
 
 	// Extract and handle one message without waiting if the mchain is empty.
 	auto r1 = receive(ch, so_5::no_wait, []( const my_message & m ) {...}, ...);
@@ -792,10 +792,10 @@ class mchain_receive_result
 	\endcode
  */
 template< typename TIMEOUT, typename... HANDLERS >
-inline mchain_receive_result
+inline mchain_receive_result_t
 receive(
 	//! Message chain from which a message must be extracted.
-	const so_5::mchain & chain,
+	const so_5::mchain_t & chain,
 	//! Maximum timeout for waiting for message on empty bag.
 	TIMEOUT waiting_timeout,
 	//! Handlers for message processing.
@@ -813,21 +813,21 @@ receive(
 		const auto status = chain->extract(
 				extracted_demand,
 				actual_timeout( waiting_timeout ) );
-		if( extraction_status::msg_extracted == status )
+		if( extraction_status_t::msg_extracted == status )
 			{
 				const bool handled = bunch.handle(
 						extracted_demand.m_msg_type,
 						extracted_demand.m_message_ref,
 						extracted_demand.m_demand_type );
 
-				return mchain_receive_result{ 1u, handled ? 1u : 0u, status };
+				return mchain_receive_result_t{ 1u, handled ? 1u : 0u, status };
 			}
 
-		return mchain_receive_result{ 0u, 0u, status };
+		return mchain_receive_result_t{ 0u, 0u, status };
 	}
 
 //
-// mchain_receive_params
+// mchain_receive_params_t
 //
 /*!
  * \since v.5.5.13
@@ -835,7 +835,7 @@ receive(
  *
  * \sa so_5::from().
  */
-class mchain_receive_params
+class mchain_receive_params_t
 	{
 	public :
 		//! Type of stop-predicate.
@@ -846,7 +846,7 @@ class mchain_receive_params
 
 	private :
 		//! Chain from which messages must be extracted and handled.
-		mchain m_chain;
+		mchain_t m_chain;
 
 		//! Minimal count of messages to be extracted.
 		/*!
@@ -872,18 +872,18 @@ class mchain_receive_params
 
 	public :
 		//! Initializing constructor.
-		mchain_receive_params(
+		mchain_receive_params_t(
 			//! Chain from which messages must be extracted and handled.
-			mchain chain )
+			mchain_t chain )
 			:	m_chain{ std::move(chain) }
 			{}
 
 		//! Chain from which messages must be extracted and handled.
-		const mchain &
+		const mchain_t &
 		chain() const { return m_chain; }
 
 		//! Set limit for count of messages to be extracted.
-		mchain_receive_params &
+		mchain_receive_params_t &
 		extract_n( std::size_t v )
 			{
 				m_to_extract = v;
@@ -895,7 +895,7 @@ class mchain_receive_params
 		to_extract() const { return m_to_extract; }
 
 		//! Set limit for count of messages to be handled.
-		mchain_receive_params &
+		mchain_receive_params_t &
 		handle_n( std::size_t v )
 			{
 				m_to_handle = v;
@@ -915,7 +915,7 @@ class mchain_receive_params
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
 		template< typename TIMEOUT >
-		mchain_receive_params &
+		mchain_receive_params_t &
 		empty_timeout( TIMEOUT v )
 			{
 				m_empty_timeout = mchain_props::details::actual_timeout( v );
@@ -932,7 +932,7 @@ class mchain_receive_params
 		 * so_5::infinite_wait or so_5::no_wait.
 		 */
 		template< typename TIMEOUT >
-		mchain_receive_params &
+		mchain_receive_params_t &
 		total_time( TIMEOUT v )
 			{
 				m_total_time = mchain_props::details::actual_timeout( v );
@@ -948,7 +948,7 @@ class mchain_receive_params
 		 * \note \a predicate should return \a true if receive must
 		 * be stopped.
 		 */
-		mchain_receive_params &
+		mchain_receive_params_t &
 		stop_on( stop_predicate predicate )
 			{
 				m_stop_predicate = std::move(predicate);
@@ -972,7 +972,7 @@ class mchain_receive_params
  *
  * \par Usage examples:
 	\code
-	so_5::mchain chain = env.create_mchain(...);
+	so_5::mchain_t chain = env.create_mchain(...);
 
 	// Receive and handle 3 messages.
 	// If there is no 3 messages in the mchain the receive will wait infinitely.
@@ -1008,10 +1008,10 @@ class mchain_receive_params
 			handlers... );
 	\endcode
  */
-inline mchain_receive_params
-from( mchain chain )
+inline mchain_receive_params_t
+from( mchain_t chain )
 	{
-		return mchain_receive_params{ std::move(chain) };
+		return mchain_receive_params_t{ std::move(chain) };
 	}
 
 namespace mchain_props {
@@ -1019,7 +1019,7 @@ namespace mchain_props {
 namespace details {
 
 //
-// receive_actions_performer
+// receive_actions_performer_t
 //
 /*!
  * \since v.5.5.13
@@ -1027,18 +1027,18 @@ namespace details {
  * advanced receive operation.
  */
 template< typename BUNCH >
-class receive_actions_performer
+class receive_actions_performer_t
 	{
-		const mchain_receive_params & m_params;
+		const mchain_receive_params_t & m_params;
 		const BUNCH & m_bunch;
 
 		std::size_t m_extracted_messages = 0;
 		std::size_t m_handled_messages = 0;
-		extraction_status m_status;
+		extraction_status_t m_status;
 
 	public :
-		receive_actions_performer(
-			const mchain_receive_params & params,
+		receive_actions_performer_t(
+			const mchain_receive_params_t & params,
 			const BUNCH & bunch )
 			:	m_params{ params }
 			,	m_bunch{ bunch }
@@ -1051,7 +1051,7 @@ class receive_actions_performer
 				m_status = m_params.chain()->extract(
 						extracted_demand, empty_timeout );
 
-				if( extraction_status::msg_extracted == m_status )
+				if( extraction_status_t::msg_extracted == m_status )
 					{
 						++m_extracted_messages;
 						const bool handled = m_bunch.handle(
@@ -1063,13 +1063,13 @@ class receive_actions_performer
 					}
 			}
 
-		extraction_status
+		extraction_status_t
 		last_status() const { return m_status; }
 
 		bool
 		can_continue() const
 			{
-				if( extraction_status::chain_closed == m_status )
+				if( extraction_status_t::chain_closed == m_status )
 					return false;
 
 				if( m_params.to_handle() &&
@@ -1086,13 +1086,13 @@ class receive_actions_performer
 				return true;
 			}
 
-		mchain_receive_result
+		mchain_receive_result_t
 		make_result() const
 			{
-				return mchain_receive_result{
+				return mchain_receive_result_t{
 						m_extracted_messages,
 						m_handled_messages,
-						m_extracted_messages ? extraction_status::msg_extracted :
+						m_extracted_messages ? extraction_status_t::msg_extracted :
 								m_status
 					};
 			}
@@ -1104,12 +1104,12 @@ class receive_actions_performer
  * operation time is defined.
  */
 template< typename BUNCH >
-inline mchain_receive_result
+inline mchain_receive_result_t
 receive_with_finite_total_time(
-	const mchain_receive_params & params,
+	const mchain_receive_params_t & params,
 	const BUNCH & bunch )
 	{
-		receive_actions_performer< BUNCH > performer{ params, bunch };
+		receive_actions_performer_t< BUNCH > performer{ params, bunch };
 
 		duration_t remaining_time = params.total_time();
 		const auto start_point = std::chrono::steady_clock::now();
@@ -1137,18 +1137,18 @@ receive_with_finite_total_time(
  * limit for total operation time is defined.
  */
 template< typename BUNCH >
-inline mchain_receive_result
+inline mchain_receive_result_t
 receive_without_total_time(
-	const mchain_receive_params & params,
+	const mchain_receive_params_t & params,
 	const BUNCH & bunch )
 	{
-		receive_actions_performer< BUNCH > performer{ params, bunch };
+		receive_actions_performer_t< BUNCH > performer{ params, bunch };
 
 		do
 			{
 				performer.handle_next( params.empty_timeout() );
 
-				if( extraction_status::no_messages == performer.last_status() )
+				if( extraction_status_t::no_messages == performer.last_status() )
 					// There is no need to continue.
 					// This status means that empty_timeout has some value
 					// and there is no any new message during empty_timeout.
@@ -1178,7 +1178,7 @@ receive_without_total_time(
  *
  * \par Usage examples:
 	\code
-	so_5::mchain chain = env.create_mchain(...);
+	so_5::mchain_t chain = env.create_mchain(...);
 
 	// Receive and handle 3 messages.
 	// If there is no 3 messages in the mchain the receive will wait infinitely.
@@ -1220,10 +1220,10 @@ receive_without_total_time(
 	\endcode
  */
 template< typename... HANDLERS >
-inline mchain_receive_result
+inline mchain_receive_result_t
 receive(
 	//! Parameters for receive.
-	const mchain_receive_params & params,
+	const mchain_receive_params_t & params,
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{

@@ -11,7 +11,7 @@
 using namespace std;
 
 void
-do_check( const so_5::mchain & chain )
+do_check( const so_5::mchain_t & chain )
 {
 	std::mutex m;
 	std::condition_variable cv;
@@ -27,7 +27,7 @@ do_check( const so_5::mchain & chain )
 		}
 		
 		auto r = receive( chain, so_5::infinite_wait );
-		if( so_5::mchain_props::extraction_status::chain_closed != r.status() )
+		if( so_5::mchain_props::extraction_status_t::chain_closed != r.status() )
 		{
 			std::cerr << "unexpected receive status: "
 				<< static_cast<int>(r.status()) << std::endl;

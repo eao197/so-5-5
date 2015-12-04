@@ -392,7 +392,7 @@ class agent_core_t
 		 *
 		 * \note Actual mchain is created inside start() method.
 		 */
-		mchain m_final_dereg_chain;
+		mchain_t m_final_dereg_chain;
 
 		/*!
 		 * \since v.5.5.13

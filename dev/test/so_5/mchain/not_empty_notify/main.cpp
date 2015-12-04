@@ -38,7 +38,7 @@ class event
 void
 do_check(
 	so_5::rt::environment_t & env,
-	so_5::mchain_params params )
+	so_5::mchain_params_t params )
 {
 	event child_started;
 	event chain_not_empty;

@@ -8,12 +8,12 @@
 
 using namespace std;
 
-vector< pair< string, so_5::mchain_params > >
+vector< pair< string, so_5::mchain_params_t > >
 build_mchain_params()
 	{
 		namespace props = so_5::mchain_props;
 
-		vector< pair< string, so_5::mchain_params > > params;
+		vector< pair< string, so_5::mchain_params_t > > params;
 		params.emplace_back( "unlimited",
 				so_5::make_unlimited_mchain_params() );
 		params.emplace_back( "limited(dynamic,nowait)",
