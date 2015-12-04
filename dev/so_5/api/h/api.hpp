@@ -6,7 +6,7 @@
 	\file
 	\brief Function for the SObjectizer starting.
 
-	It is not necessary to derive a class from the so_5::rt::environment_t
+	It is not necessary to derive a class from the so_5::environment_t
 	to start a SObjectizer Environment. SObjectizer contains several functions
 	which make a SObjectizer Environment launching process easier.
 
@@ -39,16 +39,16 @@ namespace impl
 template< class INIT >
 class so_quick_environment_t
 	:
-		public so_5::rt::environment_t
+		public so_5::environment_t
 {
-		typedef so_5::rt::environment_t base_type_t;
+		typedef so_5::environment_t base_type_t;
 
 	public:
 		so_quick_environment_t(
 			//! Initialization routine.
 			INIT init,
 			//! SObjectizer Environment parameters.
-			so_5::rt::environment_params_t && env_params )
+			so_5::environment_params_t && env_params )
 			:
 				base_type_t( std::move( env_params ) ),
 				m_init( init )
@@ -71,20 +71,20 @@ class so_quick_environment_t
 
 //! Typedef for a simple SObjectizer-initialization function.
 typedef void (*pfn_so_environment_init_t)(
-		so_5::rt::environment_t & );
+		so_5::environment_t & );
 
 /*!
  * \since v.5.3.0
  * \brief Generic type for a simple SObjectizer-initialization function.
  */
-typedef std::function< void(so_5::rt::environment_t &) >
+typedef std::function< void(so_5::environment_t &) >
 	generic_simple_init_t;
 
 /*!
  * \since v.5.3.0
  * \brief Generic type for a simple SO Environment paramenters tuning function.
  */
-typedef std::function< void(so_5::rt::environment_params_t &) >
+typedef std::function< void(so_5::environment_params_t &) >
 	generic_simple_so_env_params_tuner_t;
 
 
@@ -94,11 +94,11 @@ Example:
 
 \code
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "main_coop" );
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
+		so_5::agent_ref_t(
 			new a_main_t ) );
 
 	env.register_coop( std::move( coop ) );
@@ -112,7 +112,7 @@ main( int argc, char * argv[] )
 	so_5::api::run_so_environment(
 		&init,
 		std::move(
-			so_5::rt::environment_params_t()
+			so_5::environment_params_t()
 				.mbox_mutex_pool_size( 16 )
 				.agent_coop_mutex_pool_size( 16 )
 				.agent_event_queue_mutex_pool_size( 16 ) ) );
@@ -128,7 +128,7 @@ run_so_environment(
 	//! Initialization routine.
 	generic_simple_init_t init_routine,
 	//! Environment's parameters.
-	so_5::rt::environment_params_t && env_params )
+	so_5::environment_params_t && env_params )
 {
 	impl::so_quick_environment_t< generic_simple_init_t > env(
 			init_routine,
@@ -142,11 +142,11 @@ run_so_environment(
 Example:
 \code
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "main_coop" );
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
+		so_5::agent_ref_t(
 			new a_main_t ) );
 
 	env.register_coop( std::move( coop ) );
@@ -180,7 +180,7 @@ run_so_environment(
 {
 	run_so_environment(
 			init_routine,
-			so_5::rt::environment_params_t() );
+			so_5::environment_params_t() );
 }
 
 /*!
@@ -195,11 +195,11 @@ Example:
 
 \code
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "main_coop" );
 	coop->add_agent(
-		so_5::rt::agent_ref_t(
+		so_5::agent_ref_t(
 			new a_main_t ) );
 
 	env.register_coop( std::move( coop ) );
@@ -212,7 +212,7 @@ main( int argc, char * argv[] )
 {
 	so_5::api::run_so_environment(
 		&init,
-		[](so_5::rt::environment_params_t & params ) {
+		[](so_5::environment_params_t & params ) {
 			params.mbox_mutex_pool_size( 16 )
 				.agent_coop_mutex_pool_size( 16 )
 				.agent_event_queue_mutex_pool_size( 16 );
@@ -231,7 +231,7 @@ run_so_environment(
 	//! Environment's parameters tuner.
 	generic_simple_so_env_params_tuner_t params_tuner )
 {
-	so_5::rt::environment_params_t params;
+	so_5::environment_params_t params;
 	params_tuner( params );
 
 	run_so_environment( init_routine, std::move( params ) );
@@ -245,12 +245,12 @@ Allows to pass an additional argument to the initialization process.
 \code
 void
 init(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const std::string & server_addr )
 {
 	// Make a cooperation.
-	so_5::rt::coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "test_server_application" ),
+	so_5::coop_unique_ptr_t coop = env.create_coop(
+		"test_server_application",
 		so_5::disp::active_obj::create_disp_binder(
 			"active_obj" ) );
 
@@ -263,11 +263,11 @@ init(
 			env,
 			acceptor_creator.create( server_addr ) ) );
 
-	so_5::rt::agent_ref_t serv(
+	so_5::agent_ref_t serv(
 		new a_main_t( env, ta->query_notificator_mbox() ) );
 
 	coop->add_agent( serv );
-	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
+	coop->add_agent( so_5::agent_ref_t( ta.release() ) );
 
 	// Register the cooperation.
 	env.register_coop( coop );
@@ -286,9 +286,8 @@ main( int argc, char ** argv )
 			&init,
 			server_addr,
 			std::move(
-				so_5::rt::environment_params_t()
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_obj" ),
+				so_5::environment_params_t()
+					.add_named_dispatcher( "active_obj",
 						so_5::disp::active_obj::create_disp() )
 					.add_layer(
 						std::unique_ptr< so_5_transport::reactor_layer_t >(
@@ -314,9 +313,9 @@ run_so_environment_with_parameter(
 	//! Initialization routine argument.
 	const PARAM_TYPE & param,
 	//! SObjectizer Environment parameters.
-	so_5::rt::environment_params_t && env_params )
+	so_5::environment_params_t && env_params )
 {
-	auto init = [init_func, param]( so_5::rt::environment_t & env ) {
+	auto init = [init_func, param]( so_5::environment_t & env ) {
 			init_func( env, param );
 		};
 
@@ -335,12 +334,12 @@ Allows to pass an additional argument to the initialization process.
 \code
 void
 init(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const std::string & server_addr )
 {
 	// Make a cooperation.
-	so_5::rt::coop_unique_ptr_t coop = env.create_coop(
-		so_5::rt::nonempty_name_t( "test_server_application" ),
+	so_5::coop_unique_ptr_t coop = env.create_coop(
+		"test_server_application",
 		so_5::disp::active_obj::create_disp_binder(
 			"active_obj" ) );
 
@@ -353,11 +352,11 @@ init(
 			env,
 			acceptor_creator.create( server_addr ) ) );
 
-	so_5::rt::agent_ref_t serv(
+	so_5::agent_ref_t serv(
 		new a_main_t( env, ta->query_notificator_mbox() ) );
 
 	coop->add_agent( serv );
-	coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
+	coop->add_agent( so_5::agent_ref_t( ta.release() ) );
 
 	// Register the cooperation.
 	env.register_coop( coop );
@@ -376,9 +375,8 @@ main( int argc, char ** argv )
 			&init,
 			server_addr,
 			std::move(
-				so_5::rt::environment_params_t()
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_obj" ),
+				so_5::environment_params_t()
+					.add_named_dispatcher( "active_obj",
 						so_5::disp::active_obj::create_disp() )
 					.add_layer(
 						std::unique_ptr< so_5_transport::reactor_layer_t >(
@@ -407,7 +405,7 @@ run_so_environment_with_parameter(
 	run_so_environment_with_parameter(
 			init_func,
 			param,
-			so_5::rt::environment_params_t() );
+			so_5::environment_params_t() );
 }
 
 //! Launch a SObjectizer Environment by a class method and with
@@ -422,11 +420,11 @@ struct client_data_t
 	protocol_parser_t m_protocol_parser;
 
 	void
-	init( so_5::rt::environment_t & env )
+	init( so_5::environment_t & env )
 	{
 		// Make a cooperation.
-		so_5::rt::coop_unique_ptr_t coop = env.create_coop(
-			so_5::rt::nonempty_name_t( "test_client_application" ),
+		so_5::coop_unique_ptr_t coop = env.create_coop(
+			"test_client_application",
 			so_5::disp::active_obj::create_disp_binder(
 				"active_obj" ) );
 
@@ -439,14 +437,14 @@ struct client_data_t
 				env,
 				connector_creator.create( m_server_addr ) ) );
 
-		so_5::rt::agent_ref_t client(
+		so_5::agent_ref_t client(
 			new a_main_t(
 				env,
 				ta->query_notificator_mbox(),
 				m_rest_of_argv ) );
 
 		coop->add_agent( client );
-		coop->add_agent( so_5::rt::agent_ref_t( ta.release() ) );
+		coop->add_agent( so_5::agent_ref_t( ta.release() ) );
 
 		// Register the cooperation.
 		env.register_coop( coop );
@@ -468,9 +466,8 @@ main( int argc, char ** argv )
 			client_data,
 			&client_data_t::init,
 			std::move(
-				so_5::rt::environment_params_t()
-					.add_named_dispatcher(
-						so_5::rt::nonempty_name_t( "active_obj" ),
+				so_5::environment_params_t()
+					.add_named_dispatcher( "active_obj",
 						so_5::disp::active_obj::create_disp() )
 					.add_layer(
 						std::unique_ptr< so_5_transport::reactor_layer_t >(
@@ -494,9 +491,9 @@ run_so_environment_on_object(
 	//! Initialization routine.
 	METHOD init_func,
 	//! SObjectizer Environment parameters.
-	so_5::rt::environment_params_t && env_params )
+	so_5::environment_params_t && env_params )
 {
-	auto init = [&obj, init_func]( so_5::rt::environment_t & env ) {
+	auto init = [&obj, init_func]( so_5::environment_t & env ) {
 			(obj.*init_func)( env );
 		};
 
@@ -522,7 +519,7 @@ run_so_environment_on_object(
 	run_so_environment_on_object(
 			obj,
 			init_func,
-			so_5::rt::environment_params_t() );
+			so_5::environment_params_t() );
 }
 
 } /* namespace api */
@@ -535,7 +532,7 @@ run_so_environment_on_object(
 Example with free function as initializer:
 
 \code
-void init( so_5::rt::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop( "main_coop", new my_agent_t( env ) );
 }
@@ -552,7 +549,7 @@ Example with lambda-function as initializer:
 \code
 int main()
 {
-	so_5::launch( []( so_5::rt::environment_t & env )
+	so_5::launch( []( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop( "main_coop", new my_agent_t( env ) );
 		} );
@@ -567,7 +564,7 @@ class application_t
 {
 public :
 	void
-	init( so_5::rt::environment_t & env )
+	init( so_5::environment_t & env )
 	{
 		env.register_agent_as_coop( "main_coop", new my_agent_t( env ) );
 	}
@@ -594,7 +591,7 @@ launch(
 {
 	so_5::api::impl::so_quick_environment_t< decltype(init_routine) > env(
 			init_routine,
-			so_5::rt::environment_params_t() );
+			so_5::environment_params_t() );
 
 	env.run();
 }
@@ -604,7 +601,7 @@ launch(
 Example with free functions as initializers:
 
 \code
-void init( so_5::rt::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	env.register_agent_as_coop(
 			"main_coop",
@@ -612,7 +609,7 @@ void init( so_5::rt::environment_t & env )
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 }
 
-void params_setter( so_5::rt::environment_params_t & params )
+void params_setter( so_5::environment_params_t & params )
 {
 	params.add_named_dispatcher( "active_obj",
 			so_5::disp::active_obj::create_disp() );
@@ -631,14 +628,14 @@ Example with lambda-functions as initializers:
 int main()
 {
 	so_5::launch(
-		[]( so_5::rt::environment_t & env )
+		[]( so_5::environment_t & env )
 		{
 			env.register_agent_as_coop(
 					"main_coop",
 					new my_agent_t( env ),
 					so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 		},
-		[]( so_5::rt::environment_params_t & params )
+		[]( so_5::environment_params_t & params )
 		{
 			params.add_named_dispatcher( "active_obj",
 					so_5::disp::active_obj::create_disp() );
@@ -656,7 +653,7 @@ launch(
 	//! Parameters setting routine.
 	so_5::api::generic_simple_so_env_params_tuner_t params_tuner )
 {
-	so_5::rt::environment_params_t params;
+	so_5::environment_params_t params;
 	params_tuner( params );
 
 	so_5::api::impl::so_quick_environment_t< decltype(init_routine) > env(

@@ -31,10 +31,10 @@ namespace so_5
  * method. The current implementation of agents and SObjectizer Run-Time
  * allows to subscribe and unsubscribe agent in any place and at any time.
  */
-class SO_5_TYPE adhoc_agent_wrapper_t : public so_5::rt::agent_t
+class SO_5_TYPE adhoc_agent_wrapper_t : public agent_t
 	{
 	public :
-		adhoc_agent_wrapper_t( so_5::rt::agent_context_t ctx );
+		adhoc_agent_wrapper_t( agent_context_t ctx );
 		virtual ~adhoc_agent_wrapper_t();
 
 		//! Set function for reaction on work start.
@@ -48,7 +48,7 @@ class SO_5_TYPE adhoc_agent_wrapper_t : public so_5::rt::agent_t
 		//! Set reaction for non-handled exceptions.
 		void
 		set_exception_reaction(
-			so_5::rt::exception_reaction_t reaction );
+			exception_reaction_t reaction );
 
 		virtual void
 		so_evt_start();
@@ -56,13 +56,13 @@ class SO_5_TYPE adhoc_agent_wrapper_t : public so_5::rt::agent_t
 		virtual void
 		so_evt_finish();
 
-		virtual so_5::rt::exception_reaction_t
+		virtual exception_reaction_t
 		so_exception_reaction() const;
 
 	private :
 		std::function< void() > m_on_start;
 		std::function< void() > m_on_finish;
-		so_5::rt::exception_reaction_t m_exception_reaction;
+		exception_reaction_t m_exception_reaction;
 	};
 
 //
@@ -86,7 +86,7 @@ class adhoc_agent_definition_proxy_t
 		template< class LAMBDA >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const so_5::rt::mbox_t & mbox,
+			const mbox_t & mbox,
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
@@ -103,7 +103,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::coop_unique_ptr_t coop = env.create_coop(...);
 		   auto a = coop->define_agent();
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
@@ -124,7 +124,7 @@ class adhoc_agent_definition_proxy_t
 		template< class MESSAGE, class LAMBDA >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const so_5::rt::mbox_t & mbox,
+			const mbox_t & mbox,
 			signal_indicator_t< MESSAGE > (*indicator)(),
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
@@ -141,7 +141,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::coop_unique_ptr_t coop = env.create_coop(...);
 		   coop->define_agent()
 		   	.event< msg_my_signal >( mbox, [=] { ... } );
 		 * \endcode
@@ -149,7 +149,7 @@ class adhoc_agent_definition_proxy_t
 		template< class SIGNAL, typename... ARGS >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const so_5::rt::mbox_t & mbox,
+			const mbox_t & mbox,
 			ARGS&&... args )
 			{
 				return this->event( mbox, signal< SIGNAL >,
@@ -164,7 +164,7 @@ class adhoc_agent_definition_proxy_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		   so_5::rt::coop_unique_ptr_t coop = env.create_coop(...);
+		   so_5::coop_unique_ptr_t coop = env.create_coop(...);
 		   auto a = coop->define_agent();
 			a.event< msg_my_signal >( a, [=] { ... } );
 		 * \endcode
@@ -207,7 +207,7 @@ class adhoc_agent_definition_proxy_t
 		 */
 		inline adhoc_agent_definition_proxy_t &
 		exception_reaction(
-			so_5::rt::exception_reaction_t reaction )
+			exception_reaction_t reaction )
 			{
 				m_agent->set_exception_reaction( reaction );
 
@@ -225,7 +225,7 @@ class adhoc_agent_definition_proxy_t
 		 adhoc_agent.event( adhoc_agent.direct_mbox(), []{ ... } );
 		 \endcode
 		 */
-		inline const so_5::rt::mbox_t &
+		inline const mbox_t &
 		direct_mbox() const
 			{
 				return m_agent->so_direct_mbox();
@@ -235,7 +235,7 @@ class adhoc_agent_definition_proxy_t
 		 * \since v.5.5.8
 		 * \brief Access to agent's environment.
 		 */
-		inline so_5::rt::environment_t &
+		inline environment_t &
 		environment() const
 			{
 				return m_agent->so_environment();

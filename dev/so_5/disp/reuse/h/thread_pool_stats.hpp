@@ -28,7 +28,7 @@ namespace reuse {
 
 namespace thread_pool_stats {
 
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 
 /*!
  * \since v.5.5.4
@@ -205,7 +205,7 @@ class data_source_t : public stats::manually_registered_source_t
 		//! Distribution of statistical information.
 		virtual void
 		distribute(
-			const so_5::rt::mbox_t & mbox ) override
+			const mbox_t & mbox ) override
 			{
 				// Collecting...
 				collector_t collector;

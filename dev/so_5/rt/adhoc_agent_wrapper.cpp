@@ -13,9 +13,9 @@
 namespace so_5
 {
 
-adhoc_agent_wrapper_t::adhoc_agent_wrapper_t( so_5::rt::agent_context_t ctx )
+adhoc_agent_wrapper_t::adhoc_agent_wrapper_t( agent_context_t ctx )
 	:	agent_t( std::move( ctx ) )
-	,	m_exception_reaction( so_5::rt::inherit_exception_reaction )
+	,	m_exception_reaction( inherit_exception_reaction )
 	{}
 
 adhoc_agent_wrapper_t::~adhoc_agent_wrapper_t()
@@ -35,7 +35,7 @@ adhoc_agent_wrapper_t::set_on_evt_finish( std::function< void() > handler )
 
 void
 adhoc_agent_wrapper_t::set_exception_reaction(
-	so_5::rt::exception_reaction_t reaction )
+	exception_reaction_t reaction )
 	{
 		m_exception_reaction = reaction;
 	}
@@ -54,15 +54,15 @@ adhoc_agent_wrapper_t::so_evt_finish()
 			m_on_finish();
 	}
 
-so_5::rt::exception_reaction_t
+exception_reaction_t
 adhoc_agent_wrapper_t::so_exception_reaction() const
 	{
-		if( so_5::rt::exception_reaction_t::inherit_exception_reaction !=
+		if( exception_reaction_t::inherit_exception_reaction !=
 				m_exception_reaction )
 			return m_exception_reaction;
 		else
 			// Let's basic implementation handle this case.
-			return so_5::rt::agent_t::so_exception_reaction();
+			return agent_t::so_exception_reaction();
 	}
 
 } /* namespace so_5 */

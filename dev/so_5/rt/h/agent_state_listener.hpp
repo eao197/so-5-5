@@ -31,7 +31,7 @@ namespace so_5
  *
  * A unlimited count of state listeners may be attached to the agent.
  * Agent will call changed() method inside of 
- * so_5::rt::agent_t::so_change_state() for each of them.
+ * so_5::agent_t::so_change_state() for each of them.
  *
  * \attention It is important not to change the agent state inside of changed().
  * Because this could lead to the infinite recursion.

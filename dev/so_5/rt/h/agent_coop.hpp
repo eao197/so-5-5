@@ -111,7 +111,7 @@ class coop_dereg_reason_t
 void
 notificator(
 	// SObjectizer Environment for cooperation.
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	// Name of cooperation.
 	const std::string & coop_name );
 \endcode
@@ -175,11 +175,11 @@ typedef intrusive_ptr_t< coop_reg_notificators_container_t >
 void
 notificator(
 	// SObjectizer Environment for cooperation.
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	// Name of cooperation.
 	const std::string & coop_name,
 	// Reason of deregistration.
-	const so_5::rt::coop_dereg_reason_t & reason );
+	const so_5::coop_dereg_reason_t & reason );
 \endcode
  */
 typedef std::function<
@@ -665,7 +665,7 @@ class SO_5_TYPE coop_t
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::rt::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -701,7 +701,7 @@ class SO_5_TYPE coop_t
 		 \code
 		 so_5::disp::one_thread::private_dispatcher_handler_t disp =
 		 		so_5::disp::one_thread::create_private_disp();
-		 so_5::rt::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
+		 so_5::coop_unique_ptr_t coop = env.create_coop( so_5::autoname );
 		 // For the case of constructor like my_agent(environmen_t&).
 		 coop->make_agent_with_binder< my_agent >( disp->binder() ); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -714,7 +714,7 @@ class SO_5_TYPE coop_t
 		AGENT *
 		make_agent_with_binder(
 			//! A dispatcher binder for the new agent.
-			so_5::rt::disp_binder_unique_ptr_t binder,
+			so_5::disp_binder_unique_ptr_t binder,
 			//! Arguments to be passed to the agent's constructor.
 			ARGS &&... args )
 		{
@@ -740,8 +740,8 @@ class SO_5_TYPE coop_t
 		 *
 		 * \par Usage example:
 			\code
-			so_5::rt::environment_t & env = ...;
-			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+			so_5::environment_t & env = ...;
+			env.introduce_coop( []( so_5::coop_t & coop ) {
 					coop.define_agent()
 						.event< some_signal >( some_mbox, [&coop] {
 							...
@@ -752,7 +752,7 @@ class SO_5_TYPE coop_t
 		 *
 		 * \note This method is just a shorthand for:
 			\code
-			so_5::rt::coop_t & coop = ...;
+			so_5::coop_t & coop = ...;
 			coop.environment().deregister_coop( coop.query_coop_name(), reason );
 			\endcode
 		 */
@@ -767,8 +767,8 @@ class SO_5_TYPE coop_t
 		 *
 		 * \note This method is just a shorthand for:
 			\code
-			so_5::rt::coop_t & coop = ...;
-			coop.deregister( so_5::rt::dereg_reason::normal );
+			so_5::coop_t & coop = ...;
+			coop.deregister( so_5::dereg_reason::normal );
 			\endcode
 		 */
 		inline void

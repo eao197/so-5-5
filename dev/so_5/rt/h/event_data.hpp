@@ -24,14 +24,14 @@ namespace so_5
 	\code
 	void
 	a_sample_t::evt_smth(
-		const so_5::rt::event_data_t< sample_message_t > & msg )
+		const so_5::event_data_t< sample_message_t > & msg )
 	{
 		// ...
 	}
 	\endcode
 
 	\tparam MSG type of the message. MSG must be derived from
-	so_5::rt::message_t (or from so_5::rt::signal_t).
+	so_5::message_t (or from so_5::rt::signal_t).
 */
 template< class MSG >
 class event_data_t

@@ -35,7 +35,7 @@ namespace impl
 {
 
 namespace work_thread = so_5::disp::reuse::work_thread;
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 
 namespace
 {
@@ -61,15 +61,15 @@ shutdown_and_wait( T & w )
 /*!
 	\brief Active group dispatcher.
 */
-class dispatcher_t : public so_5::rt::dispatcher_t
+class dispatcher_t : public so_5::dispatcher_t
 {
 	public:
 		dispatcher_t( disp_params_t params );
 
-		//! \name Implementation of so_5::rt::dispatcher methods.
+		//! \name Implementation of so_5::dispatcher methods.
 		//! \{
 		virtual void
-		start( so_5::rt::environment_t & env ) override;
+		start( so_5::environment_t & env ) override;
 
 		virtual void
 		shutdown() override;
@@ -92,7 +92,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 		 * If there already is a thread for \a group_name then the
 		 * counter of working agents for it is incremented.
 		 */
-		so_5::rt::event_queue_t *
+		so_5::event_queue_t *
 		query_thread_for_group( const std::string & group_name );
 
 		/*!
@@ -148,7 +148,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 					{}
 
 				virtual void
-				distribute( const so_5::rt::mbox_t & mbox )
+				distribute( const so_5::mbox_t & mbox )
 					{
 						std::lock_guard< std::mutex > lock{ m_dispatcher.m_lock };
 
@@ -191,7 +191,7 @@ class dispatcher_t : public so_5::rt::dispatcher_t
 			private:
 				void
 				distribute_value_for_work_thread(
-					const so_5::rt::mbox_t & mbox,
+					const so_5::mbox_t & mbox,
 					const std::string & group_name,
 					const thread_with_refcounter_t & wt )
 					{
@@ -264,7 +264,7 @@ dispatcher_t::dispatcher_t( disp_params_t params )
 	}
 
 void
-dispatcher_t::start( so_5::rt::environment_t & env )
+dispatcher_t::start( so_5::environment_t & env )
 	{
 		std::lock_guard< std::mutex > lock( m_lock );
 
@@ -327,7 +327,7 @@ dispatcher_t::set_data_sources_name_base(
 		m_data_source.set_data_sources_name_base( name_base );
 	}
 
-so_5::rt::event_queue_t *
+so_5::event_queue_t *
 dispatcher_t::query_thread_for_group( const std::string & group_name )
 	{
 		std::lock_guard< std::mutex > lock( m_lock );
@@ -409,16 +409,16 @@ class binding_actions_t
 			:	m_group_name( std::move( group_name ) )
 			{}
 
-		so_5::rt::disp_binding_activator_t
+		so_5::disp_binding_activator_t
 		do_bind(
 			dispatcher_t & disp,
-			so_5::rt::agent_ref_t agent )
+			so_5::agent_ref_t agent )
 			{
 				auto ctx = disp.query_thread_for_group( m_group_name );
 
 				return so_5::details::do_with_rollback_on_exception(
 						[&] {
-							return so_5::rt::disp_binding_activator_t {
+							return so_5::disp_binding_activator_t {
 								[agent, ctx]() {
 									agent->so_bind_to_dispatcher( *ctx );
 								} };
@@ -432,7 +432,7 @@ class binding_actions_t
 		void
 		do_unbind(
 			dispatcher_t & disp,
-			so_5::rt::agent_ref_t /*agent*/ )
+			so_5::agent_ref_t /*agent*/ )
 			{
 				disp.release_thread_for_group( m_group_name );
 			}
@@ -477,7 +477,7 @@ class real_private_dispatcher_t : public private_dispatcher_t
 		 */
 		real_private_dispatcher_t(
 			//! SObjectizer Environment to work in.
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			//! Value for creating names of data sources for
 			//! run-time monitoring.
 			const std::string & data_sources_name_base,
@@ -497,10 +497,10 @@ class real_private_dispatcher_t : public private_dispatcher_t
 				shutdown_and_wait( *m_disp );
 			}
 
-		virtual so_5::rt::disp_binder_unique_ptr_t
+		virtual so_5::disp_binder_unique_ptr_t
 		binder( const std::string & group_name ) override
 			{
-				return so_5::rt::disp_binder_unique_ptr_t(
+				return so_5::disp_binder_unique_ptr_t(
 						new private_dispatcher_binder_t(
 								private_dispatcher_handle_t( this ),
 								*m_disp,
@@ -522,10 +522,10 @@ private_dispatcher_t::~private_dispatcher_t()
 //
 // create_disp
 //
-SO_5_FUNC so_5::rt::dispatcher_unique_ptr_t
+SO_5_FUNC so_5::dispatcher_unique_ptr_t
 create_disp( disp_params_t params )
 	{
-		return so_5::rt::dispatcher_unique_ptr_t(
+		return so_5::dispatcher_unique_ptr_t(
 				new impl::dispatcher_t{ std::move(params) } );
 	}
 
@@ -534,7 +534,7 @@ create_disp( disp_params_t params )
 //
 SO_5_FUNC private_dispatcher_handle_t
 create_private_disp(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const std::string & data_sources_name_base,
 	disp_params_t params )
 	{
@@ -548,12 +548,12 @@ create_private_disp(
 //
 // create_disp_binder
 //
-SO_5_FUNC so_5::rt::disp_binder_unique_ptr_t
+SO_5_FUNC so_5::disp_binder_unique_ptr_t
 create_disp_binder(
 	const std::string & disp_name,
 	const std::string & group_name )
 	{
-		return so_5::rt::disp_binder_unique_ptr_t(
+		return so_5::disp_binder_unique_ptr_t(
 			new impl::disp_binder_t( disp_name, group_name ) );
 	}
 

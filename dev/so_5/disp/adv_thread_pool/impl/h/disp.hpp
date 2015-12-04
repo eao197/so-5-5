@@ -56,7 +56,7 @@ using spinlock_t = so_5::default_spinlock_t;
 
 class agent_queue_t;
 
-namespace stats = so_5::rt::stats;
+namespace stats = so_5::stats;
 namespace tp_stats = so_5::disp::reuse::thread_pool_stats;
 
 //
@@ -72,7 +72,7 @@ using dispatcher_queue_t = so_5::disp::reuse::mpmc_ptr_queue_t< agent_queue_t >;
  * \brief Event queue for the agent (or cooperation).
  */
 class agent_queue_t
-	:	public so_5::rt::event_queue_t
+	:	public event_queue_t
 	,	private so_5::atomic_refcounted_t
 	{
 		friend class so_5::intrusive_ptr_t< agent_queue_t >;
@@ -82,7 +82,7 @@ class agent_queue_t
 		struct demand_t
 			{
 				//! Actual demand.
-				so_5::rt::execution_demand_t m_demand;
+				execution_demand_t m_demand;
 
 				//! Next item in queue.
 				demand_t * m_next;
@@ -90,7 +90,7 @@ class agent_queue_t
 				demand_t()
 					:	m_next( nullptr )
 					{}
-				demand_t( so_5::rt::execution_demand_t && original )
+				demand_t( execution_demand_t && original )
 					:	m_demand( std::move( original ) )
 					,	m_next( nullptr )
 					{}
@@ -129,7 +129,7 @@ class agent_queue_t
 
 		//! Push next demand to queue.
 		virtual void
-		push( so_5::rt::execution_demand_t demand )
+		push( execution_demand_t demand )
 			{
 				bool need_schedule = false;
 				{
@@ -168,7 +168,7 @@ class agent_queue_t
 		/*!
 		 * \attention This method must be called only on non-empty queue.
 		 */
-		so_5::rt::execution_demand_t
+		execution_demand_t
 		peek_front()
 			{
 				SO_5__CHECK_INVARIANT( !empty(), this )

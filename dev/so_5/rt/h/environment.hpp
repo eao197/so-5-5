@@ -265,8 +265,8 @@ class SO_5_TYPE environment_params_t
 		 *
 		 * \par Usage example:
 			\code
-			so_5::launch( []( so_5::rt::environment_t & env ) { ... },
-				[]( so_5::rt::environment_params_t & env_params ) {
+			so_5::launch( []( so_5::environment_t & env ) { ... },
+				[]( so_5::environment_params_t & env_params ) {
 					using namespace so_5::disp::one_thread;
 					// Event queue for the default dispatcher must use mutex as lock.
 					env_params.default_disp_params( disp_params_t{}.tune_queue_params(
@@ -574,7 +574,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \par Usage examples:
 			\code
-			so_5::rt::environment_t & env = ...;
+			so_5::environment_t & env = ...;
 			// Create mchain with size-unlimited queue.
 			auto ch1 = env.create_mchain(
 				so_5::make_unlimited_mchain_params() );
@@ -645,7 +645,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \par Usage:
 			\code
-			so_5::rt::environment_t & env = ...;
+			so_5::environment_t & env = ...;
 			env.add_dispatcher_if_not_exists(
 				"my_coop_dispatcher",
 				[]() { so_5::disp::one_thread::create_disp(); } );
@@ -695,7 +695,7 @@ class SO_5_TYPE environment_t
 		 * this cooperation.
 		 *
 			\code
-			so_5::rt::coop_unique_ptr_t coop = so_env.create_coop(
+			so_5::coop_unique_ptr_t coop = so_env.create_coop(
 				"some_coop",
 				so_5::disp::active_group::create_disp_binder(
 					"active_group",
@@ -705,7 +705,7 @@ class SO_5_TYPE environment_t
 			// and will be member of an active group with name
 			// "some_active_group".
 			coop->add_agent(
-				so_5::rt::agent_ref_t( new a_some_agent_t( env ) ) );
+				so_5::agent_ref_t( new a_some_agent_t( env ) ) );
 			\endcode
 		 */
 		coop_unique_ptr_t
@@ -1332,7 +1332,7 @@ class SO_5_TYPE environment_t
 		 *
 		 * \par Usage sample:
 		 \code
-		 so_5::rt::environment_t & env = ...;
+		 so_5::environment_t & env = ...;
 		 // For the case of constructor like my_agent(environmen_t&).
 		 auto a1 = env.make_agent< my_agent >(); 
 		 // For the case of constructor like your_agent(environment_t&, std::string).
@@ -1372,14 +1372,14 @@ class SO_5_TYPE environment_t
 			\code
 			// For the case when name for new coop will be generated automatically.
 			// And default dispatcher will be used for binding.
-			env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+			env.introduce_coop( []( so_5::coop_t & coop ) {
 				coop.make_agent< first_agent >(...);
 				coop.make_agent< second_agent >(...);
 			});
 
 			// For the case when name is specified.
 			// Default dispatcher will be used for binding.
-			env.introduce_coop( "main-coop", []( so_5::rt::coop_t & coop ) {
+			env.introduce_coop( "main-coop", []( so_5::coop_t & coop ) {
 				coop.make_agent< first_agent >(...);
 				coop.make_agent< second_agent >(...);
 			});
@@ -1680,7 +1680,7 @@ environment_t::introduce_coop( ARGS &&... args )
  *
  * \par Usage sample
 	\code
-	class owner : public so_5::rt::agent_t
+	class owner : public so_5::agent_t
 	{
 	public :
 		...
@@ -1717,7 +1717,7 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		coop.define_agent().on_start( [&coop] {
 			auto child = so_5::create_child_coop( coop, so_5::autoname );
 			child->make_agent< worker >();
@@ -1749,14 +1749,14 @@ create_child_coop(
  *
  * \par Usage sample
 	\code
-	class owner : public so_5::rt::agent_t
+	class owner : public so_5::agent_t
 	{
 	public :
 		...
 		virtual void
 		so_evt_start() override
 		{
-			so_5::introduce_child_coop( *this, []( so_5::rt::coop_t & coop ) {
+			so_5::introduce_child_coop( *this, []( so_5::coop_t & coop ) {
 				coop.make_agent< worker >();
 			} );
 		}
@@ -1764,7 +1764,7 @@ create_child_coop(
 	\endcode
 
  * \note This function is just a tiny wrapper around
- * so_5::rt::environment_t::introduce_coop() helper method. For more
+ * so_5::environment_t::introduce_coop() helper method. For more
  * examples with usage of introduce_coop() please see description of
  * that method.
  */

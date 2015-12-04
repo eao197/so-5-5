@@ -64,7 +64,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get< status_signal >();
 		 * \endcode
 		 */
@@ -80,9 +80,9 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
 			{
-				const so_5::rt::mbox_t & dest = ...;
+				const so_5::mbox_t & dest = ...;
 				std::string result = dest.get_one< std::string >().wait_forever().sync_get( req.make_reference() );
 			}
 		 * \endcode
@@ -99,7 +99,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get( std::make_unique< request >(...) );
 		 * \endcode
 		 */
@@ -115,7 +115,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get( new request(...) );
 			\endcode
 		 *
@@ -133,7 +133,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...) );
 		 * \endcode
 		 */
@@ -170,7 +170,7 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get< status_signal >();
 		 * \endcode
 		 *
@@ -191,9 +191,9 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
 			{
-				const so_5::rt::mbox_t & dest = ...;
+				const so_5::mbox_t & dest = ...;
 				std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( req.make_reference() );
 			}
 		 * \endcode

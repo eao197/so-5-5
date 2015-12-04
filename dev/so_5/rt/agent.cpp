@@ -420,7 +420,7 @@ agent_t::so_deregister_agent_coop( int dereg_reason )
 void
 agent_t::so_deregister_agent_coop_normally()
 {
-	so_deregister_agent_coop( so_5::rt::dereg_reason::normal );
+	so_deregister_agent_coop( dereg_reason::normal );
 }
 
 agent_ref_t

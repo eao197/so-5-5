@@ -150,9 +150,9 @@ class core_data_sources_t
 	{
 	public :
 		core_data_sources_t(
-			so_5::rt::stats::repository_t & ds_repository,
-			so_5::rt::impl::mbox_core_t & mbox_repository,
-			so_5::rt::impl::agent_core_t & coop_repository,
+			stats::repository_t & ds_repository,
+			impl::mbox_core_t & mbox_repository,
+			impl::agent_core_t & coop_repository,
 			so_5::timer_thread_t & timer_thread )
 			:	m_mbox_repository( ds_repository, mbox_repository )
 			,	m_coop_repository( ds_repository, coop_repository )
@@ -161,11 +161,11 @@ class core_data_sources_t
 
 	private :
 		//! Data source for mboxes repository.
-		so_5::rt::stats::impl::ds_mbox_core_stats_t m_mbox_repository;
+		stats::impl::ds_mbox_core_stats_t m_mbox_repository;
 		//! Data source for cooperations repository.
-		so_5::rt::stats::impl::ds_agent_core_stats_t m_coop_repository;
+		stats::impl::ds_agent_core_stats_t m_coop_repository;
 		//! Data source for timer thread.
-		so_5::rt::stats::impl::ds_timer_thread_stats_t m_timer_thread;
+		stats::impl::ds_timer_thread_stats_t m_timer_thread;
 	};
 
 } /* namespace anonymous */
@@ -693,7 +693,7 @@ namespace impl
 mbox_t
 internal_env_iface_t::create_mpsc_mbox(
 	agent_t * single_consumer,
-	const so_5::rt::message_limit::impl::info_storage_t * limits_storage )
+	const message_limit::impl::info_storage_t * limits_storage )
 {
 	return m_env.m_impl->m_mbox_core->create_mpsc_mbox(
 			single_consumer,
