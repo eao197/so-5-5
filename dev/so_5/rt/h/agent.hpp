@@ -22,6 +22,8 @@
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/agent_context.hpp>
 #include <so_5/rt/h/disp.hpp>
@@ -80,28 +82,6 @@ my_agent_t::so_define_agent() {
 template< class S >
 signal_indicator_t< S >
 signal() { return signal_indicator_t< S >(); }
-
-namespace rt
-{
-
-namespace impl
-{
-
-// Forward declarations.
-class state_listener_controller_t;
-
-class mpsc_mbox_t;
-
-struct event_handler_data_t;
-
-class delivery_filter_storage_t;
-
-} /* namespace impl */
-
-class state_t;
-class environment_t;
-class coop_t;
-class agent_t;
 
 //
 // exception_reaction_t
@@ -2400,6 +2380,57 @@ operator>>=( agent_t * agent, const state_t & new_state )
 {
 	agent->so_change_state( new_state );
 }
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::exception_reaction_t
+ * instead.
+ */
+using exception_reaction_t = so_5::exception_reaction_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::abort_on_exception
+ * instead.
+ */
+so_5::exception_reaction_t abort_on_exception = so_5::abort_on_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::shutdown_sobjectizer_on_exception instead.
+ */
+so_5::exception_reaction_t shutdown_sobjectizer_on_exception = so_5::shutdown_sobjectizer_on_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::deregister_coop_on_exception instead.
+ */
+so_5::exception_reaction_t deregister_coop_on_exception = so_5::deregister_coop_on_exception,
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::ignore_exception
+ * instead.
+ */
+so_5::exception_reaction_t ignore_exception = so_5::ignore_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::inherit_exception_reaction
+ * instead.
+ */
+so_5::exception_reaction_t inherit_exception_reaction = so_5::inherit_exception_reaction;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::subscription_bind_t
+ * instead.
+ */
+using subscription_bind_t = so_5::subscription_bind_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::agent_t
+ * instead.
+ */
+using agent_t = so_5::agent_t;
 
 } /* namespace rt */
 

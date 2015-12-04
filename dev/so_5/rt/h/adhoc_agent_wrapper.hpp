@@ -22,9 +22,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 /*!
  * \since v.5.3.0
  * \brief Special agent class which would be used as wrapper for ad-hoc agents.
@@ -34,11 +31,10 @@ namespace rt
  * method. The current implementation of agents and SObjectizer Run-Time
  * allows to subscribe and unsubscribe agent in any place and at any time.
  */
-class SO_5_TYPE adhoc_agent_wrapper_t
-	:	public agent_t
+class SO_5_TYPE adhoc_agent_wrapper_t : public so_5::rt::agent_t
 	{
 	public :
-		adhoc_agent_wrapper_t( agent_context_t ctx );
+		adhoc_agent_wrapper_t( so_5::rt::agent_context_t ctx );
 		virtual ~adhoc_agent_wrapper_t();
 
 		//! Set function for reaction on work start.
@@ -52,7 +48,7 @@ class SO_5_TYPE adhoc_agent_wrapper_t
 		//! Set reaction for non-handled exceptions.
 		void
 		set_exception_reaction(
-			exception_reaction_t reaction );
+			so_5::rt::exception_reaction_t reaction );
 
 		virtual void
 		so_evt_start();
@@ -60,13 +56,13 @@ class SO_5_TYPE adhoc_agent_wrapper_t
 		virtual void
 		so_evt_finish();
 
-		virtual exception_reaction_t
+		virtual so_5::rt::exception_reaction_t
 		so_exception_reaction() const;
 
 	private :
 		std::function< void() > m_on_start;
 		std::function< void() > m_on_finish;
-		exception_reaction_t m_exception_reaction;
+		so_5::rt::exception_reaction_t m_exception_reaction;
 	};
 
 //
@@ -90,7 +86,7 @@ class adhoc_agent_definition_proxy_t
 		template< class LAMBDA >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const mbox_t & mbox,
+			const so_5::rt::mbox_t & mbox,
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
 			{
@@ -128,7 +124,7 @@ class adhoc_agent_definition_proxy_t
 		template< class MESSAGE, class LAMBDA >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const mbox_t & mbox,
+			const so_5::rt::mbox_t & mbox,
 			signal_indicator_t< MESSAGE > (*indicator)(),
 			LAMBDA lambda,
 			thread_safety_t thread_safety = not_thread_safe )
@@ -153,7 +149,7 @@ class adhoc_agent_definition_proxy_t
 		template< class SIGNAL, typename... ARGS >
 		inline adhoc_agent_definition_proxy_t &
 		event(
-			const mbox_t & mbox,
+			const so_5::rt::mbox_t & mbox,
 			ARGS&&... args )
 			{
 				return this->event( mbox, signal< SIGNAL >,
@@ -211,7 +207,7 @@ class adhoc_agent_definition_proxy_t
 		 */
 		inline adhoc_agent_definition_proxy_t &
 		exception_reaction(
-			exception_reaction_t reaction )
+			so_5::rt::exception_reaction_t reaction )
 			{
 				m_agent->set_exception_reaction( reaction );
 
@@ -229,7 +225,7 @@ class adhoc_agent_definition_proxy_t
 		 adhoc_agent.event( adhoc_agent.direct_mbox(), []{ ... } );
 		 \endcode
 		 */
-		inline const mbox_t &
+		inline const so_5::rt::mbox_t &
 		direct_mbox() const
 			{
 				return m_agent->so_direct_mbox();
@@ -239,7 +235,7 @@ class adhoc_agent_definition_proxy_t
 		 * \since v.5.5.8
 		 * \brief Access to agent's environment.
 		 */
-		inline environment_t &
+		inline so_5::rt::environment_t &
 		environment() const
 			{
 				return m_agent->so_environment();
@@ -248,6 +244,21 @@ class adhoc_agent_definition_proxy_t
 	private :
 		adhoc_agent_wrapper_t * m_agent;
 	};
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
+ * instead.
+ */
+using adhoc_agent_wrapper_t = so_5::adhoc_agent_wrapper_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::adhoc_agent_definition_proxy_t instead.
+ */
+using adhoc_agent_definition_proxy_t = so_5::adhoc_agent_definition_proxy_t;
 
 } /* namespace rt */
 

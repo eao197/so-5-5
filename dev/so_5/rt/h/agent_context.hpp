@@ -10,15 +10,12 @@
 
 #pragma once
 
+#include <so_5/rt/h/fwd.hpp>
+
 #include <so_5/rt/h/agent_tuning_options.hpp>
 
 namespace so_5
 {
-
-namespace rt
-{
-
-class environment_t;
 
 /*
  * NOTE: copy and move constructors and copy operator is implemented
@@ -208,6 +205,15 @@ operator+(
  * \}
  */
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::adhoc_agent_wrapper_t
+ * instead.
+ */
+using agent_context_t = so_5::agent_context_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
@@ -218,8 +224,8 @@ namespace std
 template<>
 inline void
 swap(
-	so_5::rt::agent_context_t & a,
-	so_5::rt::agent_context_t & b )
+	so_5::agent_context_t & a,
+	so_5::agent_context_t & b )
 	{
 		a.swap( b );
 	}

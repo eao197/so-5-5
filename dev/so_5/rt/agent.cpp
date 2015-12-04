@@ -25,9 +25,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 namespace
 {
 
@@ -841,8 +838,6 @@ agent_t::handler_finder_msg_tracing_enabled(
 
 	return search_result;
 }
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 
