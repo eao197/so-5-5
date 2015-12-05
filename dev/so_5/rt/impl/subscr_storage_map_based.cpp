@@ -408,17 +408,17 @@ storage_t::setup_content(
 		subscr_map_t events;
 		transform( begin(info), end(info),
 				inserter( events, events.begin() ),
-				[]( const subscr_info_t & info )
+				[]( const subscr_info_t & i )
 				{
 					return subscr_map_t::value_type {
 							key_t {
-								info.m_mbox->id(),
-								info.m_msg_type,
-								info.m_state
+								i.m_mbox->id(),
+								i.m_msg_type,
+								i.m_state
 							},
 							value_t {
-								info.m_mbox,
-								info.m_handler
+								i.m_mbox,
+								i.m_handler
 							} };
 				} );
 

@@ -7,8 +7,7 @@
 	\brief A definition of the named local mbox.
 */
 
-#if !defined( _SO_5__RT__IMPL__NAMED_LOCAL_MBOX_HPP_ )
-#define _SO_5__RT__IMPL__NAMED_LOCAL_MBOX_HPP_
+#pragma once
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
@@ -105,5 +104,3 @@ class named_local_mbox_t
 } /* namespace impl */
 
 } /* namespace so_5 */
-
-#endif

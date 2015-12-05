@@ -8,8 +8,7 @@
 	\brief A forward declaration of agent_ref_t.
 */
 
-#if !defined( _SO_5__RT__AGENT_REF_FWD_HPP_ )
-#define _SO_5__RT__AGENT_REF_FWD_HPP_
+#pragma once
 
 #include <so_5/h/atomic_refcounted.hpp>
 
@@ -39,6 +38,4 @@ using agent_ref_t = so_5::agent_ref_t;
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

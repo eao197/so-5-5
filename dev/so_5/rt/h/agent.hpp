@@ -1151,7 +1151,7 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			void (AGENT::*pfn)( const MESSAGE & ) )
+			void (AGENT::*)( const MESSAGE & ) )
 		{
 			do_drop_subscription_for_all_states(
 					mbox, 

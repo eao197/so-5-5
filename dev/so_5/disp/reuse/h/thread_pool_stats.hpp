@@ -158,6 +158,9 @@ class stats_consumer_t
 				const intrusive_ptr_t< queue_description_holder_t > & queue_desc ) = 0;
 	};
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+
 /*!
  * \since v.5.5.4
  * \brief An interface of supplier of information about thread-pool-like
@@ -171,6 +174,8 @@ class stats_supplier_t
 		virtual void
 		supply( stats_consumer_t & consumer ) = 0;
 	};
+
+#pragma clang diagnostic pop
 
 /*!
  * \since v.5.5.4
@@ -254,6 +259,9 @@ class data_source_t : public stats::manually_registered_source_t
 		//! Prefix for data-source names.
 		stats::prefix_t m_prefix;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+
 		//! Actual type of statical information collector.
 		class collector_t : public stats_consumer_t
 			{
@@ -332,6 +340,9 @@ class data_source_t : public stats::manually_registered_source_t
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_head;
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_tail;
 			};
+
+#pragma clang diagnostic pop
+
 	};
 
 } /* namespace thread_pool_stats */

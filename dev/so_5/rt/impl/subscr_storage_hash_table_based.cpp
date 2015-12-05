@@ -474,13 +474,13 @@ storage_t::setup_content(
 		hash_table_t fresh_table;
 
 		for_each( begin(info), end(info),
-			[&]( const subscr_info_t & info )
+			[&]( const subscr_info_t & i )
 			{
-				key_t k{ info.m_mbox->id(), info.m_msg_type, *(info.m_state) };
+				key_t k{ i.m_mbox->id(), i.m_msg_type, *(i.m_state) };
 
-				auto ins_result = fresh_map.emplace( k, info.m_mbox );
+				auto ins_result = fresh_map.emplace( k, i.m_mbox );
 
-				fresh_table.emplace( &(ins_result.first->first), info.m_handler );
+				fresh_table.emplace( &(ins_result.first->first), i.m_handler );
 			} );
 
 		m_map.swap( fresh_map );

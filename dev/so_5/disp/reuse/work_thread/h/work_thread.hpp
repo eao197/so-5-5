@@ -7,8 +7,7 @@
 	\brief Working thread for dispatchers.
 */
 
-#if !defined( _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_ )
-#define _SO_5__DISP__REUSE__WORK_THREAD__WORK_THREAD_HPP_
+#pragma once
 
 #include <atomic>
 #include <condition_variable>
@@ -264,6 +263,4 @@ typedef std::shared_ptr< work_thread_t > work_thread_shptr_t;
 } /* namespace disp */
 
 } /* namespace so_5 */
-
-#endif
 

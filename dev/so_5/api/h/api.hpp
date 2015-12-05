@@ -13,8 +13,7 @@
 	This file contains declarations of these functions.
 */
 
-#if !defined( _SO_5__API__API_HPP_ )
-#define _SO_5__API__API_HPP_
+#pragma once
 
 #include <functional>
 
@@ -664,5 +663,3 @@ launch(
 }
 
 } /* namespace so_5 */
-
-#endif

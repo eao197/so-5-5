@@ -146,7 +146,7 @@ make_params_via_tuner( so_5::api::generic_simple_so_env_params_tuner_t tuner )
 	{
 		environment_params_t params;
 		tuner( params );
-		return std::move( params );
+		return params;
 	}
 
 } /* namespace anonymous */

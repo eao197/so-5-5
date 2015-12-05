@@ -7,8 +7,7 @@
 	\brief Error codes.
 */
 
-#if !defined( _SO_5__RET_CODE_HPP_ )
-#define _SO_5__RET_CODE_HPP_
+#pragma once
 
 #include <so_5/h/declspec.hpp>
 
@@ -334,4 +333,3 @@ const int rc_unexpected_error = 0xFFFFFF;
 
 } /* namespace so_5 */
 
-#endif

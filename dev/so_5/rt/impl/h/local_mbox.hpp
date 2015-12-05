@@ -7,8 +7,7 @@
 	\brief A local mbox definition.
 */
 
-#if !defined( _SO_5__RT__IMPL__LOCAL_MBOX_HPP_ )
-#define _SO_5__RT__IMPL__LOCAL_MBOX_HPP_
+#pragma once
 
 #include <map>
 #include <vector>
@@ -1081,6 +1080,4 @@ using local_mbox_with_tracing =
 } /* namespace impl */
 
 } /* namespace so_5 */
-
-#endif
 

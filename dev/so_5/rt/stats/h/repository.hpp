@@ -30,7 +30,7 @@ class SO_5_TYPE source_t
 
 	protected :
 		source_t();
-		~source_t();
+		virtual ~source_t();
 
 	public :
 		//! Send appropriate notification about the current value.
@@ -53,7 +53,7 @@ class SO_5_TYPE source_t
 class SO_5_TYPE repository_t
 	{
 	protected :
-		~repository_t();
+		virtual ~repository_t();
 
 	public :
 		//! Registration of new data source.

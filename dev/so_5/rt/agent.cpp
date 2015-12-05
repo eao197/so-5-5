@@ -116,6 +116,10 @@ state_t::query_name() const
 
 namespace {
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+
 /*!
  * \since v.5.4.0
  * \brief A special object for the state in which agent is awaiting
@@ -125,6 +129,8 @@ namespace {
  */
 const state_t awaiting_deregistration_state(
 		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
+
+#pragma clang diagnostic pop
 
 } /* namespace anonymous */
 

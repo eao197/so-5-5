@@ -217,6 +217,9 @@ class info_storage_t
 namespace
 {
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunneeded-member-function"
+
 /*!
  * \since v.5.5.4
  * \brief Helper class to rollback message count change in
@@ -239,6 +242,8 @@ struct decrement_on_exception_t
 	void
 	commit() { m_commited = true; }
 };
+
+#pragma clang diagnostic pop
 
 } /* namespace anonymous */
 

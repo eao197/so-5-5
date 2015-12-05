@@ -7,8 +7,7 @@
 	\brief A definition of the agent state listener controller.
 */
 
-#if !defined( _SO_5__RT__IMPL__STATE_LISTENER_CONTROLLER_HPP_ )
-#define _SO_5__RT__IMPL__STATE_LISTENER_CONTROLLER_HPP_
+#pragma once
 
 #include <vector>
 
@@ -70,5 +69,3 @@ class state_listener_controller_t
 } /* namespace impl */
 
 } /* namespace so_5 */
-
-#endif

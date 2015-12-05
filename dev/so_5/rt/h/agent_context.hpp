@@ -140,7 +140,7 @@ operator+(
 	subscription_storage_factory_t factory )
 	{
 		ctx.options().subscription_storage_factory( std::move( factory ) );
-		return std::move( ctx );
+		return ctx;
 	}
 
 template< class M >
@@ -150,7 +150,7 @@ operator+(
 	message_limit::drop_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( limit );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M >
@@ -160,7 +160,7 @@ operator+(
 	message_limit::abort_app_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( limit );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M, class L >
@@ -170,7 +170,7 @@ operator+(
 	message_limit::log_then_abort_app_indicator_t< M, L > limit )
 	{
 		ctx.options().message_limits( limit );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M, class L >
@@ -180,7 +180,7 @@ operator+(
 	message_limit::redirect_indicator_t< M, L > limit )
 	{
 		ctx.options().message_limits( std::move( limit ) );
-		return std::move( ctx );
+		return ctx;
 	};
 
 template< class M >
@@ -190,7 +190,7 @@ operator+(
 	message_limit::transform_indicator_t< M > limit )
 	{
 		ctx.options().message_limits( std::move( limit ) );
-		return std::move( ctx );
+		return ctx;
 	};
 
 inline agent_context_t
@@ -199,7 +199,7 @@ operator+(
 	so_5::priority_t agent_priority )
 	{
 		ctx.options().priority( agent_priority );
-		return std::move( ctx );
+		return ctx;
 	}
 /*!
  * \}

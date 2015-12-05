@@ -280,7 +280,7 @@ class demand_queue_t
 						demand_unique_ptr_t t{ h };
 						h = h->m_next;
 					}
-			};
+			}
 
 		//! Push a new demand to the queue.
 		void

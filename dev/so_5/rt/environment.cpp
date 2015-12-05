@@ -579,6 +579,9 @@ namespace autoshutdown_guard
 			{}
 	};
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+
 	void
 	register_init_guard_cooperation(
 		environment_t & env,
@@ -600,6 +603,8 @@ namespace autoshutdown_guard
 					"__so_5__init_autoshutdown_guard__",
 					dereg_reason::normal );
 	}
+
+#pragma clang diagnostic pop
 }
 
 void

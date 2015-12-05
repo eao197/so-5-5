@@ -7,8 +7,7 @@
 	\brief A definition of an utility class for work with mboxes.
 */
 
-#if !defined( _SO_5__RT__IMPL__MBOX_CORE_HPP_ )
-#define _SO_5__RT__IMPL__MBOX_CORE_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -280,5 +279,3 @@ class mbox_core_ref_t
 } /* namespace impl */
 
 } /* namespace so_5 */
-
-#endif
