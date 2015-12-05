@@ -382,7 +382,7 @@ private :
 		// Just imitation of requests processing.
 		// Processing time is proportional to count of requests.
 		const auto processing_time = std::chrono::microseconds(
-				requests.size() * random( 150, 1500 ) );
+				requests.size() * static_cast< unsigned int >(random( 150, 1500 )) );
 		std::this_thread::sleep_for( processing_time );
 
 		TRACE() << "PRO(" << m_name << ") processing took: "

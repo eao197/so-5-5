@@ -252,9 +252,9 @@ parse_params( int argc, char ** argv )
 		};
 
 	if( 2 < argc )
-		r.m_requests = std::atoi( argv[ 2 ] );
+		r.m_requests = static_cast< unsigned int >( std::atoi( argv[ 2 ] ) );
 	if( 3 < argc )
-		r.m_milliseconds = std::atoi( argv[ 3 ] );
+		r.m_milliseconds = static_cast< unsigned int >( std::atoi( argv[ 3 ] ) );
 
 	std::cout << "Config:\n"
 		"\t" "dispatcher: " << argv[ 1 ] << "\n"

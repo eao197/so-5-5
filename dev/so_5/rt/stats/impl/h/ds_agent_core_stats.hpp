@@ -20,6 +20,11 @@ namespace stats {
 
 namespace impl {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 //
 // ds_agent_core_stats_t
 //
@@ -45,6 +50,10 @@ class ds_agent_core_stats_t : public auto_registered_source_t
 	private :
 		so_5::impl::agent_core_t & m_what;
 	};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } /* namespace impl */
 

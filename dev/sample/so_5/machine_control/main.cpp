@@ -253,7 +253,7 @@ private :
 		auto old_precision = std::cout.precision( 5 );
 		std::cout << "=== The current status ===" << std::endl;
 
-		for( const auto m : m_machine_statuses )
+		for( const auto & m : m_machine_statuses )
 		{
 			show_one_status( m );
 		}
@@ -296,7 +296,7 @@ public :
 	template< typename L >
 	void for_each( L lambda ) const
 	{
-		for( const auto m : m_dictionary )
+		for( const auto & m : m_dictionary )
 			lambda( m.first, m.second );
 	}
 

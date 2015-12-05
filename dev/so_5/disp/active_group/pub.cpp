@@ -130,6 +130,11 @@ class dispatcher_t : public so_5::dispatcher_t
 				thread_with_refcounter_t >
 			active_group_map_t;
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 		/*!
 		 * \since v.5.5.4
 		 * \brief Data source for run-time monitoring of whole dispatcher.
@@ -213,6 +218,10 @@ class dispatcher_t : public so_5::dispatcher_t
 								wt.m_thread->demands_count() );
 					}
 			};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 		//! Parameters for the dispatcher.
 		const disp_params_t m_params;

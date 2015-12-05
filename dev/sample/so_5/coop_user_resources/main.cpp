@@ -148,7 +148,7 @@ init( so_5::rt::environment_t & env )
 {
 	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
 		auto logger = coop.take_under_control( new logger_t() );
-		coop.make_agent< a_parent_t >( *logger, 2 );
+		coop.make_agent< a_parent_t >( *logger, 2u );
 	} );
 }
 

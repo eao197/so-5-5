@@ -72,8 +72,9 @@ public :
 				// Reaction to the end of ping-pong.
 				.event( [this]( ping_pong_stopped ) {
 					// Storing time for the future ask_status requests.
-					m_last_duration_ms = duration_cast< milliseconds >(
-							clock::now() - m_started_at ).count();
+					m_last_duration_ms = static_cast< unsigned long long >(
+							duration_cast< milliseconds >(
+									clock::now() - m_started_at ).count() );
 
 					// Reflect the end of ping-pong by changing state of supervisor.
 					this >>= st_finished;

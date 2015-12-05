@@ -61,7 +61,8 @@ try_parse_cmdline(
 						if( current == last )
 							throw std::runtime_error( "-r requires argument" );
 
-						result.m_request_count = std::atoi( *current );
+						result.m_request_count = static_cast< unsigned int >(
+								std::atoi( *current ) );
 					}
 				else
 					{

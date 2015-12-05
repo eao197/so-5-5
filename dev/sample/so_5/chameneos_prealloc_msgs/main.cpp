@@ -244,7 +244,7 @@ class a_creature_t
 						return other == BLUE ? YELLOW : BLUE;
 					case YELLOW:
 						return other == BLUE ? RED : BLUE;
-					default:
+					case FADED:
 						break;
 					}
 				return m_request_message->m_color;

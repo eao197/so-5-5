@@ -116,6 +116,12 @@ class dispatcher_t : public so_5::dispatcher_t
 			}
 
 	private:
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 		/*!
 		 * \since v.5.5.4
 		 * \brief Type of data source for run-time monitoring.
@@ -198,6 +204,10 @@ class dispatcher_t : public so_5::dispatcher_t
 						m_env = nullptr;
 					}
 			};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 		//! Working thread for the dispatcher.
 		work_thread::work_thread_t m_work_thread;

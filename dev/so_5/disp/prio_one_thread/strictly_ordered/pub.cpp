@@ -111,6 +111,12 @@ class dispatcher_t : public so_5::dispatcher_t
 			}
 
 	private:
+
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 		/*!
 		 * \since v.5.5.8
 		 * \brief Data source for run-time monitoring of whole dispatcher.
@@ -189,6 +195,10 @@ class dispatcher_t : public so_5::dispatcher_t
 								demands_count );
 					}
 			};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 		//! Demand queue for the dispatcher.
 		demand_queue_t m_demand_queue;

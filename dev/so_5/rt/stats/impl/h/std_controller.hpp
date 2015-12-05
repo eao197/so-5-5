@@ -28,6 +28,11 @@ namespace stats
 namespace impl
 {
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 /*!
  * \since v.5.5.4
  * \brief A standard implementation of controller for run-time monitoring.
@@ -113,6 +118,10 @@ class std_controller_t
 		std::chrono::steady_clock::duration
 		distribute_current_data();
 	};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
 
 } /* namespace impl */
 
