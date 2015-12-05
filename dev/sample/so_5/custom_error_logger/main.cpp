@@ -47,7 +47,7 @@ public :
 	void
 	so_evt_start() override
 	{
-		using namespace so_5::rt;
+		using namespace so_5;
 
 		introduce_child_coop( *this, "child", [this]( coop_t & coop ) {
 			// Add necessary cooperation notificators for coop.

@@ -91,7 +91,7 @@ class a_parent_t
 		void
 		register_child_coop()
 		{
-			using namespace so_5::rt;
+			using namespace so_5;
 
 			introduce_child_coop( *this, "child",
 				[this]( coop_t & coop )

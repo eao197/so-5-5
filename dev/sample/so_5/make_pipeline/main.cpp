@@ -38,7 +38,6 @@
 using namespace std;
 
 using namespace so_5;
-using namespace so_5::rt;
 
 /*
  * The first part.
