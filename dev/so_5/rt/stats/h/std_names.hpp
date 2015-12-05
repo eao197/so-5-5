@@ -142,19 +142,19 @@ namespace prefixes {
  * \deprecated Will be removed in v.5.6.0.
  */
 inline prefix_t
-coop_repository() { return so_5::rt::stats::prefixes::coop_repository(); }
+coop_repository() { return so_5::stats::prefixes::coop_repository(); }
 
 /*!
  * \deprecated Will be removed in v.5.6.0.
  */
 inline prefix_t
-mbox_repository() { return so_5::rt::stats::prefixes::mbox_repository(); }
+mbox_repository() { return so_5::stats::prefixes::mbox_repository(); }
 
 /*!
  * \deprecated Will be removed in v.5.6.0.
  */
 inline prefix_t
-timer_thread() { return so_5::rt::stats::prefixes::timer_thread(); }
+timer_thread() { return so_5::stats::prefixes::timer_thread(); }
 
 } /* namespace prefixes */
 
