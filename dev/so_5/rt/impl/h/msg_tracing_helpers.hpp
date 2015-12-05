@@ -286,8 +286,10 @@ class tracing_enabled_base
 				return m_tracer;
 			}
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 		class deliver_op_tracer
 			:	protected so_5::message_limit::impl::action_msg_tracer_t
@@ -405,7 +407,10 @@ class tracing_enabled_base
 					}
 			};
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
+
 	};
 
 /*!

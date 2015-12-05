@@ -256,8 +256,10 @@ using error_logger_for_timertt_t = std::function< void(const std::string &) >;
 // create_error_logger_for_timertt
 //
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
 
 error_logger_for_timertt_t
 create_error_logger_for_timertt( error_logger_shptr_t logger )
@@ -269,7 +271,9 @@ create_error_logger_for_timertt( error_logger_shptr_t logger )
 		};
 	}
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 //
 // exception_handler_for_timertt_t
@@ -285,8 +289,10 @@ using exception_handler_for_timertt_t =
 // create_exception_handler_for_timertt
 //
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
 
 exception_handler_for_timertt_t
 create_exception_handler_for_timertt( error_logger_shptr_t logger )
@@ -302,7 +308,9 @@ create_exception_handler_for_timertt( error_logger_shptr_t logger )
 		};
 	}
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 /*!
  * \name Short synonyms for timertt templates.

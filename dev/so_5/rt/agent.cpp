@@ -116,9 +116,11 @@ state_t::query_name() const
 
 namespace {
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wexit-time-destructors"
 #pragma clang diagnostic ignored "-Wglobal-constructors"
+#endif
 
 /*!
  * \since v.5.4.0
@@ -130,7 +132,9 @@ namespace {
 const state_t awaiting_deregistration_state(
 		nullptr, "<AWAITING_DEREGISTRATION_AFTER_UNHANDLED_EXCEPTION>" );
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 } /* namespace anonymous */
 

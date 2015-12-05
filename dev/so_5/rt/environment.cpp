@@ -579,8 +579,10 @@ namespace autoshutdown_guard
 			{}
 	};
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
 
 	void
 	register_init_guard_cooperation(
@@ -604,7 +606,10 @@ namespace autoshutdown_guard
 					dereg_reason::normal );
 	}
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
+
 }
 
 void

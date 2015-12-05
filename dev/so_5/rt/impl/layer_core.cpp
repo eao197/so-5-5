@@ -210,8 +210,10 @@ layer_core_t::add_extra_layer(
 	}
 }
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
 
 void
 call_shutdown( typed_layer_ref_t &  tl )
@@ -224,7 +226,9 @@ call_wait( typed_layer_ref_t &  tl )
 	tl.m_layer->wait();
 }
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 void
 layer_core_t::shutdown_extra_layers()

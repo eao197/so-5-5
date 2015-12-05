@@ -217,8 +217,10 @@ class info_storage_t
 namespace
 {
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunneeded-member-function"
+#endif
 
 /*!
  * \since v.5.5.4
@@ -243,7 +245,9 @@ struct decrement_on_exception_t
 	commit() { m_commited = true; }
 };
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 } /* namespace anonymous */
 

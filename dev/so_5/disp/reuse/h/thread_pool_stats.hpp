@@ -158,8 +158,10 @@ class stats_consumer_t
 				const intrusive_ptr_t< queue_description_holder_t > & queue_desc ) = 0;
 	};
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 /*!
  * \since v.5.5.4
@@ -175,8 +177,9 @@ class stats_supplier_t
 		supply( stats_consumer_t & consumer ) = 0;
 	};
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
-
+#endif
 /*!
  * \since v.5.5.4
  * \brief Type of data source for thread-pool-like dispatchers.
@@ -259,8 +262,10 @@ class data_source_t : public stats::manually_registered_source_t
 		//! Prefix for data-source names.
 		stats::prefix_t m_prefix;
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 
 		//! Actual type of statical information collector.
 		class collector_t : public stats_consumer_t
@@ -341,7 +346,9 @@ class data_source_t : public stats::manually_registered_source_t
 				intrusive_ptr_t< queue_description_holder_t > m_queue_desc_tail;
 			};
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 	};
 
