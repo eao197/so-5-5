@@ -37,7 +37,7 @@ class event
 
 void
 do_check(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	so_5::mchain_params_t params )
 {
 	event child_started;

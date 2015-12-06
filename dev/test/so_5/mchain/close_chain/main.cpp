@@ -71,8 +71,8 @@ do_check( bool msg_tracing_enabled )
 		[msg_tracing_enabled]()
 		{
 			so_5::wrapped_env_t env{
-				[]( so_5::rt::environment_t & ) {},
-				[msg_tracing_enabled]( so_5::rt::environment_params_t & params ) {
+				[]( so_5::environment_t & ) {},
+				[msg_tracing_enabled]( so_5::environment_params_t & params ) {
 					if( msg_tracing_enabled )
 						params.message_delivery_tracer(
 								so_5::msg_tracing::std_clog_tracer() );

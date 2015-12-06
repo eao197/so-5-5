@@ -8,13 +8,13 @@
 
 #include <various_helpers_1/time_limited_execution.hpp>
 
-struct msg_hello : public so_5::rt::signal_t {};
+struct msg_hello : public so_5::signal_t {};
 
 void
 define_receiver_agent(
-	so_5::rt::agent_coop_t & coop,
+	so_5::coop_t & coop,
 	so_5::priority_t priority,
-	const so_5::rt::mbox_t & common_mbox,
+	const so_5::mbox_t & common_mbox,
 	std::string & sequence )
 	{
 		coop.define_agent( coop.make_agent_context() + priority )
@@ -28,8 +28,8 @@ define_receiver_agent(
 
 std::string &
 define_main_agent(
-	so_5::rt::agent_coop_t & coop,
-	const so_5::rt::mbox_t & common_mbox )
+	so_5::coop_t & coop,
+	const so_5::mbox_t & common_mbox )
 	{
 		auto sequence = std::make_shared< std::string >();
 
@@ -53,7 +53,7 @@ define_main_agent(
 
 void
 fill_coop(
-	so_5::rt::agent_coop_t & coop )
+	so_5::coop_t & coop )
 	{
 		using namespace so_5::prio;
 
@@ -81,7 +81,7 @@ main()
 				[]()
 				{
 					so_5::launch(
-						[]( so_5::rt::environment_t & env )
+						[]( so_5::environment_t & env )
 						{
 							using namespace so_5::disp::prio_one_thread::strictly_ordered;
 							env.introduce_coop(

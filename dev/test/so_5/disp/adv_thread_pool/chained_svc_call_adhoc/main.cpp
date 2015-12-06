@@ -23,9 +23,9 @@ namespace atp_disp = so_5::disp::adv_thread_pool;
 
 const unsigned int thread_pool_size = 16;
 
-struct msg_run_test : public so_5::rt::signal_t {};
+struct msg_run_test : public so_5::signal_t {};
 
-struct msg_request_string : public so_5::rt::message_t
+struct msg_request_string : public so_5::message_t
 {
 	unsigned int m_request_number;
 
@@ -34,8 +34,8 @@ struct msg_request_string : public so_5::rt::message_t
 		{}
 };
 
-so_5::rt::agent_coop_unique_ptr_t
-create_test_coop( so_5::rt::environment_t & env )
+so_5::agent_coop_unique_ptr_t
+create_test_coop( so_5::environment_t & env )
 {
 	auto c = env.create_coop( "test",
 			atp_disp::create_disp_binder(
@@ -91,11 +91,11 @@ do_test( atp_disp::queue_traits::lock_factory_t factory )
 		[&]()
 		{
 			so_5::launch(
-				[]( so_5::rt::environment_t & env )
+				[]( so_5::environment_t & env )
 				{
 					env.register_coop( create_test_coop( env ) );
 				},
-				[&]( so_5::rt::environment_params_t & params )
+				[&]( so_5::environment_params_t & params )
 				{
 					using namespace atp_disp;
 					params.add_named_dispatcher(

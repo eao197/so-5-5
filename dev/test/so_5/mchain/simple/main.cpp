@@ -20,7 +20,7 @@ main()
 		run_with_time_limit(
 			[]()
 			{
-				struct hello : public so_5::rt::signal_t {};
+				struct hello : public so_5::signal_t {};
 
 				so_5::wrapped_env_t env;
 

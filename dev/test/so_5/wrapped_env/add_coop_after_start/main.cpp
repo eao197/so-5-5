@@ -18,8 +18,8 @@ main()
 
 				std::cout << "Before adding a coop" << std::endl;
 
-				env.environment().introduce_coop( []( so_5::rt::agent_coop_t & coop ) {
-					struct hello_sig : public so_5::rt::signal_t {};
+				env.environment().introduce_coop( []( so_5::coop_t & coop ) {
+					struct hello_sig : public so_5::signal_t {};
 
 					auto a = coop.define_agent();
 					a.on_start( [a] {
