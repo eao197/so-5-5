@@ -1,18 +1,27 @@
-def detect_gcc_version
-  result = IO.popen( 'g++ -v', :err => :out ) do |io|
+def detect_gcc_or_clang_version(cmd_name, tool_name)
+  ver_regex = Regexp.new( "^#{tool_name} version (\\S+)" )
+  result = IO.popen( "#{cmd_name} -v 2>&1", :err => :out ) do |io|
     target = 'generic'
     version = 'unknown'
     io.each_line do |line|
       if /^Target:\s*(?<trgt>\S+)/ =~ line
         target = trgt
-      elsif /^gcc version (?<v>\S+)/ =~ line
-        version = v
+      elsif ver_regex =~ line
+        version = Regexp.last_match(1)
       end
     end
     version + '--' + target
   end
-  puts "Detected GCC version & target: #{result}"
+  puts "Detected #{tool_name} version & target: #{result}"
   result
+end
+
+def detect_gcc_version
+  detect_gcc_or_clang_version('g++', 'gcc')
+end
+
+def detect_clang_version
+  detect_gcc_or_clang_version('clang++', 'clang')
 end
 
 def detect_vc_version
@@ -39,6 +48,9 @@ MxxRu::Cpp::composite_target do
   elsif 'vc' == toolset.name
     global_obj_placement MxxRu::Cpp::RuntimeSubdirObjPlacement.new(
       '_vc_' + detect_vc_version )
+  elsif 'clang' == toolset.name
+    global_obj_placement MxxRu::Cpp::RuntimeSubdirObjPlacement.new(
+      '_clang_' + detect_clang_version )
   else
     version = toolset.tag( 'ver_hi', 'x' ) + '_' + toolset.tag( 'ver_lo', 'x' )
     global_obj_placement MxxRu::Cpp::RuntimeSubdirObjPlacement.new(
