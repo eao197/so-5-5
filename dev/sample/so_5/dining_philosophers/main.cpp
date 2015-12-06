@@ -24,24 +24,24 @@ random_value( unsigned int left, unsigned int right )
 		return std::uniform_int_distribution< unsigned int >{left, right}(gen);
 	}
 
-struct msg_take : public so_5::rt::message_t
+struct msg_take : public so_5::message_t
 {
-	const so_5::rt::mbox_t m_who;
+	const so_5::mbox_t m_who;
 
-	msg_take( so_5::rt::mbox_t who ) : m_who( std::move( who ) ) {}
+	msg_take( so_5::mbox_t who ) : m_who( std::move( who ) ) {}
 };
 
-struct msg_busy : public so_5::rt::signal_t {};
+struct msg_busy : public so_5::signal_t {};
 
-struct msg_taken : public so_5::rt::signal_t {};
+struct msg_taken : public so_5::signal_t {};
 
-struct msg_put : public so_5::rt::signal_t {};
+struct msg_put : public so_5::signal_t {};
 
-class a_fork_t : public so_5::rt::agent_t
+class a_fork_t : public so_5::agent_t
 {
 public :
-	a_fork_t( so_5::rt::environment_t & env )
-		:	so_5::rt::agent_t( env )
+	a_fork_t( so_5::environment_t & env )
+		:	so_5::agent_t( env )
 	{}
 
 	virtual void
@@ -63,22 +63,22 @@ public :
 	}
 
 private :
-	const so_5::rt::state_t st_free = so_make_state( "free" );
-	const so_5::rt::state_t st_taken = so_make_state( "taken" );
+	const so_5::state_t st_free = so_make_state( "free" );
+	const so_5::state_t st_taken = so_make_state( "taken" );
 };
 
-class a_philosopher_t : public so_5::rt::agent_t
+class a_philosopher_t : public so_5::agent_t
 {
-	struct msg_stop_thinking : public so_5::rt::signal_t {};
-	struct msg_stop_eating : public so_5::rt::signal_t {};
+	struct msg_stop_thinking : public so_5::signal_t {};
+	struct msg_stop_eating : public so_5::signal_t {};
 
 public :
 	a_philosopher_t(
-		so_5::rt::environment_t & env,
+		so_5::environment_t & env,
 		std::string name,
-		so_5::rt::mbox_t left_fork,
-		so_5::rt::mbox_t right_fork )
-		:	so_5::rt::agent_t( env )
+		so_5::mbox_t left_fork,
+		so_5::mbox_t right_fork )
+		:	so_5::agent_t( env )
 		,	m_name( std::move( name ) )
 		,	m_left_fork( std::move( left_fork ) )
 		,	m_right_fork( std::move( right_fork ) )
@@ -129,15 +129,15 @@ public :
 	}
 
 private :
-	const so_5::rt::state_t st_thinking = so_make_state( "thinking" );
-	const so_5::rt::state_t st_wait_left = so_make_state( "wait_left" );
-	const so_5::rt::state_t st_wait_right = so_make_state( "wait_right" );
-	const so_5::rt::state_t st_eating = so_make_state( "eating" );
+	const so_5::state_t st_thinking = so_make_state( "thinking" );
+	const so_5::state_t st_wait_left = so_make_state( "wait_left" );
+	const so_5::state_t st_wait_right = so_make_state( "wait_right" );
+	const so_5::state_t st_eating = so_make_state( "eating" );
 
 	const std::string m_name;
 
-	const so_5::rt::mbox_t m_left_fork;
-	const so_5::rt::mbox_t m_right_fork;
+	const so_5::mbox_t m_left_fork;
+	const so_5::mbox_t m_right_fork;
 
 	void
 	show_msg( const std::string & msg ) const
@@ -160,12 +160,12 @@ private :
 };
 
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
-	env.introduce_coop( []( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( []( so_5::coop_t & coop ) {
 		const std::size_t count = 5;
 
-		std::vector< so_5::rt::agent_t * > forks( count, nullptr );
+		std::vector< so_5::agent_t * > forks( count, nullptr );
 		for( std::size_t i = 0; i != count; ++i )
 			forks[ i ] = coop.make_agent< a_fork_t >();
 

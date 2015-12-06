@@ -22,10 +22,10 @@
 #include <so_5/all.hpp>
 
 // Periodic message.
-class msg_periodic : public so_5::rt::signal_t {};
+class msg_periodic : public so_5::signal_t {};
 
 // State listener for fixing state changes.
-class state_monitor_t : public so_5::rt::agent_state_listener_t
+class state_monitor_t : public so_5::agent_state_listener_t
 {
 	const std::string m_type_hint;
 
@@ -36,8 +36,8 @@ class state_monitor_t : public so_5::rt::agent_state_listener_t
 
 		virtual void
 		changed(
-			so_5::rt::agent_t &,
-			const so_5::rt::state_t & state ) override
+			so_5::agent_t &,
+			const so_5::state_t & state ) override
 		{
 			std::cout << m_type_hint << " agent changed state to "
 				<< state.query_name()
@@ -46,17 +46,17 @@ class state_monitor_t : public so_5::rt::agent_state_listener_t
 };
 
 // A sample agent class.
-class a_state_swither_t : public so_5::rt::agent_t
+class a_state_swither_t : public so_5::agent_t
 {
 		// Agent states.
-		so_5::rt::state_t st_1 = so_make_state( "state_1" );
-		so_5::rt::state_t st_2 = so_make_state( "state_2" );
-		so_5::rt::state_t st_3 = so_make_state( "state_3" );
-		so_5::rt::state_t st_shutdown = so_make_state( "shutdown" );
+		so_5::state_t st_1 = so_make_state( "state_1" );
+		so_5::state_t st_2 = so_make_state( "state_2" );
+		so_5::state_t st_3 = so_make_state( "state_3" );
+		so_5::state_t st_shutdown = so_make_state( "shutdown" );
 
 	public:
-		a_state_swither_t( so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+		a_state_swither_t( so_5::environment_t & env )
+			:	so_5::agent_t( env )
 		{}
 
 		virtual ~a_state_swither_t()
@@ -192,7 +192,7 @@ state_monitor_t g_state_monitor( "nondestroyable_listener" );
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	auto ag = env.make_agent< a_state_swither_t >();
 
@@ -202,7 +202,7 @@ init( so_5::rt::environment_t & env )
 	// Adding another state listener.
 	// Its lifetime is controlled by the agent.
 	ag->so_add_destroyable_listener(
-		so_5::rt::agent_state_listener_unique_ptr_t(
+		so_5::agent_state_listener_unique_ptr_t(
 			new state_monitor_t( "destroyable_listener" ) ) );
 
 	// Creating and registering a cooperation.

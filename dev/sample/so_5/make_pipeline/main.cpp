@@ -501,7 +501,7 @@ make_pipeline(
 	agent_t & owner,
 	// Definition of a pipeline.
 	stage_t< IN, OUT > && sink,
-	// Optional args to be passed to so_5::rt::create_child_coop function.
+	// Optional args to be passed to so_5::create_child_coop function.
 	ARGS &&... args )
 {
 	auto coop = create_child_coop( owner, forward< ARGS >(args)... );
