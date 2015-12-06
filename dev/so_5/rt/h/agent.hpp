@@ -583,6 +583,11 @@ class SO_5_TYPE agent_t
 		 * \brief Short alias for agent_context.
 		 */
 		using context_t = so_5::agent_context_t;
+		/*!
+		 * \since v.5.5.13
+		 * \brief Short alias for %so_5::state_t.
+		 */
+		using state_t = so_5::state_t;
 
 		//! Constructor.
 		/*!

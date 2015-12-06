@@ -75,8 +75,8 @@ class my_agent_t : public so_5::agent_t
 
 	private:
 		// Agent states.
-		const so_5::state_t st_first = so_make_state( "first" );
-		const so_5::state_t st_second = so_make_state( "second" );
+		const state_t st_first = so_make_state( "first" );
+		const state_t st_second = so_make_state( "second" );
 };
 
 my_agent_t::my_agent_t( so_5::environment_t & env )

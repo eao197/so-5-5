@@ -494,9 +494,9 @@ class story_publisher : public so_5::agent_t
 
 	private :
 		// The agent will wait 'msg_time_for_new_story' signal in this state.
-		const so_5::state_t st_await_new_story = so_make_state();
+		const state_t st_await_new_story = so_make_state();
 		// The agent will wait a response to publising request in this state.
-		const so_5::state_t st_await_publish_response = so_make_state();
+		const state_t st_await_publish_response = so_make_state();
 
 		const std::string m_name;
 
@@ -614,11 +614,11 @@ class news_reader : public so_5::agent_t
 
 	private :
 		// The agent will wait 'msg_time_for_updates' signal in this state.
-		const so_5::state_t st_sleeping = so_make_state();
+		const state_t st_sleeping = so_make_state();
 		// The agent will wait updates from news board in this state. 
-		const so_5::state_t st_await_updates = so_make_state();
+		const state_t st_await_updates = so_make_state();
 		// The agent will wait story content in this state.
-		const so_5::state_t st_await_story_content = so_make_state();
+		const state_t st_await_story_content = so_make_state();
 
 		const std::string m_name;
 

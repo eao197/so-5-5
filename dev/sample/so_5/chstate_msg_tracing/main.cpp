@@ -30,10 +30,10 @@ class a_state_swither_t : public so_5::agent_t
 	};
 
 	// Agent states.
-	so_5::state_t st_1 = so_make_state( "state_1" );
-	so_5::state_t st_2 = so_make_state( "state_2" );
-	so_5::state_t st_3 = so_make_state( "state_3" );
-	so_5::state_t st_shutdown = so_make_state( "shutdown" );
+	const state_t st_1 = so_make_state( "state_1" );
+	const state_t st_2 = so_make_state( "state_2" );
+	const state_t st_3 = so_make_state( "state_3" );
+	const state_t st_shutdown = so_make_state( "shutdown" );
 
 public:
 	a_state_swither_t( context_t ctx ) : so_5::agent_t{ ctx }

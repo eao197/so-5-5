@@ -161,8 +161,8 @@ class a_meeting_place_t
 			}
 
 	private :
-		so_5::state_t st_empty = so_make_state( "empty" );
-		so_5::state_t st_one_creature_inside =
+		const state_t st_empty = so_make_state( "empty" );
+		const state_t st_one_creature_inside =
 				so_make_state( "one_creature_inside" );
 
 		int m_creatures_alive;

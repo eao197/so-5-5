@@ -14,9 +14,9 @@ using namespace std::chrono;
 // A supervisor agent which will interact with main thread.
 class a_supervisor : public so_5::agent_t
 {
-	const so_5::state_t st_idle = so_make_state();
-	const so_5::state_t st_started = so_make_state();
-	const so_5::state_t st_finished = so_make_state();
+	const state_t st_idle = so_make_state();
+	const state_t st_started = so_make_state();
+	const state_t st_finished = so_make_state();
 
 	using clock = steady_clock;
 
