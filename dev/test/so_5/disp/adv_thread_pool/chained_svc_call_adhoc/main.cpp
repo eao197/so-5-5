@@ -34,7 +34,7 @@ struct msg_request_string : public so_5::message_t
 		{}
 };
 
-so_5::agent_coop_unique_ptr_t
+so_5::coop_unique_ptr_t
 create_test_coop( so_5::environment_t & env )
 {
 	auto c = env.create_coop( "test",

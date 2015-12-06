@@ -90,7 +90,7 @@ class test_agent_finisher_t
 void
 init( so_5::environment_t & env )
 {
-	so_5::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
 	for( std::size_t i = 0; i < test_agent_t::agents_cout(); ++i )

@@ -104,7 +104,7 @@ create_and_register_agent(
 	int ordinal,
 	int max_deep )
 {
-	so_5::agent_coop_unique_ptr_t coop = env.create_coop(
+	so_5::coop_unique_ptr_t coop = env.create_coop(
 			create_coop_name( ordinal ) );
 	if( ordinal )
 		coop->set_parent_coop_name( create_coop_name( ordinal - 1 ) );

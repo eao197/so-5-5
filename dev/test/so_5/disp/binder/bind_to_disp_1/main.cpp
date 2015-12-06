@@ -170,7 +170,7 @@ init( so_5::environment_t & env )
 {
 	so_5::mbox_t mbox = env.create_local_mbox();
 
-	so_5::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );
 
 	coop->add_agent(

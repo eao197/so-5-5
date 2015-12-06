@@ -82,7 +82,7 @@ reg_coop(
 	const so_5::mbox_t & test_mbox,
 	so_5::environment_t & env )
 {
-	so_5::agent_coop_unique_ptr_t coop =
+	so_5::coop_unique_ptr_t coop =
 		env.create_coop( coop_name );
 
 	coop->add_agent( new test_agent_t( env, test_mbox ) );

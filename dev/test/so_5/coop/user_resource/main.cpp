@@ -107,7 +107,7 @@ class a_test_starter_t : public so_5::agent_t
 		void
 		so_evt_start()
 		{
-			so_5::agent_coop_unique_ptr_t coop(
+			so_5::coop_unique_ptr_t coop(
 					new test_agent_coop_t(
 							"child_coop",
 							so_5::create_default_disp_binder(),

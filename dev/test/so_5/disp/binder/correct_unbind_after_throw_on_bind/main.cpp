@@ -196,7 +196,7 @@ void
 reg_coop(
 	so_5::environment_t & env )
 {
-	so_5::agent_coop_unique_ptr_t coop = env.create_coop( "test_coop",
+	so_5::coop_unique_ptr_t coop = env.create_coop( "test_coop",
 			so_5::disp_binder_unique_ptr_t(
 					new throwing_disp_binder_t() )  );
 

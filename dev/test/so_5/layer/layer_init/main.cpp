@@ -16,7 +16,7 @@
 
 class test_layer_t
 	:
-		public so_5::so_layer_t
+		public so_5::layer_t
 {
 	private:
 		int m_op_seq_counter;

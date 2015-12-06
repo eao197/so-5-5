@@ -14,12 +14,12 @@
 
 #include "../separate_so_thread_inl.cpp"
 
-std::array< so_5::so_layer_t *, 64 > last_created_objects;
+std::array< so_5::layer_t *, 64 > last_created_objects;
 
 template < int N >
 class test_layer_t
 	:
-		public so_5::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_t()
@@ -158,7 +158,7 @@ UT_UNIT_TEST( check_2_3_exist )
 #define CHECK_LAYER_DONT_EXISTS( so_env, N ) \
 		UT_CHECK_EQ( \
 			so_env.query_layer_noexcept< test_layer_t< N > >(), \
-			static_cast< so_5::so_layer_t* >( nullptr) )
+			static_cast< so_5::layer_t* >( nullptr) )
 
 #define ADD_LAYER( so_env, N ) \
 	so_env.add_extra_layer( \

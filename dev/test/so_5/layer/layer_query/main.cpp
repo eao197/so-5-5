@@ -17,7 +17,7 @@ void * last_created_objects[ 64 ];
 template < int N >
 class test_layer_t
 	:
-		public so_5::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_t()

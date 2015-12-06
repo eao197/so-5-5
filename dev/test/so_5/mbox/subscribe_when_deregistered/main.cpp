@@ -142,7 +142,7 @@ init(
 {
 	for( int i = 0; i < 8; ++i )
 	{
-		so_5::agent_coop_unique_ptr_t coop = env.create_coop(
+		so_5::coop_unique_ptr_t coop = env.create_coop(
 			"test_coop",
 			so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 

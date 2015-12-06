@@ -56,7 +56,7 @@ typedef std::vector< thread_id_collector_ptr_t > collector_container_t;
 
 struct msg_shutdown : public so_5::signal_t {};
 
-so_5sg_hello : public so_5::signqueue_al_t {};
+struct msg_hello : public so_5::signal_t {};
 
 class a_test_t : public so_5::agent_t
 {

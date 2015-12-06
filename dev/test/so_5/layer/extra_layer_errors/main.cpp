@@ -17,7 +17,7 @@
 template < int N >
 class test_layer_t
 	:
-		public so_5::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_t()
@@ -41,7 +41,7 @@ class test_layer_t
 
 class test_layer_bad_start_t
 	:
-		public so_5::so_layer_t
+		public so_5::layer_t
 {
 	public:
 		test_layer_bad_start_t()
