@@ -32,7 +32,7 @@ namespace so_5
 //
 
 //! Class for the representing agent state.
-class SO_5_TYPE state_t
+class SO_5_TYPE state_t final
 {
 		state_t( const state_t & ) = delete;
 		state_t & operator =( const state_t & ) = delete;
@@ -57,7 +57,7 @@ class SO_5_TYPE state_t
 		 */
 		state_t( state_t && other );
 
-		virtual ~state_t();
+		~state_t();
 
 		bool
 		operator == ( const state_t & state ) const;
