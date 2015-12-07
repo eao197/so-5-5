@@ -9,13 +9,13 @@
 #include <so_5/all.hpp>
 
 // A simple agent which will be used in demo.
-class demo_agent : public so_5::rt::agent_t
+class demo_agent : public so_5::agent_t
 {
 public :
 	// Ping signal to which agent must respond.
-	struct ping : public so_5::rt::signal_t {};
+	struct ping : public so_5::signal_t {};
 
-	demo_agent( context_t ctx ) :	so_5::rt::agent_t{ ctx } {}
+	demo_agent( context_t ctx ) :	so_5::agent_t{ ctx } {}
 
 	virtual void so_define_agent() override
 	{
@@ -89,7 +89,7 @@ void demo()
 			const auto name = ask_coop_name();
 			do_action( "registering coop '" + name + "'",
 				[&] {
-					env.environment().introduce_coop( name, []( so_5::rt::coop_t & coop ) {
+					env.environment().introduce_coop( name, []( so_5::coop_t & coop ) {
 						coop.make_agent< demo_agent >();
 					} );
 				} );
@@ -100,7 +100,7 @@ void demo()
 			const auto name = ask_coop_name();
 			do_action( "deregistering coop '" + name + "'",
 				[&] {
-					env.environment().deregister_coop( name, so_5::rt::dereg_reason::normal );
+					env.environment().deregister_coop( name, so_5::dereg_reason::normal );
 				} );
 		}
 		else if( "ping" == choice )

@@ -4,8 +4,14 @@
 
 \section so_5__5_13 5.5.13 "Cerro Dona Ana"
 
-	Another constructor implemented for class so_5::wrapped_env. It
-	receives just one argument: an instance of so_5::rt::environment_params.
+	<b>Breaking change: namespace so_5::rt is deprecated!</b>
+	See \ref so_5_5_13__so_rt_ns_deprecated for more details.
+
+	Another constructor implemented for class so_5::wrapped_env_t. It
+	receives just one argument: an instance of so_5::environment_params_t.
+
+	Type name so_5::agent_t::state_t is added. It just an alias for
+	so_5::state_t.
 
 \section so_5__5_12 5.5.12 "Cerro Araral"
 

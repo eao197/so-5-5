@@ -13,16 +13,12 @@
 #include <so_5/rt/h/mbox.hpp>
 #include <so_5/rt/h/handler_makers.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 #include <chrono>
 #include <functional>
 
 namespace so_5 {
-
-namespace rt {
-
-class environment_t;
-
-} /* namespace rt */
 
 namespace mchain_props {
 
@@ -135,9 +131,9 @@ struct demand_t
 		//! Type of the message.
 		std::type_index m_msg_type;
 		//! Event incident.
-		so_5::rt::message_ref_t m_message_ref;
+		so_5::message_ref_t m_message_ref;
 		//! Type of demand.
-		so_5::rt::invocation_type_t m_demand_type;
+		so_5::invocation_type_t m_demand_type;
 
 // NOTE: the full set of constructors and copy/move operators is defined
 // because VC++12.0 doesn't generate move constructors/operators automatically
@@ -150,8 +146,8 @@ struct demand_t
 		//! Initializing constructor.
 		demand_t(
 			std::type_index msg_type,
-			so_5::rt::message_ref_t message_ref,
-			so_5::rt::invocation_type_t demand_type )
+			so_5::message_ref_t message_ref,
+			so_5::invocation_type_t demand_type )
 			:	m_msg_type{ std::move(msg_type) }
 			,	m_message_ref{ std::move(message_ref) }
 			,	m_demand_type{ demand_type }
@@ -428,7 +424,7 @@ using not_empty_notification_func_t = std::function< void() >;
  * \since v.5.5.13
  * \brief An interace of message chain.
  */
-class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_box_t
+class SO_5_TYPE abstract_message_chain_t : protected so_5::abstract_message_box_t
 	{
 		friend class intrusive_ptr_t< abstract_message_chain_t >;
 
@@ -451,7 +447,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_
 			mchain_props::duration_t empty_queue_timeout ) = 0;
 
 		//! Cast message chain to message box.
-		so_5::rt::mbox_t
+		so_5::mbox_t
 		as_mbox();
 
 		//! Is message chain empty?
@@ -469,7 +465,7 @@ class SO_5_TYPE abstract_message_chain_t : protected so_5::rt::abstract_message_
 			mchain_props::close_mode_t mode ) = 0;
 
 		//! SObjectizer Environment for which the chain is created.
-		virtual so_5::rt::environment_t &
+		virtual so_5::environment_t &
 		environment() const = 0;
 	};
 
@@ -625,7 +621,7 @@ class mchain_params_t
  *
  * \par Usage example:
 	\code
-	so_5::rt::environment_t & env = ...;
+	so_5::environment_t & env = ...;
 	auto chain = env.create_mchain( so_5::make_unlimited_mchain_params() );
 	\endcode
  */
@@ -641,7 +637,7 @@ make_unlimited_mchain_params()
  *
  * \par Usage example:
 	\code
-	so_5::rt::environment_t & env = ...;
+	so_5::environment_t & env = ...;
 	auto chain = env.create_mchain( so_5::make_limited_without_waiting_mchain_params(
 			// No more than 200 messages in the chain.
 			200,
@@ -674,7 +670,7 @@ make_limited_without_waiting_mchain_params(
  *
  * \par Usage example:
 	\code
-	so_5::rt::environment_t & env = ...;
+	so_5::environment_t & env = ...;
 	auto chain = env.create_mchain( so_5::make_limited_with_waiting_mchain_params(
 			// No more than 200 messages in the chain.
 			200,
@@ -777,7 +773,7 @@ class mchain_receive_result_t
  *
  * \par Usage examples:
 	\code
-	so_5::rt::environment_t & env = ...;
+	so_5::environment_t & env = ...;
 	so_5::mchain_t ch = env.create_mchain(...);
 
 	// Extract and handle one message without waiting if the mchain is empty.
@@ -801,7 +797,7 @@ receive(
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{
-		using namespace so_5::rt::details;
+		using namespace so_5::details;
 		using namespace so_5::mchain_props;
 		using namespace so_5::mchain_props::details;
 
@@ -1227,7 +1223,7 @@ receive(
 	//! Handlers for message processing.
 	HANDLERS &&... handlers )
 	{
-		using namespace so_5::rt::details;
+		using namespace so_5::details;
 		using namespace so_5::mchain_props;
 		using namespace so_5::mchain_props::details;
 

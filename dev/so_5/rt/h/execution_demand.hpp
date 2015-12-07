@@ -8,21 +8,17 @@
 	\brief Event-related stuff.
 */
 
-#if !defined( _SO_5__RT__EXECUTION_DEMAND_HPP_ )
-#define _SO_5__RT__EXECUTION_DEMAND_HPP_
+#pragma once
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/current_thread_id.hpp>
+
+#include <so_5/rt/h/fwd.hpp>
 
 #include <so_5/rt/h/message.hpp>
 
 namespace so_5
 {
-
-namespace rt
-{
-
-class agent_t;
 
 //
 // event_handler_method_t
@@ -286,9 +282,34 @@ struct msg_type_and_handler_pair_t
 
 } /* namespace details */
 
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::event_handler_method_t
+ * instead.
+ */
+using event_handler_method_t = so_5::event_handler_method_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::demand_handler_pfn_t
+ * instead.
+ */
+using demand_handler_pfn_t = so_5::demand_handler_pfn_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::execution_demand_t
+ * instead.
+ */
+using execution_demand_t = so_5::execution_demand_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::execution_hint_t
+ * instead.
+ */
+using execution_hint_t = so_5::execution_hint_t;
+
 } /* namespace rt */
 
 } /* namespace so_5 */
-
-#endif
 

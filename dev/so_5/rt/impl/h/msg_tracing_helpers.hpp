@@ -28,8 +28,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace impl {
 
 namespace msg_tracing_helpers {
@@ -128,7 +126,7 @@ make_trace_to_1( std::ostream & s, const event_handler_data_t * handler )
 inline void
 make_trace_to_1(
 	std::ostream & s,
-	const so_5::rt::message_limit::control_block_t * limit )
+	const so_5::message_limit::control_block_t * limit )
 	{
 		s << "[limit_ptr=" << pointer{limit} << "]";
 	}
@@ -259,7 +257,7 @@ struct tracing_disabled_base
 					const agent_t *,
 					const delivery_possibility_t ) const {}
 
-				const so_5::rt::message_limit::impl::action_msg_tracer_t *
+				const so_5::message_limit::impl::action_msg_tracer_t *
 				overlimit_tracer() const { return nullptr; }
 			};
 	};
@@ -288,8 +286,13 @@ class tracing_enabled_base
 				return m_tracer;
 			}
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
+
 		class deliver_op_tracer
-			:	protected so_5::rt::message_limit::impl::action_msg_tracer_t
+			:	protected so_5::message_limit::impl::action_msg_tracer_t
 			{
 			private :
 				so_5::msg_tracing::tracer_t & m_tracer;
@@ -357,7 +360,7 @@ class tracing_enabled_base
 							}
 					}
 
-				const so_5::rt::message_limit::impl::action_msg_tracer_t *
+				const so_5::message_limit::impl::action_msg_tracer_t *
 				overlimit_tracer() const { return this; }
 
 			protected :
@@ -403,6 +406,11 @@ class tracing_enabled_base
 								transformed );
 					}
 			};
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+
 	};
 
 /*!
@@ -608,8 +616,6 @@ class mchain_tracing_enabled_base
 } /* namespace msg_tracing_helpers */
 
 } /* namespace impl */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

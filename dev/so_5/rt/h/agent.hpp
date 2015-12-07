@@ -22,6 +22,8 @@
 #include <so_5/details/h/rollback_on_exception.hpp>
 #include <so_5/details/h/abort_on_fatal_error.hpp>
 
+#include <so_5/rt/h/fwd.hpp>
+
 #include <so_5/rt/h/agent_ref_fwd.hpp>
 #include <so_5/rt/h/agent_context.hpp>
 #include <so_5/rt/h/disp.hpp>
@@ -60,7 +62,7 @@ struct signal_indicator_t {};
  * \since v.5.3.0
  * \brief A special signal-indicator.
  *
- * Must be used as signal-indicator in so_5::rt::subscription_bind_t::event()
+ * Must be used as signal-indicator in subscription_bind_t::event()
  * methods:
 \code
 virtual void
@@ -80,28 +82,6 @@ my_agent_t::so_define_agent() {
 template< class S >
 signal_indicator_t< S >
 signal() { return signal_indicator_t< S >(); }
-
-namespace rt
-{
-
-namespace impl
-{
-
-// Forward declarations.
-class state_listener_controller_t;
-
-class mpsc_mbox_t;
-
-struct event_handler_data_t;
-
-class delivery_filter_storage_t;
-
-} /* namespace impl */
-
-class state_t;
-class environment_t;
-class coop_t;
-class agent_t;
 
 //
 // exception_reaction_t
@@ -161,8 +141,8 @@ class subscription_bind_t
 		 *
 		 * \par Usage example
 		 * \code
-			struct engine_control : public so_5::rt::message_t { ... };
-			class engine_controller : public so_5::rt::agent_t
+			struct engine_control : public so_5::message_t { ... };
+			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
@@ -172,7 +152,7 @@ class subscription_bind_t
 				}
 				...
 			private :
-				void evt_control( const so_5::rt::event_data_t< engine_control > & cmd )
+				void evt_control( const so_5::event_data_t< engine_control > & cmd )
 				{
 					...
 				}
@@ -198,8 +178,8 @@ class subscription_bind_t
 		 *
 		 * \par Usage example
 		 * \code
-			struct engine_control : public so_5::rt::message_t { ... };
-			class engine_controller : public so_5::rt::agent_t
+			struct engine_control : public so_5::message_t { ... };
+			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
@@ -229,7 +209,7 @@ class subscription_bind_t
 		 * \since v.5.5.9
 		 *
 		 * \note This method is intended to use with messages whose types
-		 * are not derived from so_5::rt::message_t. Message content is
+		 * are not derived from so_5::message_t. Message content is
 		 * passed to event handler by copy. It can be costly if message is
 		 * a heavy object.
 		 *
@@ -240,7 +220,7 @@ class subscription_bind_t
 		 * \par Usage example
 		 * \code
 			enum class engine_control { turn_on, turn_off, slow_down };
-			class engine_controller : public so_5::rt::agent_t
+			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
@@ -273,9 +253,9 @@ class subscription_bind_t
 		 *
 		 * \par Usage example
 		 * \code
-			struct turn_on : public so_5::rt::signal_t {};
-			struct turn_off : public so_5::rt::signal_t {};
-			class engine_controller : public so_5::rt::agent_t
+			struct turn_on : public so_5::signal_t {};
+			struct turn_off : public so_5::signal_t {};
+			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
@@ -326,10 +306,10 @@ class subscription_bind_t
 		 * \par Usage example.
 		 * \code
 			enum class engine_control { turn_on, turn_off, slow_down };
-			struct setup_params : public so_5::rt::message_t { ... };
+			struct setup_params : public so_5::message_t { ... };
 			struct update_settings { ... };
 
-			class engine_controller : public so_5::rt::agent_t
+			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
@@ -366,9 +346,9 @@ class subscription_bind_t
 		 *
 		 * \par Usage example
 		 * \code
-			struct turn_on : public so_5::rt::signal_t {};
-			struct turn_off : public so_5::rt::signal_t {};
-			class engine_controller : public so_5::rt::agent_t
+			struct turn_on : public so_5::signal_t {};
+			struct turn_off : public so_5::signal_t {};
+			class engine_controller : public so_5::agent_t
 			{
 			public :
 				virtual void so_define_agent() override
@@ -479,7 +459,7 @@ class subscription_bind_t
 
 	<b>Methods for the interaction with SObjectizer</b>
 
-	Method so_5::rt::agent_t::so_environment() serves for the access to the 
+	Method so_5::agent_t::so_environment() serves for the access to the 
 	SObjectizer Environment (and, therefore, to all methods of the 
 	SObjectizer Environment).
 	This method could be called immediatelly after the agent creation.
@@ -515,12 +495,12 @@ class subscription_bind_t
 	\code
 		void
 		evt_handler(
-			const so_5::rt::event_data_t< MESSAGE > & msg );
+			const so_5::event_data_t< MESSAGE > & msg );
 	\endcode
 	Where \c evt_handler is a name of the event handler, \c MESSAGE is a 
 	message type.
 
-	The class so_5::rt::event_data_t is a wrapper on pointer to an instance 
+	The class so_5::event_data_t is a wrapper on pointer to an instance 
 	of the \c MESSAGE. It is very similar to <tt>std::unique_ptr</tt>. 
 	The pointer to \c MESSAGE can be a nullptr. It happens in case when 
 	the message has no actual data and servers just a signal about something.
@@ -540,7 +520,7 @@ class subscription_bind_t
 	\endcode
 
 	A subscription to the message is performed by the method so_subscribe().
-	This method returns an instance of the so_5::rt::subscription_bind_t which
+	This method returns an instance of the so_5::subscription_bind_t which
 	does all actual actions of the subscription process. This instance already
 	knows agents and message mbox and uses the default agent state for
 	the event subscription (binding to different state is also possible). 
@@ -595,14 +575,19 @@ class SO_5_TYPE agent_t
 		friend class coop_t;
 		friend class state_t;
 
-		friend class so_5::rt::impl::mpsc_mbox_t;
+		friend class so_5::impl::mpsc_mbox_t;
 
 	public:
 		/*!
 		 * \since v.5.5.4
 		 * \brief Short alias for agent_context.
 		 */
-		using context_t = so_5::rt::agent_context_t;
+		using context_t = so_5::agent_context_t;
+		/*!
+		 * \since v.5.5.13
+		 * \brief Short alias for %so_5::state_t.
+		 */
+		using state_t = so_5::state_t;
 
 		//! Constructor.
 		/*!
@@ -620,7 +605,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \par Usage sample:
 		 \code
-		 using namespace so_5::rt;
+		 using namespace so_5;
 		 class my_agent : public agent_t
 		 {
 		 public :
@@ -643,11 +628,11 @@ class SO_5_TYPE agent_t
 		 *
 		 * \par Usage sample:
 		 * \code
-		 class my_agent : public so_5::rt::agent_t
+		 class my_agent : public so_5::agent_t
 		 {
 		 public :
 		 	my_agent( context_t ctx )
-				:	so_5::rt::agent( ctx + limit_then_drop< get_status >(1) )
+				:	so_5::agent( ctx + limit_then_drop< get_status >(1) )
 				{}
 			...
 		 };
@@ -675,16 +660,14 @@ class SO_5_TYPE agent_t
 			list instead 'this' to suppres compiler warnings.
 			For example for an agent state initialization:
 			\code
-			class a_sample_t
-				:
-					public so_5::rt::agent_t
+			class a_sample_t : public so_5::agent_t
 			{
-					typedef so_5::rt::agent_t base_type_t;
+					typedef so_5::agent_t base_type_t;
 
 					// Agent state.
-					const so_5::rt::state_t m_sample_state;
+					const so_5::state_t m_sample_state;
 				public:
-					a_sample_t( so_5::rt::environment_t & env )
+					a_sample_t( so_5::environment_t & env )
 						:
 							base_type_t( env ),
 							m_sample_state( self_ptr() )
@@ -719,9 +702,7 @@ class SO_5_TYPE agent_t
 			the agent on that working thread context is this method.
 
 			\code
-			class a_sample_t
-				:
-					public so_5::rt::agent_t
+			class a_sample_t : public so_5::agent_t
 			{
 				// ...
 				virtual void
@@ -747,9 +728,7 @@ class SO_5_TYPE agent_t
 			This method should be used to perform some cleanup
 			actions on it's working thread.
 			\code
-			class a_sample_t
-				:
-					public so_5::rt::agent_t
+			class a_sample_t : public so_5::agent_t
 			{
 				// ...
 				virtual void
@@ -902,7 +881,7 @@ class SO_5_TYPE agent_t
 			\code
 			void
 			a_sample_t::evt_smth(
-				const so_5::rt::event_data_t< message_one_t > & msg )
+				const so_5::event_data_t< message_one_t > & msg )
 			{
 				// If something wrong with the message then we should
 				// switch to the error_state.
@@ -1177,7 +1156,7 @@ class SO_5_TYPE agent_t
 		inline void
 		so_drop_subscription_for_all_states(
 			const mbox_t & mbox,
-			void (AGENT::*pfn)( const MESSAGE & ) )
+			void (AGENT::*)( const MESSAGE & ) )
 		{
 			do_drop_subscription_for_all_states(
 					mbox, 
@@ -1252,9 +1231,7 @@ class SO_5_TYPE agent_t
 
 			Usage sample;
 			\code
-			class a_sample_t
-				:
-					public so_5::rt::agent_t
+			class a_sample_t : public so_5::agent_t
 			{
 				// ...
 				virtual void
@@ -1262,11 +1239,11 @@ class SO_5_TYPE agent_t
 
 				void
 				evt_handler_1(
-					const so_5::rt::event_data_t< message1_t > & msg );
+					const so_5::event_data_t< message1_t > & msg );
 				// ...
 				void
 				evt_handler_N(
-					const so_5::rt::event_data_t< messageN_t > & msg );
+					const so_5::event_data_t< messageN_t > & msg );
 
 			};
 
@@ -1291,16 +1268,13 @@ class SO_5_TYPE agent_t
 		/*!
 			Usage sample:
 			\code
-			class a_sample_t
-				:
-					public so_5::rt::agent_t
+			class a_sample_t : public so_5::agent_t
 			{
 				// ...
 
 				public:
 					void
-					set_target_mbox(
-						const so_5::rt::mbox_t & mbox )
+					set_target_mbox( const so_5::mbox_t & mbox )
 					{
 						// mbox cannot be changed after agent registration.
 						if( !so_was_defined() )
@@ -1310,7 +1284,7 @@ class SO_5_TYPE agent_t
 					}
 
 				private:
-					so_5::rt::mbox_t m_target_mbox;
+					so_5::mbox_t m_target_mbox;
 			};
 			\endcode
 		*/
@@ -1327,19 +1301,17 @@ class SO_5_TYPE agent_t
 			\code
 			void
 			a_sample_t::evt_on_smth(
-				const so_5::rt::event_data_t< some_message_t > & msg )
+				const so_5::event_data_t< some_message_t > & msg )
 			{
-				so_5::rt::coop_unique_ptr_t coop =
-					so_environment().create_coop(
-						so_5::rt::nonempty_name_t( "first_coop" ) );
+				so_5::coop_unique_ptr_t coop =
+					so_environment().create_coop( "first_coop" );
 
 				// Filling the cooperation...
-				coop->add_agent( so_5::rt::agent_ref_t(
-					new a_another_t( ... ) ) );
+				coop->make_agent< a_another_t >( ... );
 				// ...
 
 				// Registering cooperation.
-				so_environment().register_coop( coop );
+				so_environment().register_coop( std::move(coop) );
 			}
 			\endcode
 
@@ -1347,7 +1319,7 @@ class SO_5_TYPE agent_t
 			\code
 			void
 			a_sample_t::evt_last_event(
-				const so_5::rt::event_data_t< message_one_t > & msg )
+				const so_5::event_data_t< message_one_t > & msg )
 			{
 				...
 				so_environment().stop();
@@ -1397,7 +1369,7 @@ class SO_5_TYPE agent_t
 		 *
 		 * \note It is just a shorthand for:
 			\code
-			so_deregister_agent_coop( so_5::rt::dereg_reason::normal );
+			so_deregister_agent_coop( so_5::dereg_reason::normal );
 			\endcode
 		 */
 		void
@@ -1506,10 +1478,10 @@ class SO_5_TYPE agent_t
 		 *
 		 * \par Usage:
 		 	\code
-			class my_agent_t : public so_5::rt::agent_t
+			class my_agent_t : public so_5::agent_t
 			{
-				so_5::rt::state_t st_1 = so_make_state();
-				so_5::rt::state_t st_2 = so_make_state();
+				so_5::state_t st_1 = so_make_state();
+				so_5::state_t st_2 = so_make_state();
 				...
 			};
 			\endcode
@@ -1527,10 +1499,10 @@ class SO_5_TYPE agent_t
 		 *
 		 * \par Usage:
 		 	\code
-			class my_agent_t : public so_5::rt::agent_t
+			class my_agent_t : public so_5::agent_t
 			{
-				so_5::rt::state_t st_1 = so_make_state( "st_one" );
-				so_5::rt::state_t st_2 = so_make_state( "st_two" );
+				so_5::state_t st_1 = so_make_state( "st_one" );
+				so_5::state_t st_2 = so_make_state( "st_two" );
 				...
 			};
 			\endcode
@@ -2375,10 +2347,10 @@ state_t::subscribe_signal_handler(
  *
  * \par Usage example.
 	\code
-	class my_agent : public so_5::rt::agent_t
+	class my_agent : public so_5::agent_t
 	{
-		const so_5::rt::state_t st_normal = so_make_state();
-		const so_5::rt::state_t st_error = so_make_state();
+		const so_5::state_t st_normal = so_make_state();
+		const so_5::state_t st_error = so_make_state();
 		...
 	public :
 		virtual void so_define_agent() override
@@ -2400,6 +2372,57 @@ operator>>=( agent_t * agent, const state_t & new_state )
 {
 	agent->so_change_state( new_state );
 }
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::exception_reaction_t
+ * instead.
+ */
+using exception_reaction_t = so_5::exception_reaction_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::abort_on_exception
+ * instead.
+ */
+const so_5::exception_reaction_t abort_on_exception = so_5::abort_on_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::shutdown_sobjectizer_on_exception instead.
+ */
+const so_5::exception_reaction_t shutdown_sobjectizer_on_exception = so_5::shutdown_sobjectizer_on_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::deregister_coop_on_exception instead.
+ */
+const so_5::exception_reaction_t deregister_coop_on_exception = so_5::deregister_coop_on_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::ignore_exception
+ * instead.
+ */
+const so_5::exception_reaction_t ignore_exception = so_5::ignore_exception;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::inherit_exception_reaction
+ * instead.
+ */
+const so_5::exception_reaction_t inherit_exception_reaction = so_5::inherit_exception_reaction;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::subscription_bind_t
+ * instead.
+ */
+using subscription_bind_t = so_5::subscription_bind_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::agent_t
+ * instead.
+ */
+using agent_t = so_5::agent_t;
 
 } /* namespace rt */
 

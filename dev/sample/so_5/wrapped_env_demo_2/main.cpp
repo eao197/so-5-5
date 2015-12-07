@@ -12,11 +12,11 @@ using namespace std;
 using namespace std::chrono;
 
 // A supervisor agent which will interact with main thread.
-class a_supervisor : public so_5::rt::agent_t
+class a_supervisor : public so_5::agent_t
 {
-	const so_5::rt::state_t st_idle = so_make_state();
-	const so_5::rt::state_t st_started = so_make_state();
-	const so_5::rt::state_t st_finished = so_make_state();
+	const state_t st_idle = so_make_state();
+	const state_t st_started = so_make_state();
+	const state_t st_finished = so_make_state();
 
 	using clock = steady_clock;
 
@@ -39,10 +39,10 @@ public :
 		// Working context for the agent.
 		context_t ctx,
 		// Mbox for requests from not-SO-part.
-		so_5::rt::mbox_t req_mbox,
+		so_5::mbox_t req_mbox,
 		// Chain for responses to not-SO-part.
 		so_5::mchain_t chain )
-		:	so_5::rt::agent_t{ ctx }
+		:	so_5::agent_t{ ctx }
 		,	m_req_mbox{ move(req_mbox) }
 		,	m_chain{ move(chain) }
 		{}
@@ -72,8 +72,9 @@ public :
 				// Reaction to the end of ping-pong.
 				.event( [this]( ping_pong_stopped ) {
 					// Storing time for the future ask_status requests.
-					m_last_duration_ms = duration_cast< milliseconds >(
-							clock::now() - m_started_at ).count();
+					m_last_duration_ms = static_cast< unsigned long long >(
+							duration_cast< milliseconds >(
+									clock::now() - m_started_at ).count() );
 
 					// Reflect the end of ping-pong by changing state of supervisor.
 					this >>= st_finished;
@@ -93,7 +94,7 @@ public :
 		}
 
 private :
-	const so_5::rt::mbox_t m_req_mbox;
+	const so_5::mbox_t m_req_mbox;
 	const so_5::mchain_t m_chain;
 
 	clock::time_point m_started_at;
@@ -108,10 +109,10 @@ private :
 		// Pinger and ponger will be started inside a new coop.
 		// They will work on different threads (management of those
 		// threads will be done by private active_obj dispatcher).
-		so_5::rt::introduce_child_coop( *this,
+		so_5::introduce_child_coop( *this,
 				so_5::disp::active_obj::create_private_disp(
 						so_environment() )->binder(),
-				[this, evt]( so_5::rt::coop_t & coop )
+				[this, evt]( so_5::coop_t & coop )
 				{
 					// Types of messages to be used by pinger and ponger.
 					struct ping{ unsigned int m_v; };
@@ -163,7 +164,7 @@ void demo()
 			so_5::make_unlimited_mchain_params() );
 
 	// Start SO-part of the app.
-	sobj.environment().introduce_coop( [&]( so_5::rt::coop_t & coop ) {
+	sobj.environment().introduce_coop( [&]( so_5::coop_t & coop ) {
 			coop.make_agent< a_supervisor >( req_mbox, chain );
 		} );
 

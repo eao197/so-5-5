@@ -17,7 +17,7 @@ enum sample_state_t
 };
 
 // Message for the changing state.
-struct change_state_message : public so_5::rt::message_t
+struct change_state_message : public so_5::message_t
 {
 	change_state_message( sample_state_t next_state )
 		: m_next_state( next_state )
@@ -27,7 +27,7 @@ struct change_state_message : public so_5::rt::message_t
 };
 
 // Sample message.
-struct my_message : public so_5::rt::message_t
+struct my_message : public so_5::message_t
 {
 	my_message( int x ) : m_x( x ) {}
 
@@ -36,7 +36,7 @@ struct my_message : public so_5::rt::message_t
 };
 
 // Another sample message.
-struct my_another_message : public so_5::rt::message_t
+struct my_another_message : public so_5::message_t
 {
 	my_another_message( std::string s ) : m_s( std::move( s ) ) {}
 
@@ -45,10 +45,10 @@ struct my_another_message : public so_5::rt::message_t
 };
 
 // Sample message for the subscription demonstrtion.
-class my_agent_t : public so_5::rt::agent_t
+class my_agent_t : public so_5::agent_t
 {
 	public:
-		my_agent_t( so_5::rt::environment_t & env );
+		my_agent_t( so_5::environment_t & env );
 
 		// Definition of an agent for SObjectizer.
 		virtual void
@@ -75,12 +75,12 @@ class my_agent_t : public so_5::rt::agent_t
 
 	private:
 		// Agent states.
-		const so_5::rt::state_t st_first = so_make_state( "first" );
-		const so_5::rt::state_t st_second = so_make_state( "second" );
+		const state_t st_first = so_make_state( "first" );
+		const state_t st_second = so_make_state( "second" );
 };
 
-my_agent_t::my_agent_t( so_5::rt::environment_t & env )
-	: so_5::rt::agent_t( env )
+my_agent_t::my_agent_t( so_5::environment_t & env )
+	: so_5::agent_t( env )
 {
 }
 
@@ -202,7 +202,7 @@ main()
 	try
 	{
 		so_5::launch(
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				env.register_agent_as_coop( so_5::autoname,
 						env.make_agent< my_agent_t >() );

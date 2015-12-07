@@ -21,8 +21,6 @@
 
 namespace so_5 {
 
-namespace rt {
-
 namespace details {
 
 /*!
@@ -219,8 +217,6 @@ struct result_setter_t< void >
 
 } /* namespace details */
 
-} /* namespace rt */
-
 //
 // handler
 //
@@ -233,14 +229,13 @@ struct result_setter_t< void >
  * \note This function is intended to be used only by SObjectizer itself.
  */
 template< class LAMBDA >
-rt::details::msg_type_and_handler_pair_t
+details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
-		using namespace so_5::rt;
-		using namespace so_5::rt::details;
+		using namespace so_5::details;
 		using namespace so_5::details::lambda_traits;
-		using namespace so_5::rt::details::event_subscription_helpers;
-		using namespace so_5::rt::details::promise_result_setting_details;
+		using namespace so_5::details::event_subscription_helpers;
+		using namespace so_5::details::promise_result_setting_details;
 
 		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
 		typedef typename TRAITS::result_type RESULT;
@@ -295,14 +290,13 @@ handler( LAMBDA && lambda )
  * \note This function is intended to be used only by SObjectizer itself.
  */
 template< class SIGNAL, class LAMBDA >
-rt::details::msg_type_and_handler_pair_t
+details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
-		using namespace so_5::rt;
-		using namespace so_5::rt::details;
+		using namespace so_5::details;
 		using namespace so_5::details::lambda_traits;
-		using namespace so_5::rt::details::event_subscription_helpers;
-		using namespace so_5::rt::details::promise_result_setting_details;
+		using namespace so_5::details::event_subscription_helpers;
+		using namespace so_5::details::promise_result_setting_details;
 
 		ensure_signal< SIGNAL >();
 
@@ -334,8 +328,6 @@ handler( LAMBDA && lambda )
 				message_payload_type< SIGNAL >::payload_type_index(),
 				method };
 	}
-
-namespace rt {
 
 namespace details {
 
@@ -558,8 +550,6 @@ fill_handlers_bunch(
 	}
 
 } /* namespace details */
-
-} /* namespace rt */
 
 } /* namespace so_5 */
 

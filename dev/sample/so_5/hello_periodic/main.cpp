@@ -13,7 +13,7 @@
 #include <so_5/all.hpp>
 
 // Hello message.
-struct msg_hello_periodic : public so_5::rt::message_t
+struct msg_hello_periodic : public so_5::message_t
 {
 	// Greeting.
 	std::string m_message;
@@ -22,14 +22,14 @@ struct msg_hello_periodic : public so_5::rt::message_t
 };
 
 // Stop message.
-class msg_stop_signal : public so_5::rt::signal_t {};
+class msg_stop_signal : public so_5::signal_t {};
 
 // An agent class definition.
-class a_hello_t : public so_5::rt::agent_t
+class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::rt::environment_t & env )
-			:	so_5::rt::agent_t( env )
+		a_hello_t( so_5::environment_t & env )
+			:	so_5::agent_t( env )
 			,	m_shutdowner_mbox(
 					so_environment().create_local_mbox( "shutdown" ) )
 			,	m_evt_count( 0 )
@@ -49,7 +49,7 @@ class a_hello_t : public so_5::rt::agent_t
 
 	private:
 		// Agent's mbox.
-		const so_5::rt::mbox_t m_shutdowner_mbox;
+		const so_5::mbox_t m_shutdowner_mbox;
 
 		// Timer events' identifiers.
 		so_5::timer_id_t m_hello_timer_id;
@@ -119,7 +119,7 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 
 // Creation of 'hello' cooperation.
 void
-create_hello_coop( so_5::rt::environment_t & env )
+create_hello_coop( so_5::environment_t & env )
 {
 	// Single agent can be registered as whole cooperation.
 	env.register_agent_as_coop( "hello", new a_hello_t( env ) );
@@ -127,9 +127,9 @@ create_hello_coop( so_5::rt::environment_t & env )
 
 // Creation of 'shutdowner' cooperation.
 void
-create_shutdowner_coop( so_5::rt::environment_t & env )
+create_shutdowner_coop( so_5::environment_t & env )
 {
-	env.introduce_coop( "shutdowner", [&env]( so_5::rt::coop_t & coop ) {
+	env.introduce_coop( "shutdowner", [&env]( so_5::coop_t & coop ) {
 		// Mbox for shutdowner agent.
 		auto mbox = env.create_local_mbox( "shutdown" );
 
@@ -148,7 +148,7 @@ create_shutdowner_coop( so_5::rt::environment_t & env )
 
 // The SObjectizer Environment initialization.
 void
-init( so_5::rt::environment_t & env )
+init( so_5::environment_t & env )
 {
 	create_hello_coop( env );
 	create_shutdowner_coop( env );

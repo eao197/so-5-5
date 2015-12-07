@@ -8,7 +8,6 @@
 
 using namespace std;
 using namespace so_5;
-using namespace so_5::rt;
 
 // Message to be filtered.
 using msg_sample = tuple_as_message_t< mtag<0>, int, string >;

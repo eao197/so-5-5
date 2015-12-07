@@ -8,8 +8,7 @@
 	\brief A multi-producer/single-consumer mbox definition.
 */
 
-#if !defined( _SO_5__RT__IMPL__MPSC_MBOX_ )
-#define _SO_5__RT__IMPL__MPSC_MBOX_
+#pragma once
 
 #include <so_5/h/types.hpp>
 #include <so_5/h/exception.hpp>
@@ -23,9 +22,6 @@
 #include <so_5/rt/impl/h/message_limit_internals.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -69,7 +65,7 @@ class limitless_mpsc_mbox_template
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & /*msg_type*/,
-			const so_5::rt::message_limit::control_block_t * /*limit*/,
+			const message_limit::control_block_t * /*limit*/,
 			agent_t * subscriber ) override
 			{
 				std::lock_guard< default_rw_spinlock_t > lock{ m_lock };
@@ -130,7 +126,7 @@ class limitless_mpsc_mbox_template
 
 					agent_t::call_push_event(
 							*m_single_consumer,
-							so_5::rt::message_limit::control_block_t::none(),
+							message_limit::control_block_t::none(),
 							m_id,
 							msg_type,
 							message );
@@ -156,7 +152,7 @@ class limitless_mpsc_mbox_template
 
 							agent_t::call_push_service_request(
 									*m_single_consumer,
-									so_5::rt::message_limit::control_block_t::none(),
+									so_5::message_limit::control_block_t::none(),
 									m_id,
 									msg_type,
 									message );
@@ -276,7 +272,7 @@ class limitful_mpsc_mbox_template
 			agent_t * single_consumer,
 			//! This reference must remains correct till the end of
 			//! the mbox's lifetime.
-			const so_5::rt::message_limit::impl::info_storage_t & limits_storage,
+			const so_5::message_limit::impl::info_storage_t & limits_storage,
 			//! Optional arguments for TRACING_BASE.
 			TRACING_ARGS &&... tracing_args )
 			:	base_type{
@@ -299,7 +295,7 @@ class limitful_mpsc_mbox_template
 						msg_type, message, overlimit_reaction_deep };
 
 				this->do_delivery( tracer, [&] {
-					using namespace so_5::rt::message_limit::impl;
+					using namespace so_5::message_limit::impl;
 
 					auto limit = m_limits.find( msg_type );
 
@@ -339,7 +335,7 @@ class limitful_mpsc_mbox_template
 				this->do_delivery( tracer, [&] {
 					msg_service_request_base_t::dispatch_wrapper( message,
 						[&] {
-							using namespace so_5::rt::message_limit::impl;
+							using namespace so_5::message_limit::impl;
 
 							auto limit = m_limits.find( msg_type );
 
@@ -366,7 +362,7 @@ class limitful_mpsc_mbox_template
 			}
 
 	private :
-		const so_5::rt::message_limit::impl::info_storage_t & m_limits;
+		const so_5::message_limit::impl::info_storage_t & m_limits;
 };
 
 /*!
@@ -385,8 +381,4 @@ using limitful_mpsc_mbox_with_tracing =
 
 } /* namespace impl */
 
-} /* namespace rt */
-
 } /* namespace so_5 */
-
-#endif

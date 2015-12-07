@@ -20,10 +20,10 @@ abstract_message_chain_t::abstract_message_chain_t()
 abstract_message_chain_t::~abstract_message_chain_t()
 	{}
 
-so_5::rt::mbox_t
+mbox_t
 abstract_message_chain_t::as_mbox()
 	{
-		return so_5::rt::mbox_t{ this };
+		return mbox_t{ this };
 	}
 
 } /* namespace so_5 */

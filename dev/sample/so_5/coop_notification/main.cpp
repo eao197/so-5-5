@@ -9,16 +9,13 @@
 #include <so_5/all.hpp>
 
 // A class of an agent which will throw an exception.
-class a_child_t
-	:	public so_5::rt::agent_t
+class a_child_t :	public so_5::agent_t
 {
-		typedef so_5::rt::agent_t base_type_t;
-
 	public :
 		a_child_t(
-			so_5::rt::environment_t & env,
+			so_5::environment_t & env,
 			bool should_throw )
-			:	base_type_t( env )
+			:	so_5::agent_t( env )
 			,	m_should_throw( should_throw )
 		{}
 
@@ -34,15 +31,12 @@ class a_child_t
 };
 
 // A class of parent agent.
-class a_parent_t
-	:	public so_5::rt::agent_t
+class a_parent_t : public so_5::agent_t
 {
-	typedef so_5::rt::agent_t base_type_t;
-
 	public :
 		a_parent_t(
-			so_5::rt::environment_t & env )
-			:	base_type_t( env )
+			so_5::environment_t & env )
+			:	so_5::agent_t( env )
 			,	m_counter( 0 )
 			,	m_max_counter( 3 )
 		{}
@@ -63,7 +57,7 @@ class a_parent_t
 
 		void
 		evt_child_created(
-			const so_5::rt::msg_coop_registered & evt )
+			const so_5::msg_coop_registered & evt )
 		{
 			std::cout << "coop_reg: " << evt.m_coop_name << std::endl;
 
@@ -75,7 +69,7 @@ class a_parent_t
 
 		void
 		evt_child_destroyed(
-			const so_5::rt::msg_coop_deregistered & evt )
+			const so_5::msg_coop_deregistered & evt )
 		{
 			std::cout << "coop_dereg: " << evt.m_coop_name
 				<< ", reason: " << evt.m_reason.reason() << std::endl;
@@ -91,7 +85,7 @@ class a_parent_t
 		void
 		register_child_coop()
 		{
-			using namespace so_5::rt;
+			using namespace so_5;
 
 			introduce_child_coop( *this, "child",
 				[this]( coop_t & coop )
@@ -118,7 +112,7 @@ main()
 	{
 		so_5::launch(
 			// The SObjectizer Environment initialization.
-			[]( so_5::rt::environment_t & env )
+			[]( so_5::environment_t & env )
 			{
 				// Creating and registering a cooperation.
 				env.register_agent_as_coop( "parent",

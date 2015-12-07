@@ -7,8 +7,7 @@
 	\brief Error codes.
 */
 
-#if !defined( _SO_5__RET_CODE_HPP_ )
-#define _SO_5__RET_CODE_HPP_
+#pragma once
 
 #include <so_5/h/declspec.hpp>
 
@@ -230,7 +229,7 @@ const int rc_svc_result_not_received_yet = 86;
 \code
 // Actual service type.
 int a_some_svc_t::evt_query_state(
-	const so_5::rt::event_data_t< msg_query_state > & )
+	const so_5::event_data_t< msg_query_state > & )
 	{ ... }
 
 // Service request call with wrong return type.
@@ -334,4 +333,3 @@ const int rc_unexpected_error = 0xFFFFFF;
 
 } /* namespace so_5 */
 
-#endif

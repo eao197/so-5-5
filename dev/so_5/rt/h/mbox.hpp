@@ -28,9 +28,6 @@
 namespace so_5
 {
 
-namespace rt
-{
-
 /*!
  * \since v.5.5.9
  * \brief Result of checking delivery posibility.
@@ -67,7 +64,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get< status_signal >();
 		 * \endcode
 		 */
@@ -83,9 +80,9 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
 			{
-				const so_5::rt::mbox_t & dest = ...;
+				const so_5::mbox_t & dest = ...;
 				std::string result = dest.get_one< std::string >().wait_forever().sync_get( req.make_reference() );
 			}
 		 * \endcode
@@ -102,7 +99,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get( std::make_unique< request >(...) );
 		 * \endcode
 		 */
@@ -118,7 +115,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().sync_get( new request(...) );
 			\endcode
 		 *
@@ -136,7 +133,7 @@ class infinite_wait_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...) );
 		 * \endcode
 		 */
@@ -173,7 +170,7 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get< status_signal >();
 		 * \endcode
 		 *
@@ -194,9 +191,9 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
 			{
-				const so_5::rt::mbox_t & dest = ...;
+				const so_5::mbox_t & dest = ...;
 				std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( req.make_reference() );
 			}
 		 * \endcode
@@ -218,7 +215,7 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( std::make_unique< request >(...) );
 		 * \endcode
 		 *
@@ -239,7 +236,7 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_for(timeout).sync_get( new request(...) );
 			\endcode
 		 *
@@ -260,7 +257,7 @@ class wait_for_service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 	\code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::string result = dest.get_one< std::string >().wait_for(timeout).make_sync_get< request >(...) );
 		 	\endcode
 		 *
@@ -296,7 +293,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 			std::future< std::string > result = dest.get_one< std::string >().async< status_signal >();
 		 * \endcode
 		 */
@@ -312,9 +309,9 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	void some_agent::some_event( const so_5::rt::event_data_t< request > & req )
+		 	void some_agent::some_event( const so_5::event_data_t< request > & req )
 			{
-				const so_5::rt::mbox_t & dest = ...;
+				const so_5::mbox_t & dest = ...;
 				std::future< std::string > result = dest.get_one< std::string >().async( req.make_reference() );
 			}
 		 * \endcode
@@ -331,7 +328,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::future< std::string > result = dest.get_one< std::string >().async( std::make_unique< request >(...) );
 		 * \endcode
 		 */
@@ -347,7 +344,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::future< std::string > result = dest.get_one< std::string >().async( new request(...) );
 		 * \endcode
 		 */
@@ -373,7 +370,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 		 	std::string r = dest.get_one< std::string >().wait_forever().make_sync_get< request >(...);
 		 * \endcode
 		 */
@@ -413,7 +410,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-		 	const so_5::rt::mbox_t & dest = ...;
+		 	const so_5::mbox_t & dest = ...;
 		 	std::string r = dest.get_one< std::string >().wait_for(std::chrono::milliseconds(50)).make_sync_get< request >(...);
 		 * \endcode
 		 */
@@ -446,7 +443,7 @@ class service_invoke_proxy_t
 		 *
 		 * \par Usage example:
 		 * \code
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::future< std::string > result = dest.get_one< std::string >().make_async< request >(...) );
 		 * \endcode
 		 */
@@ -500,7 +497,7 @@ using delivery_filter_unique_ptr_t =
  * \since v.5.5.3
  * \brief Type of the message box.
  *
- * \deprecated Will be removed in some future version.
+ * \deprecated Will be removed in v.5.6.0.
  */
 enum class mbox_type_t
 	{
@@ -521,7 +518,7 @@ enum class mbox_type_t
  * The class serves as an interface for sending and receiving messages.
  *
  * All mboxes can be created via the SObjectizer Environment. References to
- * mboxes are stored and manipulated by so_5::rt::mbox_t objects.
+ * mboxes are stored and manipulated by so_5::mbox_t objects.
  *
  * abstract_message_box_t has two versions of the deliver_message() method. 
  * The first one requires pointer to the actual message data and is intended 
@@ -606,7 +603,7 @@ class SO_5_TYPE abstract_message_box_t : protected atomic_refcounted_t
 		 * \par Usage examples
 		 * \code
 		 	// Make synchronous call and acquire result as a future object.
-			const so_5::rt::mbox_t & dest = ...;
+			const so_5::mbox_t & dest = ...;
 			std::future< std::string > result =
 					dest.get_one< std::string >().make_async< request >(...);
 
@@ -1109,6 +1106,60 @@ wait_for_service_invoke_proxy_t< RESULT, DURATION >::make_sync_get(
 
 		return this->sync_get( std::move( msg ) );
 	}
+
+namespace rt
+{
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_possibility_t;
+ * instead.
+ */
+using delivery_possibility_t = so_5::delivery_possibility_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::service_invoke_proxy_t
+ * instead.
+ */
+template< class RESULT >
+using service_invoke_proxy_t = so_5::service_invoke_proxy_t< RESULT >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::infinite_wait_service_invoke_proxy_t instead.
+ */
+template< class RESULT >
+using infinite_wait_service_invoke_proxy_t = so_5::infinite_wait_service_invoke_proxy_t< RESULT >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::wait_for_service_invoke_proxy_t instead.
+ */
+template< class RESULT, class DURATION >
+using wait_for_service_invoke_proxy_t =
+	so_5::wait_for_service_invoke_proxy_t< RESULT, DURATION >;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::delivery_filter_t
+ * instead.
+ */
+using delivery_filter_t = so_5::delivery_filter_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use
+ * so_5::delivery_filter_unique_ptr_t instead.
+ */
+using delivery_filter_unique_ptr_t = so_5::delivery_filter_unique_ptr_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0.
+ */
+using mbox_type_t = so_5::mbox_type_t;
+
+/*!
+ * \deprecated Will be removed in v.5.6.0. Use so_5::abstract_message_box_t
+ * instead.
+ */
+using abstract_message_box_t = so_5::abstract_message_box_t;
 
 } /* namespace rt */
 

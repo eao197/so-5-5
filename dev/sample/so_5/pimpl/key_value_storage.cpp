@@ -7,7 +7,7 @@ struct a_key_value_storage_t::internals_t
 {
 	// Type of delayed message to be used for removing
 	// key-value pair after expiration of its lifetime.
-	struct msg_lifetime_expired : public so_5::rt::message_t
+	struct msg_lifetime_expired : public so_5::message_t
 	{
 		std::string m_key;
 
@@ -61,8 +61,8 @@ struct a_key_value_storage_t::internals_t
 	}
 };
 
-a_key_value_storage_t::a_key_value_storage_t( so_5::rt::environment_t & env )
-	:	so_5::rt::agent_t( env )
+a_key_value_storage_t::a_key_value_storage_t( so_5::environment_t & env )
+	:	so_5::agent_t( env )
 	,	m_impl( new internals_t() )
 {}
 a_key_value_storage_t::~a_key_value_storage_t()

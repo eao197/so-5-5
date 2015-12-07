@@ -15,7 +15,7 @@ namespace props = so_5::mchain_props;
 
 void
 do_check_no_wait_drop_newest_impl(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const char * case_name,
 	props::memory_usage_t memory )
 {
@@ -39,7 +39,7 @@ do_check_no_wait_drop_newest_impl(
 }
 
 void
-do_check_no_wait_drop_newest( so_5::rt::environment_t & env )
+do_check_no_wait_drop_newest( so_5::environment_t & env )
 {
 	do_check_no_wait_drop_newest_impl(
 			env, "dynamic", props::memory_usage_t::dynamic );
@@ -49,7 +49,7 @@ do_check_no_wait_drop_newest( so_5::rt::environment_t & env )
 
 void
 do_check_no_wait_remove_oldest_impl(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const char * case_name,
 	props::memory_usage_t memory )
 {
@@ -73,7 +73,7 @@ do_check_no_wait_remove_oldest_impl(
 }
 
 void
-do_check_no_wait_remove_oldest( so_5::rt::environment_t & env )
+do_check_no_wait_remove_oldest( so_5::environment_t & env )
 {
 	do_check_no_wait_remove_oldest_impl(
 			env, "dynamic", props::memory_usage_t::dynamic );
@@ -83,7 +83,7 @@ do_check_no_wait_remove_oldest( so_5::rt::environment_t & env )
 
 void
 do_check_no_wait_throw_exception_impl(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const char * case_name,
 	props::memory_usage_t memory )
 {
@@ -112,7 +112,7 @@ do_check_no_wait_throw_exception_impl(
 }
 
 void
-do_check_no_wait_throw_exception( so_5::rt::environment_t & env )
+do_check_no_wait_throw_exception( so_5::environment_t & env )
 {
 	do_check_no_wait_throw_exception_impl(
 			env, "dynamic", props::memory_usage_t::dynamic );
@@ -128,7 +128,7 @@ do_test_no_wait( bool use_tracer )
 
 	run_with_time_limit(
 		[use_tracer] {
-			so_5::rt::environment_params_t params;
+			so_5::environment_params_t params;
 			if( use_tracer )
 				params.message_delivery_tracer(
 						so_5::msg_tracing::std_clog_tracer() );
@@ -163,7 +163,7 @@ void check_pause( L lambda )
 
 void
 do_check_wait_drop_newest_impl(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const char * case_name,
 	props::memory_usage_t memory )
 {
@@ -188,7 +188,7 @@ do_check_wait_drop_newest_impl(
 }
 
 void
-do_check_wait_drop_newest( so_5::rt::environment_t & env )
+do_check_wait_drop_newest( so_5::environment_t & env )
 {
 	do_check_wait_drop_newest_impl(
 			env, "dynamic", props::memory_usage_t::dynamic );
@@ -198,7 +198,7 @@ do_check_wait_drop_newest( so_5::rt::environment_t & env )
 
 void
 do_check_wait_remove_oldest_impl(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const char * case_name,
 	props::memory_usage_t memory )
 {
@@ -223,7 +223,7 @@ do_check_wait_remove_oldest_impl(
 }
 
 void
-do_check_wait_remove_oldest( so_5::rt::environment_t & env )
+do_check_wait_remove_oldest( so_5::environment_t & env )
 {
 	do_check_wait_remove_oldest_impl(
 			env, "dynamic", props::memory_usage_t::dynamic );
@@ -233,7 +233,7 @@ do_check_wait_remove_oldest( so_5::rt::environment_t & env )
 
 void
 do_check_wait_throw_exception_impl(
-	so_5::rt::environment_t & env,
+	so_5::environment_t & env,
 	const char * case_name,
 	props::memory_usage_t memory )
 {
@@ -265,7 +265,7 @@ do_check_wait_throw_exception_impl(
 }
 
 void
-do_check_wait_throw_exception( so_5::rt::environment_t & env )
+do_check_wait_throw_exception( so_5::environment_t & env )
 {
 	do_check_wait_throw_exception_impl(
 			env, "dynamic", props::memory_usage_t::dynamic );
@@ -281,7 +281,7 @@ do_test_wait( bool use_tracer )
 
 	run_with_time_limit(
 		[use_tracer] {
-			so_5::rt::environment_params_t params;
+			so_5::environment_params_t params;
 			if( use_tracer )
 				params.message_delivery_tracer(
 						so_5::msg_tracing::std_clog_tracer() );

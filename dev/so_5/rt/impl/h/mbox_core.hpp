@@ -7,8 +7,7 @@
 	\brief A definition of an utility class for work with mboxes.
 */
 
-#if !defined( _SO_5__RT__IMPL__MBOX_CORE_HPP_ )
-#define _SO_5__RT__IMPL__MBOX_CORE_HPP_
+#pragma once
 
 #include <memory>
 #include <string>
@@ -27,9 +26,6 @@
 #include <so_5/rt/h/message_limit.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 class environment_t;
@@ -107,7 +103,7 @@ class mbox_core_t
 			//! If this pointer is null then the limitless MPSC-mbox will be
 			//! created. If this pointer is not null the the MPSC-mbox with limit
 			//! control will be created.
-			const so_5::rt::message_limit::impl::info_storage_t * limits_storage );
+			const so_5::message_limit::impl::info_storage_t * limits_storage );
 
 		//! Remove a reference to the named mbox.
 		/*!
@@ -282,8 +278,4 @@ class mbox_core_ref_t
 
 } /* namespace impl */
 
-} /* namespace rt */
-
 } /* namespace so_5 */
-
-#endif

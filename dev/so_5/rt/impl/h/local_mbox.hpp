@@ -7,8 +7,7 @@
 	\brief A local mbox definition.
 */
 
-#if !defined( _SO_5__RT__IMPL__LOCAL_MBOX_HPP_ )
-#define _SO_5__RT__IMPL__LOCAL_MBOX_HPP_
+#pragma once
 
 #include <map>
 #include <vector>
@@ -28,9 +27,6 @@
 #include <so_5/rt/impl/h/msg_tracing_helpers.hpp>
 
 namespace so_5
-{
-
-namespace rt
 {
 
 namespace impl
@@ -61,7 +57,7 @@ class subscriber_info_t
 	agent_t * m_agent;
 
 	//! Optional message limit for that subscriber.
-	const so_5::rt::message_limit::control_block_t * m_limit;
+	const so_5::message_limit::control_block_t * m_limit;
 
 	/*!
 	 * \since v.5.5.5
@@ -89,7 +85,7 @@ public :
 	//! created during event subscription.
 	subscriber_info_t(
 		agent_t * agent,
-		const so_5::rt::message_limit::control_block_t * limit )
+		const so_5::message_limit::control_block_t * limit )
 		:	m_agent( agent )
 		,	m_limit( limit )
 		,	m_filter( nullptr )
@@ -733,7 +729,7 @@ class local_mbox_template
 		virtual void
 		subscribe_event_handler(
 			const std::type_index & type_wrapper,
-			const so_5::rt::message_limit::control_block_t * limit,
+			const so_5::message_limit::control_block_t * limit,
 			agent_t * subscriber ) override
 			{
 				insert_or_modify_subscriber(
@@ -951,7 +947,7 @@ class local_mbox_template
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
-						using namespace so_5::rt::message_limit::impl;
+						using namespace so_5::message_limit::impl;
 
 						try_to_deliver_to_agent(
 								invocation_type_t::event,
@@ -984,7 +980,7 @@ class local_mbox_template
 			const message_ref_t & message,
 			unsigned int overlimit_reaction_deep ) const
 			{
-				using namespace so_5::rt::message_limit::impl;
+				using namespace so_5::message_limit::impl;
 
 				msg_service_request_base_t::dispatch_wrapper( message,
 					[&] {
@@ -1032,7 +1028,7 @@ class local_mbox_template
 
 				if( delivery_possibility_t::must_be_delivered == delivery_status )
 					{
-						using namespace so_5::rt::message_limit::impl;
+						using namespace so_5::message_limit::impl;
 
 						try_to_deliver_to_agent(
 								invocation_type_t::service_request,
@@ -1083,9 +1079,5 @@ using local_mbox_with_tracing =
 
 } /* namespace impl */
 
-} /* namespace rt */
-
 } /* namespace so_5 */
-
-#endif
 
