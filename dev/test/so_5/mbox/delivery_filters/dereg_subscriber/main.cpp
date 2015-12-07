@@ -52,7 +52,7 @@ class a_parent_t : public so_5::agent_t
 public :
 	a_parent_t( context_t ctx )
 		:	so_5::agent_t( ctx )
-		,	m_data_mbox( so_environment().create_local_mbox() )
+		,	m_data_mbox( so_environment().create_mbox() )
 	{}
 
 	virtual void

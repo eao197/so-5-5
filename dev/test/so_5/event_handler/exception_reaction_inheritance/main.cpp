@@ -53,7 +53,7 @@ class a_parent_t
 					so_coop_name() + "::child" );
 			child->set_parent_coop_name( so_coop_name() );
 
-			auto mbox = so_environment().create_local_mbox();
+			auto mbox = so_environment().create_mbox();
 			child->add_agent( new a_test_t( so_environment(), mbox ) );
 
 			so_environment().register_coop( std::move(child) );

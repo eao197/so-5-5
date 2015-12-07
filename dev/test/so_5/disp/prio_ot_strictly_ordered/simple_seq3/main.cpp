@@ -82,7 +82,7 @@ main()
 						{
 							using namespace so_5::disp::prio_one_thread::strictly_ordered;
 
-							auto common_mbox = env.create_local_mbox();
+							auto common_mbox = env.create_mbox();
 							env.introduce_coop(
 								create_private_disp( env )->binder(),
 								[&common_mbox]( so_5::coop_t & coop ) {

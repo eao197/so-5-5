@@ -14,7 +14,7 @@ class a_time_sentinel_t
 		a_time_sentinel_t(
 			so_5::environment_t & env )
 			:	so_5::agent_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 			{}
 
 		virtual void

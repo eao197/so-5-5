@@ -61,7 +61,7 @@ void
 init( so_5::environment_t & env )
 {
 	env.introduce_coop( []( so_5::coop_t & coop ) {
-			coop.make_agent< a_test_t >( coop.environment().create_local_mbox() );
+			coop.make_agent< a_test_t >( coop.environment().create_mbox() );
 		} );
 }
 

@@ -48,7 +48,7 @@ class test_agent_t
 			so_5::environment_t & env )
 			:
 				base_type_t( env ),
-				m_test_mbox( so_environment().create_local_mbox() )
+				m_test_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_t()

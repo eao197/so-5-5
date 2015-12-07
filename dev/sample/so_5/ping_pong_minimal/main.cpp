@@ -62,7 +62,7 @@ main()
 		so_5::launch( []( so_5::environment_t & env ) {
 				env.introduce_coop( [&env]( so_5::coop_t & coop ) {
 					// Mbox for agent's interaction.
-					auto mbox = env.create_local_mbox();
+					auto mbox = env.create_mbox();
 
 					// Pinger.
 					coop.make_agent< a_pinger_t >( mbox, 100000 );

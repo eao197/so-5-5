@@ -115,10 +115,10 @@ private :
 void
 init( so_5::environment_t & env )
 {
-	auto w1_mbox = env.create_local_mbox();
-	auto w2_mbox = env.create_local_mbox();
-	auto w3_mbox = env.create_local_mbox();
-	auto m_mbox = env.create_local_mbox();
+	auto w1_mbox = env.create_mbox();
+	auto w2_mbox = env.create_mbox();
+	auto w3_mbox = env.create_mbox();
+	auto m_mbox = env.create_mbox();
 
 	auto coop = env.create_coop( so_5::autoname );
 	

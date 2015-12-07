@@ -42,7 +42,7 @@ class a_hello_t : public so_5::agent_t
 			const std::string & agent_name )
 			:	so_5::agent_t( env ),
 				m_agent_name( agent_name ),
-				m_common_mbox( so_environment().create_local_mbox( "common_mbox" ) )
+				m_common_mbox( so_environment().create_mbox( "common_mbox" ) )
 		{}
 		virtual ~a_hello_t()
 		{}

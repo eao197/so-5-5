@@ -117,7 +117,7 @@ fill_coop(
 		using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 		using namespace so_5::prio;
 
-		auto common_mbox = coop.environment().create_local_mbox();
+		auto common_mbox = coop.environment().create_mbox();
 		auto rr_disp = create_private_disp( coop.environment(),
 				quotes_t{2}
 					.set( p7, 5 )

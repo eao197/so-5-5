@@ -614,7 +614,7 @@ void create_starter_agent(
 void fill_coop( so_5::coop_t & coop )
 {
 	// Common mbox for information distribution.
-	auto status_distrib_mbox = coop.environment().create_local_mbox();
+	auto status_distrib_mbox = coop.environment().create_mbox();
 
 	// Create machines and form machines dictionary.
 	const auto & machine_dict = create_machines( coop, status_distrib_mbox );

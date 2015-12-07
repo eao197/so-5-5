@@ -271,7 +271,7 @@ class a_starter_stopper_t
 			const cfg_t & cfg )
 			:	so_5::agent_t( env + subscr_storage_factory )
 			,	m_subscr_storage_factory( subscr_storage_factory )
-			,	m_common_mbox( env.create_local_mbox() )
+			,	m_common_mbox( env.create_mbox() )
 			,	m_cfg( cfg )
 			,	m_agents_finished( 0 )
 			{
@@ -408,7 +408,7 @@ class a_starter_stopper_t
 					duration_meter_t meter( "creating mboxes" );
 					m_mboxes.reserve( m_cfg.m_mboxes );
 					for( std::size_t i = 0; i != m_cfg.m_mboxes; ++i )
-						m_mboxes.emplace_back( so_environment().create_local_mbox() );
+						m_mboxes.emplace_back( so_environment().create_mbox() );
 				}
 
 				auto coop = so_environment().create_coop( "child" );

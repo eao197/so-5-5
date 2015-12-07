@@ -21,7 +21,7 @@ public :
 	{
 		// Ping signals will be sent to named mbox.
 		// The name of this mbox is the same as the name of agent's coop.
-		so_subscribe( so_environment().create_local_mbox( so_coop_name() ) )
+		so_subscribe( so_environment().create_mbox( so_coop_name() ) )
 			.event< ping >( &demo_agent::evt_ping );
 	}
 
@@ -114,7 +114,7 @@ void demo()
 					auto reply = so_5::request_value< std::string, demo_agent::ping >(
 							// Mbox will be created if necessary.
 							// If such mbox is already exists it will be reused.
-							env.environment().create_local_mbox( name ),
+							env.environment().create_mbox( name ),
 							// Infinite wait for response.
 							so_5::infinite_wait );
 

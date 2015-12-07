@@ -124,7 +124,7 @@ init(
 				so_5::disp::active_obj::create_private_disp( env )->binder(),
 				[&env]( so_5::coop_t & coop )
 				{
-					auto svc_mbox = env.create_local_mbox();
+					auto svc_mbox = env.create_mbox();
 
 					define_hello_service( coop, svc_mbox );
 					define_convert_service( coop, svc_mbox );

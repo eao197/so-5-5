@@ -264,9 +264,9 @@ class test_env_t
 				auto a_ponger = coop->make_agent< a_ponger_t >( m_cfg );
 
 				auto pinger_mbox = m_cfg.m_direct_mboxes ?
-						a_pinger->so_direct_mbox() : env.create_local_mbox();
+						a_pinger->so_direct_mbox() : env.create_mbox();
 				auto ponger_mbox = m_cfg.m_direct_mboxes ?
-						a_ponger->so_direct_mbox() : env.create_local_mbox();
+						a_ponger->so_direct_mbox() : env.create_mbox();
 
 				a_pinger->set_self_mbox( pinger_mbox );
 				a_pinger->set_ponger_mbox( ponger_mbox );

@@ -28,7 +28,7 @@ class a_test_t : public so_5::agent_t
 			,	m_ordinal( ordinal )
 			,	m_max_deep( max_deep )
 			,	m_self_mbox(
-					env.create_local_mbox( mbox_name( ordinal ) ) )
+					env.create_mbox( mbox_name( ordinal ) ) )
 		{
 		}
 
@@ -85,7 +85,7 @@ class a_test_t : public so_5::agent_t
 		void
 		notify_parent()
 		{
-			so_environment().create_local_mbox( mbox_name( m_ordinal - 1 ) )->
+			so_environment().create_mbox( mbox_name( m_ordinal - 1 ) )->
 					deliver_signal< msg_child_started >();
 		}
 };

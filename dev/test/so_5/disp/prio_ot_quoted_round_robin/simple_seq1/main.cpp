@@ -56,7 +56,7 @@ define_starter_agent(
 	{
 		coop.define_agent( coop.make_agent_context() + so_5::prio::p0, disp.binder() )
 			.on_start( [&coop, &disp] {
-				auto common_mbox = coop.environment().create_local_mbox();
+				auto common_mbox = coop.environment().create_mbox();
 
 				coop.environment().introduce_coop(
 					[&]( so_5::coop_t & child )

@@ -17,7 +17,7 @@ class test_mbox_t : public so_5::abstract_message_box_t
 		static unsigned int unsubscriptions;
 
 		test_mbox_t( so_5::environment_t & env )
-			:	m_actual_mbox( env.create_local_mbox() )
+			:	m_actual_mbox( env.create_mbox() )
 			{
 			}
 

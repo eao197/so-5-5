@@ -94,7 +94,7 @@ class a_test_starter_t : public so_5::agent_t
 			sequence_holder_t & sequence )
 			:	base_type_t( env )
 			,	m_sequence( sequence )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 		{}
 
 		void

@@ -424,7 +424,7 @@ create_board_coop(
 	so_5::environment_t & env,
 	const so_5::mbox_t & logger_mbox )
 	{
-		auto board_mbox = env.create_local_mbox();
+		auto board_mbox = env.create_mbox();
 
 		using namespace so_5::disp::prio_one_thread::quoted_round_robin;
 		using namespace so_5::prio;

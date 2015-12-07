@@ -199,7 +199,7 @@ class a_contoller_t : public so_5::agent_t
 			:	so_5::agent_t( env )
 			,	m_cfg( std::move( cfg ) )
 			,	m_working_agents( cfg.m_cooperations * cfg.m_agents )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 		{}
 
 		virtual void

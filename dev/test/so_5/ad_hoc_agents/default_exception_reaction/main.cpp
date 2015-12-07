@@ -13,7 +13,7 @@ class a_test_t : public so_5::agent_t
 	public :
 		a_test_t( context_t ctx )
 			:	so_5::agent_t( ctx )
-			,	m_child_mbox( so_environment().create_local_mbox() )
+			,	m_child_mbox( so_environment().create_mbox() )
 			{}
 
 		virtual void

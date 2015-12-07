@@ -464,13 +464,13 @@ class SO_5_TYPE environment_params_t
  * Syncronization objects for these mboxes can be obtained from
  * common pools or assigned by a user during mbox creation.
  *
- * Mboxes are created by environment_t::create_local_mbox() methods.
+ * Mboxes are created by environment_t::create_mbox() methods.
  * All these methods return the mbox_t which is a smart reference 
  * to the mbox.
  *
  * An anonymous mbox is automatically destroyed when the last reference to it is
  * destroyed. So, to save the anonymous mbox, the mbox_ref from 
- * the create_local_mbox() should be stored somewhere.
+ * the create_mbox() should be stored somewhere.
  *
  * Named mbox must be destroyed manually by calling the 
  * environment_t::destroy_mbox() method. But physically the deletion of the 
@@ -547,7 +547,7 @@ class SO_5_TYPE environment_t
 		 *	\note always creates a new mbox.
 		 */
 		mbox_t
-		create_local_mbox();
+		create_mbox();
 
 		//! Create named mbox with the default mutex.
 		/*!
@@ -555,10 +555,28 @@ class SO_5_TYPE environment_t
 		 * If not the reference to existing mutex will be returned.
 		 */
 		mbox_t
-		create_local_mbox(
+		create_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
 
+		/*!
+		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
+		 */
+		inline mbox_t
+		create_local_mbox()
+			{
+				return create_mbox();
+			}
+
+		/*!
+		 * \deprecated Will be removed in v.5.6.0. Use create_mbox() instead.
+		 */
+		inline mbox_t
+		create_local_mbox(
+			const nonempty_name_t & mbox_name )
+			{
+				return create_mbox( mbox_name );
+			}
 		/*!
 		 * \}
 		 */

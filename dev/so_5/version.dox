@@ -13,6 +13,9 @@
 	Type name so_5::agent_t::state_t is added. It just an alias for
 	so_5::state_t.
 
+	Methods so_5::environment_t::create_local_mbox() are deprecated.
+	Methods so_5::environment_t::create_mbox() must be used instead.
+
 \section so_5__5_12 5.5.12 "Cerro Araral"
 
 	A performance degradation for local mboxes with large amount of

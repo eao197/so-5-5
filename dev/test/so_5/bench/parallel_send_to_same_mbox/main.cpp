@@ -75,7 +75,7 @@ init(
 	unsigned int agent_count,
 	unsigned int send_count )
 	{
-		auto mbox = env.create_local_mbox();
+		auto mbox = env.create_mbox();
 
 		auto coop = env.create_coop( "benchmark",
 				so_5::disp::active_obj::create_disp_binder( "active_obj" ) );

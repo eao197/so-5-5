@@ -31,7 +31,7 @@ class a_hello_t : public so_5::agent_t
 		a_hello_t( so_5::environment_t & env )
 			:	so_5::agent_t( env )
 			,	m_shutdowner_mbox(
-					so_environment().create_local_mbox( "shutdown" ) )
+					so_environment().create_mbox( "shutdown" ) )
 			,	m_evt_count( 0 )
 		{}
 
@@ -131,7 +131,7 @@ create_shutdowner_coop( so_5::environment_t & env )
 {
 	env.introduce_coop( "shutdowner", [&env]( so_5::coop_t & coop ) {
 		// Mbox for shutdowner agent.
-		auto mbox = env.create_local_mbox( "shutdown" );
+		auto mbox = env.create_mbox( "shutdown" );
 
 		// Shutdowner agent.
 		coop.define_agent().event< msg_stop_signal >( mbox,

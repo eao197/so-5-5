@@ -95,7 +95,7 @@ void
 init( so_5::environment_t & env )
 {
 	so_5::mbox_t test_mbox =
-		env.create_local_mbox( g_test_mbox_name );
+		env.create_mbox( g_test_mbox_name );
 
 	reg_coop( "test_coop_1", test_mbox, env );
 	reg_coop( "test_coop_2", test_mbox, env );
@@ -108,7 +108,7 @@ init( so_5::environment_t & env )
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Initiate message.
-	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
+	env.create_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
@@ -133,7 +133,7 @@ init( so_5::environment_t & env )
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
 
 	// Send another message.
-	env.create_local_mbox( g_test_mbox_name )->deliver_signal< test_message >();
+	env.create_mbox( g_test_mbox_name )->deliver_signal< test_message >();
 
 	// Give time to process message.
 	std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );

@@ -18,7 +18,7 @@ class a_test_t
 		a_test_t(
 			so_5::environment_t & env )
 			:	base_type_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 			,	m_counter( 0 )
 			,	m_max_attempts( 3 )
 		{}

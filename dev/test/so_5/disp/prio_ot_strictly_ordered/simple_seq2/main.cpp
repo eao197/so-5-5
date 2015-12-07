@@ -57,7 +57,7 @@ fill_coop(
 	{
 		using namespace so_5::prio;
 
-		auto common_mbox = coop.environment().create_local_mbox();
+		auto common_mbox = coop.environment().create_mbox();
 		std::string & sequence = define_main_agent( coop, common_mbox );
 		define_receiver_agent( coop, p1, common_mbox, sequence );
 		define_receiver_agent( coop, p2, common_mbox, sequence );

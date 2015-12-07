@@ -555,7 +555,7 @@ init( so_5::environment_t & env )
 		// All top-level agents belong to the same coop,
 		// but work on different dispacthers.
 		env.introduce_coop( []( so_5::coop_t & coop ) {
-				auto mbox = coop.environment().create_local_mbox();
+				auto mbox = coop.environment().create_mbox();
 
 				// Request scheduler and accepter stuff.
 
