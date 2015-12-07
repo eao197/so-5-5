@@ -41,7 +41,7 @@ class a_test_t : public so_5::agent_t
 			:	base_type_t( env )
 			,	m_reg_notificator( reg_notificator )
 			,	m_dereg_notificator( dereg_notificator )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{}
 
 		void

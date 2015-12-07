@@ -74,7 +74,7 @@ init( so_5::environment_t & env )
 	auto thread_pool = so_5::disp::thread_pool::create_private_disp( env, 3 );
 	auto adv_thread_pool = so_5::disp::adv_thread_pool::create_private_disp( env, 10 );
 
-	auto start_mbox = env.create_local_mbox( "start" );
+	auto start_mbox = env.create_mbox( "start" );
 	auto coop = env.create_coop( so_5::autoname );
 	
 	auto collector = coop->make_agent< a_collector_t >( start_mbox, 9 + 10 );

@@ -34,7 +34,7 @@ class a_ordinary_t
 		so_define_agent()
 		{
 			so_5::mbox_t mbox = so_environment()
-				.create_local_mbox( g_test_mbox_name );
+				.create_mbox( g_test_mbox_name );
 
 			so_subscribe( mbox )
 				.in( so_default_state() )

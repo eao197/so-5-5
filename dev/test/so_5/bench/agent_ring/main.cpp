@@ -260,7 +260,7 @@ create_coop(
 						if( cfg.m_direct_mboxes )
 							mboxes.push_back( member->so_direct_mbox() );
 						else
-							mboxes.push_back( env.create_local_mbox() );
+							mboxes.push_back( env.create_mbox() );
 					}
 
 				for( unsigned int i = 0; i != cfg.m_ring_size; ++i )

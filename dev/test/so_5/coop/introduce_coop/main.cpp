@@ -13,7 +13,7 @@
 so_5::mbox_t
 manager_mbox( so_5::environment_t & env )
 {
-	return env.create_local_mbox( "manager" );
+	return env.create_mbox( "manager" );
 }
 
 struct msg_started : public so_5::signal_t {};

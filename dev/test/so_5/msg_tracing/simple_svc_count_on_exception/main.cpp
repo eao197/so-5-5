@@ -46,7 +46,7 @@ init( so_5::environment_t & env )
 		so_5::disp::active_obj::create_private_disp( env )->binder(),
 		[]( so_5::coop_t & coop ) {
 			coop.make_agent< a_request_initator_t >(
-					coop.environment().create_local_mbox( "gate" ) );
+					coop.environment().create_mbox( "gate" ) );
 		} );
 }
 

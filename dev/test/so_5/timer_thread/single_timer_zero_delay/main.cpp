@@ -27,7 +27,7 @@ class a_test_t : public so_5::agent_t
 			int & message_counter )
 			:	base_type_t( env )
 			,	m_message_counter( message_counter )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{
 		}
 

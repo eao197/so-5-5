@@ -120,7 +120,7 @@ class a_driver_t : public so_5::agent_t
 		a_driver_t(
 			so_5::environment_t & env )
 			:	so_5::agent_t( env )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{}
 
 		virtual void
@@ -152,7 +152,7 @@ class a_driver_t : public so_5::agent_t
 			coop->add_agent(
 				new a_child_t(
 					so_environment(),
-					so_environment().create_local_mbox(),
+					so_environment().create_mbox(),
 					m_mbox ) );
 
 			so_environment().register_coop( std::move( coop ) );

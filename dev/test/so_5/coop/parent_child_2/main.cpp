@@ -40,7 +40,7 @@ class a_test_t : public so_5::agent_t
 			,	m_level( level )
 			,	m_max_deep( max_deep )
 			,	m_started_children( 0 )
-			,	m_self_mbox( env.create_local_mbox( self_name ) )
+			,	m_self_mbox( env.create_mbox( self_name ) )
 		{
 		}
 
@@ -102,7 +102,7 @@ class a_test_t : public so_5::agent_t
 		void
 		notify_parent()
 		{
-			so_environment().create_local_mbox( m_parent_coop_name )->
+			so_environment().create_mbox( m_parent_coop_name )->
 					deliver_signal< msg_child_started >();
 		}
 };

@@ -83,7 +83,7 @@ init( so_5::environment_t & env )
 	env.introduce_coop(
 			so_5::disp::active_obj::create_private_disp( env )->binder(),
 			[&]( so_5::coop_t & coop ) {
-				const auto mbox = env.create_local_mbox();
+				const auto mbox = env.create_mbox();
 
 				coop.make_agent< a_provider_t >( mbox );
 				coop.make_agent< a_consumer_t >( mbox );

@@ -20,9 +20,9 @@ class a_test_t : public so_5::agent_t
 	public :
 		a_test_t( context_t ctx )
 			:	so_5::agent_t( ctx )
-			,	m_m1( so_environment().create_local_mbox( "m1" ) )
-			,	m_m2( so_environment().create_local_mbox( "m2" ) )
-			,	m_m3( so_environment().create_local_mbox( "m3" ) )
+			,	m_m1( so_environment().create_mbox( "m1" ) )
+			,	m_m2( so_environment().create_mbox( "m2" ) )
+			,	m_m3( so_environment().create_mbox( "m3" ) )
 			{}
 
 		virtual void

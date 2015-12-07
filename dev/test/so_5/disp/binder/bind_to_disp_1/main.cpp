@@ -48,7 +48,7 @@ class test_agent_sender_t
 				base_type_t( env ),
 				m_send_session_complited( 0 ),
 				m_mbox_receiver( mbox ),
-				m_notification_mbox( so_environment().create_local_mbox() )
+				m_notification_mbox( so_environment().create_mbox() )
 		{}
 
 		virtual ~test_agent_sender_t()
@@ -168,7 +168,7 @@ test_agent_receiver_t::evt_test(
 void
 init( so_5::environment_t & env )
 {
-	so_5::mbox_t mbox = env.create_local_mbox();
+	so_5::mbox_t mbox = env.create_mbox();
 
 	so_5::coop_unique_ptr_t coop =
 		env.create_coop( "test_coop" );

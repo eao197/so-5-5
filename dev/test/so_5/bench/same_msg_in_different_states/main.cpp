@@ -23,7 +23,7 @@ class a_test_t
 			std::size_t states_count,
 			int tick_count )
 			:	so_5::agent_t( env )
-			,	m_self_mbox( env.create_local_mbox() )
+			,	m_self_mbox( env.create_mbox() )
 			,	m_tick_count( tick_count )
 			,	m_messages_received( 0 )
 			{

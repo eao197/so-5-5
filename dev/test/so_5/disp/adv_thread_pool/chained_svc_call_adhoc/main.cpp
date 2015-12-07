@@ -42,7 +42,7 @@ create_test_coop( so_5::environment_t & env )
 					"thread_pool",
 					atp_disp::bind_params_t() ) );
 
-	auto mbox = env.create_local_mbox();
+	auto mbox = env.create_mbox();
 	auto requester = [mbox]( unsigned int number ) {
 			return mbox->get_one< std::string >()
 					.wait_forever().sync_get( new msg_request_string( number ) );

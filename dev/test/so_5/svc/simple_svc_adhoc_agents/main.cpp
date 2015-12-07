@@ -105,7 +105,7 @@ run_test()
 						"test_coop",
 						so_5::disp::active_obj::create_disp_binder( "active_obj" ) );
 
-				auto svc_mbox = env.create_local_mbox();
+				auto svc_mbox = env.create_mbox();
 
 				coop->add_agent( new a_time_sentinel_t( env ) );
 

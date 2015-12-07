@@ -29,7 +29,7 @@ class a_test_t : public so_5::agent_t
 		a_test_t(
 			so_5::environment_t & env )
 			:	base_type_t( env )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 			,	m_cycle( 0 )
 		{}
 

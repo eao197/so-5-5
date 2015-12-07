@@ -131,14 +131,14 @@ init(
 
 		so_5::intrusive_ptr_t< msg_param > msg( new msg_param() );
 
-		auto svc_mbox = env.create_local_mbox();
+		auto svc_mbox = env.create_mbox();
 		so_5::mbox_t current_svc_mbox = svc_mbox;
 		so_5::mbox_t next_svc_mbox;
 
 		for( std::size_t i = 0; i != SVC_COUNT; ++i ) 
 			{
 				if( i+1 != SVC_COUNT )
-					next_svc_mbox = env.create_local_mbox();
+					next_svc_mbox = env.create_mbox();
 
 				coop->add_agent(
 						new a_service_t(

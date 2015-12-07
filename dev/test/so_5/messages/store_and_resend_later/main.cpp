@@ -171,7 +171,7 @@ class a_test_t : public so_5::agent_t
 			controller_t & controller )
 			:	base_type_t( env )
 			,	m_controller( controller )
-			,	m_mbox( env.create_local_mbox() )
+			,	m_mbox( env.create_mbox() )
 		{
 		}
 
