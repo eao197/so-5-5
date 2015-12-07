@@ -157,7 +157,7 @@ void demo()
 	so_5::wrapped_env_t sobj;
 
 	// Mbox for sending requests to SO-part of the app.
-	auto req_mbox = sobj.environment().create_local_mbox();
+	auto req_mbox = sobj.environment().create_mbox();
 	// Chain for receiving replies from SO-part of the app. 
 	auto chain = sobj.environment().create_mchain(
 			// No limits for chain.

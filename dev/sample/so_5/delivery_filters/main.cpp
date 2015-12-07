@@ -26,7 +26,7 @@ class a_example_t : public agent_t
 public :
 	a_example_t( context_t ctx )
 		:	agent_t( ctx )
-		,	m_mbox( so_environment().create_local_mbox() )
+		,	m_mbox( so_environment().create_mbox() )
 	{}
 
 	virtual void

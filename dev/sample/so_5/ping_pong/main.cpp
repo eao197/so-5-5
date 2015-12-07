@@ -107,7 +107,7 @@ run_sample(
 						so_5::create_default_disp_binder(),
 						[&]( so_5::coop_t & coop )
 						{
-							auto mbox = env.create_local_mbox();
+							auto mbox = env.create_mbox();
 
 							// Pinger agent.
 							coop.define_agent()

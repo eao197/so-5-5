@@ -143,7 +143,7 @@ arg_to_mbox( const so_5::mchain_t & chain ) { return chain->as_mbox(); }
 	struct hello_msg { std::string greeting; std::string who };
 
 	// Send to mbox.
-	so_5::send< hello_msg >( env.create_local_mbox( "hello" ), "Hello", "World!" );
+	so_5::send< hello_msg >( env.create_mbox( "hello" ), "Hello", "World!" );
 
 	// Send to agent.
 	class demo_agent : public so_5::agent_t
@@ -170,7 +170,7 @@ arg_to_mbox( const so_5::mchain_t & chain ) { return chain->as_mbox(); }
 	struct turn_on : public so_5::signal_t {};
 
 	// Send to mbox.
-	so_5::send< turn_on >( env.create_local_mbox( "engine" ) );
+	so_5::send< turn_on >( env.create_mbox( "engine" ) );
 
 	// Send to agent.
 	class engine_agent : public so_5::agent_t

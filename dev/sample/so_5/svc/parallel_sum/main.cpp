@@ -41,7 +41,7 @@ class a_vector_summator_t : public so_5::agent_t
 			const so_5::mbox_t & self_mbox )
 			:	so_5::agent_t( env )
 			,	m_self_mbox( self_mbox )
-			,	m_part_summator_mbox( env.create_local_mbox() )
+			,	m_part_summator_mbox( env.create_mbox() )
 			{}
 
 		virtual void
@@ -121,7 +121,7 @@ class a_runner_t : public so_5::agent_t
 			std::size_t iterations )
 			:	so_5::agent_t( env )
 			,	ITERATIONS( iterations )
-			,	m_summator_mbox( env.create_local_mbox() )
+			,	m_summator_mbox( env.create_mbox() )
 			{}
 
 		virtual void
