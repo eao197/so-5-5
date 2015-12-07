@@ -35,7 +35,7 @@ mbox_core_t::~mbox_core_t()
 
 
 mbox_t
-mbox_core_t::create_local_mbox()
+mbox_core_t::create_mbox()
 {
 	auto id = ++m_mbox_id_counter;
 	if( !m_tracer )
@@ -45,12 +45,12 @@ mbox_core_t::create_local_mbox()
 }
 
 mbox_t
-mbox_core_t::create_local_mbox(
+mbox_core_t::create_mbox(
 	const nonempty_name_t & mbox_name )
 {
 	return create_named_mbox(
 			mbox_name,
-			[this]() { return create_local_mbox(); } );
+			[this]() { return create_mbox(); } );
 }
 
 namespace {

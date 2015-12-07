@@ -77,7 +77,7 @@ class mbox_core_t
 			\note always creates a new mbox.
 		*/
 		mbox_t
-		create_local_mbox();
+		create_mbox();
 
 		//! Create local named mbox.
 		/*!
@@ -87,7 +87,7 @@ class mbox_core_t
 			the present mbox (with this name).
 		*/
 		mbox_t
-		create_local_mbox(
+		create_mbox(
 			//! Mbox name.
 			const nonempty_name_t & mbox_name );
 

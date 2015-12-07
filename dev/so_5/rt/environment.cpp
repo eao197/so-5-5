@@ -274,7 +274,7 @@ struct environment_t::internals_t
 		,	m_stats_controller(
 				// A special mbox for distributing monitoring information
 				// must be created and passed to stats_controller.
-				m_mbox_core->create_local_mbox() )
+				m_mbox_core->create_mbox() )
 		,	m_core_data_sources(
 				m_stats_controller,
 				*m_mbox_core,
@@ -305,16 +305,16 @@ environment_t::~environment_t()
 }
 
 mbox_t
-environment_t::create_local_mbox( )
+environment_t::create_mbox( )
 {
-	return m_impl->m_mbox_core->create_local_mbox();
+	return m_impl->m_mbox_core->create_mbox();
 }
 
 mbox_t
-environment_t::create_local_mbox(
+environment_t::create_mbox(
 	const nonempty_name_t & nonempty_name )
 {
-	return m_impl->m_mbox_core->create_local_mbox( nonempty_name );
+	return m_impl->m_mbox_core->create_mbox( nonempty_name );
 }
 
 mchain_t
