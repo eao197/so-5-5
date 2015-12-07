@@ -96,10 +96,7 @@ void
 init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "main_coop" );
-	coop->add_agent(
-		so_5::agent_ref_t(
-			new a_main_t ) );
-
+	coop->make_agent< a_main_t >();
 	env.register_coop( std::move( coop ) );
 }
 
@@ -144,9 +141,7 @@ void
 init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "main_coop" );
-	coop->add_agent(
-		so_5::agent_ref_t(
-			new a_main_t ) );
+	coop->make_agent< a_main_t >();
 
 	env.register_coop( std::move( coop ) );
 }
@@ -197,9 +192,7 @@ void
 init( so_5::environment_t & env )
 {
 	auto coop = env.create_coop( "main_coop" );
-	coop->add_agent(
-		so_5::agent_ref_t(
-			new a_main_t ) );
+	coop->make_agent< a_main_t >();
 
 	env.register_coop( std::move( coop ) );
 }
@@ -257,16 +250,11 @@ init(
 		acceptor_creator( env );
 
 	using so_5_transport::a_server_transport_agent_t;
-	std::unique_ptr< a_server_transport_agent_t > ta(
-		new a_server_transport_agent_t(
-			env,
+	auto ta = coop->make_agent< a_server_transport_agent_t >(
+		a_server_transport_agent_t(
 			acceptor_creator.create( server_addr ) ) );
 
-	so_5::agent_ref_t serv(
-		new a_main_t( env, ta->query_notificator_mbox() ) );
-
-	coop->add_agent( serv );
-	coop->add_agent( so_5::agent_ref_t( ta.release() ) );
+	coop->make_agent< a_main_t >( ta->query_notificator_mbox() );
 
 	// Register the cooperation.
 	env.register_coop( coop );
@@ -346,16 +334,11 @@ init(
 		acceptor_creator( env );
 
 	using so_5_transport::a_server_transport_agent_t;
-	std::unique_ptr< a_server_transport_agent_t > ta(
-		new a_server_transport_agent_t(
-			env,
+	auto ta = coop->make_agent< a_server_transport_agent_t >(
+		a_server_transport_agent_t(
 			acceptor_creator.create( server_addr ) ) );
 
-	so_5::agent_ref_t serv(
-		new a_main_t( env, ta->query_notificator_mbox() ) );
-
-	coop->add_agent( serv );
-	coop->add_agent( so_5::agent_ref_t( ta.release() ) );
+	coop->make_agent< a_main_t >( ta->query_notificator_mbox() );
 
 	// Register the cooperation.
 	env.register_coop( coop );
@@ -430,20 +413,14 @@ struct client_data_t
 		so_5_transport::socket::connector_controller_creator_t
 			connector_creator( env );
 
-		using so_5_transport::a_client_transport_agent_t;
-		std::unique_ptr< a_client_transport_agent_t > ta(
-			new a_client_transport_agent_t(
-				env,
-				connector_creator.create( m_server_addr ) ) );
+		using so_5_transport::a_server_transport_agent_t;
+		auto ta = coop->make_agent< a_server_transport_agent_t >(
+			a_server_transport_agent_t(
+				acceptor_creator.create( server_addr ) ) );
 
-		so_5::agent_ref_t client(
-			new a_main_t(
-				env,
+		coop->make_agent< a_main_t >(
 				ta->query_notificator_mbox(),
-				m_rest_of_argv ) );
-
-		coop->add_agent( client );
-		coop->add_agent( so_5::agent_ref_t( ta.release() ) );
+				m_protocol_parser );
 
 		// Register the cooperation.
 		env.register_coop( coop );

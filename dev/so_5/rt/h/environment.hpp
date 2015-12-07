@@ -704,8 +704,7 @@ class SO_5_TYPE environment_t
 			// That agent will be bound to the dispatcher "active_group"
 			// and will be member of an active group with name
 			// "some_active_group".
-			coop->add_agent(
-				so_5::agent_ref_t( new a_some_agent_t( env ) ) );
+			coop->make_agent< a_some_agent_t >();
 			\endcode
 		 */
 		coop_unique_ptr_t
