@@ -12,15 +12,12 @@
 class a_child_t :	public so_5::agent_t
 {
 	public :
-		a_child_t(
-			so_5::environment_t & env,
-			bool should_throw )
-			:	so_5::agent_t( env )
-			,	m_should_throw( should_throw )
+		a_child_t( context_t ctx, bool should_throw )
+			:	so_5::agent_t{ ctx }
+			,	m_should_throw{ should_throw }
 		{}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 		{
 			if( m_should_throw )
 				throw std::runtime_error( "A child agent failure!" );
@@ -34,29 +31,29 @@ class a_child_t :	public so_5::agent_t
 class a_parent_t : public so_5::agent_t
 {
 	public :
-		a_parent_t(
-			so_5::environment_t & env )
-			:	so_5::agent_t( env )
-			,	m_counter( 0 )
-			,	m_max_counter( 3 )
+		a_parent_t( context_t ctx )
+			:	so_5::agent_t{ ctx }
+			,	m_counter{ 0 }
+			,	m_max_counter{ 3 }
 		{}
 
-		virtual void
-		so_define_agent() override
+		virtual void so_define_agent() override
 		{
 			so_default_state()
 				.event( &a_parent_t::evt_child_created )
 				.event( &a_parent_t::evt_child_destroyed );
 		}
 
-		void
-		so_evt_start() override
+		void so_evt_start() override
 		{
 			register_child_coop();
 		}
 
-		void
-		evt_child_created(
+	private :
+		int m_counter;
+		const int m_max_counter;
+
+		void evt_child_created(
 			const so_5::msg_coop_registered & evt )
 		{
 			std::cout << "coop_reg: " << evt.m_coop_name << std::endl;
@@ -67,8 +64,7 @@ class a_parent_t : public so_5::agent_t
 			// Otherwise should wait for cooperation shutdown.
 		}
 
-		void
-		evt_child_destroyed(
+		void evt_child_destroyed(
 			const so_5::msg_coop_deregistered & evt )
 		{
 			std::cout << "coop_dereg: " << evt.m_coop_name
@@ -78,12 +74,7 @@ class a_parent_t : public so_5::agent_t
 			register_child_coop();
 		}
 
-	private :
-		int m_counter;
-		const int m_max_counter;
-
-		void
-		register_child_coop()
+		void register_child_coop()
 		{
 			using namespace so_5;
 
@@ -94,8 +85,7 @@ class a_parent_t : public so_5::agent_t
 							make_coop_reg_notificator( so_direct_mbox() ) );
 					coop.add_dereg_notificator(
 							make_coop_dereg_notificator( so_direct_mbox() ) );
-					coop.set_exception_reaction(
-							deregister_coop_on_exception );
+					coop.set_exception_reaction( deregister_coop_on_exception );
 
 					coop.make_agent< a_child_t >( m_counter < m_max_counter );
 
@@ -105,8 +95,7 @@ class a_parent_t : public so_5::agent_t
 		}
 };
 
-int
-main()
+int main()
 {
 	try
 	{
