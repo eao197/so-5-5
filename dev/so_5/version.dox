@@ -20,6 +20,9 @@
 	Methods so_5::environment_t::create_local_mbox() are deprecated.
 	Methods so_5::environment_t::create_mbox() must be used instead.
 
+	A new mechanism named <i>message chain</i> added.
+	See \ref so_5_5__in_depth__mchains for more details.
+
 \section so_5__5_12 5.5.12 "Cerro Araral"
 
 	A performance degradation for local mboxes with large amount of
