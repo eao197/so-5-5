@@ -110,7 +110,7 @@ public :
 	virtual void so_evt_start() override
 	{
 		// Periodic update_status signal must be initiated.
-		m_update_status_timer = so_5::send_periodic_to_agent< update_status >(
+		m_update_status_timer = so_5::send_periodic< update_status >(
 				*this,
 				std::chrono::milliseconds(0),
 				std::chrono::milliseconds(200) );
@@ -216,7 +216,7 @@ public :
 	{
 		// Periodic signal must be initiated.
 		const auto period = std::chrono::milliseconds( 1500 );
-		m_show_timer = so_5::send_periodic_to_agent< show_dashboard >( *this,
+		m_show_timer = so_5::send_periodic< show_dashboard >( *this,
 				period, period );
 	}
 

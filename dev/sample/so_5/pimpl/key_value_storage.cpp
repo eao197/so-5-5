@@ -32,7 +32,7 @@ struct a_key_value_storage_t::internals_t
 		if( r.second )
 			// New value really inserted.
 			// Lifetime for it must be controlled.
-			so_5::send_delayed_to_agent< msg_lifetime_expired >(
+			so_5::send_delayed< msg_lifetime_expired >(
 					self,
 					what.m_lifetime,
 					what.m_key );

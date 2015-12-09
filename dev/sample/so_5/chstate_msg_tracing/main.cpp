@@ -86,12 +86,12 @@ public:
 	virtual void
 	so_evt_start() override
 	{
-		m_greeting_timer_id = so_5::send_periodic_to_agent< greeting_message >(
+		m_greeting_timer_id = so_5::send_periodic< greeting_message >(
 				*this,
 				std::chrono::milliseconds{ 50 },
 				std::chrono::milliseconds{ 100 },
 				"Hello, World!" );
-		m_change_timer_id = so_5::send_periodic_to_agent< change_state_signal >(
+		m_change_timer_id = so_5::send_periodic< change_state_signal >(
 				*this,
 				std::chrono::milliseconds{ 80 },
 				std::chrono::milliseconds{ 100 } );

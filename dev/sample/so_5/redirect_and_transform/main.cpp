@@ -175,7 +175,7 @@ private :
 		generate_new_requests( random( 5, 8 ) );
 
 		// Wait for next turn and process replies.
-		so_5::send_delayed_to_agent< msg_next_turn >( *this, m_turn_pause );
+		so_5::send_delayed< msg_next_turn >( *this, m_turn_pause );
 	}
 
 	void

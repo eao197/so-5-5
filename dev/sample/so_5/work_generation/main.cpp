@@ -134,7 +134,7 @@ private :
 				<< sent << ", will sleep for "
 				<< next_turn_pause.count() << "ms" << std::endl;
 
-		so_5::send_delayed_to_agent< msg_next_turn >( *this, next_turn_pause );
+		so_5::send_delayed< msg_next_turn >( *this, next_turn_pause );
 	}
 
 	bool
@@ -339,7 +339,7 @@ private :
 			// and receiver.
 			TRACE() << "PRO(" << m_name << ") no request received, sleeping"
 					<< std::endl;
-			so_5::send_delayed_to_agent< msg_next_turn >(
+			so_5::send_delayed< msg_next_turn >(
 					*this, std::chrono::milliseconds( 25 ) );
 		}
 		else

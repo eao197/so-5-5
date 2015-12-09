@@ -102,7 +102,7 @@ private :
 
 		if( values_found )
 			// Loop count be continued.
-			so_5::send_delayed_to_agent< msg_next_turn >( *this,
+			so_5::send_delayed< msg_next_turn >( *this,
 					std::chrono::milliseconds{ 50 } );
 		else
 			// Work can be finished. All values removed due to

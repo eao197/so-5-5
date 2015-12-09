@@ -74,7 +74,7 @@ a_hello_t::so_evt_start()
 		<< "a_hello_t::so_evt_start()" << std::endl;
 
 	// Sending a greeting.
-	m_hello_timer_id = so_5::send_periodic_to_agent< msg_hello_periodic >(
+	m_hello_timer_id = so_5::send_periodic< msg_hello_periodic >(
 		*this,
 		// Delay for a second.
 		std::chrono::seconds(1),
@@ -84,7 +84,7 @@ a_hello_t::so_evt_start()
 
 	// Sending a stop signal.
 	m_stop_timer_id = so_5::send_periodic< msg_stop_signal >(
-		*this,
+		so_environment(),
 		m_shutdowner_mbox,
 		// Delay for two seconds.
 		std::chrono::seconds(2),
@@ -109,7 +109,7 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 		// Reschedule a stop signal.
 		// Previous a stop signal should be canceled.
 		m_stop_timer_id = so_5::send_periodic< msg_stop_signal >(
-			*this,
+			so_environment(),
 			m_shutdowner_mbox,
 			// 1300ms but specified in microsecs just for demonstration.
 			std::chrono::microseconds(1300000),
