@@ -123,8 +123,8 @@ a_state_swither_t::so_evt_start()
 	show_event_invocation( "so_evt_start()" );
 
 	// Periodic message should be initiated.
-	m_timer_id = so_environment().schedule_timer< msg_periodic >(
-			so_direct_mbox(),
+	m_timer_id = so_5::send_periodic< msg_periodic >(
+			*this,
 			std::chrono::seconds( 1 ),
 			std::chrono::seconds( 1 ) );
 }
