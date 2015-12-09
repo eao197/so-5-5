@@ -81,7 +81,7 @@ class a_controller_t : public so_5::agent_t
 						std::chrono::milliseconds(500) );
 				so_environment().stats_controller().turn_on();
 
-				so_5::send_delayed_to_agent< finish >( *this,
+				so_5::send_delayed< finish >( *this,
 						std::chrono::seconds( 6 ) );
 			}
 

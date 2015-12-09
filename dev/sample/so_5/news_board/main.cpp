@@ -509,7 +509,7 @@ class story_publisher : public so_5::agent_t
 		void
 		initiate_time_for_new_story_signal()
 			{
-				so_5::send_delayed_to_agent< msg_time_for_new_story >(
+				so_5::send_delayed< msg_time_for_new_story >(
 						*this,
 						std::chrono::milliseconds{ random_value( 100, 1500 ) } );
 			}
@@ -634,7 +634,7 @@ class news_reader : public so_5::agent_t
 		void
 		initiate_time_for_updates_signal()
 			{
-				so_5::send_delayed_to_agent< msg_time_for_updates >(
+				so_5::send_delayed< msg_time_for_updates >(
 						*this,
 						std::chrono::milliseconds{ random_value( 500, 2500 ) } );
 			}

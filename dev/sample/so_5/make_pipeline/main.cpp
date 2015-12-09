@@ -755,7 +755,7 @@ public :
 				autoname );
 
 		// One second for imitation then shutdown.
-		send_delayed_to_agent< shutdown >( *this, chrono::seconds(1) );
+		send_delayed< shutdown >( *this, chrono::seconds(1) );
 
 		// Imitation of several samples from a sensor.
 		// One sample for each 10ms.

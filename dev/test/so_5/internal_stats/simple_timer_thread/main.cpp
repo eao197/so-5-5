@@ -36,14 +36,14 @@ class a_test_t : public so_5::agent_t
 			{
 				using namespace std::chrono;
 
-				so_5::send_delayed_to_agent< msg_delayed >( *this, seconds( 10 ) );
-				so_5::send_delayed_to_agent< msg_delayed >( *this, seconds( 10 ) );
+				so_5::send_delayed< msg_delayed >( *this, seconds( 10 ) );
+				so_5::send_delayed< msg_delayed >( *this, seconds( 10 ) );
 
-				m_p1 = so_5::send_periodic_to_agent< msg_delayed >( *this,
+				m_p1 = so_5::send_periodic< msg_delayed >( *this,
 						seconds( 10 ), seconds( 10 ) );
-				m_p2 = so_5::send_periodic_to_agent< msg_delayed >( *this,
+				m_p2 = so_5::send_periodic< msg_delayed >( *this,
 						seconds( 10 ), seconds( 10 ) );
-				m_p3 = so_5::send_periodic_to_agent< msg_delayed >( *this,
+				m_p3 = so_5::send_periodic< msg_delayed >( *this,
 						seconds( 10 ), seconds( 10 ) );
 
 				so_environment().stats_controller().turn_on();

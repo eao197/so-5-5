@@ -203,7 +203,7 @@ class request_generator : public so_5::agent_t
 				std::cout << "generated {" << id << "}, dimension: "
 						<< dimension << std::endl;
 
-				so_5::send_delayed_to_agent< produce_next >( *this,
+				so_5::send_delayed< produce_next >( *this,
 						std::chrono::milliseconds( random_value( 0, 100 ) ) );
 			}
 

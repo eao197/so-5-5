@@ -251,10 +251,36 @@ send_delayed(
 	}
 
 /*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a delayed message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_delayed(
+	//! An agent whos environment must be used.
+	so_5::agent_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >(
+				agent.so_environment(),
+				agent.so_direct_mbox(),
+				pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
  * \since v.5.5.1
  * \brief A utility function for creating and delivering a delayed message.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 void
@@ -269,6 +295,30 @@ send_delayed(
 	ARGS&&... args )
 	{
 		send_delayed< MESSAGE >( agent.so_environment(), to, pause,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a delayed message
+ * to the ad-hoc agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+void
+send_delayed(
+	//! An agent whos environment must be used.
+	const so_5::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		send_delayed< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
+				pause,
 				std::forward< ARGS >(args)... );
 	}
 
@@ -298,6 +348,8 @@ send_delayed(
  * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 void
@@ -322,6 +374,8 @@ send_delayed_to_agent(
  * to the ad-hoc agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 void
@@ -367,6 +421,8 @@ send_periodic(
  * \brief A utility function for creating and delivering a periodic message.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t
@@ -385,6 +441,60 @@ send_periodic(
 		return send_periodic< MESSAGE >(
 				agent.so_environment(),
 				to,
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a periodic message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! An agent whos environment must be used.
+	so_5::agent_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.so_environment(),
+				agent.so_direct_mbox(),
+				pause,
+				period,
+				std::forward< ARGS >(args)... );
+	}
+
+/*!
+ * \since v.5.5.13
+ * \brief A utility function for creating and delivering a periodic message
+ * to the agent's direct mbox.
+ *
+ * Gets the Environment from the agent specified.
+ */
+template< typename MESSAGE, typename... ARGS >
+timer_id_t
+send_periodic(
+	//! An agent whos environment must be used.
+	const so_5::adhoc_agent_definition_proxy_t & agent,
+	//! Pause for message delaying.
+	std::chrono::steady_clock::duration pause,
+	//! Period of message repetitions.
+	std::chrono::steady_clock::duration period,
+	//! Message constructor parameters.
+	ARGS&&... args )
+	{
+		return send_periodic< MESSAGE >(
+				agent.environment(),
+				agent.direct_mbox(),
 				pause,
 				period,
 				std::forward< ARGS >(args)... );
@@ -421,6 +531,8 @@ send_periodic(
  * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t
@@ -448,6 +560,8 @@ send_periodic_to_agent(
  * to the agent's direct mbox.
  *
  * Gets the Environment from the agent specified.
+ *
+ * \deprecated Will be removed in v.5.6.0.
  */
 template< typename MESSAGE, typename... ARGS >
 timer_id_t

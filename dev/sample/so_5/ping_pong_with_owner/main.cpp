@@ -174,7 +174,7 @@ public :
 				} );
 
 		// Limit the pinger/ponger exchange time.
-		so_5::send_delayed_to_agent< stop >(
+		so_5::send_delayed< stop >(
 				*this, std::chrono::seconds( 1 ) );
 	}
 

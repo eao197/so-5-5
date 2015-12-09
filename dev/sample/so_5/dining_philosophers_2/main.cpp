@@ -117,7 +117,7 @@ public :
 				show_msg( fork_name( evt.m_who ) + " fork taken" );
 				show_msg( "take both forks, start eating" );
 				this >>= st_eating;
-				so_5::send_delayed_to_agent< msg_stop_eating >(
+				so_5::send_delayed< msg_stop_eating >(
 					*this, random_pause() );
 			} )
 			.event< msg_busy >( [=]{
@@ -191,7 +191,7 @@ private :
 	{
 		show_msg( "start thinking" );
 		this >>= st_thinking;
-		so_5::send_delayed_to_agent< msg_stop_thinking >( *this, random_pause() );
+		so_5::send_delayed< msg_stop_thinking >( *this, random_pause() );
 	}
 
 	static std::chrono::milliseconds

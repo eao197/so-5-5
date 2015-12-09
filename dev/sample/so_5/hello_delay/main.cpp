@@ -68,7 +68,7 @@ a_hello_t::so_evt_start()
 {
 	show_message( "a_hello_t::so_evt_start()" );
 
-	so_5::send_delayed_to_agent< msg_hello >(
+	so_5::send_delayed< msg_hello >(
 		*this,
 		std::chrono::seconds( 2 ),
 		"Hello, world! This is SObjectizer v.5." );
@@ -79,7 +79,7 @@ a_hello_t::evt_hello_delay( const msg_hello & msg )
 {
 	show_message( msg.m_message );
 
-	so_5::send_delayed_to_agent< msg_stop_signal >(
+	so_5::send_delayed< msg_stop_signal >(
 		*this,
 		std::chrono::seconds( 2 ) );
 }

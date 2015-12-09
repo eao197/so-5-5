@@ -242,7 +242,7 @@ private :
 			m_pending_requests.push( evt.make_reference() );
 
 			// Just use delayed signal for every pending request.
-			so_5::send_delayed_to_agent< msg_check_deadline >(
+			so_5::send_delayed< msg_check_deadline >(
 					*this,
 					std::chrono::seconds( evt->m_deadline - now ) );
 		}

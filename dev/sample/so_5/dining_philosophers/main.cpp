@@ -106,7 +106,7 @@ public :
 		st_wait_right.event< msg_taken >( [=] {
 				show_msg( "right fork taken, start eating" );
 				this >>= st_eating;
-				so_5::send_delayed_to_agent< msg_stop_eating >( *this, pause() );
+				so_5::send_delayed< msg_stop_eating >( *this, pause() );
 			} )
 			.event< msg_busy >( [=] {
 				show_msg( "right fork is busy, put left fork, return to thinking" );
@@ -149,7 +149,7 @@ private :
 	think()
 	{
 		this >>= st_thinking;
-		so_5::send_delayed_to_agent< msg_stop_thinking >( *this, pause() );
+		so_5::send_delayed< msg_stop_thinking >( *this, pause() );
 	}
 
 	static std::chrono::milliseconds

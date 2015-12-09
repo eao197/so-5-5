@@ -74,7 +74,7 @@ class a_child_t : public so_5::agent_t
 			std::cout << "Child: has started to do task " << m_task_id
 					<< std::endl;
 
-			so_5::send_delayed_to_agent< task_completed_t >(
+			so_5::send_delayed< task_completed_t >(
 					*this,
 					// One second delay.
 					std::chrono::seconds( 1 ) ); 
