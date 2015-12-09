@@ -21,12 +21,12 @@ main()
 
 							auto a = coop.define_agent();
 							a.on_start( [a] {
-									so_5::send_delayed_to_agent< hello_sig >( a,
+									so_5::send_delayed< hello_sig >( a,
 											std::chrono::milliseconds( 25 ) );
 								} );
 							a.event< hello_sig >( a, [a] {
 									std::cout << "Hello for agent" << std::endl;
-									so_5::send_delayed_to_agent< hello_sig >( a,
+									so_5::send_delayed< hello_sig >( a,
 											std::chrono::milliseconds( 100 ) );
 								} );
 						} );
