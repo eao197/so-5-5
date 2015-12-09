@@ -13,12 +13,10 @@
 #include <so_5/all.hpp>
 
 // Hello message.
-struct msg_hello_periodic : public so_5::message_t
+struct msg_hello_periodic
 {
 	// Greeting.
 	std::string m_message;
-
-	msg_hello_periodic( std::string msg ) : m_message( std::move( msg ) ) {}
 };
 
 // Stop message.
@@ -28,24 +26,17 @@ class msg_stop_signal : public so_5::signal_t {};
 class a_hello_t : public so_5::agent_t
 {
 	public:
-		a_hello_t( so_5::environment_t & env )
-			:	so_5::agent_t( env )
-			,	m_shutdowner_mbox(
-					so_environment().create_mbox( "shutdown" ) )
+		a_hello_t( context_t ctx )
+			:	so_5::agent_t{ ctx }
+			,	m_shutdowner_mbox( so_environment().create_mbox( "shutdown" ) )
 			,	m_evt_count( 0 )
 		{}
 
 		// Definition of an agent for SObjectizer.
-		virtual void
-		so_define_agent() override;
+		virtual void so_define_agent() override;
 
 		// A reaction to start of work in SObjectizer.
-		virtual void
-		so_evt_start() override;
-
-		// Hello message handler.
-		void
-		evt_hello_periodic( const msg_hello_periodic & msg );
+		virtual void so_evt_start() override;
 
 	private:
 		// Agent's mbox.
@@ -57,17 +48,18 @@ class a_hello_t : public so_5::agent_t
 
 		// How much timer event has been processed.
 		unsigned int m_evt_count;
+
+		// Hello message handler.
+		void evt_hello_periodic( const msg_hello_periodic & msg );
 };
 
-void
-a_hello_t::so_define_agent()
+void a_hello_t::so_define_agent()
 {
 	// Message subscription.
 	so_subscribe_self().event( &a_hello_t::evt_hello_periodic );
 }
 
-void
-a_hello_t::so_evt_start()
+void a_hello_t::so_evt_start()
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) )
@@ -92,12 +84,10 @@ a_hello_t::so_evt_start()
 		std::chrono::seconds::zero() );
 }
 
-void
-a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
+void a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 {
 	time_t t = time( 0 );
-	std::cout << asctime( localtime( &t ) )
-		<< msg.m_message << std::endl;
+	std::cout << asctime( localtime( &t ) ) << msg.m_message << std::endl;
 
 	if( 5 == ++m_evt_count )
 	{
@@ -118,16 +108,14 @@ a_hello_t::evt_hello_periodic( const msg_hello_periodic & msg )
 }
 
 // Creation of 'hello' cooperation.
-void
-create_hello_coop( so_5::environment_t & env )
+void create_hello_coop( so_5::environment_t & env )
 {
 	// Single agent can be registered as whole cooperation.
-	env.register_agent_as_coop( "hello", new a_hello_t( env ) );
+	env.register_agent_as_coop( "hello", env.make_agent< a_hello_t >() );
 }
 
 // Creation of 'shutdowner' cooperation.
-void
-create_shutdowner_coop( so_5::environment_t & env )
+void create_shutdowner_coop( so_5::environment_t & env )
 {
 	env.introduce_coop( "shutdowner", [&env]( so_5::coop_t & coop ) {
 		// Mbox for shutdowner agent.
@@ -147,15 +135,13 @@ create_shutdowner_coop( so_5::environment_t & env )
 }
 
 // The SObjectizer Environment initialization.
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	create_hello_coop( env );
 	create_shutdowner_coop( env );
 }
 
-int
-main()
+int main()
 {
 	try
 	{
