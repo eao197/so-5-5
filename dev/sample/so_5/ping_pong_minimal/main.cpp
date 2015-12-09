@@ -21,8 +21,7 @@ class a_pinger_t : public so_5::agent_t
 				so_subscribe( m_mbox ).event< msg_pong >( &a_pinger_t::evt_pong );
 			}
 
-		virtual void
-		so_evt_start() override
+		virtual void so_evt_start() override
 			{
 				send_ping();
 			}
