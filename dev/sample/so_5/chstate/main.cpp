@@ -34,8 +34,7 @@ class state_monitor_t : public so_5::agent_state_listener_t
 			:	m_type_hint( type_hint )
 		{}
 
-		virtual void
-		changed(
+		virtual void changed(
 			so_5::agent_t &,
 			const so_5::state_t & state ) override
 		{
@@ -55,40 +54,33 @@ class a_state_swither_t : public so_5::agent_t
 		const state_t st_shutdown = so_make_state( "shutdown" );
 
 	public:
-		a_state_swither_t( so_5::environment_t & env )
-			:	so_5::agent_t( env )
+		a_state_swither_t( context_t ctx )
+			:	so_5::agent_t{ ctx }
 		{}
 
 		virtual ~a_state_swither_t()
 		{}
 
 		// Definition of the agent for SObjectizer.
-		virtual void
-		so_define_agent() override;
+		virtual void so_define_agent() override;
 
 		// Reaction to start into SObjectizer.
-		virtual void
-		so_evt_start() override;
+		virtual void so_evt_start() override;
 
 		// Message handler for the default state.
-		void
-		evt_handler_default();
+		void evt_handler_default();
 
 		// Message handler for the state_1.
-		void
-		evt_handler_1();
+		void evt_handler_1();
 
 		// Message handler for the state_2.
-		void
-		evt_handler_2();
+		void evt_handler_2();
 
 		// Message handler for the state_3.
-		void
-		evt_handler_3();
+		void evt_handler_3();
 
 		// Message handler for the shutdown_state.
-		void
-		evt_handler_shutdown();
+		void evt_handler_shutdown();
 
 	private:
 		// Timer event id.
@@ -97,12 +89,10 @@ class a_state_swither_t : public so_5::agent_t
 		so_5::timer_id_t m_timer_id;
 
 		// Helper method for showing that event handler is called.
-		void
-		show_event_invocation( const char * event_name );
+		void show_event_invocation( const char * event_name );
 };
 
-void
-a_state_swither_t::so_define_agent()
+void a_state_swither_t::so_define_agent()
 {
 	// Message subsription.
 	so_default_state()
@@ -117,8 +107,7 @@ a_state_swither_t::so_define_agent()
 	st_shutdown.event< msg_periodic >( &a_state_swither_t::evt_handler_shutdown );
 }
 
-void
-a_state_swither_t::so_evt_start()
+void a_state_swither_t::so_evt_start()
 {
 	show_event_invocation( "so_evt_start()" );
 
@@ -129,8 +118,7 @@ a_state_swither_t::so_evt_start()
 			std::chrono::seconds( 1 ) );
 }
 
-void
-a_state_swither_t::evt_handler_default()
+void a_state_swither_t::evt_handler_default()
 {
 	show_event_invocation( "evt_handler_default" );
 
@@ -138,8 +126,7 @@ a_state_swither_t::evt_handler_default()
 	so_change_state( st_1 );
 }
 
-void
-a_state_swither_t::evt_handler_1()
+void a_state_swither_t::evt_handler_1()
 {
 	show_event_invocation( "evt_handler_1" );
 
@@ -147,8 +134,7 @@ a_state_swither_t::evt_handler_1()
 	so_change_state( st_2 );
 }
 
-void
-a_state_swither_t::evt_handler_2()
+void a_state_swither_t::evt_handler_2()
 {
 	show_event_invocation( "evt_handler_2" );
 
@@ -156,8 +142,7 @@ a_state_swither_t::evt_handler_2()
 	so_change_state( st_3 );
 }
 
-void
-a_state_swither_t::evt_handler_3()
+void a_state_swither_t::evt_handler_3()
 {
 	show_event_invocation( "evt_handler_3" );
 
@@ -165,8 +150,7 @@ a_state_swither_t::evt_handler_3()
 	so_change_state( st_shutdown );
 }
 
-void
-a_state_swither_t::evt_handler_shutdown()
+void a_state_swither_t::evt_handler_shutdown()
 {
 	show_event_invocation( "evt_handler_3" );
 
@@ -178,8 +162,7 @@ a_state_swither_t::evt_handler_shutdown()
 	so_environment().stop();
 }
 
-void
-a_state_swither_t::show_event_invocation( const char * event_name )
+void a_state_swither_t::show_event_invocation( const char * event_name )
 {
 	time_t t = time( 0 );
 	std::cout << asctime( localtime( &t ) )
@@ -191,8 +174,7 @@ a_state_swither_t::show_event_invocation( const char * event_name )
 state_monitor_t g_state_monitor( "nondestroyable_listener" );
 
 // The SObjectizer Environment initialization.
-void
-init( so_5::environment_t & env )
+void init( so_5::environment_t & env )
 {
 	auto ag = env.make_agent< a_state_swither_t >();
 
@@ -209,8 +191,7 @@ init( so_5::environment_t & env )
 	env.register_agent_as_coop( "coop", std::move(ag) );
 }
 
-int
-main()
+int main()
 {
 	try
 	{
