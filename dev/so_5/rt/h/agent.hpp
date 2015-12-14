@@ -2043,19 +2043,6 @@ subscription_bind_t::event(
 	RESULT (AGENT::*pfn)( const event_data_t< MESSAGE > & ),
 	thread_safety_t thread_safety )
 {
-	/*!
-	 * \note This method uses special trick to allow to receve and
-	 * resend instances of user_type_message_t<T>. To do that
-	 * a message_payload_type<T>::extract_envelope_ptr() is used,
-	 * but subscription is made for
-	 * message_payload_type<T>::payload_type.
-	 * This trick works because in case when MESSAGE is not
-	 * user_type_message_t<T> then payload_type and envelope_type
-	 * will be the same type (type MESSAGE).
-	 */
-
-	ensure_classical_message< MESSAGE >();
-
 	using namespace details::event_subscription_helpers;
 
 	// Agent must have right type.
@@ -2074,9 +2061,8 @@ subscription_bind_t::event(
 									message_ref );
 
 					const event_data_t< MESSAGE > event_data{
-							// Extraction of whole envelope, not just a payload.
-							message_payload_type< MESSAGE >::extract_envelope_ptr(
-									actual_request_ptr->m_param ) };
+							actual_request_ptr->m_param
+					};
 
 					// All exceptions will be processed in service_handler_on_message.
 					result_setter_t< RESULT >().call_old_format_event_and_set_result(
@@ -2087,10 +2073,7 @@ subscription_bind_t::event(
 				}
 			else
 				{
-					const event_data_t< MESSAGE > event_data{
-							// Extraction of whole envelope, not just a payload.
-							message_payload_type< MESSAGE >::extract_envelope_ptr(
-									message_ref ) };
+					const event_data_t< MESSAGE > event_data{ message_ref };
 
 					(cast_result->*pfn)( event_data );
 				}

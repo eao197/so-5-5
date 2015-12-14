@@ -86,6 +86,160 @@ get_actual_service_request_pointer(
 	return actual_request_ptr;
 }
 
+/*!
+ * \since v.5.5.14
+ * \brief A helper template for create an argument for event handler
+ * in the case when argument is passed as value or const reference.
+ *
+ * \note MSG can't be a type of a signal.
+ */
+template< typename MSG >
+struct event_handler_arg_maker
+{
+	using type = MSG;
+
+	static void
+	ensure_appropriate_type()
+	{
+		ensure_not_signal< MSG >();
+	}
+
+	static const MSG &
+	make_arg( message_ref_t & mf )
+	{
+		auto msg = message_payload_type< MSG >::extract_payload_ptr( mf );
+
+		return *msg;
+	}
+};
+
+/*!
+ * \since v.5.5.14
+ * \brief A helper template for create an argument for event handler
+ * in the case when argument is passed as message hood.
+ */
+template< typename MSG >
+struct event_handler_arg_maker< mhood_t< MSG > >
+{
+	using type = MSG;
+
+	static void
+	ensure_appropriate_type()
+	{
+	}
+
+	static mhood_t< MSG >
+	make_arg( message_ref_t & mf )
+	{
+		return mhood_t< MSG >{ mf };
+	}
+};
+
+/*!
+ * \since v.5.5.14
+ * \brief A helper for setting a result to a promise.
+ */
+template< typename R, typename L >
+void
+set_promise( std::promise< R > & to, L result_provider )
+{
+	to.set_value( result_provider() );
+}
+
+/*!
+ * \since v.5.5.14
+ * \brief A helper for setting a result to a promise<void>.
+ */
+template< typename L >
+void
+set_promise( std::promise< void > & to, L result_provider )
+{
+	result_provider();
+	to.set_value();
+}
+
+/*!
+ * \since v.5.5.14
+ * \brief Helper template for creation of event handler with actual
+ * argument.
+ */
+template< typename LAMBDA, typename RESULT, typename ARG >
+msg_type_and_handler_pair_t
+make_handler_with_arg( LAMBDA && lambda )
+	{
+		using arg_maker = event_handler_arg_maker< ARG >;
+		using payload_type = typename arg_maker::type;
+
+		arg_maker::ensure_appropriate_type();
+
+		auto method = [lambda](
+				invocation_type_t invocation_type,
+				message_ref_t & message_ref)
+			{
+				if( invocation_type_t::service_request == invocation_type )
+					{
+						auto actual_request_ptr =
+								get_actual_service_request_pointer<
+											RESULT, payload_type >( message_ref );
+
+						set_promise(
+								actual_request_ptr->m_promise,
+								[&] {
+									return lambda(
+											arg_maker::make_arg(
+													actual_request_ptr->m_param ) );
+								} );
+					}
+				else
+					{
+						lambda( arg_maker::make_arg( message_ref ) );
+					}
+			};
+
+		return msg_type_and_handler_pair_t{
+				message_payload_type< payload_type >::payload_type_index(),
+				method };
+	}
+
+/*!
+ * \since v.5.5.14
+ * \brief Helper template for creation of event handler without actual
+ * argument.
+ *
+ * \note This helper must be used only if SIG is derived from signal_t.
+ */
+template< typename LAMBDA, typename RESULT, typename SIG >
+msg_type_and_handler_pair_t
+make_handler_without_arg( LAMBDA && lambda )
+	{
+		ensure_signal< SIG >();
+
+		auto method = [lambda](
+				invocation_type_t invocation_type,
+				message_ref_t & message_ref)
+			{
+				if( invocation_type_t::service_request == invocation_type )
+					{
+						auto actual_request_ptr =
+								get_actual_service_request_pointer<
+											RESULT, SIG >(
+										message_ref );
+
+						set_promise(
+								actual_request_ptr->m_promise,
+								[&] { return lambda(); } );
+					}
+				else
+					{
+						lambda();
+					}
+			};
+
+		return msg_type_and_handler_pair_t{
+				message_payload_type< SIG >::payload_type_index(),
+				method };
+	}
+
 } /* namespace event_subscription_helpers */
 
 /*!
@@ -232,50 +386,15 @@ template< class LAMBDA >
 details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
-		using namespace so_5::details;
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
-		using namespace so_5::details::promise_result_setting_details;
 
 		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
 		typedef typename TRAITS::result_type RESULT;
 		typedef typename TRAITS::argument_type MESSAGE;
 
-		ensure_not_signal< MESSAGE >();
-
-		auto method = [lambda](
-				invocation_type_t invocation_type,
-				message_ref_t & message_ref)
-			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer< RESULT, MESSAGE >(
-										message_ref );
-
-						auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-								actual_request_ptr->m_param );
-						ensure_message_with_actual_data( msg );
-
-						// All exceptions will be processed in service_handler_on_message.
-						result_setter_t< RESULT >().call_event_lambda_and_set_result(
-								actual_request_ptr->m_promise,
-								lambda,
-								*msg );
-					}
-				else
-					{
-						auto msg = message_payload_type< MESSAGE >::extract_payload_ptr(
-								message_ref );
-						ensure_message_with_actual_data( msg );
-
-						TRAITS::call_with_arg( lambda, *msg );
-					}
-			};
-
-		return msg_type_and_handler_pair_t{
-				message_payload_type< MESSAGE >::payload_type_index(),
-				method };
+		return make_handler_with_arg< LAMBDA, RESULT, MESSAGE >(
+				std::forward< LAMBDA >(lambda) );
 	}
 
 //
@@ -293,40 +412,16 @@ template< class SIGNAL, class LAMBDA >
 details::msg_type_and_handler_pair_t
 handler( LAMBDA && lambda )
 	{
-		using namespace so_5::details;
 		using namespace so_5::details::lambda_traits;
 		using namespace so_5::details::event_subscription_helpers;
-		using namespace so_5::details::promise_result_setting_details;
 
 		ensure_signal< SIGNAL >();
 
 		typedef traits< typename std::decay< LAMBDA >::type > TRAITS;
 		typedef typename TRAITS::result_type RESULT;
 
-		auto method = [lambda](
-				invocation_type_t invocation_type,
-				message_ref_t & message_ref)
-			{
-				if( invocation_type_t::service_request == invocation_type )
-					{
-						auto actual_request_ptr =
-								get_actual_service_request_pointer< RESULT, SIGNAL >(
-										message_ref );
-
-						// All exceptions will be processed in service_handler_on_message.
-						result_setter_t< RESULT >().call_signal_lambda_and_set_result(
-								actual_request_ptr->m_promise,
-								lambda );
-					}
-				else
-					{
-						TRAITS::call_without_arg( lambda );
-					}
-			};
-
-		return msg_type_and_handler_pair_t{
-				message_payload_type< SIGNAL >::payload_type_index(),
-				method };
+		return make_handler_without_arg< LAMBDA, RESULT, SIGNAL >(
+				std::forward< LAMBDA >(lambda) );
 	}
 
 namespace details {
