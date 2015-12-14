@@ -167,6 +167,8 @@ template< typename LAMBDA, typename RESULT, typename ARG >
 msg_type_and_handler_pair_t
 make_handler_with_arg( LAMBDA && lambda )
 	{
+		using ltraits = so_5::details::lambda_traits::traits<
+				typename std::decay< LAMBDA >::type >;
 		using arg_maker = event_handler_arg_maker< ARG >;
 		using payload_type = typename arg_maker::type;
 
@@ -185,14 +187,17 @@ make_handler_with_arg( LAMBDA && lambda )
 						set_promise(
 								actual_request_ptr->m_promise,
 								[&] {
-									return lambda(
+									return ltraits::call_with_arg(
+											lambda,
 											arg_maker::make_arg(
 													actual_request_ptr->m_param ) );
 								} );
 					}
 				else
 					{
-						lambda( arg_maker::make_arg( message_ref ) );
+						ltraits::call_with_arg(
+								lambda,
+								arg_maker::make_arg( message_ref ) );
 					}
 			};
 
@@ -258,6 +263,8 @@ template< typename LAMBDA, typename RESULT, typename SIG >
 msg_type_and_handler_pair_t
 make_handler_without_arg( LAMBDA && lambda )
 	{
+		using ltraits = so_5::details::lambda_traits::traits<
+				typename std::decay< LAMBDA >::type >;
 		ensure_signal< SIG >();
 
 		auto method = [lambda](
@@ -273,11 +280,11 @@ make_handler_without_arg( LAMBDA && lambda )
 
 						set_promise(
 								actual_request_ptr->m_promise,
-								[&] { return lambda(); } );
+								[lambda] { return ltraits::call_without_arg( lambda ); } );
 					}
 				else
 					{
-						lambda();
+						ltraits::call_without_arg( lambda );
 					}
 			};
 
