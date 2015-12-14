@@ -169,6 +169,40 @@ class subscription_bind_t
 
 		//! Make subscription to the message.
 		/*!
+		 * \since v.5.5.14
+		 * 
+		 * \note Can be used for message and signal handlers.
+		 *
+		 * \par Usage example
+		 * \code
+			struct engine_control : public so_5::message_t { ... };
+			class engine_controller : public so_5::agent_t
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self().event( &engine_controller::evt_control );
+					...
+				}
+				...
+			private :
+				void evt_control( so_5::mhood_t< engine_control > & cmd )
+				{
+					...
+				}
+			};
+		 * \endcode
+		 */
+		template< class RESULT, class MESSAGE, class AGENT >
+		subscription_bind_t &
+		event(
+			//! Event handling method.
+			RESULT (AGENT::*pfn)( mhood_t< MESSAGE > ),
+			//! Thread safety of the event handler.
+			thread_safety_t thread_safety = not_thread_safe );
+
+		//! Make subscription to the message.
+		/*!
 		 * \note Since v.5.3.0 could be used for event handlers and service
 		 * handlers.
 		 *
@@ -277,6 +311,8 @@ class subscription_bind_t
 		 * \code
 			so_subscribe_self().event< turn_on >( &engine_controller::evt_turn_on );
 		 * \endcode
+		 *
+		 * \deprecated Will be removed in v.5.6.0.
 		 */
 		template< class RESULT, class MESSAGE, class AGENT >
 		subscription_bind_t &
@@ -367,6 +403,8 @@ class subscription_bind_t
 		 * \code
 			so_subscribe_self().event< turn_on >( [this]{...} );
 		 * \endcode
+		 * 
+		 * \deprecated Will be removed in v.5.6.0.
 		 */
 		template< class MESSAGE, class LAMBDA >
 		subscription_bind_t &
@@ -387,7 +425,7 @@ class subscription_bind_t
 		   virtual void my_agent::so_define_agent()
 		   {
 		   	so_subscribe_self().event< msg_my_signal >( &my_agent::event );
-		   	so_subscribe_self().event< msg_another_signal( [=] { ... } );
+		   	so_subscribe_self().event< msg_another_signal >( [=] { ... } );
 		   }
 		 * \endcode
 		 */
@@ -2048,40 +2086,32 @@ subscription_bind_t::event(
 	// Agent must have right type.
 	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
 
-	auto method = [cast_result,pfn](
-			invocation_type_t invocation_type,
-			message_ref_t & message_ref)
-		{
-			if( invocation_type_t::service_request == invocation_type )
-				{
-					using namespace details::promise_result_setting_details;
-
-					auto actual_request_ptr =
-							get_actual_service_request_pointer< RESULT, MESSAGE >(
-									message_ref );
-
-					const event_data_t< MESSAGE > event_data{
-							actual_request_ptr->m_param
-					};
-
-					// All exceptions will be processed in service_handler_on_message.
-					result_setter_t< RESULT >().call_old_format_event_and_set_result(
-							actual_request_ptr->m_promise,
-							cast_result,
-							pfn,
-							event_data );
-				}
-			else
-				{
-					const event_data_t< MESSAGE > event_data{ message_ref };
-
-					(cast_result->*pfn)( event_data );
-				}
-		};
+	const auto p = make_handler_with_arg_for_agent( cast_result, pfn );
 
 	create_subscription_for_states( 
-			message_payload_type< MESSAGE >::payload_type_index(),
-			method,
+			p.m_msg_type,
+			p.m_handler,
+			thread_safety );
+
+	return *this;
+}
+
+template< class RESULT, class MESSAGE, class AGENT >
+inline subscription_bind_t &
+subscription_bind_t::event(
+	RESULT (AGENT::*pfn)( mhood_t< MESSAGE > ),
+	thread_safety_t thread_safety )
+{
+	using namespace details::event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_agent );
+
+	const auto p = make_handler_with_arg_for_agent( cast_result, pfn );
+
+	create_subscription_for_states( 
+			p.m_msg_type,
+			p.m_handler,
 			thread_safety );
 
 	return *this;

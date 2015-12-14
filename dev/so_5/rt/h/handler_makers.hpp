@@ -203,6 +203,52 @@ make_handler_with_arg( LAMBDA && lambda )
 
 /*!
  * \since v.5.5.14
+ * \brief Helper template for creation of event handler with actual
+ * argument.
+ */
+template< typename AGENT, typename RESULT, typename ARG >
+msg_type_and_handler_pair_t
+make_handler_with_arg_for_agent(
+	AGENT * agent,
+	RESULT (AGENT::*pfn)( ARG ) )
+	{
+		using arg_maker = event_handler_arg_maker<
+				typename so_5::details::lambda_traits::plain_argument_type< ARG >::type >;
+		using payload_type = typename arg_maker::type;
+
+		arg_maker::ensure_appropriate_type();
+
+		auto method = [agent, pfn](
+				invocation_type_t invocation_type,
+				message_ref_t & message_ref)
+			{
+				if( invocation_type_t::service_request == invocation_type )
+					{
+						auto actual_request_ptr =
+								get_actual_service_request_pointer<
+											RESULT, payload_type >( message_ref );
+
+						set_promise(
+								actual_request_ptr->m_promise,
+								[&] {
+									return (agent->*pfn)(
+											arg_maker::make_arg(
+													actual_request_ptr->m_param ) );
+								} );
+					}
+				else
+					{
+						(agent->*pfn)( arg_maker::make_arg( message_ref ) );
+					}
+			};
+
+		return msg_type_and_handler_pair_t{
+				message_payload_type< payload_type >::payload_type_index(),
+				method };
+	}
+
+/*!
+ * \since v.5.5.14
  * \brief Helper template for creation of event handler without actual
  * argument.
  *

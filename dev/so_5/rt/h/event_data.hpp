@@ -171,6 +171,14 @@ public :
 };
 
 /*!
+ * \since v.5.5.14
+ * \brief A special case for %mhood_t to prevent usage of %mhood_t as wrapper
+ * for %user_type_message_t<T>.
+ */
+template< typename M >
+class mhood_t< user_type_message_t< M > >;
+
+/*!
  * \brief An alias for compatibility with previous versions.
  * \deprecated Will be removed in v.5.6.0.
  */
