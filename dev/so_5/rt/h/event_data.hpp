@@ -150,13 +150,44 @@ struct mhood_type_detector
 
 } /* namespace details */
 
-//FIXME: more descriptions and examples needed for mhood_t.
 /*!
  * \since v.5.5.14
  * \brief A message wrapped to be used as type of argument for
  * event handlers.
  *
  * \tparam M type of message or signal.
+ *
+ * \note This class provides different sets of methods in dependency of
+ * type \a M. If M is a type derived from so_5::message_t, then there
+ * will be the following methods:
+ * \code
+	const M * get() const;
+	const M * operator->() const;
+	const M & operator*() const;
+	so_5::intrusive_ptr_t< M > make_reference() const;
+ * \endcode
+ * If M is a type derived from so_5::signal_t, then there will no be methods
+ * at all. It is because there is no actual message object for a signal.
+ * Otherwise there will be the following methods:
+ * \code
+	const M * get() const;
+	const M * operator->() const;
+	const M & operator*() const;
+	so_5::intrusive_ptr_t< so_5::user_type_message_t< M > > make_reference() const;
+ * \endcode
+ *
+ * \note Class mhood_t can be used for redirection of messages of user types.
+ * For example:
+	\code
+	class redirector : public so_5::agent_t
+	{
+		...
+		void some_event( mhood_t< std::string > evt ) {
+			// Redirection of message to the different mbox.
+			m_another_mbox->deliver_message( evt.make_reference() );
+		}
+	};
+	\endcode
  */
 template< typename M >
 class mhood_t
@@ -189,7 +220,7 @@ namespace rt
 {
 
 /*!
- * \deprecated Will be removed in v.5.6.0. Use so_5::event_data_t instead.
+ * \deprecated Will be removed in v.5.6.0. Use so_5::mhood_t instead.
  */
 template< class MSG >
 using event_data_t = so_5::event_data_t< MSG >;

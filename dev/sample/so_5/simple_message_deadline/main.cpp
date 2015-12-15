@@ -207,7 +207,7 @@ private :
 				request_comparator_t >
 			m_pending_requests;
 
-	void evt_first_request( const so_5::event_data_t< msg_request > & evt )
+	void evt_first_request( mhood_t< msg_request > evt )
 	{
 		// Performer is waiting for a request.
 		// So the request can be sent for processing right now.
@@ -216,8 +216,7 @@ private :
 		m_performer_mbox->deliver_message( evt.make_reference() );
 	}
 
-	void evt_yet_another_request(
-		const so_5::event_data_t< msg_request > & evt )
+	void evt_yet_another_request( mhood_t< msg_request > evt )
 	{
 		// Performer is busy. So the request must be stored in the queue.
 		// And deadline for it must be controlled.

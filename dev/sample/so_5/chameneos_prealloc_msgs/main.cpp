@@ -111,8 +111,7 @@ class a_meeting_place_t : public so_5::agent_t
 					.event( &a_meeting_place_t::evt_second_creature );
 			}
 
-		void evt_first_creature(
-			const so_5::event_data_t< msg_meeting_request > & evt )
+		void evt_first_creature( mhood_t< msg_meeting_request > evt )
 			{
 				if( m_remaining_meetings )
 				{
