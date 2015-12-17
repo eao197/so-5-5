@@ -213,17 +213,16 @@ private :
 		auto r = receive(
 				// Handle no more than 5 requests at once.
 				// No wait if queue is empty.
-				from( m_chain ).handle_n( 5 ).empty_timeout(
-						std::chrono::milliseconds::zero() ),
+				from( m_chain ).handle_n( 5 ).no_wait_on_empty(),
 				[]( const request & req ) {
 					// Imitation of some hardwork before sending a reply back.
 					std::this_thread::sleep_for( random_pause() );
 					so_5::send< reply >( req.m_who, req.m_payload + "#handled" );
 				} );
-		m_logger_mbox <<= msg_maker() << "=== "
-			<< r.handled() << " request(s) handled";
+		m_logger_mbox <<= msg_maker()
+				<< "=== " << r.handled() << " request(s) handled";
 
-		if( m_chain->size() )
+		if( !m_chain->empty() )
 			so_5::send< chain_has_requests >( *this );
 	}
 
