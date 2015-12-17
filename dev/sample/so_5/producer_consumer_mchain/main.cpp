@@ -1,3 +1,15 @@
+/*
+ * An example of using mchain for solving producer/consumer problem.
+ *
+ * Several producers will send requests to the single consumer. All requests
+ * will be sent to size-limited mchain with a timeout on overflow.
+ * This timeout will slowdown producers.
+ *
+ * The consumer will periodically process requests from mchain and sends
+ * replies back. A very simple not-empty notificator will be used for
+ * mchain to inform the consumer about presense of new requests.
+ */
+
 #include <iostream>
 #include <chrono>
 #include <random>
@@ -51,6 +63,10 @@ inline void operator<<=( const so_5::mbox_t & to, msg_maker & maker )
 //
 // Implementation of example shutdowner.
 //
+/*
+ * Shutdowner will shutdown the SObjectizer Environment when all
+ * producers send finish signals.
+ */
 class shutdowner final : public so_5::agent_t
 {
 	struct another_producer_finished : public so_5::signal_t {};
@@ -82,19 +98,25 @@ private :
 // Implementation of producers.
 //
 
+// A request to be sent for processing.
 struct request
 {
 	so_5::mbox_t m_who;
 	std::string m_payload;
 };
 
+// A repsonse from consumer.
 struct reply
 {
 	std::string m_payload;
 };
 
+/*
+ * Producer agent will send N requests and then initiate finish signal.
+ */
 class producer final : public so_5::agent_t
 {
+	// This signal allows to send next request for consumer.
 	struct send_next : public so_5::signal_t {};
 
 public :
@@ -127,17 +149,23 @@ private :
 
 	unsigned int m_requests_left;
 
+	// An event for next attempt to send another requests.
 	void evt_send_next()
 	{
 		if( m_requests_left )
 		{
+			// Send can wait on full mchain. Mark the start time to
+			// calculate send call duration later.
 			const auto started_at = steady_clock::now();
 			try
 			{
+				// Send another request.
+				// Note: this call can wait on full mchain.
 				so_5::send< request >( m_consumer_mbox,
 						so_direct_mbox(),
 						m_name + "_request_" + std::to_string( m_requests_left ) );
 
+				// How much time the send take?
 				const auto ms = std::chrono::duration_cast<
 						std::chrono::milliseconds >( steady_clock::now()
 								- started_at ).count();
@@ -147,13 +175,16 @@ private :
 			}
 			catch( const so_5::exception_t & ex )
 			{
+				// Log the reason of send request failure.
 				m_logger_mbox <<= msg_maker() << m_name << ": request NOT SENT, "
 						<< ex.what();
 
+				// Initiate next send attempt.
 				so_5::send< send_next >( *this );
 			}
 		}
 		else
+			// No more requests to send. Shutdowner must known about it.
 			shutdowner::producer_finished( *this );
 	}
 
@@ -163,6 +194,7 @@ private :
 				<< msg.m_payload;
 
 		--m_requests_left;
+
 		so_5::send< send_next >( *this );
 	}
 };
@@ -172,6 +204,8 @@ private :
 //
 class consumer final : public so_5::agent_t
 {
+	// This signal will be sent by not_empty_notificator when
+	// the first message is stored to the empty mchain.
 	struct chain_has_requests : public so_5::signal_t {};
 
 public :
@@ -199,6 +233,7 @@ public :
 				&consumer::process_requests );
 	}
 
+	// A mchain will look like an ordinary mbox from outside of consumer.
 	so_5::mbox_t consumer_mbox() const
 	{
 		return m_chain->as_mbox();
@@ -223,6 +258,8 @@ private :
 				<< "=== " << r.handled() << " request(s) handled";
 
 		if( !m_chain->empty() )
+			// Not all messages from chain have been processed.
+			// Initiate new processing by sending the signal to itself.
 			so_5::send< chain_has_requests >( *this );
 	}
 
