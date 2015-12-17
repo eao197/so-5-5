@@ -362,7 +362,7 @@ class request_acceptor : public so_5::agent_t
 
 		// The event handler has that prototype for ability to
 		// store the original message object in request queue.
-		void evt_request( const so_5::event_data_t< generation_request > & evt )
+		void evt_request( mhood_t< generation_request > evt )
 			{
 				using namespace so_5::prio;
 

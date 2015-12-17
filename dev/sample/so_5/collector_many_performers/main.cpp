@@ -230,8 +230,7 @@ private :
 	// Storage for mboxes of free performers.
 	std::deque< so_5::mbox_t > m_free_performers;
 
-	bool evt_receive_job(
-		const so_5::event_data_t< application_request > & evt )
+	bool evt_receive_job( mhood_t< application_request > evt )
 	{
 		bool processed = true;
 
