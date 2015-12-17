@@ -2,6 +2,11 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_14 5.5.14 "Nevado de Antisana"
+
+	Unification of event handler formats for method-style and lambda-style
+	handlers. See \ref so_5_5_14__mhood for more details.
+
 \section so_5__5_13 5.5.13 "Cerro Dona Ana"
 
 	<b>Breaking change: namespace so_5::rt is deprecated!</b>
