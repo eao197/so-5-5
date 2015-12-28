@@ -1964,6 +1964,15 @@ class SO_5_TYPE agent_t
 		static const impl::event_handler_data_t *
 		find_event_handler_for_current_state(
 			execution_demand_t & demand );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Actual action for switching agent state.
+		 */
+		void
+		do_state_switch(
+			//! New state to be set as the current state.
+			const state_t & state_to_be_set );
 };
 
 /*!

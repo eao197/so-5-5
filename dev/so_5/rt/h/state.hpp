@@ -12,6 +12,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <functional>
 
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
@@ -66,6 +67,8 @@ struct substate_of
 //! Class for the representing agent state.
 class SO_5_TYPE state_t final
 {
+		friend class agent_t;
+
 		state_t( const state_t & ) = delete;
 		state_t & operator =( const state_t & ) = delete;
 
@@ -75,6 +78,18 @@ class SO_5_TYPE state_t final
 		 * \brief Max deep of nested states.
 		 */
 		static const std::size_t max_deep = 16;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Type of function to be called on enter to the state.
+		 */
+		using on_enter_handler_t = std::function< void() >;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Type of function to be called on exit from the state.
+		 */
+		using on_exit_handler_t = std::function< void() >;
 
 		/*!
 		 * \brief Constructor without user specified name.
@@ -154,31 +169,6 @@ class SO_5_TYPE state_t final
 		 */
 		void
 		activate() const;
-
-		/*!
-		 * \since v.5.5.15
-		 * \brief Get a parent state if exists.
-		 */
-		const state_t *
-		parent_state() const
-			{
-				return m_parent_state;
-			}
-
-		/*!
-		 * \since v.5.5.15
-		 * \brief Find actual state to be activated for agent.
-		 *
-		 * \note If (*this) is a composite state then actual state to
-		 * enter will be its m_initial_substate (if m_initial_substate is
-		 * a composite state then actual state to enter will be its
-		 * m_initial_substate and so on).
-		 *
-		 * \throw exception_t if (*this) is a composite state but m_initial_substate
-		 * is not defined.
-		 */
-		const state_t *
-		actual_state_to_enter() const;
 
 		/*!
 		 * \since v.5.5.1
@@ -301,7 +291,10 @@ class SO_5_TYPE state_t final
 			//! Name for this state.
 			std::string state_name,
 			//! Parent state. nullptr means that there is no parent state.
-			state_t * parent_state );
+			state_t * parent_state,
+			//! Nesting deep for this state. Value 0 means this state is
+			//! a top-level state.
+			std::size_t nested_level );
 
 		//! Owner of this state.
 		agent_t * const m_target_agent;
@@ -334,12 +327,32 @@ class SO_5_TYPE state_t final
 
 		/*!
 		 * \since v.5.5.15
+		 * \brief Nesting level for state.
+		 *
+		 * \note Value 0 means that state is a top-level state.
+		 */
+		std::size_t m_nested_level;
+
+		/*!
+		 * \since v.5.5.15
 		 * \brief Number of substates.
 		 *
 		 * \note Value 0 means that state is not composite state and has no
 		 * any substates.
 		 */
 		size_t m_substate_count;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Handler for the enter to the state.
+		 */
+		on_enter_handler_t m_on_enter;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Handler for the exit from the state.
+		 */
+		on_exit_handler_t m_on_exit;
 
 		inline const state_t *
 		self_ptr() const { return this; }
@@ -363,6 +376,81 @@ class SO_5_TYPE state_t final
 		subscribe_signal_handler(
 			const mbox_t & from,
 			ARGS&&... args ) const;
+
+		/*!
+		 * \name Methods to be used by agents.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.15
+		 * \brief Get a parent state if exists.
+		 */
+		const state_t *
+		parent_state() const
+			{
+				return m_parent_state;
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Find actual state to be activated for agent.
+		 *
+		 * \note If (*this) is a composite state then actual state to
+		 * enter will be its m_initial_substate (if m_initial_substate is
+		 * a composite state then actual state to enter will be its
+		 * m_initial_substate and so on).
+		 *
+		 * \throw exception_t if (*this) is a composite state but m_initial_substate
+		 * is not defined.
+		 */
+		const state_t *
+		actual_state_to_enter() const;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Query nested level for the state.
+		 */
+		std::size_t
+		nested_level() const
+			{
+				return m_nested_level;
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief A helper method for building a path from top-level
+		 * state to this state.
+		 */
+		void
+		fill_path( const state_t ** path ) const
+			{
+				path[ m_nested_level ] = this;
+				if( m_parent_state )
+					m_parent_state->fill_path( path );
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Call for on enter handler if defined.
+		 */
+		void
+		call_on_enter() const
+			{
+				if( m_on_enter ) m_on_enter();
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Call for on exit handler if defined.
+		 */
+		void
+		call_on_exit() const
+			{
+				if( m_on_exit ) m_on_exit();
+			}
+		/*!
+		 * \}
+		 */
 };
 
 #if defined( SO_5_MSVC )

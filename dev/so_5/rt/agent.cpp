@@ -77,27 +77,21 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 state_t::state_t(
 	agent_t * target_agent,
 	std::string state_name,
-	state_t * parent_state )
+	state_t * parent_state,
+	std::size_t nested_level )
 	:	m_target_agent{ target_agent }
 	,	m_state_name( state_name.empty() ?
 				create_anonymous_state_name( target_agent, self_ptr() ) :
 				std::move(state_name) )
 	,	m_parent_state{ parent_state }
 	,	m_initial_substate{ nullptr }
+	,	m_nested_level{ nested_level }
 	,	m_substate_count{ 0 }
 {
 	if( parent_state )
 	{
 		// We should check the deep of nested states.
-		std::size_t deep = 0;
-		auto p = parent_state;
-		while( p )
-		{
-			deep += 1;
-			p = p->m_parent_state;
-		}
-
-		if( deep > max_deep )
+		if( m_nested_level >= max_deep )
 			SO_5_THROW_EXCEPTION( rc_state_nesting_is_too_deep,
 					"max nesting deep for agent states is " +
 					std::to_string( max_deep ) );
@@ -109,14 +103,14 @@ state_t::state_t(
 
 state_t::state_t(
 	agent_t * agent )
-	:	state_t{ agent, std::string(), nullptr }
+	:	state_t{ agent, std::string(), nullptr, 0 }
 {
 }
 
 state_t::state_t(
 	agent_t * agent,
 	std::string state_name )
-	:	state_t{ agent, std::move(state_name), nullptr }
+	:	state_t{ agent, std::move(state_name), nullptr, 0 }
 {}
 
 state_t::state_t(
@@ -130,7 +124,8 @@ state_t::state_t(
 	:	state_t{
 			parent.m_parent_state->m_target_agent,
 			std::move(state_name),
-			parent.m_parent_state }
+			parent.m_parent_state,
+			parent.m_parent_state->m_nested_level + 1 }
 {
 	m_parent_state->m_initial_substate = self_ptr();
 }
@@ -146,7 +141,8 @@ state_t::state_t(
 	:	state_t{
 			parent.m_parent_state->m_target_agent,
 			std::move(state_name),
-			parent.m_parent_state }
+			parent.m_parent_state,
+			parent.m_parent_state->m_nested_level + 1 }
 {}
 
 state_t::state_t(
@@ -155,6 +151,7 @@ state_t::state_t(
 	,	m_state_name( std::move( other.m_state_name ) )
 	,	m_parent_state{ other.m_parent_state }
 	,	m_initial_substate{ other.m_initial_substate }
+	,	m_nested_level{ other.m_nested_level }
 	,	m_substate_count{ other.m_substate_count }
 {
 	if( m_parent_state && m_parent_state->m_initial_substate == &other )
@@ -368,12 +365,18 @@ agent_t::so_change_state(
 
 	if( new_state.is_target( this ) )
 	{
-		m_current_state_ptr = new_state.actual_state_to_enter();
+		auto actual_new_state = new_state.actual_state_to_enter();
+		if( !( *actual_new_state == *m_current_state_ptr ) )
+		{
+			// New state differs from the current one.
+			// Actual state switch must be performed.
+			do_state_switch( *actual_new_state );
 
-		// State listener should be informed.
-		m_state_listener_controller->changed(
-			*this,
-			*m_current_state_ptr );
+			// State listener should be informed.
+			m_state_listener_controller->changed(
+				*this,
+				*m_current_state_ptr );
+		}
 	}
 	else
 		SO_5_THROW_EXCEPTION(
@@ -945,6 +948,50 @@ agent_t::find_event_handler_for_current_state(
 	} while( search_result == nullptr && s != nullptr );
 
 	return search_result;
+}
+
+void
+agent_t::do_state_switch(
+	const state_t & state_to_be_set )
+{
+	const state_t * old_path[ state_t::max_deep ];
+	const state_t * new_path[ state_t::max_deep ];
+
+	m_current_state_ptr->fill_path( old_path );
+	state_to_be_set.fill_path( new_path );
+
+	// Find the first item which is different in the paths.
+	std::size_t first_diff = 0;
+	for(; first_diff < std::min(
+				m_current_state_ptr->nested_level(),
+				state_to_be_set.nested_level() );
+			++first_diff )
+		if( old_path[ first_diff ] != new_path[ first_diff ] )
+			break;
+
+	// Do call for on_exit and on_enter for states.
+	// on_exit and on_enter should not throw exceptions.
+	so_5::details::invoke_noexcept_code( [&] {
+		for( std::size_t i = m_current_state_ptr->nested_level();
+				i >= first_diff; )
+			{
+				old_path[ i ]->call_on_exit();
+				if( i )
+					--i;
+				else
+					break;
+			}
+
+		for( std::size_t i = first_diff;
+				i <= state_to_be_set.nested_level();
+				++i )
+			{
+				new_path[ i ]->call_on_enter();
+			}
+	} );
+
+	// Now the current state for the agent can be changed.
+	m_current_state_ptr = &state_to_be_set;
 }
 
 } /* namespace so_5 */

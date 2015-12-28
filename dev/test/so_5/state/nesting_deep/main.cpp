@@ -17,7 +17,7 @@ public :
 		:	so_5::agent_t{ ctx }
 	{
 		m_states.push_back( state_unique_ptr{ new state_t{ this, "s" } } );
-		for( std::size_t i = 1; i <= state_t::max_deep; ++i )
+		for( std::size_t i = 1; i < state_t::max_deep; ++i )
 		{
 			state_unique_ptr s{ new state_t{
 					so_5::initial_substate_of{ *m_states.back() }, "s" } };
