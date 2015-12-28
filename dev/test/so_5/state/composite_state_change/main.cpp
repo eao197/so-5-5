@@ -14,6 +14,10 @@ class a_test_t final : public so_5::agent_t
 	state_t st_child_1_1 = { so_5::initial_substate_of{ st_top_1 }, "child_1" };
 	state_t st_child_1_2 = { so_5::substate_of{ st_top_1 }, "child_2" };
 
+	state_t st_child_1_1_1 = { so_5::initial_substate_of{ st_child_1_1 }, "1" };
+	state_t st_child_1_1_2 = { so_5::substate_of{ st_child_1_1 }, "2" };
+	state_t st_child_1_1_3 = { so_5::substate_of{ st_child_1_1 }, "3" };
+
 	state_t st_top_2 = { this, "top_2" };
 	state_t st_child_2_1 = { so_5::substate_of{ st_top_2 }, "child_1" };
 	state_t st_child_2_2 = { so_5::substate_of{ st_top_2 }, "child_2" };
@@ -28,7 +32,7 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		if( !(st_child_1_1 == so_current_state()) )
+		if( !(st_child_1_1_1 == so_current_state()) )
 			throw std::runtime_error( "unexpected current state, expected: " +
 					st_child_1_1.query_name() + ", actual: " +
 					so_current_state().query_name() );
