@@ -153,6 +153,8 @@ state_t::state_t(
 	,	m_initial_substate{ other.m_initial_substate }
 	,	m_nested_level{ other.m_nested_level }
 	,	m_substate_count{ other.m_substate_count }
+	,	m_on_enter{ std::move(other.m_on_enter) }
+	,	m_on_exit{ std::move(other.m_on_exit) }
 {
 	if( m_parent_state && m_parent_state->m_initial_substate == &other )
 		m_parent_state->m_initial_substate = self_ptr();

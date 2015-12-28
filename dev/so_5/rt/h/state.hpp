@@ -197,6 +197,18 @@ class SO_5_TYPE state_t final
 		event( ARGS&&... args ) const;
 
 		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename... ARGS >
+		state_t &
+		event( ARGS&&... args )
+			{
+				const state_t & t = *this;
+				t.event( std::forward<ARGS>(args)... );
+				return *this;
+			}
+
+		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
 		 *
@@ -223,6 +235,18 @@ class SO_5_TYPE state_t final
 		template< typename... ARGS >
 		const state_t &
 		event( mbox_t from, ARGS&&... args ) const;
+
+		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename... ARGS >
+		state_t &
+		event( mbox_t from, ARGS&&... args )
+			{
+				const state_t & t = *this;
+				t.event( std::move(from), std::forward<ARGS>(args)... );
+				return *this;
+			}
 
 		/*!
 		 * \since v.5.5.1
@@ -252,6 +276,18 @@ class SO_5_TYPE state_t final
 		event( ARGS&&... args ) const;
 
 		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename SIGNAL, typename... ARGS >
+		state_t &
+		event( ARGS&&... args )
+			{
+				const state_t & t = *this;
+				t.event< SIGNAL >( std::forward<ARGS>(args)... );
+				return *this;
+			}
+
+		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
 		 *
@@ -279,6 +315,67 @@ class SO_5_TYPE state_t final
 		template< typename SIGNAL, typename... ARGS >
 		const state_t &
 		event( mbox_t from, ARGS&&... args ) const;
+
+		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename SIGNAL, typename... ARGS >
+		state_t &
+		event( mbox_t from, ARGS&&... args )
+			{
+				const state_t & t = *this;
+				t.event< SIGNAL >( std::move(from), std::forward<ARGS>(args)... );
+				return *this;
+			}
+
+		/*!
+		 * \name Method for manupulation of enter/exit handlers.
+		 * \{
+		 */
+		/*!
+		 * \since v.5.5.15
+		 * \brief Set on enter handler.
+		 */
+		state_t &
+		on_enter( on_enter_handler_t handler )
+			{
+				m_on_enter = std::move(handler);
+				return *this;
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Query on enter handler.
+		 */
+		const on_enter_handler_t &
+		on_enter() const
+			{
+				return m_on_enter;
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Set on exit handler.
+		 */
+		state_t &
+		on_exit( on_exit_handler_t handler )
+			{
+				m_on_exit = std::move(handler);
+				return *this;
+			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Query on enter handler.
+		 */
+		const on_exit_handler_t &
+		on_exit() const
+			{
+				return m_on_exit;
+			}
+		/*!
+		 * \}
+		 */
 
 	private:
 		//! Fully initialized constructor.
