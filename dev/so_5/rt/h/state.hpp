@@ -71,6 +71,12 @@ class SO_5_TYPE state_t final
 
 	public:
 		/*!
+		 * \since v.5.5.15
+		 * \brief Max deep of nested states.
+		 */
+		static const std::size_t max_deep = 16;
+
+		/*!
 		 * \brief Constructor without user specified name.
 		 *
 		 * A name for the state will be generated automatically.

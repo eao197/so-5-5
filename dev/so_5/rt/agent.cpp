@@ -87,7 +87,24 @@ state_t::state_t(
 	,	m_substate_count{ 0 }
 {
 	if( parent_state )
+	{
+		// We should check the deep of nested states.
+		std::size_t deep = 0;
+		auto p = parent_state;
+		while( p )
+		{
+			deep += 1;
+			p = p->m_parent_state;
+		}
+
+		if( deep > max_deep )
+			SO_5_THROW_EXCEPTION( rc_state_nesting_is_too_deep,
+					"max nesting deep for agent states is " +
+					std::to_string( max_deep ) );
+
+		// Now we can safely mark parent state as composite.
 		parent_state->m_substate_count += 1;
+	}
 }
 
 state_t::state_t(

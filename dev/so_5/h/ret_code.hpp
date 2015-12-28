@@ -58,6 +58,11 @@ const int rc_operation_enabled_only_on_agent_working_thread = 16;
  */
 const int rc_no_initial_substate = 17;
 
+/*!
+ * \since v.5.5.15
+ * \brief Nesting of agent states is too deep.
+ */
+const int rc_state_nesting_is_too_deep = 18;
 //! \}
 
 //! \name Error codes for cooperations of agents.
