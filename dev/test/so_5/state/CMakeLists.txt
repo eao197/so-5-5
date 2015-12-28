@@ -1,0 +1,5 @@
+add_subdirectory(change_state)
+add_subdirectory(composite_state_change)
+add_subdirectory(enter_exit_handlers)
+add_subdirectory(nesting_deep)
+add_subdirectory(parent_state_handler)
