@@ -1955,6 +1955,15 @@ class SO_5_TYPE agent_t
 		handler_finder_msg_tracing_enabled(
 			execution_demand_t & demand,
 			const char * context_marker );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Actual search for event handler with respect
+		 * to parent-child relationship between agent states.
+		 */
+		static const impl::event_handler_data_t *
+		find_event_handler_for_current_state(
+			execution_demand_t & demand );
 };
 
 /*!

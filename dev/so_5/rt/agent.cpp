@@ -75,28 +75,74 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 //
 
 state_t::state_t(
+	agent_t * target_agent,
+	std::string state_name,
+	state_t * parent_state )
+	:	m_target_agent{ target_agent }
+	,	m_state_name( state_name.empty() ?
+				create_anonymous_state_name( target_agent, self_ptr() ) :
+				std::move(state_name) )
+	,	m_parent_state{ parent_state }
+	,	m_initial_substate{ nullptr }
+	,	m_substate_count{ 0 }
+{
+	if( parent_state )
+		parent_state->m_substate_count += 1;
+}
+
+state_t::state_t(
 	agent_t * agent )
-	:	m_target_agent( agent )
-	,	m_state_name( create_anonymous_state_name( agent, self_ptr() ) )
+	:	state_t{ agent, std::string(), nullptr }
 {
 }
 
 state_t::state_t(
 	agent_t * agent,
 	std::string state_name )
-	:
-		m_target_agent( agent ),
-		m_state_name( state_name.empty() ?
-				create_anonymous_state_name( agent, self_ptr() ) :
-				std::move(state_name) )
+	:	state_t{ agent, std::move(state_name), nullptr }
+{}
+
+state_t::state_t(
+	initial_substate_of parent )
+	:	state_t{ parent, std::string() }
+{} 
+
+state_t::state_t(
+	initial_substate_of parent,
+	std::string state_name )
+	:	state_t{
+			parent.m_parent_state->m_target_agent,
+			std::move(state_name),
+			parent.m_parent_state }
 {
+	m_parent_state->m_initial_substate = self_ptr();
 }
+
+state_t::state_t(
+	substate_of parent )
+	:	state_t{ parent, std::string() }
+{}
+
+state_t::state_t(
+	substate_of parent,
+	std::string state_name )
+	:	state_t{
+			parent.m_parent_state->m_target_agent,
+			std::move(state_name),
+			parent.m_parent_state }
+{}
 
 state_t::state_t(
 	state_t && other )
 	:	m_target_agent( other.m_target_agent )
 	,	m_state_name( std::move( other.m_state_name ) )
-{}
+	,	m_parent_state{ other.m_parent_state }
+	,	m_initial_substate{ other.m_initial_substate }
+	,	m_substate_count{ other.m_substate_count }
+{
+	if( m_parent_state && m_parent_state->m_initial_substate == &other )
+		m_parent_state->m_initial_substate = self_ptr();
+}
 
 state_t::~state_t()
 {
@@ -108,10 +154,13 @@ state_t::operator == ( const state_t & state ) const
 	return &state == this;
 }
 
-const std::string &
+std::string
 state_t::query_name() const
 {
-	return m_state_name;
+	if( m_parent_state )
+		return m_parent_state->query_name() + "." + m_state_name;
+	else
+		return m_state_name;
 }
 
 namespace {
@@ -825,10 +874,7 @@ agent_t::handler_finder_msg_tracing_disabled(
 	execution_demand_t & d,
 	const char * /*context_marker*/ )
 {
-	return d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
+	return find_event_handler_for_current_state( d );
 }
 
 const impl::event_handler_data_t *
@@ -836,15 +882,33 @@ agent_t::handler_finder_msg_tracing_enabled(
 	execution_demand_t & d,
 	const char * context_marker )
 {
-	const auto search_result = d.m_receiver->m_subscriptions->find_handler(
-			d.m_mbox_id,
-			d.m_msg_type, 
-			d.m_receiver->so_current_state() );
+	const auto search_result = find_event_handler_for_current_state( d );
 
 	impl::msg_tracing_helpers::trace_event_handler_search_result(
 			d,
 			context_marker,
 			search_result );
+
+	return search_result;
+}
+
+const impl::event_handler_data_t *
+agent_t::find_event_handler_for_current_state(
+	execution_demand_t & d )
+{
+	const impl::event_handler_data_t * search_result = nullptr;
+	const state_t * s = &d.m_receiver->so_current_state();
+
+	do {
+		search_result = d.m_receiver->m_subscriptions->find_handler(
+				d.m_mbox_id,
+				d.m_msg_type, 
+				*s );
+
+		if( !search_result )
+			s = s->parent_state();
+
+	} while( search_result == nullptr && s != nullptr );
 
 	return search_result;
 }

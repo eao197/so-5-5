@@ -27,6 +27,38 @@ namespace so_5
 	#pragma warning(disable: 4251)
 #endif
 
+//FIXME: Document this!
+//
+// initial_substate_of
+//
+/*!
+ * \since v.5.5.15
+ */
+struct initial_substate_of
+{
+	state_t * m_parent_state;
+
+	initial_substate_of( state_t & parent_state )
+		:	m_parent_state{ &parent_state }
+		{}
+};
+
+//FIXME: Document this!
+//
+// substate_of
+//
+/*!
+ * \since v.5.5.15
+ */
+struct substate_of
+{
+	state_t * m_parent_state;
+
+	substate_of( state_t & parent_state )
+		:	m_parent_state{ &parent_state }
+		{}
+};
+
 //
 // state_t
 //
@@ -52,6 +84,42 @@ class SO_5_TYPE state_t final
 			agent_t * agent,
 			std::string state_name );
 		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is the initial
+		 * substate of some parent state.
+		 */
+		state_t(
+			//! Parent state.
+			initial_substate_of parent );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is the initial
+		 * substate of some parent state.
+		 */
+		state_t(
+			//! Parent state.
+			initial_substate_of parent,
+			//! State name.
+			std::string state_name );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is a substate of some
+		 * parent state.
+		 */
+		state_t(
+			//! Parent state.
+			substate_of parent );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is a substate of some
+		 * parent state.
+		 */
+		state_t(
+			//! Parent state.
+			substate_of parent,
+			//! State name.
+			std::string state_name );
+		/*!
 		 * \since v.5.4.0
 		 * \brief Move constructor.
 		 */
@@ -63,7 +131,11 @@ class SO_5_TYPE state_t final
 		operator == ( const state_t & state ) const;
 
 		//! Get textual name of the state.
-		const std::string &
+		/*!
+		 * \note The return type is changed in v.5.5.15: now it is a std::string
+		 * object, not a const reference to some value inside state_t object.
+		 */
+		std::string
 		query_name() const;
 
 		//! Does agent owner of this state?
@@ -76,6 +148,16 @@ class SO_5_TYPE state_t final
 		 */
 		void
 		activate() const;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Get a parent state if exists.
+		 */
+		const state_t *
+		parent_state() const
+			{
+				return m_parent_state;
+			}
 
 		/*!
 		 * \since v.5.5.1
@@ -188,11 +270,55 @@ class SO_5_TYPE state_t final
 		event( mbox_t from, ARGS&&... args ) const;
 
 	private:
+		//! Fully initialized constructor.
+		/*!
+		 * \since v.5.5.15
+		 */
+		state_t(
+			//! Owner of this state.
+			agent_t * target_agent,
+			//! Name for this state.
+			std::string state_name,
+			//! Parent state. nullptr means that there is no parent state.
+			state_t * parent_state );
+
 		//! Owner of this state.
 		agent_t * const m_target_agent;
 
 		//! State name.
 		std::string m_state_name;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Parent state.
+		 *
+		 * \note Value nullptr means that state is a top-level state and
+		 * has no parent state.
+		 *
+		 * \note This pointer is not const because some modification of
+		 * parent state must be performed via that pointer.
+		 */
+		state_t * m_parent_state;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief The initial substate.
+		 *
+		 * \note Value nullptr means that state has no initial substate.
+		 * If m_substate_count == 0 it is normal. It means that state is
+		 * not a composite state. But if m_substate_count != 0 the value
+		 * nullptr means that state description is incorrect.
+		 */
+		const state_t * m_initial_substate;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Number of substates.
+		 *
+		 * \note Value 0 means that state is not composite state and has no
+		 * any substates.
+		 */
+		size_t m_substate_count;
 
 		inline const state_t *
 		self_ptr() const { return this; }
