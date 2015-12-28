@@ -50,6 +50,14 @@ const int rc_agent_incompatible_type_conversion = 15;
  * on agent's working thread.
  */
 const int rc_operation_enabled_only_on_agent_working_thread = 16;
+
+/*!
+ * \since v.5.5.15
+ * \brief An attempt to change agent state to a new composite state which
+ * have no initial state defined.
+ */
+const int rc_no_initial_substate = 17;
+
 //! \}
 
 //! \name Error codes for cooperations of agents.

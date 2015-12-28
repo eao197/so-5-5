@@ -204,6 +204,23 @@ state_t::activate() const
 	m_target_agent->so_change_state( *this );
 }
 
+const state_t *
+state_t::actual_state_to_enter() const
+{
+	const state_t * s = this;
+	while( 0 != s->m_substate_count )
+	{
+		if( !s->m_initial_substate )
+			SO_5_THROW_EXCEPTION( rc_no_initial_substate,
+					"there is no initial substate for composite state: " +
+					query_name() );
+		else
+			s = s->m_initial_substate;
+	}
+
+	return s;
+}
+
 //
 // agent_t
 //
@@ -334,7 +351,7 @@ agent_t::so_change_state(
 
 	if( new_state.is_target( this ) )
 	{
-		m_current_state_ptr = &new_state;
+		m_current_state_ptr = new_state.actual_state_to_enter();
 
 		// State listener should be informed.
 		m_state_listener_controller->changed(

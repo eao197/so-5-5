@@ -160,6 +160,21 @@ class SO_5_TYPE state_t final
 			}
 
 		/*!
+		 * \since v.5.5.15
+		 * \brief Find actual state to be activated for agent.
+		 *
+		 * \note If (*this) is a composite state then actual state to
+		 * enter will be its m_initial_substate (if m_initial_substate is
+		 * a composite state then actual state to enter will be its
+		 * m_initial_substate and so on).
+		 *
+		 * \throw exception_t if (*this) is a composite state but m_initial_substate
+		 * is not defined.
+		 */
+		const state_t *
+		actual_state_to_enter() const;
+
+		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
 		 *
