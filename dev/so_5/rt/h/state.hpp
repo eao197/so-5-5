@@ -82,6 +82,20 @@ class SO_5_TYPE state_t final
 
 		/*!
 		 * \since v.5.5.15
+		 * \brief Type of history for state.
+		 */
+		enum class history_t
+		{
+			//! State has no history.
+			none,
+			//! State has shallow history.
+			shallow,
+			//! State has deep history.
+			deep
+		};
+
+		/*!
+		 * \since v.5.5.15
 		 * \brief Type of function to be called on enter to the state.
 		 */
 		using on_enter_handler_t = std::function< void() >;
@@ -93,18 +107,35 @@ class SO_5_TYPE state_t final
 		using on_exit_handler_t = std::function< void() >;
 
 		/*!
-		 * \brief Constructor without user specified name.
-		 *
-		 * A name for the state will be generated automatically.
+		 * \note State name will be generated automaticaly.
 		 */
 		state_t(
+			//! State owner.
 			agent_t * agent );
 		/*!
-		 * \brief Full constructor.
+		 * \since v.5.5.15
+		 * \note State name will be generated automaticaly.
 		 */
 		state_t(
+			//! State owner.
 			agent_t * agent,
+			//! Type of state history.
+			history_t state_history );
+		state_t(
+			//! State owner.
+			agent_t * agent,
+			//! State name.
 			std::string state_name );
+		/*!
+		 * \since v.5.5.15
+		 */
+		state_t(
+			//! State owner.
+			agent_t * agent,
+			//! State name.
+			std::string state_name,
+			//! Type of state history.
+			history_t state_history );
 		/*!
 		 * \since v.5.5.15
 		 * \brief Constructor for the case when state is the initial
@@ -121,8 +152,30 @@ class SO_5_TYPE state_t final
 		state_t(
 			//! Parent state.
 			initial_substate_of parent,
+			//! Type of state history.
+			history_t state_history );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is the initial
+		 * substate of some parent state.
+		 */
+		state_t(
+			//! Parent state.
+			initial_substate_of parent,
 			//! State name.
 			std::string state_name );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is the initial
+		 * substate of some parent state.
+		 */
+		state_t(
+			//! Parent state.
+			initial_substate_of parent,
+			//! State name.
+			std::string state_name,
+			//! Type of state history.
+			history_t state_history );
 		/*!
 		 * \since v.5.5.15
 		 * \brief Constructor for the case when state is a substate of some
@@ -139,8 +192,30 @@ class SO_5_TYPE state_t final
 		state_t(
 			//! Parent state.
 			substate_of parent,
+			//! Type of state history.
+			history_t state_history );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is a substate of some
+		 * parent state.
+		 */
+		state_t(
+			//! Parent state.
+			substate_of parent,
 			//! State name.
 			std::string state_name );
+		/*!
+		 * \since v.5.5.15
+		 * \brief Constructor for the case when state is a substate of some
+		 * parent state.
+		 */
+		state_t(
+			//! Parent state.
+			substate_of parent,
+			//! State name.
+			std::string state_name,
+			//! Type of state history.
+			history_t state_history );
 		/*!
 		 * \since v.5.4.0
 		 * \brief Move constructor.
@@ -392,7 +467,9 @@ class SO_5_TYPE state_t final
 			state_t * parent_state,
 			//! Nesting deep for this state. Value 0 means this state is
 			//! a top-level state.
-			std::size_t nested_level );
+			std::size_t nested_level,
+			//! Type of state history.
+			history_t state_history );
 
 		//! Owner of this state.
 		agent_t * const m_target_agent;
@@ -425,6 +502,22 @@ class SO_5_TYPE state_t final
 		 * nullptr means that state description is incorrect.
 		 */
 		const state_t * m_initial_substate;
+ 
+		/*!
+		 * \since v.5.5.15
+		 * \brief Type of state history.
+		 */
+		history_t m_state_history;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Last active substate.
+		 *
+		 * \note This attribute is used only if
+		 * m_state_history != history_t::none. It holds a pointer to last
+		 * active substate of this composite state.
+		 */
+		const state_t * m_last_active_substate;
 
 		/*!
 		 * \since v.5.5.15
@@ -498,6 +591,9 @@ class SO_5_TYPE state_t final
 		 * a composite state then actual state to enter will be its
 		 * m_initial_substate and so on).
 		 *
+		 * \note If this state is a composite state with history then
+		 * m_last_active_substate value will be used (if it is not nullptr).
+		 *
 		 * \throw exception_t if (*this) is a composite state but m_initial_substate
 		 * is not defined.
 		 */
@@ -526,6 +622,14 @@ class SO_5_TYPE state_t final
 				if( m_parent_state )
 					m_parent_state->fill_path( path );
 			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief A helper method which is used during state change for
+		 * update state with history.
+		 */
+		void
+		update_history_in_parent_states() const;
 
 		/*!
 		 * \since v.5.5.15

@@ -78,11 +78,14 @@ state_t::state_t(
 	agent_t * target_agent,
 	std::string state_name,
 	state_t * parent_state,
-	std::size_t nested_level )
+	std::size_t nested_level,
+	history_t state_history )
 	:	m_target_agent{ target_agent }
 	,	m_state_name( std::move(state_name) )
 	,	m_parent_state{ parent_state }
 	,	m_initial_substate{ nullptr }
+	,	m_state_history{ state_history }
+	,	m_last_active_substate{ nullptr }
 	,	m_nested_level{ nested_level }
 	,	m_substate_count{ 0 }
 {
@@ -101,29 +104,51 @@ state_t::state_t(
 
 state_t::state_t(
 	agent_t * agent )
-	:	state_t{ agent, std::string(), nullptr, 0 }
+	:	state_t{ agent, history_t::none }
+{
+}
+
+state_t::state_t(
+	agent_t * agent,
+	history_t state_history )
+	:	state_t{ agent, std::string(), nullptr, 0, state_history }
 {
 }
 
 state_t::state_t(
 	agent_t * agent,
 	std::string state_name )
-	:	state_t{ agent, std::move(state_name), nullptr, 0 }
+	:	state_t{ agent, std::move(state_name), history_t::none }
+{}
+
+state_t::state_t(
+	agent_t * agent,
+	std::string state_name,
+	history_t state_history )
+	:	state_t{ agent, std::move(state_name), nullptr, 0, state_history }
 {}
 
 state_t::state_t(
 	initial_substate_of parent )
-	:	state_t{ parent, std::string() }
+	:	state_t{ parent, std::string(), history_t::none }
 {} 
 
 state_t::state_t(
 	initial_substate_of parent,
 	std::string state_name )
+	:	state_t{ parent, std::move(state_name), history_t::none }
+{}
+
+state_t::state_t(
+	initial_substate_of parent,
+	std::string state_name,
+	history_t state_history )
 	:	state_t{
 			parent.m_parent_state->m_target_agent,
 			std::move(state_name),
 			parent.m_parent_state,
-			parent.m_parent_state->m_nested_level + 1 }
+			parent.m_parent_state->m_nested_level + 1,
+			state_history }
 {
 	if( m_parent_state->m_initial_substate )
 		SO_5_THROW_EXCEPTION( rc_initial_substate_already_defined,
@@ -136,17 +161,25 @@ state_t::state_t(
 
 state_t::state_t(
 	substate_of parent )
-	:	state_t{ parent, std::string() }
+	:	state_t{ parent, std::string(), history_t::none }
 {}
 
 state_t::state_t(
 	substate_of parent,
 	std::string state_name )
+	:	state_t{ parent, std::move(state_name), history_t::none }
+{}
+
+state_t::state_t(
+	substate_of parent,
+	std::string state_name,
+	history_t state_history )
 	:	state_t{
 			parent.m_parent_state->m_target_agent,
 			std::move(state_name),
 			parent.m_parent_state,
-			parent.m_parent_state->m_nested_level + 1 }
+			parent.m_parent_state->m_nested_level + 1,
+			state_history }
 {}
 
 state_t::state_t(
@@ -155,6 +188,8 @@ state_t::state_t(
 	,	m_state_name( std::move( other.m_state_name ) )
 	,	m_parent_state{ other.m_parent_state }
 	,	m_initial_substate{ other.m_initial_substate }
+	,	m_state_history{ other.m_state_history }
+	,	m_last_active_substate{ other.m_last_active_substate }
 	,	m_nested_level{ other.m_nested_level }
 	,	m_substate_count{ other.m_substate_count }
 	,	m_on_enter{ std::move(other.m_on_enter) }
@@ -237,6 +272,9 @@ state_t::actual_state_to_enter() const
 	const state_t * s = this;
 	while( 0 != s->m_substate_count )
 	{
+		if( s->m_last_active_substate )
+			return s->m_last_active_substate;
+
 		if( !s->m_initial_substate )
 			SO_5_THROW_EXCEPTION( rc_no_initial_substate,
 					"there is no initial substate for composite state: " +
@@ -246,6 +284,27 @@ state_t::actual_state_to_enter() const
 	}
 
 	return s;
+}
+
+void
+state_t::update_history_in_parent_states() const
+{
+	auto p = m_parent_state;
+	// For shallow state we can update history only for
+	// direct parent state.
+	if( p && history_t::shallow == p->m_state_history )
+	{
+		p->m_last_active_substate = this;
+		p = p->m_parent_state;
+	}
+
+	// Deep history must be updated in all parents.
+	while( p )
+	{
+		if( history_t::deep == p->m_state_history )
+			p->m_last_active_substate = this;
+		p = p->m_parent_state;
+	}
 }
 
 //
@@ -1005,6 +1064,7 @@ agent_t::do_state_switch(
 
 	// Now the current state for the agent can be changed.
 	m_current_state_ptr = &state_to_be_set;
+	m_current_state_ptr->update_history_in_parent_states();
 }
 
 } /* namespace so_5 */

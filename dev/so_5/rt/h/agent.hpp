@@ -517,6 +517,18 @@ class SO_5_TYPE agent_t
 		 * \brief Short alias for %so_5::substate_of.
 		 */
 		using substate_of = so_5::substate_of;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::state_t::history_t::shallow.
+		 */
+		static const state_t::history_t shallow_history =
+				state_t::history_t::shallow;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::state_t::history_t::deep.
+		 */
+		static const state_t::history_t deep_history =
+				state_t::history_t::deep;
 
 		//! Constructor.
 		/*!
