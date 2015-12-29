@@ -97,7 +97,7 @@ class SO_5_TYPE state_t final
 		 *
 		 * A name for the state will be generated automatically.
 		 */
-		explicit state_t(
+		state_t(
 			agent_t * agent );
 		/*!
 		 * \brief Full constructor.

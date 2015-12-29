@@ -20,14 +20,14 @@ public :
 		for( std::size_t i = 1; i < state_t::max_deep; ++i )
 		{
 			state_unique_ptr s{ new state_t{
-					so_5::initial_substate_of{ *m_states.back() }, "s" } };
+					initial_substate_of{ *m_states.back() }, "s" } };
 			m_states.push_back( std::move(s) );
 		}
 
 		try
 		{
 			state_unique_ptr s{ new state_t{
-					so_5::initial_substate_of{ *m_states.back() } } };
+					initial_substate_of{ *m_states.back() } } };
 			m_states.push_back( std::move(s) );
 
 			throw std::runtime_error( "exception must be throw on attempt "

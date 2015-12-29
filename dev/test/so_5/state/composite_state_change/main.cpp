@@ -10,17 +10,17 @@
 
 class a_test_t final : public so_5::agent_t
 {
-	state_t st_top_1 = { this, "top_1" };
-	state_t st_child_1_1 = { so_5::initial_substate_of{ st_top_1 }, "child_1" };
-	state_t st_child_1_2 = { so_5::substate_of{ st_top_1 }, "child_2" };
+	state_t st_top_1{ this, "top_1" };
+	state_t st_child_1_1{ initial_substate_of{ st_top_1 }, "child_1" };
+	state_t st_child_1_2{ substate_of{ st_top_1 }, "child_2" };
 
-	state_t st_child_1_1_1 = { so_5::initial_substate_of{ st_child_1_1 }, "1" };
-	state_t st_child_1_1_2 = { so_5::substate_of{ st_child_1_1 }, "2" };
-	state_t st_child_1_1_3 = { so_5::substate_of{ st_child_1_1 }, "3" };
+	state_t st_child_1_1_1{ initial_substate_of{ st_child_1_1 }, "1" };
+	state_t st_child_1_1_2{ substate_of{ st_child_1_1 }, "2" };
+	state_t st_child_1_1_3{ substate_of{ st_child_1_1 }, "3" };
 
-	state_t st_top_2 = { this, "top_2" };
-	state_t st_child_2_1 = { so_5::substate_of{ st_top_2 }, "child_1" };
-	state_t st_child_2_2 = { so_5::substate_of{ st_top_2 }, "child_2" };
+	state_t st_top_2{ this, "top_2" };
+	state_t st_child_2_1{ substate_of{ st_top_2 }, "child_1" };
+	state_t st_child_2_2{ substate_of{ st_top_2 }, "child_2" };
 
 public :
 	a_test_t( context_t ctx )

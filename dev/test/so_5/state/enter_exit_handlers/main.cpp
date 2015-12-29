@@ -10,9 +10,9 @@
 
 class a_only_top_level_states_t final : public so_5::agent_t
 {
-	state_t st_one = { this, "one" };
-	state_t st_two = { this, "two" };
-	state_t st_three = { this, "three" };
+	state_t st_one{ this, "one" };
+	state_t st_two{ this, "two" };
+	state_t st_three{ this, "three" };
 
 public :
 	a_only_top_level_states_t( context_t ctx )
@@ -52,18 +52,18 @@ private :
 
 class a_substates_of_one_state_t final : public so_5::agent_t
 {
-	state_t st_one = { this, "one" };
-	state_t st_two = { this, "two" };
+	state_t st_one{ this };
+	state_t st_two{ this };
 
-	state_t st_one_1_1 = { initial_substate_of{ st_one } };
+	state_t st_one_1_1{ initial_substate_of{ st_one } };
 
-	state_t st_one_1_1_1 = { initial_substate_of{ st_one_1_1 } };
-	state_t st_one_1_1_2 = { substate_of{ st_one_1_1 } };
+	state_t st_one_1_1_1{ initial_substate_of{ st_one_1_1 } };
+	state_t st_one_1_1_2{ substate_of{ st_one_1_1 } };
 
-	state_t st_one_1_2 = { substate_of{ st_one } };
+	state_t st_one_1_2{ substate_of{ st_one } };
 
-	state_t st_one_1_2_1 = { initial_substate_of{ st_one_1_2 } };
-	state_t st_one_1_2_2 = { substate_of{ st_one_1_2 } };
+	state_t st_one_1_2_1{ initial_substate_of{ st_one_1_2 } };
+	state_t st_one_1_2_2{ substate_of{ st_one_1_2 } };
 
 
 public :
@@ -125,28 +125,28 @@ private :
 
 class a_substates_of_two_state_t final : public so_5::agent_t
 {
-	state_t st_one = { this, "one" };
-	state_t st_two = { this, "two" };
+	state_t st_one{ this, "one" };
+	state_t st_two{ this, "two" };
 
-	state_t st_one_1_1 = { initial_substate_of{ st_one } };
+	state_t st_one_1_1{ initial_substate_of{ st_one } };
 
-	state_t st_one_1_1_1 = { initial_substate_of{ st_one_1_1 } };
-	state_t st_one_1_1_2 = { substate_of{ st_one_1_1 } };
+	state_t st_one_1_1_1{ initial_substate_of{ st_one_1_1 } };
+	state_t st_one_1_1_2{ substate_of{ st_one_1_1 } };
 
-	state_t st_one_1_2 = { substate_of{ st_one } };
+	state_t st_one_1_2{ substate_of{ st_one } };
 
-	state_t st_one_1_2_1 = { initial_substate_of{ st_one_1_2 } };
-	state_t st_one_1_2_2 = { substate_of{ st_one_1_2 } };
+	state_t st_one_1_2_1{ initial_substate_of{ st_one_1_2 } };
+	state_t st_one_1_2_2{ substate_of{ st_one_1_2 } };
 
-	state_t st_two_1_1 = { initial_substate_of{ st_two } };
+	state_t st_two_1_1{ initial_substate_of{ st_two } };
 
-	state_t st_two_1_1_1 = { initial_substate_of{ st_two_1_1 } };
-	state_t st_two_1_1_2 = { substate_of{ st_two_1_1 } };
+	state_t st_two_1_1_1{ initial_substate_of{ st_two_1_1 } };
+	state_t st_two_1_1_2{ substate_of{ st_two_1_1 } };
 
-	state_t st_two_1_2 = { substate_of{ st_two } };
+	state_t st_two_1_2{ substate_of{ st_two } };
 
-	state_t st_two_1_2_1 = { initial_substate_of{ st_two_1_2 } };
-	state_t st_two_1_2_2 = { substate_of{ st_two_1_2 } };
+	state_t st_two_1_2_1{ initial_substate_of{ st_two_1_2 } };
+	state_t st_two_1_2_2{ substate_of{ st_two_1_2 } };
 
 
 public :

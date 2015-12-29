@@ -14,9 +14,9 @@ class a_test_t final : public so_5::agent_t
 	struct sig_2 : public so_5::signal_t {};
 	struct sig_3 : public so_5::signal_t {};
 
-	state_t st_parent = { this, "parent" };
-	state_t st_child_1 = { so_5::initial_substate_of{ st_parent }, "child_1" };
-	state_t st_child_2 = { so_5::initial_substate_of{ st_child_1 }, "child_2" };
+	state_t st_parent{ this, "parent" };
+	state_t st_child_1{ initial_substate_of{ st_parent }, "child_1" };
+	state_t st_child_2{ initial_substate_of{ st_child_1 }, "child_2" };
 
 public :
 	a_test_t( context_t ctx )
