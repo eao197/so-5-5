@@ -80,9 +80,7 @@ state_t::state_t(
 	state_t * parent_state,
 	std::size_t nested_level )
 	:	m_target_agent{ target_agent }
-	,	m_state_name( state_name.empty() ?
-				create_anonymous_state_name( target_agent, self_ptr() ) :
-				std::move(state_name) )
+	,	m_state_name( std::move(state_name) )
 	,	m_parent_state{ parent_state }
 	,	m_initial_substate{ nullptr }
 	,	m_nested_level{ nested_level }
@@ -127,7 +125,7 @@ state_t::state_t(
 			parent.m_parent_state,
 			parent.m_parent_state->m_nested_level + 1 }
 {
-	m_parent_state->m_initial_substate = self_ptr();
+	m_parent_state->m_initial_substate = this;
 }
 
 state_t::state_t(
@@ -157,7 +155,7 @@ state_t::state_t(
 	,	m_on_exit{ std::move(other.m_on_exit) }
 {
 	if( m_parent_state && m_parent_state->m_initial_substate == &other )
-		m_parent_state->m_initial_substate = self_ptr();
+		m_parent_state->m_initial_substate = this;
 }
 
 state_t::~state_t()
@@ -173,10 +171,17 @@ state_t::operator == ( const state_t & state ) const
 std::string
 state_t::query_name() const
 {
+	auto getter = [this]() -> std::string {
+		if( m_state_name.empty() )
+			return create_anonymous_state_name( m_target_agent, this );
+		else
+			return m_state_name;
+	};
+
 	if( m_parent_state )
-		return m_parent_state->query_name() + "." + m_state_name;
+		return m_parent_state->query_name() + "." + getter();
 	else
-		return m_state_name;
+		return getter();
 }
 
 namespace {

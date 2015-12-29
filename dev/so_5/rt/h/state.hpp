@@ -397,6 +397,9 @@ class SO_5_TYPE state_t final
 		agent_t * const m_target_agent;
 
 		//! State name.
+		/*!
+		 * \note Since v.5.5.15 has empty value for anonymous state.
+		 */
 		std::string m_state_name;
 
 		/*!
@@ -450,9 +453,6 @@ class SO_5_TYPE state_t final
 		 * \brief Handler for the exit from the state.
 		 */
 		on_exit_handler_t m_on_exit;
-
-		inline const state_t *
-		self_ptr() const { return this; }
 
 		/*!
 		 * \since v.5.5.1
