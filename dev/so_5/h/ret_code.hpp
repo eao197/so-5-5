@@ -63,6 +63,13 @@ const int rc_no_initial_substate = 17;
  * \brief Nesting of agent states is too deep.
  */
 const int rc_state_nesting_is_too_deep = 18;
+
+/*!
+ * \since v.5.5.15
+ * \brief Initial substate for a composite state is already defined.
+ */
+const int rc_initial_substate_already_defined = 19;
+
 //! \}
 
 //! \name Error codes for cooperations of agents.

@@ -125,6 +125,12 @@ state_t::state_t(
 			parent.m_parent_state,
 			parent.m_parent_state->m_nested_level + 1 }
 {
+	if( m_parent_state->m_initial_substate )
+		SO_5_THROW_EXCEPTION( rc_initial_substate_already_defined,
+				"initial substate for state " + m_parent_state->query_name() +
+				" is already defined: " +
+				m_parent_state->m_initial_substate->query_name() );
+
 	m_parent_state->m_initial_substate = this;
 }
 

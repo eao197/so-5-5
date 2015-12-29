@@ -507,6 +507,16 @@ class SO_5_TYPE agent_t
 		 */
 		template< typename T >
 		using mhood_t = so_5::mhood_t< T >;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::initial_substate_of.
+		 */
+		using initial_substate_of = so_5::initial_substate_of;
+		/*!
+		 * \since v.5.5.15
+		 * \brief Short alias for %so_5::substate_of.
+		 */
+		using substate_of = so_5::substate_of;
 
 		//! Constructor.
 		/*!
