@@ -1515,6 +1515,16 @@ class SO_5_TYPE agent_t
 			};
 			\endcode
 		 *
+		 * \deprecated Will be removed in v.5.6.0.
+		 * Just use ordinary constructors of state_t:
+		 	\code
+			class my_agent_t : public so_5::agent_t
+			{
+				state_t st_1{ this };
+				state_t st_2{ this };
+				...
+			}
+			\endcode
 		 */
 		inline state_t
 		so_make_state()
@@ -1536,6 +1546,17 @@ class SO_5_TYPE agent_t
 			};
 			\endcode
 		 *
+		 *
+		 * \deprecated Will be removed in v.5.6.0.
+		 * Just use ordinary constructors of state_t:
+		 	\code
+			class my_agent_t : public so_5::agent_t
+			{
+				state_t st_1{ this, "st_one" };
+				state_t st_2{ this, "st_two" };
+				...
+			}
+			\endcode
 		 */
 		inline state_t
 		so_make_state( std::string name )

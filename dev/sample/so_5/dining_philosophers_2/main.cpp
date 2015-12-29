@@ -67,8 +67,8 @@ public :
 	}
 
 private :
-	const state_t st_free = so_make_state( "free" );
-	const state_t st_taken = so_make_state( "taken" );
+	const state_t st_free{ this, "free" };
+	const state_t st_taken{ this, "taken" };
 };
 
 class a_philosopher_t : public so_5::agent_t
@@ -147,11 +147,11 @@ public :
 	}
 
 private :
-	const state_t st_thinking = so_make_state();
-	const state_t st_hungry = so_make_state();
-	const state_t st_denied = so_make_state();
-	const state_t st_one_taken = so_make_state();
-	const state_t st_eating = so_make_state();
+	const state_t st_thinking{ this };
+	const state_t st_hungry{ this };
+	const state_t st_denied{ this };
+	const state_t st_one_taken{ this };
+	const state_t st_eating{ this };
 
 	const std::string m_name;
 

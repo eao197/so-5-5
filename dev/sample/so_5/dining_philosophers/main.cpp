@@ -58,8 +58,8 @@ public :
 	}
 
 private :
-	const state_t st_free = so_make_state( "free" );
-	const state_t st_taken = so_make_state( "taken" );
+	const state_t st_free{ this, "free" };
+	const state_t st_taken{ this, "taken" };
 };
 
 class a_philosopher_t : public so_5::agent_t
@@ -122,10 +122,10 @@ public :
 	}
 
 private :
-	const state_t st_thinking = so_make_state( "thinking" );
-	const state_t st_wait_left = so_make_state( "wait_left" );
-	const state_t st_wait_right = so_make_state( "wait_right" );
-	const state_t st_eating = so_make_state( "eating" );
+	const state_t st_thinking{ this, "thinking" };
+	const state_t st_wait_left{ this, "wait_left" };
+	const state_t st_wait_right{ this, "wait_right" };
+	const state_t st_eating{ this, "eating" };
 
 	const std::string m_name;
 
