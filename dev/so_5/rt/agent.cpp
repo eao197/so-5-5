@@ -961,8 +961,8 @@ void
 agent_t::do_state_switch(
 	const state_t & state_to_be_set )
 {
-	const state_t * old_path[ state_t::max_deep ];
-	const state_t * new_path[ state_t::max_deep ];
+	std::array< const state_t *, state_t::max_deep > old_path;
+	std::array< const state_t *, state_t::max_deep > new_path;
 
 	m_current_state_ptr->fill_path( old_path );
 	state_to_be_set.fill_path( new_path );

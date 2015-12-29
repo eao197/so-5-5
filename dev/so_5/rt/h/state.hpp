@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include <map>
 #include <set>
@@ -519,7 +520,7 @@ class SO_5_TYPE state_t final
 		 * state to this state.
 		 */
 		void
-		fill_path( const state_t ** path ) const
+		fill_path( std::array< const state_t *, max_deep > & path ) const
 			{
 				path[ m_nested_level ] = this;
 				if( m_parent_state )
