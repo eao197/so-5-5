@@ -273,9 +273,12 @@ state_t::actual_state_to_enter() const
 	while( 0 != s->m_substate_count )
 	{
 		if( s->m_last_active_substate )
-			return s->m_last_active_substate;
-
-		if( !s->m_initial_substate )
+			// Note: for states with shallow history m_last_active_substate
+			// can point to composite substate. This substate must be
+			// processed usual way with checking for substate count, presence
+			// of initial substate and so on...
+			s = s->m_last_active_substate;
+		else if( !s->m_initial_substate )
 			SO_5_THROW_EXCEPTION( rc_no_initial_substate,
 					"there is no initial substate for composite state: " +
 					query_name() );
@@ -290,19 +293,19 @@ void
 state_t::update_history_in_parent_states() const
 {
 	auto p = m_parent_state;
-	// For shallow state we can update history only for
-	// direct parent state.
-	if( p && history_t::shallow == p->m_state_history )
-	{
-		p->m_last_active_substate = this;
-		p = p->m_parent_state;
-	}
 
-	// Deep history must be updated in all parents.
+	// This pointer will be used for update states with shallow history.
+	// This pointer will be changed on every iteration.
+	auto c = this;
+
 	while( p )
 	{
-		if( history_t::deep == p->m_state_history )
+		if( history_t::shallow == p->m_state_history )
+			p->m_last_active_substate = c;
+		else if( history_t::deep == p->m_state_history )
 			p->m_last_active_substate = this;
+
+		c = p;
 		p = p->m_parent_state;
 	}
 }

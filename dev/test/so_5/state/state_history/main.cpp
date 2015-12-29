@@ -72,6 +72,27 @@ public :
 		this >>= s1_1;
 		expect_current_state( s1_1_1_1_2_2 );
 
+		this >>= s1_1_1_1_3;
+		expect_current_state( s1_1_1_1_3 );
+
+		this >>= s1_1_1_1_2_3;
+		expect_current_state( s1_1_1_1_2_3 );
+
+		this >>= s1_2;
+		expect_current_state( s1_2 );
+
+		this >>= s1_1_1_1;
+		expect_current_state( s1_1_1_1_2_1 );
+
+		this >>= s1_1_1_1_2_3;
+		expect_current_state( s1_1_1_1_2_3 );
+
+		this >>= s1_2;
+		expect_current_state( s1_2 );
+
+		this >>= s1_1;
+		expect_current_state( s1_1_1_1_2_3 );
+
 		so_deregister_agent_coop_normally();
 	}
 
