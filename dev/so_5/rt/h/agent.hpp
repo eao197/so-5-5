@@ -325,6 +325,12 @@ class subscription_bind_t
 						std::forward< ARGS >(args)... );
 			}
 
+		//FIXME: write Doxygen comment!
+		template< typename MSG >
+		subscription_bind_t &
+		transfer_to_state(
+			const state_t & target_state );
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t * m_agent;
@@ -2196,6 +2202,42 @@ subscription_bind_t::event(
 	return *this;
 }
 
+template< typename MSG >
+subscription_bind_t &
+subscription_bind_t::transfer_to_state(
+	const state_t & target_state )
+{
+	agent_t * agent_ptr = m_agent;
+	mbox_id_t mbox_id = m_mbox_ref->id();
+
+	auto method = [agent_ptr, mbox_id, &target_state](
+			invocation_type_t invoke_type,
+			message_ref_t & msg )
+		{
+			agent_ptr->so_change_state( target_state );
+
+			execution_demand_t demand{
+					agent_ptr,
+					nullptr, // Message limit is not actual here.
+					mbox_id,
+					typeid( MSG ),
+					msg,
+					invocation_type_t::event == invoke_type ?
+							agent_t::get_demand_handler_on_message_ptr() :
+							agent_t::get_service_request_handler_on_message_ptr()
+			};
+
+			demand.call_handler( query_current_thread_id() );
+		};
+
+	create_subscription_for_states(
+			typeid( MSG ),
+			method,
+			thread_safety_t::unsafe );
+
+	return *this;
+}
+
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
@@ -2256,6 +2298,26 @@ state_t::event( mbox_t from, ARGS&&... args ) const
 	return this->subscribe_signal_handler< SIGNAL >(
 			from,
 			std::forward< ARGS >(args)... );
+}
+
+template< typename MSG >
+const state_t &
+state_t::transfer_to_state( mbox_t from, const state_t & target_state ) const
+{
+	m_target_agent->so_subscribe( from )
+			.in( *this )
+			.transfer_to_state< MSG >( target_state );
+
+	return *this;
+}
+
+template< typename MSG >
+const state_t &
+state_t::transfer_to_state( const state_t & target_state ) const
+{
+	return this->transfer_to_state< MSG >(
+			m_target_agent->so_direct_mbox(),
+			target_state );
 }
 
 template< typename... ARGS >
