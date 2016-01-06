@@ -20,6 +20,55 @@ struct key_digit
 	char m_value;
 };
 
+class inactivity_watcher final : public so_5::agent_t
+{
+	state_t inactive{ this, "inactive" };
+	state_t active{ this, "active" };
+
+	const std::chrono::seconds inactivity_time{ 10 };
+
+public :
+	struct deactivate : public so_5::signal_t {};
+
+	inactivity_watcher(
+		context_t ctx,
+		so_5::mbox_t intercom_mbox )
+		:	so_5::agent_t{ ctx }
+		,	m_intercom_mbox{ std::move(intercom_mbox) }
+	{
+		inactive
+			.on_enter( [this] { m_timer.release(); } )
+			.transfer_to_state< key_digit >( m_intercom_mbox, active )
+			.transfer_to_state< key_grid >( m_intercom_mbox, active )
+			.transfer_to_state< key_bell >( m_intercom_mbox, active )
+			.transfer_to_state< key_cancel >( m_intercom_mbox, active );
+		
+		active
+			.event< key_cancel >( m_intercom_mbox, [this] { reschedule_timer(); } )
+			.event< key_bell >( m_intercom_mbox, [this] { reschedule_timer(); } )
+			.event< key_grid >( m_intercom_mbox, [this] { reschedule_timer(); } )
+			.event( m_intercom_mbox, [this]( const key_digit & ) {
+					reschedule_timer();
+				} )
+			.event< deactivate >( m_intercom_mbox, [this] { this >>= inactive; } );
+
+		this >>= inactive;
+	}
+
+private :
+	const so_5::mbox_t m_intercom_mbox;
+	so_5::timer_id_t m_timer;
+
+	void reschedule_timer()
+	{
+		m_timer = so_5::send_periodic< deactivate >(
+				so_environment(),
+				m_intercom_mbox,
+				inactivity_time,
+				std::chrono::seconds::zero() );
+	}
+};
+
 class intercom_controller final : public so_5::agent_t
 {
 	// Intercom is inactive, light and display are turned off.
@@ -83,7 +132,9 @@ public :
 			.on_enter( [this] { on_enter_active(); } )
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
 			.event< key_grid >( m_intercom_mbox, &intercom_controller::evt_first_grid )
-			.event< key_cancel >( m_intercom_mbox, &intercom_controller::evt_cancel );
+			.event< key_cancel >( m_intercom_mbox, &intercom_controller::evt_cancel )
+			.event< inactivity_watcher::deactivate >( m_intercom_mbox,
+					[this] { this >>= inactive; } );
 
 		wait_activity
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
@@ -107,6 +158,7 @@ private :
 
 	void on_enter_inactive()
 	{
+std::cout << "enter to inactive" << std::endl;
 		// Turn light off, turn display off.
 	}
 
@@ -140,6 +192,7 @@ so_5::mbox_t create_intercom( so_5::environment_t & env )
 		intercom_mbox = env.create_mbox();
 
 		coop.make_agent< intercom_controller >( intercom_mbox );
+		coop.make_agent< inactivity_watcher >( intercom_mbox );
 	} );
 
 	return intercom_mbox;
@@ -148,7 +201,11 @@ so_5::mbox_t create_intercom( so_5::environment_t & env )
 void demo()
 {
 	// A SObjectizer instance.
-	so_5::wrapped_env_t sobj;
+	so_5::wrapped_env_t sobj{
+		[]( so_5::environment_t & ) {},
+		[]( so_5::environment_params_t & params ) {
+//			params.message_delivery_tracer( so_5::msg_tracing::std_clog_tracer() );
+		} };
 
 	auto intercom = create_intercom( sobj.environment() );
 
