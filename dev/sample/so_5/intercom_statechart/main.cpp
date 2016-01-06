@@ -20,6 +20,20 @@ struct key_digit
 	char m_value;
 };
 
+// Private messages for intercom implementation.
+namespace intercom_messages
+{
+
+struct activated : public so_5::signal_t {};
+struct deactivate : public so_5::signal_t {};
+
+struct display_text
+{
+	std::string m_what;
+};
+
+} // namespace intercom_messages
+
 class inactivity_watcher final : public so_5::agent_t
 {
 	state_t inactive{ this, "inactive" };
@@ -28,7 +42,6 @@ class inactivity_watcher final : public so_5::agent_t
 	const std::chrono::seconds inactivity_time{ 10 };
 
 public :
-	struct deactivate : public so_5::signal_t {};
 
 	inactivity_watcher(
 		context_t ctx,
@@ -38,19 +51,20 @@ public :
 	{
 		inactive
 			.on_enter( [this] { m_timer.release(); } )
-			.transfer_to_state< key_digit >( m_intercom_mbox, active )
-			.transfer_to_state< key_grid >( m_intercom_mbox, active )
-			.transfer_to_state< key_bell >( m_intercom_mbox, active )
-			.transfer_to_state< key_cancel >( m_intercom_mbox, active );
+			.event< intercom_messages::activated >(
+					m_intercom_mbox, [this] { this >>= active; } );
 		
 		active
+			.on_enter( [this] { reschedule_timer(); } )
 			.event< key_cancel >( m_intercom_mbox, [this] { reschedule_timer(); } )
 			.event< key_bell >( m_intercom_mbox, [this] { reschedule_timer(); } )
 			.event< key_grid >( m_intercom_mbox, [this] { reschedule_timer(); } )
-			.event( m_intercom_mbox, [this]( const key_digit & ) {
-					reschedule_timer();
-				} )
-			.event< deactivate >( m_intercom_mbox, [this] { this >>= inactive; } );
+			.event(
+					m_intercom_mbox, [this]( const key_digit & ) {
+						reschedule_timer();
+					} )
+			.event< intercom_messages::deactivate >(
+					m_intercom_mbox, [this] { this >>= inactive; } );
 
 		this >>= inactive;
 	}
@@ -61,11 +75,64 @@ private :
 
 	void reschedule_timer()
 	{
-		m_timer = so_5::send_periodic< deactivate >(
+		m_timer = so_5::send_periodic< intercom_messages::deactivate >(
 				so_environment(),
 				m_intercom_mbox,
 				inactivity_time,
 				std::chrono::seconds::zero() );
+	}
+};
+
+class keyboard_lights final : public so_5::agent_t
+{
+	state_t off{ this, "off" };
+	state_t on{ this, "on" };
+
+public :
+	keyboard_lights(
+		context_t ctx,
+		const so_5::mbox_t & intercom_mbox )
+		:	so_5::agent_t{ ctx }
+	{
+		off
+			.on_enter( []{ std::cout << "keyboard_lights OFF" << std::endl; } )
+			.event< intercom_messages::activated >(
+					intercom_mbox, [this]{ this >>= on; } );
+
+		on
+			.on_enter( []{ std::cout << "keyboard_lights ON" << std::endl; } )
+			.event< intercom_messages::deactivate >(
+					intercom_mbox, [this]{ this >>= off; } );
+
+		this >>= off;
+	}
+};
+
+class display final : public so_5::agent_t
+{
+	state_t off{ this, "off" };
+	state_t on{ this, "on" };
+
+public :
+	display(
+		context_t ctx,
+		const so_5::mbox_t & intercom_mbox )
+		:	so_5::agent_t{ ctx }
+	{
+		off
+			.on_enter( []{ std::cout << "display OFF" << std::endl; } )
+			.event< intercom_messages::activated >(
+					intercom_mbox, [this]{ this >>= on; } );
+
+		on
+			.on_enter( []{ std::cout << "display ON" << std::endl; } )
+			.event( intercom_mbox, []( const intercom_messages::display_text & msg ) {
+						std::cout << "display: '" << msg.m_what << "'" << std::endl;
+					} )
+			.event< intercom_messages::deactivate >(
+					intercom_mbox, [this]{ this >>= off; } );
+
+		this >>= off;
 	}
 };
 
@@ -122,30 +189,30 @@ public :
 		,	m_intercom_mbox{ std::move(intercom_mbox) }
 	{
 		inactive
-			.on_enter( [this] { on_enter_inactive(); } )
 			.transfer_to_state< key_digit >( m_intercom_mbox, active )
 			.transfer_to_state< key_grid >( m_intercom_mbox, active )
 			.transfer_to_state< key_bell >( m_intercom_mbox, active )
 			.transfer_to_state< key_cancel >( m_intercom_mbox, active );
 
 		active
-			.on_enter( [this] { on_enter_active(); } )
+			.on_enter( [this]{ on_enter_active(); } )
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
 			.event< key_grid >( m_intercom_mbox, &intercom_controller::evt_first_grid )
 			.event< key_cancel >( m_intercom_mbox, &intercom_controller::evt_cancel )
-			.event< inactivity_watcher::deactivate >( m_intercom_mbox,
-					[this] { this >>= inactive; } );
+			.event< intercom_messages::deactivate >(
+					m_intercom_mbox, [this]{ this >>= inactive; } );
 
 		wait_activity
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
 			.event< key_grid >( m_intercom_mbox, &intercom_controller::evt_first_grid );
 
 		number_selection
+			.on_enter( [this]{ m_appartment_number.clear(); } )
 			.event( m_intercom_mbox, &intercom_controller::evt_appartment_number_digit );
 
 		special_code_selection
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
-			.event< key_grid >( m_intercom_mbox, [this] { this >>= service_code_selection; } );
+			.event< key_grid >( m_intercom_mbox, [this]{ this >>= service_code_selection; } );
 	}
 
 	virtual void so_evt_start() override
@@ -156,16 +223,12 @@ public :
 private :
 	const so_5::mbox_t m_intercom_mbox;
 
-	void on_enter_inactive()
-	{
-std::cout << "enter to inactive" << std::endl;
-		// Turn light off, turn display off.
-	}
+	std::string m_appartment_number;
 
 	void on_enter_active()
 	{
 std::cout << "enter to active" << std::endl;
-		// Turn light on, turn display on.
+		so_5::send< intercom_messages::activated >( m_intercom_mbox );
 	}
 
 	void evt_cancel()
@@ -180,7 +243,11 @@ std::cout << "enter to active" << std::endl;
 
 	void evt_appartment_number_digit( const key_digit & msg )
 	{
-//FIXME: implement this!
+		if( m_appartment_number.size() < 3 )
+			m_appartment_number += msg.m_value;
+
+		so_5::send< intercom_messages::display_text >(
+				m_intercom_mbox, m_appartment_number );
 	}
 
 };
@@ -193,6 +260,8 @@ so_5::mbox_t create_intercom( so_5::environment_t & env )
 
 		coop.make_agent< intercom_controller >( intercom_mbox );
 		coop.make_agent< inactivity_watcher >( intercom_mbox );
+		coop.make_agent< keyboard_lights >( intercom_mbox );
+		coop.make_agent< display >( intercom_mbox );
 	} );
 
 	return intercom_mbox;
