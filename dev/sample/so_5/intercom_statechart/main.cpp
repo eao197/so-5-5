@@ -243,6 +243,11 @@ class controller final : public so_5::agent_t
 		{}
 	};
 
+	struct no_answer
+	{
+		int m_id;
+	};
+
 public :
 	controller(
 		context_t ctx,
@@ -278,24 +283,34 @@ public :
 					&controller::evt_apartment_number_digit )
 			.event< key_bell >(
 					m_intercom_mbox,
-					&controller::evt_apartment_number_bell );
+					&controller::evt_apartment_number_bell )
+			.event< key_grid >( m_intercom_mbox, []{} );
 
 		dialling
 			.on_enter( [this]{
+					++m_dial_id;
 					so_5::send< ringer::dial_to >(
 							m_intercom_mbox, m_apartment_number );
+					so_5::send_delayed< no_answer >(
+							*this,
+							std::chrono::seconds{ 8 },
+							m_dial_id );
 				} )
 			.on_exit( [this]{
 					so_5::send< ringer::stop_dialing >( m_intercom_mbox );
 				} )
 			.event< key_grid >( m_intercom_mbox, []{} )
 			.event< key_bell >( m_intercom_mbox, []{} )
-			.event( m_intercom_mbox, []( const key_digit & ){} );
+			.event( m_intercom_mbox, []( const key_digit & ){} )
+			.event( &controller::evt_no_answer_from_apartment );
 
 		special_code_selection
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
 			.event< key_grid >(
 					m_intercom_mbox, [this]{ this >>= service_code_selection; } );
+
+		user_code_selection
+			.event( m_intercom_mbox, [this]( const key_digit & ) {} );
 	}
 
 	virtual void so_evt_start() override
@@ -310,6 +325,7 @@ private :
 	const std::vector< apartment_info > m_apartments;
 
 	std::string m_apartment_number;
+	int m_dial_id{ 0 };
 
 	static std::vector< apartment_info > make_apartment_info()
 	{
@@ -366,6 +382,15 @@ private :
 		else
 		{
 			so_5::send< intercom_messages::display_text >( m_intercom_mbox, "Err" );
+			this >>= wait_activity;
+		}
+	}
+
+	void evt_no_answer_from_apartment( const no_answer & msg )
+	{
+		if( m_dial_id == msg.m_id )
+		{
+			so_5::send< intercom_messages::display_text >( m_intercom_mbox, "No Answer" );
 			this >>= wait_activity;
 		}
 	}
