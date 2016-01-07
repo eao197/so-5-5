@@ -288,12 +288,8 @@ public :
 
 		active
 			.on_enter( [this]{ active_on_enter(); } )
-			.event< key_grid >(
-					m_intercom_mbox,
-					&controller::active_on_grid )
-			.event< key_cancel >(
-					m_intercom_mbox,
-					&controller::active_on_cancel )
+			.event( m_intercom_mbox, &controller::active_on_grid )
+			.event( m_intercom_mbox, &controller::active_on_cancel )
 			.event< intercom_messages::deactivate >(
 					m_intercom_mbox,
 					[this]{ this >>= inactive; } );
@@ -303,20 +299,16 @@ public :
 
 		number_selection
 			.on_enter( [this]{ apartment_number_on_enter(); } )
-			.event(
-					m_intercom_mbox,
-					&controller::apartment_number_on_digit )
-			.event< key_bell >(
-					m_intercom_mbox,
-					&controller::apartment_number_on_bell )
-			.event< key_grid >( m_intercom_mbox, []{} );
+			.event( m_intercom_mbox, &controller::apartment_number_on_digit )
+			.event( m_intercom_mbox, &controller::apartment_number_on_bell )
+			.suppress< key_grid >( m_intercom_mbox );
 
 		dialling
 			.on_enter( [this]{ dialling_on_enter(); } )
 			.on_exit( [this]{ dialling_on_exit(); } )
-			.event< key_grid >( m_intercom_mbox, []{} )
-			.event< key_bell >( m_intercom_mbox, []{} )
-			.event( m_intercom_mbox, []( const key_digit & ){} )
+			.suppress< key_grid >( m_intercom_mbox )
+			.suppress< key_bell >( m_intercom_mbox )
+			.suppress< key_digit >( m_intercom_mbox )
 			.event( &controller::dialling_no_answer_from_apartment );
 
 		special_code_selection_0
@@ -327,37 +319,27 @@ public :
 
 		user_code_apartment_number
 			.on_enter( [this]{ user_code_apartment_number_on_enter(); } )
-			.event(
-					m_intercom_mbox,
-					&controller::apartment_number_on_digit )
+			.event( m_intercom_mbox, &controller::apartment_number_on_digit )
 			.event< key_grid >(
 					m_intercom_mbox,
 					[this]{ this >>= user_code_secret; } );
 
 		user_code_secret
 			.on_enter( [this]{ user_code_secret_on_enter(); } )
-			.event(
-					m_intercom_mbox,
-					&controller::user_code_secret_on_digit )
-			.event< key_bell >(
-					m_intercom_mbox,
-					&controller::user_code_secret_on_bell );
+			.event( m_intercom_mbox, &controller::user_code_secret_on_digit )
+			.event( m_intercom_mbox, &controller::user_code_secret_on_bell );
 
 		service_code_selection
 			.on_enter( [this]{ service_code_on_enter(); } )
-			.event(
-					m_intercom_mbox,
-					&controller::service_code_on_digit )
-			.event< key_grid >(
-					m_intercom_mbox,
-					&controller::service_code_on_grid );
+			.event( m_intercom_mbox, &controller::service_code_on_digit )
+			.event( m_intercom_mbox, &controller::service_code_on_grid );
 
 		door_unlocked
 			.on_enter( [this]{ door_unlocked_on_enter(); } )
 			.on_exit( [this]{ door_unlocked_on_exit(); } )
-			.event< key_grid >( m_intercom_mbox, []{} )
-			.event< key_bell >( m_intercom_mbox, []{} )
-			.event( m_intercom_mbox, []( const key_digit & ){} )
+			.suppress< key_grid >( m_intercom_mbox )
+			.suppress< key_bell >( m_intercom_mbox )
+			.suppress< key_digit >( m_intercom_mbox )
 			.event( &controller::door_unlocked_on_lock_door );
 	}
 
@@ -408,12 +390,12 @@ private :
 		so_5::send< intercom_messages::activated >( m_intercom_mbox );
 	}
 
-	void active_on_cancel()
+	void active_on_cancel( mhood_t< key_cancel > )
 	{
 		this >>= wait_activity;
 	}
 
-	void active_on_grid()
+	void active_on_grid( mhood_t< key_grid > )
 	{
 		this >>= special_code_selection;
 	}
@@ -432,7 +414,7 @@ private :
 				m_intercom_mbox, m_apartment_number );
 	}
 
-	void apartment_number_on_bell()
+	void apartment_number_on_bell( mhood_t< key_bell > )
 	{
 		auto apartment = std::find_if( begin(m_apartments), end(m_apartments),
 				[this]( const apartment_info & info ) {
@@ -491,7 +473,7 @@ private :
 				std::string( m_user_secret_code.size(), '*' ) );
 	}
 
-	void user_code_secret_on_bell()
+	void user_code_secret_on_bell( mhood_t< key_bell > )
 	{
 		auto apartment = std::find_if( begin(m_apartments), end(m_apartments),
 				[this]( const apartment_info & info ) {
@@ -544,7 +526,7 @@ private :
 				std::string( m_service_code.size(), '#' ) );
 	}
 
-	void service_code_on_grid()
+	void service_code_on_grid( mhood_t< key_grid > )
 	{
 		if( !m_service_code.empty() )
 		{
