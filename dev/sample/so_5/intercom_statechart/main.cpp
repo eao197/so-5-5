@@ -230,8 +230,12 @@ class controller final : public so_5::agent_t
 			special_code_selection{
 					substate_of{ active }, "special_code_selection" },
 
-				user_code_selection{
+				special_code_selection_0{
 						initial_substate_of{ special_code_selection },
+						"special_code_selection_0" },
+
+				user_code_selection{
+						substate_of{ special_code_selection },
 						"user_code_selection" },
 					user_code_apartment_number{
 							initial_substate_of{ user_code_selection },
@@ -315,7 +319,7 @@ public :
 			.event( m_intercom_mbox, []( const key_digit & ){} )
 			.event( &controller::dialling_no_answer_from_apartment );
 
-		special_code_selection
+		special_code_selection_0
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
 			.event< key_grid >(
 					m_intercom_mbox,
@@ -339,6 +343,15 @@ public :
 					m_intercom_mbox,
 					&controller::user_code_secret_on_bell );
 
+		service_code_selection
+			.on_enter( [this]{ service_code_on_enter(); } )
+			.event(
+					m_intercom_mbox,
+					&controller::service_code_on_digit )
+			.event< key_grid >(
+					m_intercom_mbox,
+					&controller::service_code_on_grid );
+
 		door_unlocked
 			.on_enter( [this]{ door_unlocked_on_enter(); } )
 			.on_exit( [this]{ door_unlocked_on_exit(); } )
@@ -356,6 +369,7 @@ public :
 private :
 	static const std::size_t max_apartment_number_size = 3u;
 	static const std::size_t max_secret_code_size = 4u;
+	static const std::size_t service_code_size = 5u;
 
 	const so_5::mbox_t m_intercom_mbox;
 	const std::vector< apartment_info > m_apartments;
@@ -366,6 +380,9 @@ private :
 	std::string m_user_secret_code;
 
 	int m_lock_door_id{ 0 };
+
+	std::string m_service_code;
+	const std::string m_actual_service_code{ "12345" };
 
 	static std::vector< apartment_info > make_apartment_info()
 	{
@@ -510,6 +527,35 @@ private :
 	{
 		if( m_lock_door_id == msg.m_id )
 			this >>= wait_activity;
+	}
+
+	void service_code_on_enter()
+	{
+		m_service_code.clear();
+	}
+
+	void service_code_on_digit( const key_digit & msg )
+	{
+		if( m_service_code.size() < service_code_size )
+			m_service_code += msg.m_value;
+
+		intercom_messages::show_on_display(
+				m_intercom_mbox, 
+				std::string( m_service_code.size(), '#' ) );
+	}
+
+	void service_code_on_grid()
+	{
+		if( !m_service_code.empty() )
+		{
+			if( m_service_code == m_actual_service_code )
+				this >>= door_unlocked;
+			else
+			{
+				intercom_messages::show_on_display( m_intercom_mbox, "Err" );
+				this >>= wait_activity;
+			}
+		}
 	}
 };
 
