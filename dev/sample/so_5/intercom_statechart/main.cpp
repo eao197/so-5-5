@@ -138,48 +138,49 @@ public :
 
 class intercom_controller final : public so_5::agent_t
 {
-	// Intercom is inactive, light and display are turned off.
 	state_t inactive{ this, "inactive" };
 
-	// Intercom is active, light and display are turned on.
 	state_t active{ this, "active" };
 
-	// An initial substate of active state.
-	state_t wait_activity{ initial_substate_of{ active }, "wait_activity" };
+		state_t wait_activity{
+				initial_substate_of{ active }, "wait_activity" };
 
-	// State for accumulating an appartment number.
-	state_t number_selection{ substate_of{ active }, "number_selection" };
+		state_t number_selection{ substate_of{ active }, "number_selection" };
 
-	// State for dialling to an appartment.
-	state_t dialling{ substate_of{ active }, "dialling" };
+		state_t dialling{ substate_of{ active }, "dialling" };
 
-	// State for accumulating an appartment secret code or service code.
-	state_t special_code_selection{ substate_of{ active }, "special_code_selection" };
+		state_t special_code_selection{
+			substate_of{ active }, "special_code_selection" };
 
-	// State for accumulation of an appartment secret code.
-	state_t user_code_selection{
-			initial_substate_of{ special_code_selection },
-			"user_code_selection" };
+			state_t user_code_selection{
+					initial_substate_of{ special_code_selection },
+					"user_code_selection" };
 
-	// The first part of accumulation of an appartment secret code.
-	state_t user_code_appartment_number{
-			initial_substate_of{ user_code_selection },
-			"appartment_number" };
+				state_t user_code_apartment_number{
+						initial_substate_of{ user_code_selection },
+						"apartment_number" };
 
-	// The second part of accumulation of an appartment secret code.
-	state_t user_code_secret{
-			substate_of{ user_code_selection },
-			"secret_code" };
+				state_t user_code_secret{
+						substate_of{ user_code_selection },
+						"secret_code" };
 
-	// State for accumulation of servide code.
-	state_t service_code_selection{
-			substate_of{ special_code_selection },
-			"service_code" };
+			state_t service_code_selection{
+					substate_of{ special_code_selection },
+					"service_code" };
 
-	// State for door opening after secret or service code selection.
-	state_t door_opening{
-			substate_of{ special_code_selection },
-			"door_opening" };
+			state_t door_opening{
+					substate_of{ special_code_selection },
+					"door_opening" };
+
+	struct apartment_info
+	{
+		std::string m_number;
+		std::string m_secret_key;
+
+		apartment_info( std::string n, std::string k )
+			:	m_number{ std::move(n) }, m_secret_key{ std::move(k) }
+		{}
+	};
 
 public :
 	intercom_controller(
@@ -187,6 +188,7 @@ public :
 		so_5::mbox_t intercom_mbox )
 		:	so_5::agent_t{ ctx }
 		,	m_intercom_mbox{ std::move(intercom_mbox) }
+		,	m_apartments{ make_apartment_info() }
 	{
 		inactive
 			.transfer_to_state< key_digit >( m_intercom_mbox, active )
@@ -196,23 +198,31 @@ public :
 
 		active
 			.on_enter( [this]{ on_enter_active(); } )
-			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
-			.event< key_grid >( m_intercom_mbox, &intercom_controller::evt_first_grid )
-			.event< key_cancel >( m_intercom_mbox, &intercom_controller::evt_cancel )
+			.event< key_grid >(
+					m_intercom_mbox, &intercom_controller::evt_first_grid )
+			.event< key_cancel >(
+					m_intercom_mbox, &intercom_controller::evt_cancel )
 			.event< intercom_messages::deactivate >(
 					m_intercom_mbox, [this]{ this >>= inactive; } );
 
 		wait_activity
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
-			.event< key_grid >( m_intercom_mbox, &intercom_controller::evt_first_grid );
+			.event< key_grid >(
+					m_intercom_mbox, &intercom_controller::evt_first_grid );
 
 		number_selection
-			.on_enter( [this]{ m_appartment_number.clear(); } )
-			.event( m_intercom_mbox, &intercom_controller::evt_appartment_number_digit );
+			.on_enter( [this]{ m_apartment_number.clear(); } )
+			.event(
+					m_intercom_mbox,
+					&intercom_controller::evt_apartment_number_digit )
+			.event< key_bell >(
+					m_intercom_mbox,
+					&intercom_controller::evt_apartment_number_bell );
 
 		special_code_selection
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
-			.event< key_grid >( m_intercom_mbox, [this]{ this >>= service_code_selection; } );
+			.event< key_grid >(
+					m_intercom_mbox, [this]{ this >>= service_code_selection; } );
 	}
 
 	virtual void so_evt_start() override
@@ -221,13 +231,34 @@ public :
 	}
 
 private :
-	const so_5::mbox_t m_intercom_mbox;
+	static const std::size_t max_apartment_number_size = 3u;
 
-	std::string m_appartment_number;
+	const so_5::mbox_t m_intercom_mbox;
+	const std::vector< apartment_info > m_apartments;
+
+	std::string m_apartment_number;
+
+	static std::vector< apartment_info > make_apartment_info()
+	{
+		std::vector< apartment_info > result;
+		result.reserve( 10 );
+
+		result.emplace_back( "101", "1011" );
+		result.emplace_back( "102", "1022" );
+		result.emplace_back( "103", "1033" );
+		result.emplace_back( "104", "1044" );
+		result.emplace_back( "105", "1055" );
+		result.emplace_back( "106", "1066" );
+		result.emplace_back( "107", "1077" );
+		result.emplace_back( "108", "1088" );
+		result.emplace_back( "109", "1099" );
+		result.emplace_back( "110", "1100" );
+
+		return result;
+	}
 
 	void on_enter_active()
 	{
-std::cout << "enter to active" << std::endl;
 		so_5::send< intercom_messages::activated >( m_intercom_mbox );
 	}
 
@@ -241,15 +272,30 @@ std::cout << "enter to active" << std::endl;
 		this >>= special_code_selection;
 	}
 
-	void evt_appartment_number_digit( const key_digit & msg )
+	void evt_apartment_number_digit( const key_digit & msg )
 	{
-		if( m_appartment_number.size() < 3 )
-			m_appartment_number += msg.m_value;
+		if( m_apartment_number.size() < 3 )
+			m_apartment_number += msg.m_value;
 
 		so_5::send< intercom_messages::display_text >(
-				m_intercom_mbox, m_appartment_number );
+				m_intercom_mbox, m_apartment_number );
 	}
 
+	void evt_apartment_number_bell()
+	{
+		auto apartment = std::find_if( begin(m_apartments), end(m_apartments),
+				[this]( const apartment_info & info ) {
+					return info.m_number == m_apartment_number;
+				} );
+
+		if( apartment != end(m_apartments) )
+			this >>= dialling;
+		else
+		{
+			so_5::send< intercom_messages::display_text >( m_intercom_mbox, "Err" );
+			this >>= wait_activity;
+		}
+	}
 };
 
 so_5::mbox_t create_intercom( so_5::environment_t & env )
