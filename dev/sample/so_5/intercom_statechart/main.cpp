@@ -287,7 +287,7 @@ public :
 			.transfer_to_state< key_cancel >( m_intercom_mbox, active );
 
 		active
-			.on_enter( [this]{ active_on_enter(); } )
+			.on_enter( &controller::active_on_enter )
 			.event( m_intercom_mbox, &controller::active_on_grid )
 			.event( m_intercom_mbox, &controller::active_on_cancel )
 			.just_switch_to< intercom_messages::deactivate >(
@@ -297,14 +297,14 @@ public :
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection );
 
 		number_selection
-			.on_enter( [this]{ apartment_number_on_enter(); } )
+			.on_enter( &controller::apartment_number_on_enter )
 			.event( m_intercom_mbox, &controller::apartment_number_on_digit )
 			.event( m_intercom_mbox, &controller::apartment_number_on_bell )
 			.suppress< key_grid >( m_intercom_mbox );
 
 		dialling
-			.on_enter( [this]{ dialling_on_enter(); } )
-			.on_exit( [this]{ dialling_on_exit(); } )
+			.on_enter( &controller::dialling_on_enter )
+			.on_exit( &controller::dialling_on_exit )
 			.suppress< key_grid >( m_intercom_mbox )
 			.suppress< key_bell >( m_intercom_mbox )
 			.suppress< key_digit >( m_intercom_mbox )
@@ -315,23 +315,23 @@ public :
 			.just_switch_to< key_grid >( m_intercom_mbox, service_code_selection );
 
 		user_code_apartment_number
-			.on_enter( [this]{ user_code_apartment_number_on_enter(); } )
+			.on_enter( &controller::user_code_apartment_number_on_enter )
 			.event( m_intercom_mbox, &controller::apartment_number_on_digit )
 			.just_switch_to< key_grid >( m_intercom_mbox, user_code_secret );
 
 		user_code_secret
-			.on_enter( [this]{ user_code_secret_on_enter(); } )
+			.on_enter( &controller::user_code_secret_on_enter )
 			.event( m_intercom_mbox, &controller::user_code_secret_on_digit )
 			.event( m_intercom_mbox, &controller::user_code_secret_on_bell );
 
 		service_code_selection
-			.on_enter( [this]{ service_code_on_enter(); } )
+			.on_enter( &controller::service_code_on_enter )
 			.event( m_intercom_mbox, &controller::service_code_on_digit )
 			.event( m_intercom_mbox, &controller::service_code_on_grid );
 
 		door_unlocked
-			.on_enter( [this]{ door_unlocked_on_enter(); } )
-			.on_exit( [this]{ door_unlocked_on_exit(); } )
+			.on_enter( &controller::door_unlocked_on_enter )
+			.on_exit( &controller::door_unlocked_on_exit )
 			.suppress< key_grid >( m_intercom_mbox )
 			.suppress< key_bell >( m_intercom_mbox )
 			.suppress< key_digit >( m_intercom_mbox )

@@ -547,6 +547,14 @@ class SO_5_TYPE state_t final
 
 		/*!
 		 * \since v.5.5.15
+		 * \brief Set on enter handler.
+		 */
+		template< typename AGENT >
+		state_t &
+		on_enter( void (AGENT::*pfn)() );
+
+		/*!
+		 * \since v.5.5.15
 		 * \brief Query on enter handler.
 		 */
 		const on_enter_handler_t &
@@ -565,6 +573,14 @@ class SO_5_TYPE state_t final
 				m_on_exit = std::move(handler);
 				return *this;
 			}
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Set on exit handler.
+		 */
+		template< typename AGENT >
+		state_t &
+		on_exit( void (AGENT::*pfn)() );
 
 		/*!
 		 * \since v.5.5.15

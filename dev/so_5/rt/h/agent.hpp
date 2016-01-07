@@ -2405,6 +2405,30 @@ state_t::suppress( mbox_t from ) const
 	return *this;
 }
 
+template< typename AGENT >
+state_t &
+state_t::on_enter( void (AGENT::*pfn)() )
+{
+	using namespace details::event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_target_agent );
+
+	return this->on_enter( [cast_result, pfn]() { (cast_result->*pfn)(); } );
+}
+
+template< typename AGENT >
+state_t &
+state_t::on_exit( void (AGENT::*pfn)() )
+{
+	using namespace details::event_subscription_helpers;
+
+	// Agent must have right type.
+	auto cast_result = get_actual_agent_pointer< AGENT >( *m_target_agent );
+
+	return this->on_exit( [cast_result, pfn]() { (cast_result->*pfn)(); } );
+}
+
 template< typename... ARGS >
 const state_t &
 state_t::subscribe_message_handler(
