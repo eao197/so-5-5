@@ -32,6 +32,21 @@ struct display_text
 	std::string m_what;
 };
 
+// Helper function for sending display_text message.
+inline void show_on_display(
+	const so_5::mbox_t & intercom_mbox,
+	std::string what )
+{
+	so_5::send< display_text >( intercom_mbox, std::move(what) );
+}
+
+// Helper function for clearing display.
+inline void clear_display(
+	const so_5::mbox_t & intercom_mbox )
+{
+	so_5::send< display_text >( intercom_mbox, "" );
+}
+
 } // namespace intercom_messages
 
 class inactivity_watcher final : public so_5::agent_t
@@ -126,7 +141,8 @@ public :
 
 		on
 			.on_enter( []{ std::cout << "display ON" << std::endl; } )
-			.event( intercom_mbox, []( const intercom_messages::display_text & msg ) {
+			.event( intercom_mbox,
+					[]( const intercom_messages::display_text & msg ) {
 						std::cout << "display: '" << msg.m_what << "'" << std::endl;
 					} )
 			.event< intercom_messages::deactivate >(
@@ -173,21 +189,20 @@ public :
 							std::chrono::milliseconds{ 1500 } );
 				} )
 			.on_exit( [this] {
-					so_5::send< intercom_messages::display_text >(
-							m_intercom_mbox, "" );
+					intercom_messages::clear_display( m_intercom_mbox );
 				} )
 			.event< stop_dialing >( m_intercom_mbox, [this]{ this >>= off; } );
 
 		ringing
 			.on_enter( [this]{ 
-					so_5::send< intercom_messages::display_text >(
+					intercom_messages::show_on_display(
 							m_intercom_mbox, "RING" );
 				} )
 			.event< timer >( [this]{ this >>= sleeping; } );
 
 		sleeping
 			.on_enter( [this]{
-					so_5::send< intercom_messages::display_text >(
+					intercom_messages::show_on_display(
 							m_intercom_mbox, m_number );
 				} )
 			.event< timer >( [this]{ this >>= ringing; } );
@@ -228,9 +243,9 @@ class controller final : public so_5::agent_t
 				service_code_selection{
 						substate_of{ special_code_selection },
 						"service_code" },
-				door_opening{
+				door_unlocked{
 						substate_of{ special_code_selection },
-						"door_opening" }
+						"door_unlocked" }
 	;
 
 	struct apartment_info
@@ -244,6 +259,11 @@ class controller final : public so_5::agent_t
 	};
 
 	struct no_answer
+	{
+		int m_id;
+	};
+
+	struct lock_door
 	{
 		int m_id;
 	};
@@ -263,54 +283,69 @@ public :
 			.transfer_to_state< key_cancel >( m_intercom_mbox, active );
 
 		active
-			.on_enter( [this]{ on_enter_active(); } )
+			.on_enter( [this]{ active_on_enter(); } )
 			.event< key_grid >(
-					m_intercom_mbox, &controller::evt_first_grid )
+					m_intercom_mbox,
+					&controller::active_on_grid )
 			.event< key_cancel >(
-					m_intercom_mbox, &controller::evt_cancel )
+					m_intercom_mbox,
+					&controller::active_on_cancel )
 			.event< intercom_messages::deactivate >(
-					m_intercom_mbox, [this]{ this >>= inactive; } );
+					m_intercom_mbox,
+					[this]{ this >>= inactive; } );
 
 		wait_activity
-			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
-			.event< key_grid >(
-					m_intercom_mbox, &controller::evt_first_grid );
+			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection );
 
 		number_selection
-			.on_enter( [this]{ m_apartment_number.clear(); } )
+			.on_enter( [this]{ apartment_number_on_enter(); } )
 			.event(
 					m_intercom_mbox,
-					&controller::evt_apartment_number_digit )
+					&controller::apartment_number_on_digit )
 			.event< key_bell >(
 					m_intercom_mbox,
-					&controller::evt_apartment_number_bell )
+					&controller::apartment_number_on_bell )
 			.event< key_grid >( m_intercom_mbox, []{} );
 
 		dialling
-			.on_enter( [this]{
-					++m_dial_id;
-					so_5::send< ringer::dial_to >(
-							m_intercom_mbox, m_apartment_number );
-					so_5::send_delayed< no_answer >(
-							*this,
-							std::chrono::seconds{ 8 },
-							m_dial_id );
-				} )
-			.on_exit( [this]{
-					so_5::send< ringer::stop_dialing >( m_intercom_mbox );
-				} )
+			.on_enter( [this]{ dialling_on_enter(); } )
+			.on_exit( [this]{ dialling_on_exit(); } )
 			.event< key_grid >( m_intercom_mbox, []{} )
 			.event< key_bell >( m_intercom_mbox, []{} )
 			.event( m_intercom_mbox, []( const key_digit & ){} )
-			.event( &controller::evt_no_answer_from_apartment );
+			.event( &controller::dialling_no_answer_from_apartment );
 
 		special_code_selection
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
 			.event< key_grid >(
-					m_intercom_mbox, [this]{ this >>= service_code_selection; } );
+					m_intercom_mbox,
+					[this]{ this >>= service_code_selection; } );
 
-		user_code_selection
-			.event( m_intercom_mbox, [this]( const key_digit & ) {} );
+		user_code_apartment_number
+			.on_enter( [this]{ user_code_apartment_number_on_enter(); } )
+			.event(
+					m_intercom_mbox,
+					&controller::apartment_number_on_digit )
+			.event< key_grid >(
+					m_intercom_mbox,
+					[this]{ this >>= user_code_secret; } );
+
+		user_code_secret
+			.on_enter( [this]{ user_code_secret_on_enter(); } )
+			.event(
+					m_intercom_mbox,
+					&controller::user_code_secret_on_digit )
+			.event< key_bell >(
+					m_intercom_mbox,
+					&controller::user_code_secret_on_bell );
+
+		door_unlocked
+			.on_enter( [this]{ door_unlocked_on_enter(); } )
+			.on_exit( [this]{ door_unlocked_on_exit(); } )
+			.event< key_grid >( m_intercom_mbox, []{} )
+			.event< key_bell >( m_intercom_mbox, []{} )
+			.event( m_intercom_mbox, []( const key_digit & ){} )
+			.event( &controller::door_unlocked_on_lock_door );
 	}
 
 	virtual void so_evt_start() override
@@ -320,12 +355,17 @@ public :
 
 private :
 	static const std::size_t max_apartment_number_size = 3u;
+	static const std::size_t max_secret_code_size = 4u;
 
 	const so_5::mbox_t m_intercom_mbox;
 	const std::vector< apartment_info > m_apartments;
 
 	std::string m_apartment_number;
 	int m_dial_id{ 0 };
+
+	std::string m_user_secret_code;
+
+	int m_lock_door_id{ 0 };
 
 	static std::vector< apartment_info > make_apartment_info()
 	{
@@ -346,31 +386,36 @@ private :
 		return result;
 	}
 
-	void on_enter_active()
+	void active_on_enter()
 	{
 		so_5::send< intercom_messages::activated >( m_intercom_mbox );
 	}
 
-	void evt_cancel()
+	void active_on_cancel()
 	{
 		this >>= wait_activity;
 	}
 
-	void evt_first_grid()
+	void active_on_grid()
 	{
 		this >>= special_code_selection;
 	}
 
-	void evt_apartment_number_digit( const key_digit & msg )
+	void apartment_number_on_enter()
 	{
-		if( m_apartment_number.size() < 3 )
+		m_apartment_number.clear();
+	}
+
+	void apartment_number_on_digit( const key_digit & msg )
+	{
+		if( m_apartment_number.size() < max_apartment_number_size )
 			m_apartment_number += msg.m_value;
 
-		so_5::send< intercom_messages::display_text >(
+		intercom_messages::show_on_display(
 				m_intercom_mbox, m_apartment_number );
 	}
 
-	void evt_apartment_number_bell()
+	void apartment_number_on_bell()
 	{
 		auto apartment = std::find_if( begin(m_apartments), end(m_apartments),
 				[this]( const apartment_info & info ) {
@@ -381,18 +426,90 @@ private :
 			this >>= dialling;
 		else
 		{
-			so_5::send< intercom_messages::display_text >( m_intercom_mbox, "Err" );
+			intercom_messages::show_on_display( m_intercom_mbox, "Err" );
 			this >>= wait_activity;
 		}
 	}
 
-	void evt_no_answer_from_apartment( const no_answer & msg )
+	void dialling_on_enter()
+	{
+		++m_dial_id;
+		so_5::send< ringer::dial_to >( m_intercom_mbox, m_apartment_number );
+		so_5::send_delayed< no_answer >(
+				*this, std::chrono::seconds{ 8 }, m_dial_id );
+	}
+
+	void dialling_on_exit()
+	{
+		so_5::send< ringer::stop_dialing >( m_intercom_mbox );
+	}
+
+	void dialling_no_answer_from_apartment( const no_answer & msg )
 	{
 		if( m_dial_id == msg.m_id )
 		{
-			so_5::send< intercom_messages::display_text >( m_intercom_mbox, "No Answer" );
+			intercom_messages::show_on_display( m_intercom_mbox, "No Answer" );
 			this >>= wait_activity;
 		}
+	}
+
+	void user_code_apartment_number_on_enter()
+	{
+		m_apartment_number.clear();
+	}
+
+	void user_code_secret_on_enter()
+	{
+		m_user_secret_code.clear();
+		intercom_messages::clear_display( m_intercom_mbox );
+	}
+
+	void user_code_secret_on_digit( const key_digit & msg )
+	{
+		if( m_user_secret_code.size() < max_secret_code_size )
+			m_user_secret_code += msg.m_value;
+
+		intercom_messages::show_on_display(
+				m_intercom_mbox, 
+				std::string( m_user_secret_code.size(), '*' ) );
+	}
+
+	void user_code_secret_on_bell()
+	{
+		auto apartment = std::find_if( begin(m_apartments), end(m_apartments),
+				[this]( const apartment_info & info ) {
+					return info.m_number == m_apartment_number;
+				} );
+
+		if( apartment != end(m_apartments) &&
+				m_user_secret_code == apartment->m_secret_key )
+			this >>= door_unlocked;
+		else
+		{
+			intercom_messages::show_on_display( m_intercom_mbox, "Err" );
+			this >>= wait_activity;
+		}
+	}
+
+	void door_unlocked_on_enter()
+	{
+		++m_lock_door_id;
+		so_5::send_delayed< lock_door >(
+				*this,
+				std::chrono::seconds{ 5 },
+				m_lock_door_id );
+		intercom_messages::show_on_display( m_intercom_mbox, "unlocked" );
+	}
+
+	void door_unlocked_on_exit()
+	{
+		intercom_messages::clear_display( m_intercom_mbox );
+	}
+
+	void door_unlocked_on_lock_door( const lock_door & msg )
+	{
+		if( m_lock_door_id == msg.m_id )
+			this >>= wait_activity;
 	}
 };
 
