@@ -136,41 +136,102 @@ public :
 	}
 };
 
-class intercom_controller final : public so_5::agent_t
+class ringer final : public so_5::agent_t
 {
-	state_t inactive{ this, "inactive" };
+	state_t
+		off{ this, "off" },
+		on{ this, "on" },
+			ringing{ initial_substate_of{ on }, "ringing" },
+			sleeping{ substate_of{ on }, "sleeping" };
 
-	state_t active{ this, "active" };
+	struct timer : public so_5::signal_t {};
 
-		state_t wait_activity{
-				initial_substate_of{ active }, "wait_activity" };
+public :
+	struct dial_to { std::string m_number; };
+	struct stop_dialing : public so_5::signal_t {};
 
-		state_t number_selection{ substate_of{ active }, "number_selection" };
+	ringer(
+		context_t ctx,
+		so_5::mbox_t intercom_mbox )
+		:	so_5::agent_t{ ctx }
+		,	m_intercom_mbox{ std::move(intercom_mbox) }
+	{
+		this >>= off;
 
-		state_t dialling{ substate_of{ active }, "dialling" };
+		off
+			.on_enter( [this]{ m_timer.release(); } )
+			.event( m_intercom_mbox, [this]( const dial_to & msg ) {
+					m_number = msg.m_number;
+					this >>= on;
+				} );
 
-		state_t special_code_selection{
-			substate_of{ active }, "special_code_selection" };
+		on
+			.on_enter( [this] {
+					m_timer = so_5::send_periodic< timer >(
+							*this,
+							std::chrono::milliseconds::zero(),
+							std::chrono::milliseconds{ 1500 } );
+				} )
+			.on_exit( [this] {
+					so_5::send< intercom_messages::display_text >(
+							m_intercom_mbox, "" );
+				} )
+			.event< stop_dialing >( m_intercom_mbox, [this]{ this >>= off; } );
 
-			state_t user_code_selection{
-					initial_substate_of{ special_code_selection },
-					"user_code_selection" };
+		ringing
+			.on_enter( [this]{ 
+					so_5::send< intercom_messages::display_text >(
+							m_intercom_mbox, "RING" );
+				} )
+			.event< timer >( [this]{ this >>= sleeping; } );
 
-				state_t user_code_apartment_number{
-						initial_substate_of{ user_code_selection },
-						"apartment_number" };
+		sleeping
+			.on_enter( [this]{
+					so_5::send< intercom_messages::display_text >(
+							m_intercom_mbox, m_number );
+				} )
+			.event< timer >( [this]{ this >>= ringing; } );
+	}
 
-				state_t user_code_secret{
-						substate_of{ user_code_selection },
-						"secret_code" };
+private :
+	const so_5::mbox_t m_intercom_mbox;
 
-			state_t service_code_selection{
-					substate_of{ special_code_selection },
-					"service_code" };
+	so_5::timer_id_t m_timer;
 
-			state_t door_opening{
-					substate_of{ special_code_selection },
-					"door_opening" };
+	std::string m_number;
+};
+
+class controller final : public so_5::agent_t
+{
+	state_t
+		inactive{ this, "inactive" },
+		active{ this, "active" },
+
+			wait_activity{
+					initial_substate_of{ active }, "wait_activity" },
+			number_selection{ substate_of{ active }, "number_selection" },
+			dialling{ substate_of{ active }, "dialling" },
+
+			special_code_selection{
+					substate_of{ active }, "special_code_selection" },
+
+				user_code_selection{
+						initial_substate_of{ special_code_selection },
+						"user_code_selection" },
+					user_code_apartment_number{
+							initial_substate_of{ user_code_selection },
+							"apartment_number" },
+					user_code_secret{
+							substate_of{ user_code_selection },
+							"secret_code" },
+
+				service_code_selection{
+						substate_of{ special_code_selection },
+						"service_code" },
+				door_opening{
+						substate_of{ special_code_selection },
+						"door_opening" }
+	;
 
 	struct apartment_info
 	{
@@ -183,7 +244,7 @@ class intercom_controller final : public so_5::agent_t
 	};
 
 public :
-	intercom_controller(
+	controller(
 		context_t ctx,
 		so_5::mbox_t intercom_mbox )
 		:	so_5::agent_t{ ctx }
@@ -199,25 +260,37 @@ public :
 		active
 			.on_enter( [this]{ on_enter_active(); } )
 			.event< key_grid >(
-					m_intercom_mbox, &intercom_controller::evt_first_grid )
+					m_intercom_mbox, &controller::evt_first_grid )
 			.event< key_cancel >(
-					m_intercom_mbox, &intercom_controller::evt_cancel )
+					m_intercom_mbox, &controller::evt_cancel )
 			.event< intercom_messages::deactivate >(
 					m_intercom_mbox, [this]{ this >>= inactive; } );
 
 		wait_activity
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection )
 			.event< key_grid >(
-					m_intercom_mbox, &intercom_controller::evt_first_grid );
+					m_intercom_mbox, &controller::evt_first_grid );
 
 		number_selection
 			.on_enter( [this]{ m_apartment_number.clear(); } )
 			.event(
 					m_intercom_mbox,
-					&intercom_controller::evt_apartment_number_digit )
+					&controller::evt_apartment_number_digit )
 			.event< key_bell >(
 					m_intercom_mbox,
-					&intercom_controller::evt_apartment_number_bell );
+					&controller::evt_apartment_number_bell );
+
+		dialling
+			.on_enter( [this]{
+					so_5::send< ringer::dial_to >(
+							m_intercom_mbox, m_apartment_number );
+				} )
+			.on_exit( [this]{
+					so_5::send< ringer::stop_dialing >( m_intercom_mbox );
+				} )
+			.event< key_grid >( m_intercom_mbox, []{} )
+			.event< key_bell >( m_intercom_mbox, []{} )
+			.event( m_intercom_mbox, []( const key_digit & ){} );
 
 		special_code_selection
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
@@ -304,10 +377,11 @@ so_5::mbox_t create_intercom( so_5::environment_t & env )
 	env.introduce_coop( [&]( so_5::coop_t & coop ) {
 		intercom_mbox = env.create_mbox();
 
-		coop.make_agent< intercom_controller >( intercom_mbox );
+		coop.make_agent< controller >( intercom_mbox );
 		coop.make_agent< inactivity_watcher >( intercom_mbox );
 		coop.make_agent< keyboard_lights >( intercom_mbox );
 		coop.make_agent< display >( intercom_mbox );
+		coop.make_agent< ringer >( intercom_mbox );
 	} );
 
 	return intercom_mbox;
