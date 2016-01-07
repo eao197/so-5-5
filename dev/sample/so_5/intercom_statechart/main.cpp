@@ -290,9 +290,8 @@ public :
 			.on_enter( [this]{ active_on_enter(); } )
 			.event( m_intercom_mbox, &controller::active_on_grid )
 			.event( m_intercom_mbox, &controller::active_on_cancel )
-			.event< intercom_messages::deactivate >(
-					m_intercom_mbox,
-					[this]{ this >>= inactive; } );
+			.just_switch_to< intercom_messages::deactivate >(
+					m_intercom_mbox, inactive );
 
 		wait_activity
 			.transfer_to_state< key_digit >( m_intercom_mbox, number_selection );
@@ -313,16 +312,12 @@ public :
 
 		special_code_selection_0
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
-			.event< key_grid >(
-					m_intercom_mbox,
-					[this]{ this >>= service_code_selection; } );
+			.just_switch_to< key_grid >( m_intercom_mbox, service_code_selection );
 
 		user_code_apartment_number
 			.on_enter( [this]{ user_code_apartment_number_on_enter(); } )
 			.event( m_intercom_mbox, &controller::apartment_number_on_digit )
-			.event< key_grid >(
-					m_intercom_mbox,
-					[this]{ this >>= user_code_secret; } );
+			.just_switch_to< key_grid >( m_intercom_mbox, user_code_secret );
 
 		user_code_secret
 			.on_enter( [this]{ user_code_secret_on_enter(); } )

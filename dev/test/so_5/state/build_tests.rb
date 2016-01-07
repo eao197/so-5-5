@@ -13,4 +13,5 @@ MxxRu::Cpp::composite_target {
 	required_prj "#{path}/suppress_event/prj.ut.rb"
 	required_prj "#{path}/state_history/prj.ut.rb"
 	required_prj "#{path}/transfer_to_state/prj.ut.rb"
+	required_prj "#{path}/just_switch_to/prj.ut.rb"
 }

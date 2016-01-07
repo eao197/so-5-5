@@ -452,6 +452,48 @@ class SO_5_TYPE state_t final
 		 */
 		template< typename MSG >
 		const state_t &
+		just_switch_to( mbox_t from, const state_t & target_state ) const;
+
+		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename MSG >
+		const state_t &
+		just_switch_to( const state_t & target_state ) const;
+
+		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename MSG >
+		state_t &
+		just_switch_to( mbox_t from, const state_t & target_state )
+			{
+				const state_t & t = *this;
+				t.just_switch_to< MSG >( std::move(from), target_state );
+				return *this;
+			}
+
+		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename MSG >
+		state_t &
+		just_switch_to( const state_t & target_state )
+			{
+				const state_t & t = *this;
+				t.just_switch_to< MSG >( target_state );
+				return *this;
+			}
+
+		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 */
+		template< typename MSG >
+		const state_t &
 		suppress() const;
 
 		//FIXME: write Doxygen comment!

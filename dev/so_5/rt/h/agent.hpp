@@ -336,6 +336,12 @@ class subscription_bind_t
 		subscription_bind_t &
 		suppress();
 
+		//FIXME: write Doxygen comment!
+		template< typename MSG >
+		subscription_bind_t &
+		just_switch_to(
+			const state_t & target_state );
+
 	private:
 		//! Agent to which we are subscribing.
 		agent_t * m_agent;
@@ -2258,6 +2264,27 @@ subscription_bind_t::suppress()
 	return *this;
 }
 
+template< typename MSG >
+subscription_bind_t &
+subscription_bind_t::just_switch_to(
+	const state_t & target_state )
+{
+	agent_t * agent_ptr = m_agent;
+
+	auto method = [agent_ptr, &target_state](
+			invocation_type_t, message_ref_t & )
+		{
+			agent_ptr->so_change_state( target_state );
+		};
+
+	create_subscription_for_states(
+			typeid( MSG ),
+			method,
+			thread_safety_t::unsafe );
+
+	return *this;
+}
+
 inline void
 subscription_bind_t::create_subscription_for_states(
 	const std::type_index & msg_type,
@@ -2336,6 +2363,26 @@ const state_t &
 state_t::transfer_to_state( const state_t & target_state ) const
 {
 	return this->transfer_to_state< MSG >(
+			m_target_agent->so_direct_mbox(),
+			target_state );
+}
+
+template< typename MSG >
+const state_t &
+state_t::just_switch_to( mbox_t from, const state_t & target_state ) const
+{
+	m_target_agent->so_subscribe( from )
+			.in( *this )
+			.just_switch_to< MSG >( target_state );
+
+	return *this;
+}
+
+template< typename MSG >
+const state_t &
+state_t::just_switch_to( const state_t & target_state ) const
+{
+	return this->just_switch_to< MSG >(
 			m_target_agent->so_direct_mbox(),
 			target_state );
 }
