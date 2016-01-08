@@ -346,6 +346,12 @@ const int rc_several_handlers_for_one_message_type = 165;
 //! The empty name doesn't allowed.
 const int rc_empty_name = 500;
 
+/*!
+ * \since v.5.5.15
+ * \brief Invalid value of time limit for an agent's state.
+ */
+const int rc_invalid_time_limit_for_state = 501;
+
 //! Unclassified error.
 const int rc_unexpected_error = 0xFFFFFF;
 //! \}

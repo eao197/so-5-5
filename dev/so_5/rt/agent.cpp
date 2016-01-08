@@ -71,6 +71,82 @@ create_anonymous_state_name( const agent_t * agent, const state_t * st )
 // NOTE: Implementation of state_t is moved to that file in v.5.4.0.
 
 //
+// state_t::time_limit_t
+//
+struct state_t::time_limit_t
+{
+	struct timeout : public signal_t {};
+
+	duration_t m_limit;
+	const state_t & m_state_to_switch;
+
+	mbox_t m_unique_mbox;
+	timer_id_t m_timer;
+
+	time_limit_t(
+		duration_t limit,
+		const state_t & state_to_switch )
+		:	m_limit{ limit }
+		,	m_state_to_switch{ state_to_switch }
+	{}
+
+	void
+	set_up_limit_for_agent(
+		agent_t & agent,
+		const state_t & current_state ) SO_5_NOEXCEPT
+	{
+		// Because this method is called from on_enter handler it can't
+		// throw exceptions. Any exception will lead to abort of the application.
+		// So we don't care about exception safety.
+		so_5::details::invoke_noexcept_code( [&] {
+
+			// New unique mbox is necessary for time limit.
+			m_unique_mbox = impl::internal_env_iface_t{ agent.so_environment() }
+					// A new MPSC mbox will be used for that.
+					.create_mpsc_mbox(
+							// New MPSC mbox will be directly connected to target agent.
+							&agent,
+							// Message limits will not be used.
+							nullptr );
+
+			// A subscription must be created for timeout signal.
+			agent.so_subscribe( m_unique_mbox )
+					.in( current_state )
+					.event< timeout >( [&agent, this] {
+						agent.so_change_state( m_state_to_switch );
+					} );
+
+			// Delayed timeout signal must be sent.
+			m_timer = agent.so_environment().schedule_timer< timeout >(
+					m_unique_mbox,
+					m_limit,
+					duration_t::zero() );
+		} );
+	}
+
+	void
+	drop_limit_for_agent(
+		agent_t & agent,
+		const state_t & current_state ) SO_5_NOEXCEPT
+	{
+		// Because this method is called from on_exit handler it can't
+		// throw exceptions. Any exception will lead to abort of the application.
+		// So we don't care about exception safety.
+		so_5::details::invoke_noexcept_code( [&] {
+			m_timer.release();
+
+			if( m_unique_mbox )
+			{
+				// Old subscription must be removed.
+				agent.so_drop_subscription< timeout >( m_unique_mbox, current_state );
+				// Unique mbox is no more needed.
+				m_unique_mbox = mbox_t{};
+			}
+		} );
+	}
+};
+
+//
 // state_t
 //
 
@@ -266,6 +342,35 @@ state_t::activate() const
 	m_target_agent->so_change_state( *this );
 }
 
+state_t &
+state_t::time_limit(
+	duration_t timeout,
+	const state_t & state_to_switch )
+{
+	if( duration_t::zero() == timeout )
+		SO_5_THROW_EXCEPTION( rc_invalid_time_limit_for_state,
+				"zero can't be used as time limit for state '" +
+				query_name() );
+
+	// Old time limit must be dropped if it exists.
+	drop_time_limit();
+	m_time_limit.reset( new time_limit_t{ timeout, state_to_switch } );
+
+	return *this;
+}
+
+state_t &
+state_t::drop_time_limit()
+{
+	if( m_time_limit )
+	{
+		m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
+		m_time_limit.reset();
+	}
+
+	return *this;
+}
+
 const state_t *
 state_t::actual_state_to_enter() const
 {
@@ -308,6 +413,18 @@ state_t::update_history_in_parent_states() const
 		c = p;
 		p = p->m_parent_state;
 	}
+}
+
+void
+state_t::handle_time_limit_on_enter() const
+{
+	m_time_limit->set_up_limit_for_agent( *m_target_agent, *this );
+}
+
+void
+state_t::handle_time_limit_on_exit() const
+{
+	m_time_limit->drop_limit_for_agent( *m_target_agent, *this );
 }
 
 //

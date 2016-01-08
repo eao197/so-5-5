@@ -14,6 +14,7 @@
 #include <map>
 #include <set>
 #include <functional>
+#include <chrono>
 
 #include <so_5/h/compiler_features.hpp>
 #include <so_5/h/declspec.hpp>
@@ -66,8 +67,56 @@ struct substate_of
 //
 
 //! Class for the representing agent state.
+/*!
+ * \attention This class is not thread safe. It is designed to be used inside
+ * an owner agent only. For example:
+ * \code
+	class my_agent : public so_5::agent_t
+	{
+		state_t first_state{ this, "first" };
+		state_t second_state{ this, "second" };
+	...
+	public :
+		my_agent( context_t ctx ) : so_5::agent_t{ ctx }
+		{
+			// It is a safe usage of state.
+			first_state.on_enter( &my_agent::first_on_enter );
+			second_state.on_exit( &my_agent::second_on_exit );
+			...
+		}
+
+		virtual void so_define_agent() override
+		{
+			// It is a safe usage of state.
+			first_state.event( &my_agent::some_event_handler );
+			second_state.time_limit( std::chrono::seconds{20}, first_state );
+
+			second_state.event( [this]( const some_message & msg ) {
+					// It is also safe usage of state because event handler
+					// will be called on the context of agent's working thread.
+					second_state.drop_time_limit();
+					...
+				} );
+		}
+
+		void some_public_method()
+		{
+			// It is a safe usage if this method is called by the agent itself.
+			// And unsafe usafe otherwise.
+			// If this method is called by someone else a data damage or
+			// something like that can happen.
+			second_state.time_limit( std::chrono::seconds{30}, first_state );
+		}
+	...
+	};
+ * \endcode
+ * Because of that be very careful during manipulation of agent's states outside
+ * of agent's event handlers.
+ */
 class SO_5_TYPE state_t final
 {
+		struct time_limit_t;
+
 		friend class agent_t;
 
 		state_t( const state_t & ) = delete;
@@ -105,6 +154,12 @@ class SO_5_TYPE state_t final
 		 * \brief Type of function to be called on exit from the state.
 		 */
 		using on_exit_handler_t = std::function< void() >;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Alias for duration type.
+		 */
+		using duration_t = std::chrono::high_resolution_clock::duration;
 
 		/*!
 		 * \note State name will be generated automaticaly.
@@ -595,6 +650,34 @@ class SO_5_TYPE state_t final
 		 * \}
 		 */
 
+		/*!
+		 * \name Methods for dealing with state's time limit.
+		 * \{
+		 */
+		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 * \brief Set up a time limit for the state.
+		 */
+		state_t &
+		time_limit(
+			//! Max duration of time for staying in this state.
+			duration_t timeout,
+			//! A new state to be switched to.
+			const state_t & state_to_switch );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Drop time limit for the state if defined.
+		 *
+		 * \note Do nothing if a time limit is not defined.
+		 */
+		state_t &
+		drop_time_limit();
+		/*!
+		 * \}
+		 */
+
 	private:
 		//! Fully initialized constructor.
 		/*!
@@ -691,6 +774,14 @@ class SO_5_TYPE state_t final
 		on_exit_handler_t m_on_exit;
 
 		/*!
+		 * \since v.5.5.15
+		 * \brief A definition of time limit for the state.
+		 *
+		 * \note Value nullptr means that time limit is not set.
+		 */
+		std::unique_ptr< time_limit_t > m_time_limit;
+
+		/*!
 		 * \since v.5.5.1
 		 * \brief A helper for handle-methods implementation.
 		 */
@@ -775,12 +866,29 @@ class SO_5_TYPE state_t final
 
 		/*!
 		 * \since v.5.5.15
+		 * \brief A special handler of time limit to be used on entering into state.
+		 * \attention This method must be called only if m_time_limit is not null.
+		 */
+		void
+		handle_time_limit_on_enter() const;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief A special handler of time limit to be used on exiting from state.
+		 * \attention This method must be called only if m_time_limit is not null.
+		 */
+		void
+		handle_time_limit_on_exit() const;
+
+		/*!
+		 * \since v.5.5.15
 		 * \brief Call for on enter handler if defined.
 		 */
 		void
 		call_on_enter() const
 			{
 				if( m_on_enter ) m_on_enter();
+				if( m_time_limit ) handle_time_limit_on_enter();
 			}
 
 		/*!
@@ -790,6 +898,7 @@ class SO_5_TYPE state_t final
 		void
 		call_on_exit() const
 			{
+				if( m_time_limit ) handle_time_limit_on_exit();
 				if( m_on_exit ) m_on_exit();
 			}
 		/*!
