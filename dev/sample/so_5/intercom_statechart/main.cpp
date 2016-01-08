@@ -66,8 +66,8 @@ public :
 	{
 		inactive
 			.on_enter( [this] { m_timer.release(); } )
-			.event< intercom_messages::activated >(
-					m_intercom_mbox, [this] { this >>= active; } );
+			.just_switch_to< intercom_messages::activated >(
+					m_intercom_mbox, active );
 		
 		active
 			.on_enter( [this] { reschedule_timer(); } )
@@ -75,11 +75,12 @@ public :
 			.event< key_bell >( m_intercom_mbox, [this] { reschedule_timer(); } )
 			.event< key_grid >( m_intercom_mbox, [this] { reschedule_timer(); } )
 			.event(
-					m_intercom_mbox, [this]( const key_digit & ) {
+					m_intercom_mbox,
+					[this]( const key_digit & ) {
 						reschedule_timer();
 					} )
-			.event< intercom_messages::deactivate >(
-					m_intercom_mbox, [this] { this >>= inactive; } );
+			.just_switch_to< intercom_messages::deactivate >(
+					m_intercom_mbox, inactive );
 
 		this >>= inactive;
 	}
@@ -111,13 +112,13 @@ public :
 	{
 		off
 			.on_enter( []{ std::cout << "keyboard_lights OFF" << std::endl; } )
-			.event< intercom_messages::activated >(
-					intercom_mbox, [this]{ this >>= on; } );
+			.just_switch_to< intercom_messages::activated >(
+					intercom_mbox, on );
 
 		on
 			.on_enter( []{ std::cout << "keyboard_lights ON" << std::endl; } )
-			.event< intercom_messages::deactivate >(
-					intercom_mbox, [this]{ this >>= off; } );
+			.just_switch_to< intercom_messages::deactivate >(
+					intercom_mbox, off );
 
 		this >>= off;
 	}
@@ -136,8 +137,8 @@ public :
 	{
 		off
 			.on_enter( []{ std::cout << "display OFF" << std::endl; } )
-			.event< intercom_messages::activated >(
-					intercom_mbox, [this]{ this >>= on; } );
+			.just_switch_to< intercom_messages::activated >(
+					intercom_mbox, on );
 
 		on
 			.on_enter( []{ std::cout << "display ON" << std::endl; } )
@@ -145,8 +146,8 @@ public :
 					[]( const intercom_messages::display_text & msg ) {
 						std::cout << "display: '" << msg.m_what << "'" << std::endl;
 					} )
-			.event< intercom_messages::deactivate >(
-					intercom_mbox, [this]{ this >>= off; } );
+			.just_switch_to< intercom_messages::deactivate >(
+					intercom_mbox, off );
 
 		this >>= off;
 	}
@@ -191,21 +192,21 @@ public :
 			.on_exit( [this] {
 					intercom_messages::clear_display( m_intercom_mbox );
 				} )
-			.event< stop_dialing >( m_intercom_mbox, [this]{ this >>= off; } );
+			.just_switch_to< stop_dialing >( m_intercom_mbox, off );
 
 		ringing
 			.on_enter( [this]{ 
 					intercom_messages::show_on_display(
 							m_intercom_mbox, "RING" );
 				} )
-			.event< timer >( [this]{ this >>= sleeping; } );
+			.just_switch_to< timer >( sleeping );
 
 		sleeping
 			.on_enter( [this]{
 					intercom_messages::show_on_display(
 							m_intercom_mbox, m_number );
 				} )
-			.event< timer >( [this]{ this >>= ringing; } );
+			.just_switch_to< timer >( ringing );
 	}
 
 private :
