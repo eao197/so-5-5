@@ -262,7 +262,7 @@ class controller final : public so_5::agent_t
 		std::string m_secret_key;
 
 		apartment_info( std::string n, std::string k )
-			:	m_number{ std::move(n) }, m_secret_key{ std::move(k) }
+			:	m_number( std::move(n) ), m_secret_key( std::move(k) )
 		{}
 	};
 
@@ -272,7 +272,8 @@ public :
 		so_5::mbox_t intercom_mbox )
 		:	so_5::agent_t{ ctx }
 		,	m_intercom_mbox{ std::move(intercom_mbox) }
-		,	m_apartments{ make_apartment_info() }
+		,	m_apartments( make_apartment_info() )
+		,	m_actual_service_code( "12345" )
 	{
 		inactive
 			.transfer_to_state< key_digit >( m_intercom_mbox, active )
@@ -359,7 +360,7 @@ private :
 	std::string m_user_secret_code;
 
 	std::string m_service_code;
-	const std::string m_actual_service_code{ "12345" };
+	const std::string m_actual_service_code;
 
 	static std::vector< apartment_info > make_apartment_info()
 	{
