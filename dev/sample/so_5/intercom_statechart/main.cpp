@@ -266,11 +266,6 @@ class controller final : public so_5::agent_t
 		{}
 	};
 
-	struct lock_door
-	{
-		int m_id;
-	};
-
 public :
 	controller(
 		context_t ctx,
@@ -337,12 +332,13 @@ public :
 			.event( m_intercom_mbox, &controller::service_code_on_grid );
 
 		door_unlocked
+			.time_limit( std::chrono::seconds{ 5 }, wait_activity )
 			.on_enter( &controller::door_unlocked_on_enter )
 			.on_exit( &controller::door_unlocked_on_exit )
 			.suppress< key_grid >( m_intercom_mbox )
 			.suppress< key_bell >( m_intercom_mbox )
 			.suppress< key_digit >( m_intercom_mbox )
-			.event( &controller::door_unlocked_on_lock_door );
+			.suppress< key_cancel >( m_intercom_mbox );
 	}
 
 	virtual void so_evt_start() override
@@ -361,8 +357,6 @@ private :
 	std::string m_apartment_number;
 
 	std::string m_user_secret_code;
-
-	int m_lock_door_id{ 0 };
 
 	std::string m_service_code;
 	const std::string m_actual_service_code{ "12345" };
@@ -491,23 +485,12 @@ private :
 
 	void door_unlocked_on_enter()
 	{
-		++m_lock_door_id;
-		so_5::send_delayed< lock_door >(
-				*this,
-				std::chrono::seconds{ 5 },
-				m_lock_door_id );
 		intercom_messages::show_on_display( m_intercom_mbox, "unlocked" );
 	}
 
 	void door_unlocked_on_exit()
 	{
 		intercom_messages::clear_display( m_intercom_mbox );
-	}
-
-	void door_unlocked_on_lock_door( const lock_door & msg )
-	{
-		if( m_lock_door_id == msg.m_id )
-			this >>= wait_activity;
 	}
 
 	void service_code_on_enter()
