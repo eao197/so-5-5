@@ -1,2 +1,3 @@
 add_subdirectory(simple)
 add_subdirectory(many_switches)
+add_subdirectory(cancel_on_dereg)
