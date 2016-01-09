@@ -189,9 +189,6 @@ public :
 							std::chrono::milliseconds::zero(),
 							std::chrono::milliseconds{ 1500 } );
 				} )
-			.on_exit( [this] {
-					intercom_messages::clear_display( m_intercom_mbox );
-				} )
 			.just_switch_to< stop_dialing >( m_intercom_mbox, off );
 
 		ringing
@@ -226,7 +223,13 @@ class controller final : public so_5::agent_t
 			wait_activity{
 					initial_substate_of{ active }, "wait_activity" },
 			number_selection{ substate_of{ active }, "number_selection" },
+
 			dialling{ substate_of{ active }, "dialling" },
+
+				dial_apartment{
+						initial_substate_of{ dialling }, "dial_apartment" },
+				no_answer{
+						substate_of{ dialling }, "no_answer" },
 
 			special_code_selection{
 					substate_of{ active }, "special_code_selection" },
@@ -261,11 +264,6 @@ class controller final : public so_5::agent_t
 		apartment_info( std::string n, std::string k )
 			:	m_number{ std::move(n) }, m_secret_key{ std::move(k) }
 		{}
-	};
-
-	struct no_answer
-	{
-		int m_id;
 	};
 
 	struct lock_door
@@ -304,12 +302,20 @@ public :
 			.suppress< key_grid >( m_intercom_mbox );
 
 		dialling
-			.on_enter( &controller::dialling_on_enter )
-			.on_exit( &controller::dialling_on_exit )
 			.suppress< key_grid >( m_intercom_mbox )
 			.suppress< key_bell >( m_intercom_mbox )
-			.suppress< key_digit >( m_intercom_mbox )
-			.event( &controller::dialling_no_answer_from_apartment );
+			.suppress< key_digit >( m_intercom_mbox );
+
+		dial_apartment
+			.time_limit( std::chrono::seconds{ 8 }, no_answer )
+			.on_enter( &controller::dial_apartment_on_enter )
+			.on_exit( &controller::dial_apartment_on_exit );
+
+		no_answer
+			.time_limit( std::chrono::milliseconds{ 1500 }, wait_activity )
+			.on_enter( &controller::no_answer_on_enter )
+			.on_exit( &controller::no_answer_on_exit )
+			.suppress< key_cancel >( m_intercom_mbox );
 
 		special_code_selection_0
 			.transfer_to_state< key_digit >( m_intercom_mbox, user_code_selection )
@@ -353,7 +359,6 @@ private :
 	const std::vector< apartment_info > m_apartments;
 
 	std::string m_apartment_number;
-	int m_dial_id{ 0 };
 
 	std::string m_user_secret_code;
 
@@ -426,26 +431,24 @@ private :
 		}
 	}
 
-	void dialling_on_enter()
+	void dial_apartment_on_enter()
 	{
-		++m_dial_id;
 		so_5::send< ringer::dial_to >( m_intercom_mbox, m_apartment_number );
-		so_5::send_delayed< no_answer >(
-				*this, std::chrono::seconds{ 8 }, m_dial_id );
 	}
 
-	void dialling_on_exit()
+	void dial_apartment_on_exit()
 	{
 		so_5::send< ringer::stop_dialing >( m_intercom_mbox );
 	}
 
-	void dialling_no_answer_from_apartment( const no_answer & msg )
+	void no_answer_on_enter()
 	{
-		if( m_dial_id == msg.m_id )
-		{
-			intercom_messages::show_on_display( m_intercom_mbox, "No Answer" );
-			this >>= wait_activity;
-		}
+		intercom_messages::show_on_display( m_intercom_mbox, "No Answer" );
+	}
+
+	void no_answer_on_exit()
+	{
+		intercom_messages::clear_display( m_intercom_mbox );
 	}
 
 	void user_code_apartment_number_on_enter()
