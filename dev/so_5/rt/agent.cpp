@@ -1164,6 +1164,9 @@ agent_t::do_state_switch(
 	// Do call for on_exit and on_enter for states.
 	// on_exit and on_enter should not throw exceptions.
 	so_5::details::invoke_noexcept_code( [&] {
+
+		impl::msg_tracing_helpers::safe_trace_state_leaving(
+				*this, *m_current_state_ptr );
 		for( std::size_t i = m_current_state_ptr->nested_level();
 				i >= first_diff; )
 			{
@@ -1174,6 +1177,8 @@ agent_t::do_state_switch(
 					break;
 			}
 
+		impl::msg_tracing_helpers::safe_trace_state_entering(
+				*this, state_to_be_set );
 		for( std::size_t i = first_diff;
 				i <= state_to_be_set.nested_level();
 				++i )
