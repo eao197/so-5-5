@@ -325,18 +325,126 @@ class subscription_bind_t
 						std::forward< ARGS >(args)... );
 			}
 
-		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 * \brief An instruction for switching agent to the specified
+		 * state and transfering event proceessing to new state.
+		 *
+		 * \par Usage example:
+		 * \code
+			class device : public so_5::agent_t {
+				state_t off{ this, "off" };
+				state_t on{ this, "on" };
+			public :
+				virtual void so_define_agent() override {
+					so_subscribe_self().in( off )
+						.transfer_to_state< key_on >( on )
+						.transfer_to_state< key_info >( on );
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note Event will not be postponed or returned to event queue.
+		 * A search for a handler for this event will be performed immediately
+		 * after switching to the new state.
+		 *
+		 * \note New state can use transfer_to_state for that event too:
+		 * \code
+			class device : public so_5::agent_t {
+				state_t off{ this, "off" };
+				state_t on{ this, "on" };
+				state_t status_dialog{ this, "status" };
+			public :
+				virtual void so_define_agent() override {
+					so_subscribe_self().in( off )
+						.transfer_to_state< key_on >( on )
+						.transfer_to_state< key_info >( on );
+
+					so_subscribe_self().in( on )
+						.transfer_to_state< key_info >( status_dialog )
+						...;
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \attention There is no hard limit for deep of transfering an event
+		 * from one state to another. It means that an infinite loop can be
+		 * produced and there is no tools for preventing such infinite loops.
+		 */
 		template< typename MSG >
 		subscription_bind_t &
 		transfer_to_state(
 			const state_t & target_state );
 
-		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 * \brief Suppress processing of event in this state.
+		 *
+		 * \note This method is useful because the event is not passed to
+		 * event handlers from parent states. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t S1{ this, "1" };
+				state_t S2{ initial_substate_of{ S1 }, "2" };
+				state_t S3{ initial_substate_of{ S2 }, "3" };
+			public :
+				virtual void so_define_agent() override
+				{
+					so_subscribe_self().in( S1 )
+						// Default event handler which will be inherited by states S2 and S3.
+						.event< msg1 >(...)
+						.event< msg2 >(...)
+						.event< msg3 >(...);
+
+					so_subscribe_self().in( S2 )
+						// A special handler for msg1.
+						// For msg2 and msg3 event handlers from state S1 will be used.
+						.event< msg1 >(...);
+
+					so_subscribe_self().in( S3 )
+						// Message msg1 will be suppressed. It will be simply ignored.
+						// No events from states S1 and S2 will be called.
+						.suppress< msg1 >(...)
+						// The same for msg2.
+						.suppress< msg2 >(...)
+						// A special handler for msg3. Overrides handler from state S1.
+						.event< msg3 >(...);
+				}
+			};
+		 * \endcode
+		 */
 		template< typename MSG >
 		subscription_bind_t &
 		suppress();
 
-		//FIXME: write Doxygen comment!
+		/*!
+		 * \since v.5.5.15
+		 * \brief Define handler which only switches agent to the specified
+		 * state.
+		 *
+		 * \note This method differes from transfer_to_state() method:
+		 * just_switch_to() changes state of the agent, but there will not be a
+		 * look for event handler for message/signal in the new state.  It means
+		 * that just_switch_to() is just a shorthand for:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				so_subscribe_self().in( S1 )
+					.event< some_signal >( [this]{ this >>= S2; } );
+			}
+		 * \endcode
+		 * With just_switch_to() this code can looks like:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				so_subscribe_self().in( S1 )
+					.just_switch_to< some_signal >( S2 );
+			}
+		 * \endcode
+		 */
 		template< typename MSG >
 		subscription_bind_t &
 		just_switch_to(
