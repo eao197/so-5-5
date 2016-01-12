@@ -407,9 +407,9 @@ class subscription_bind_t
 					so_subscribe_self().in( S3 )
 						// Message msg1 will be suppressed. It will be simply ignored.
 						// No events from states S1 and S2 will be called.
-						.suppress< msg1 >(...)
+						.suppress< msg1 >()
 						// The same for msg2.
-						.suppress< msg2 >(...)
+						.suppress< msg2 >()
 						// A special handler for msg3. Overrides handler from state S1.
 						.event< msg3 >(...);
 				}

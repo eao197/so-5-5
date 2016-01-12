@@ -130,9 +130,8 @@ struct substate_of
 		void some_public_method()
 		{
 			// It is a safe usage if this method is called by the agent itself.
-			// And unsafe usafe otherwise.
-			// If this method is called by someone else a data damage or
-			// something like that can happen.
+			// This will be unsafe usage if this method is called from outside of
+			// the agent: a data damage or something like that can happen.
 			second_state.time_limit( std::chrono::seconds{30}, first_state );
 		}
 	...
@@ -657,25 +656,136 @@ class SO_5_TYPE state_t final
 				return *this;
 			}
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Suppress processing of event in this state.
+		 *
+		 * \note Suppresses message/signal which is going from agent's
+		 * direct mbox.
+		 *
+		 * \note This method allows to disable passing of event to
+		 * event handlers from parent states. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				const state_t S1{ this, "1" };
+				const state_t S2{ initial_substate_of{ S1 }, "2" };
+				const state_t S3{ initial_substate_of{ S2 }, "3" };
+			public :
+				virtual void so_define_agent() override
+				{
+					S1
+						// Default event handler which will be inherited by states S2 and S3.
+						.event< msg1 >(...)
+						.event< msg2 >(...)
+						.event< msg3 >(...);
+
+					S2
+						// A special handler for msg1.
+						// For msg2 and msg3 event handlers from state S1 will be used.
+						.event< msg1 >(...);
+
+					S3
+						// Message msg1 will be suppressed. It will be simply ignored.
+						// No events from states S1 and S2 will be called.
+						.suppress< msg1 >()
+						// The same for msg2.
+						.suppress< msg2 >()
+						// A special handler for msg3. Overrides handler from state S1.
+						.event< msg3 >(...);
+				}
+			};
+		 * \endcode
 		 */
 		template< typename MSG >
 		const state_t &
 		suppress() const;
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Suppress processing of event in this state.
+		 *
+		 * \note Suppresses message/signal which is going from 
+		 * message box \a from.
+		 *
+		 * \note This method allows to disable passing of event to
+		 * event handlers from parent states. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				const state_t S1{ this, "1" };
+				const state_t S2{ initial_substate_of{ S1 }, "2" };
+				const state_t S3{ initial_substate_of{ S2 }, "3" };
+			public :
+				virtual void so_define_agent() override
+				{
+					S1
+						// Default event handler which will be inherited by states S2 and S3.
+						.event< msg1 >( some_mbox, ...)
+						.event< msg2 >( some_mbox, ...)
+						.event< msg3 >( some_mbox, ...);
+
+					S2
+						// A special handler for msg1.
+						// For msg2 and msg3 event handlers from state S1 will be used.
+						.event< msg1 >( some_mbox, ...);
+
+					S3
+						// Message msg1 will be suppressed. It will be simply ignored.
+						// No events from states S1 and S2 will be called.
+						.suppress< msg1 >( some_mbox )
+						// The same for msg2.
+						.suppress< msg2 >( some_mbox )
+						// A special handler for msg3. Overrides handler from state S1.
+						.event< msg3 >( some_mbox );
+				}
+			};
+		 * \endcode
 		 */
 		template< typename MSG >
 		const state_t &
 		suppress( mbox_t from ) const;
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Suppress processing of event in this state.
+		 *
+		 * \note Suppresses message/signal which is going from agent's
+		 * direct mbox.
+		 *
+		 * \note This method allows to disable passing of event to
+		 * event handlers from parent states. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t S1{ this, "1" };
+				state_t S2{ initial_substate_of{ S1 }, "2" };
+				state_t S3{ initial_substate_of{ S2 }, "3" };
+			public :
+				virtual void so_define_agent() override
+				{
+					S1
+						// Default event handler which will be inherited by states S2 and S3.
+						.event< msg1 >(...)
+						.event< msg2 >(...)
+						.event< msg3 >(...);
+
+					S2
+						// A special handler for msg1.
+						// For msg2 and msg3 event handlers from state S1 will be used.
+						.event< msg1 >(...);
+
+					S3
+						// Message msg1 will be suppressed. It will be simply ignored.
+						// No events from states S1 and S2 will be called.
+						.suppress< msg1 >()
+						// The same for msg2.
+						.suppress< msg2 >()
+						// A special handler for msg3. Overrides handler from state S1.
+						.event< msg3 >(...);
+				}
+			};
+		 * \endcode
 		 */
 		template< typename MSG >
 		state_t &
@@ -686,9 +796,46 @@ class SO_5_TYPE state_t final
 				return *this;
 			}
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Suppress processing of event in this state.
+		 *
+		 * \note Suppresses message/signal which is going from 
+		 * message box \a from.
+		 *
+		 * \note This method allows to disable passing of event to
+		 * event handlers from parent states. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t S1{ this, "1" };
+				state_t S2{ initial_substate_of{ S1 }, "2" };
+				state_t S3{ initial_substate_of{ S2 }, "3" };
+			public :
+				virtual void so_define_agent() override
+				{
+					S1
+						// Default event handler which will be inherited by states S2 and S3.
+						.event< msg1 >( some_mbox, ...)
+						.event< msg2 >( some_mbox, ...)
+						.event< msg3 >( some_mbox, ...);
+
+					S2
+						// A special handler for msg1.
+						// For msg2 and msg3 event handlers from state S1 will be used.
+						.event< msg1 >( some_mbox, ...);
+
+					S3
+						// Message msg1 will be suppressed. It will be simply ignored.
+						// No events from states S1 and S2 will be called.
+						.suppress< msg1 >( some_mbox )
+						// The same for msg2.
+						.suppress< msg2 >( some_mbox )
+						// A special handler for msg3. Overrides handler from state S1.
+						.event< msg3 >( some_mbox );
+				}
+			};
+		 * \endcode
 		 */
 		template< typename MSG >
 		state_t &
