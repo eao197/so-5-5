@@ -55,4 +55,5 @@ MxxRu::Cpp::composite_target {
 	example[ 'producer_consumer_mchain' ]
 
 	example[ 'intercom_statechart' ]
+	example[ 'state_deep_history' ]
 }

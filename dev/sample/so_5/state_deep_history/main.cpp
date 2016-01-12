@@ -25,11 +25,11 @@ class console final : public so_5::agent_t
 		dialog{ this, "dialog", state_t::history_t::deep },
 
 			wait_activity{
-					initial_substate_of{ active }, "wait_activity" },
-			number_selection{ substate_of{ active }, "number_selection" },
+					initial_substate_of{ dialog }, "wait_activity" },
+			number_selection{ substate_of{ dialog }, "number_selection" },
 
 			special_code_selection{
-					substate_of{ active }, "special_code_selection" },
+					substate_of{ dialog }, "special_code_selection" },
 
 				special_code_selection_0{
 						initial_substate_of{ special_code_selection },
@@ -79,18 +79,19 @@ public :
 		user_code_apartment_number
 			.on_enter( &console::user_code_apartment_number_on_enter )
 			.event( &console::apartment_number_on_digit )
-			.just_switch_to< key_grid >( user_code_secret );
+			.event( &console::user_code_apartment_number_on_bell )
+			.event( &console::user_code_apartment_number_on_grid );
 
 		user_code_secret
 			.on_enter( &console::user_code_secret_on_enter )
 			.event( &console::user_code_secret_on_digit )
-			.event( &console::user_code_secret_on_bell );
+			.event( &console::user_code_secret_on_bell )
 			.event( &console::user_code_secret_on_grid );
 
 		service_code_selection
 			.on_enter( &console::service_code_on_enter )
 			.event( &console::service_code_on_digit )
-			.event( &console::service_code_on_bell );
+			.event( &console::service_code_on_bell )
 			.event( &console::service_code_on_grid );
 
 		operation_completed
@@ -146,6 +147,10 @@ private :
 
 	void dialog_on_cancel( mhood_t< key_cancel > )
 	{
+		m_apartment_number.clear();
+		m_user_secret_code.clear();
+		m_service_code.clear();
+
 		this >>= wait_activity;
 	}
 
@@ -179,7 +184,7 @@ private :
 
 	void apartment_number_on_bell( mhood_t< key_bell > )
 	{
-		if( m_apartment_number.size() != apartment_number_size )
+		if( m_apartment_number.size() == apartment_number_size )
 		{
 			std::string number;
 			m_apartment_number.swap( number );
@@ -200,6 +205,23 @@ private :
 	{
 		if( !m_apartment_number.empty() )
 			m_display.show( m_apartment_number );
+	}
+
+	void user_code_apartment_number_on_bell( mhood_t< key_bell > )
+	{
+		initiate_error( "enter apartment number, then '#', then secret code, "
+				"then 'b'" );
+	}
+
+	void user_code_apartment_number_on_grid( mhood_t< key_grid > )
+	{
+		if( m_apartment_number.size() == apartment_number_size )
+		{
+			this >>= user_code_secret;
+		}
+		else
+			initiate_error( "apartment number must be " +
+					std::to_string( apartment_number_size ) + " digits long" );
 	}
 
 	void user_code_secret_on_enter()
@@ -261,7 +283,7 @@ private :
 					std::to_string( service_code_size ) + " digits long" );
 	}
 
-	void service_code_on_bell( mhood_t< key_grid > )
+	void service_code_on_bell( mhood_t< key_bell > )
 	{
 		initiate_error( "enter service code, then '#'" );
 	}
@@ -313,7 +335,7 @@ so_5::mbox_t create_console( so_5::environment_t & env )
 {
 	so_5::mbox_t console_mbox;
 	env.introduce_coop( [&]( so_5::coop_t & coop ) {
-		consule_mbox = coop.make_agent< console >()->so_direct_mbox();
+		console_mbox = coop.make_agent< console >()->so_direct_mbox();
 	} );
 
 	return console_mbox;
@@ -325,10 +347,10 @@ void demo()
 	so_5::wrapped_env_t sobj{
 		[]( so_5::environment_t & ) {},
 		[]( so_5::environment_params_t & params ) {
-//			params.message_delivery_tracer( so_5::msg_tracing::std_clog_tracer() );
+			params.message_delivery_tracer( so_5::msg_tracing::std_cerr_tracer() );
 		} };
 
-	auto console_mbox = create_intercom( sobj.environment() );
+	auto console_mbox = create_console( sobj.environment() );
 
 	while( true )
 	{
