@@ -173,12 +173,16 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Type of function to be called on enter to the state.
+		 *
+		 * \attention Handler must be noexcept function.
 		 */
 		using on_enter_handler_t = std::function< void() >;
 
 		/*!
 		 * \since v.5.5.15
 		 * \brief Type of function to be called on exit from the state.
+		 *
+		 * \attention Handler must be noexcept function.
 		 */
 		using on_exit_handler_t = std::function< void() >;
 
@@ -583,6 +587,8 @@ class SO_5_TYPE state_t final
 
 		/*!
 		 * \since v.5.5.15
+		 * \brief An instruction for switching agent to the specified
+		 * state and transfering event proceessing to new state.
 		 *
 		 * \note Transfers processing of message/signal which is going
 		 * from agent's direct mbox.
@@ -614,25 +620,91 @@ class SO_5_TYPE state_t final
 				return *this;
 			}
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Define handler which only switches agent to the specified
+		 * state.
+		 *
+		 * \note Defines a reaction to message/signal which is going from
+		 * message box \a from.
+		 *
+		 * \note This method differes from transfer_to_state() method:
+		 * just_switch_to() changes state of the agent, but there will not be a
+		 * look for event handler for message/signal in the new state. It means
+		 * that just_switch_to() is just a shorthand for:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.event< some_signal >( from, [this]{ this >>= S2; } );
+			}
+		 * \endcode
+		 * With just_switch_to() this code can looks like:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.just_switch_to< some_signal >( from, S2 );
+			}
+		 * \endcode
 		 */
 		template< typename MSG >
 		const state_t &
 		just_switch_to( mbox_t from, const state_t & target_state ) const;
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Define handler which only switches agent to the specified
+		 * state.
+		 *
+		 * \note Defines a reaction to message/signal which is going from
+		 * agent's direct mbox.
+		 *
+		 * \note This method differes from transfer_to_state() method:
+		 * just_switch_to() changes state of the agent, but there will not be a
+		 * look for event handler for message/signal in the new state. It means
+		 * that just_switch_to() is just a shorthand for:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.event< some_signal >( [this]{ this >>= S2; } );
+			}
+		 * \endcode
+		 * With just_switch_to() this code can looks like:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.just_switch_to< some_signal >( S2 );
+			}
+		 * \endcode
 		 */
 		template< typename MSG >
 		const state_t &
 		just_switch_to( const state_t & target_state ) const;
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Define handler which only switches agent to the specified
+		 * state.
+		 *
+		 * \note Defines a reaction to message/signal which is going from
+		 * message box \a from.
+		 *
+		 * \note This method differes from transfer_to_state() method:
+		 * just_switch_to() changes state of the agent, but there will not be a
+		 * look for event handler for message/signal in the new state. It means
+		 * that just_switch_to() is just a shorthand for:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.event< some_signal >( from, [this]{ this >>= S2; } );
+			}
+		 * \endcode
+		 * With just_switch_to() this code can looks like:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.just_switch_to< some_signal >( from, S2 );
+			}
+		 * \endcode
 		 */
 		template< typename MSG >
 		state_t &
@@ -643,9 +715,31 @@ class SO_5_TYPE state_t final
 				return *this;
 			}
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief Define handler which only switches agent to the specified
+		 * state.
+		 *
+		 * \note Defines a reaction to message/signal which is going from
+		 * agent's direct mbox.
+		 *
+		 * \note This method differes from transfer_to_state() method:
+		 * just_switch_to() changes state of the agent, but there will not be a
+		 * look for event handler for message/signal in the new state. It means
+		 * that just_switch_to() is just a shorthand for:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.event< some_signal >( [this]{ this >>= S2; } );
+			}
+		 * \endcode
+		 * With just_switch_to() this code can looks like:
+		 * \code
+			virtual void demo::so_define_agent() override
+			{
+				some_state.just_switch_to< some_signal >( S2 );
+			}
+		 * \endcode
 		 */
 		template< typename MSG >
 		state_t &
@@ -853,6 +947,31 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Set on enter handler.
+		 *
+		 * \attention Handler must be noexcept function. If handler
+		 * throws an exception the whole application will be aborted.
+		 *
+		 * \par Usage example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t number_accumulation{ this, "accumulation" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					number_accumulation
+						.on_enter( [this] { m_number.clear(); } )
+						.event( [this]( const next_digit & msg ) {
+							m_number += msg.m_digit;
+						} );
+					...
+				}
+				...
+			private :
+				std::string m_number;
+			};
+		 * \endcode
 		 */
 		state_t &
 		on_enter( on_enter_handler_t handler )
@@ -864,6 +983,37 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Set on enter handler.
+		 *
+		 * \attention Handler must be noexcept function. If handler
+		 * throws an exception the whole application will be aborted.
+		 *
+		 * \par Usage example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t number_accumulation{ this, "accumulation" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					number_accumulation
+						.on_enter( &demo::accumulation_on_enter )
+						.event( [this]( const next_digit & msg ) {
+							m_number += msg.m_digit;
+						} );
+					...
+				}
+				...
+			private :
+				std::string m_number;
+				...
+				void accumulation_on_enter()
+				{
+					m_number.clear();
+					...
+				}
+			};
+		 * \endcode
 		 */
 		template< typename AGENT >
 		state_t &
@@ -872,6 +1022,42 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Query on enter handler.
+		 *
+		 * \note This method can be useful if there is a need to refine
+		 * handler defined in the base class:
+		 * \code
+			class parent : public so_5::agent_t
+			{
+			protected :
+				state_t some_state{ this, ... };
+
+			public :
+				virtual void so_define_agent() override
+				{
+					some_state.on_enter( [this] {
+							... // Some action.
+						} );
+				}
+				...
+			};
+			class child : public parent
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					// Calling so_define_agent from base class.
+					parent::so_define_agent();
+
+					// Refine on_enter handler for state from parent class.
+					auto old_handler = some_state.on_enter();
+					some_state.on_enter( [this, old_handler] {
+							old_handler(); // Calling the old handler.
+							... // Some addition action.
+						} );
+				}
+				...
+			};
+		 * \endcode
 		 */
 		const on_enter_handler_t &
 		on_enter() const
@@ -882,6 +1068,29 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Set on exit handler.
+		 *
+		 * \attention Handler must be noexcept function. If handler
+		 * throws an exception the whole application will be aborted.
+		 *
+		 * \par Usage example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t dialog{ this, "dialog" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					dialog
+						.on_exit( [this] { m_display.turn_off(); } )
+						.event( [this]( const user_input & msg ) {...} );
+					...
+				}
+				...
+			private :
+				display m_display;
+			};
+		 * \endcode
 		 */
 		state_t &
 		on_exit( on_exit_handler_t handler )
@@ -893,6 +1102,35 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Set on exit handler.
+		 *
+		 * \attention Handler must be noexcept function. If handler
+		 * throws an exception the whole application will be aborted.
+		 *
+		 * \par Usage example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t dialog{ this, "dialog" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					dialog
+						.on_exit( &demo::dialog_on_exit )
+						.event( [this]( const user_input & msg ) {...} );
+					...
+				}
+				...
+			private :
+				display m_display;
+				...
+				void dialog_on_exit()
+				{
+					m_display.turn_off();
+					...
+				}
+			};
+		 * \endcode
 		 */
 		template< typename AGENT >
 		state_t &
@@ -901,6 +1139,42 @@ class SO_5_TYPE state_t final
 		/*!
 		 * \since v.5.5.15
 		 * \brief Query on enter handler.
+		 *
+		 * \note This method can be useful if there is a need to refine
+		 * handler defined in the base class:
+		 * \code
+			class parent : public so_5::agent_t
+			{
+			protected :
+				state_t some_state{ this, ... };
+
+			public :
+				virtual void so_define_agent() override
+				{
+					some_state.on_exit( [this] {
+							... // Some action.
+						} );
+				}
+				...
+			};
+			class child : public parent
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					// Calling so_define_agent from base class.
+					parent::so_define_agent();
+
+					// Refine on_enter handler for state from parent class.
+					auto old_handler = some_state.on_exit();
+					some_state.on_exit( [this, old_handler] {
+							... // Some addition action.
+							old_handler(); // Calling the old handler.
+						} );
+				}
+				...
+			};
+		 * \endcode
 		 */
 		const on_exit_handler_t &
 		on_exit() const
