@@ -30,12 +30,25 @@ namespace so_5
 	#pragma warning(disable: 4251)
 #endif
 
-//FIXME: Document this!
 //
 // initial_substate_of
 //
 /*!
  * \since v.5.5.15
+ * \brief Helper for marking initial substate of composite state.
+ *
+ * \par Usage example:
+ * \code
+	class demo : public so_5::agent_t
+	{
+		state_t active{ *this, "active" };
+		state_t wait_input{ initial_substate_of{ active }, "wait_input" };
+		state_t dialog{ substate_of{ active }, "dialog" };
+		...
+	};
+ * \endcode
+ * 
+ * \note A composite state can have only one initial substate.
  */
 struct initial_substate_of
 {
@@ -46,12 +59,27 @@ struct initial_substate_of
 		{}
 };
 
-//FIXME: Document this!
 //
 // substate_of
 //
 /*!
  * \since v.5.5.15
+ * \brief Helper for marking a substate of composite state.
+ *
+ * \par Usage example:
+ * \code
+	class demo : public so_5::agent_t
+	{
+		state_t active{ *this, "active" };
+		state_t wait_input{ initial_substate_of{ active }, "wait_input" };
+		state_t dialog{ substate_of{ active }, "dialog" };
+		state_t shutting_down{ substate_of{ active }, "shutdown" };
+		...
+	};
+ * \endcode
+ * 
+ * \note A composite state can have any number of substates but
+ * only one of them must be marked as initial substate.
  */
 struct substate_of
 {
@@ -459,25 +487,91 @@ class SO_5_TYPE state_t final
 				return *this;
 			}
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief An instruction for switching agent to the specified
+		 * state and transfering event proceessing to new state.
+		 *
+		 * \note Transfers processing of message/signal which is going
+		 * from message box \a from.
+		 *
+		 * \par Usage example:
+		 * \code
+			class device : public so_5::agent_t {
+				const state_t off{ this, "off" };
+				const state_t on{ this, "on" };
+			public :
+				virtual void so_define_agent() override {
+					off
+						.transfer_to_state< key_on >( some_mbox, on )
+						.transfer_to_state< key_info >( some_mbox, on );
+					...
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
 		template< typename MSG >
 		const state_t &
 		transfer_to_state( mbox_t from, const state_t & target_state ) const;
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief An instruction for switching agent to the specified
+		 * state and transfering event proceessing to new state.
+		 *
+		 * \note Transfers processing of message/signal which is going
+		 * from agent's direct mbox.
+		 *
+		 * \par Usage example:
+		 * \code
+			class device : public so_5::agent_t {
+				const state_t off{ this, "off" };
+				const state_t on{ this, "on" };
+			public :
+				virtual void so_define_agent() override {
+					off
+						.transfer_to_state< key_on >( on )
+						.transfer_to_state< key_info >( on );
+					...
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
 		template< typename MSG >
 		const state_t &
 		transfer_to_state( const state_t & target_state ) const;
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 * \brief An instruction for switching agent to the specified
+		 * state and transfering event proceessing to new state.
+		 *
+		 * \note Transfers processing of message/signal which is going
+		 * from message box \a from.
+		 *
+		 * \par Usage example:
+		 * \code
+			class device : public so_5::agent_t {
+				state_t off{ this, "off" };
+				state_t on{ this, "on" };
+			public :
+				virtual void so_define_agent() override {
+					off
+						.transfer_to_state< key_on >( some_mbox, on )
+						.transfer_to_state< key_info >( some_mbox, on );
+					...
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
 		template< typename MSG >
 		state_t &
@@ -488,9 +582,29 @@ class SO_5_TYPE state_t final
 				return *this;
 			}
 
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
+		 *
+		 * \note Transfers processing of message/signal which is going
+		 * from agent's direct mbox.
+		 *
+		 * \par Usage example:
+		 * \code
+			class device : public so_5::agent_t {
+				state_t off{ this, "off" };
+				state_t on{ this, "on" };
+			public :
+				virtual void so_define_agent() override {
+					off
+						.transfer_to_state< key_on >( on )
+						.transfer_to_state< key_info >( on );
+					...
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note For more details see subscription_bind_t::transfer_to_state().
 		 */
 		template< typename MSG >
 		state_t &
