@@ -1189,10 +1189,44 @@ class SO_5_TYPE state_t final
 		 * \name Methods for dealing with state's time limit.
 		 * \{
 		 */
-		//FIXME: write Doxygen comment!
 		/*!
 		 * \since v.5.5.15
 		 * \brief Set up a time limit for the state.
+		 *
+		 * \note Agent will automatically switched to \a state_to_switch after
+		 * \a timeout spent in the current state.
+		 *
+		 * \par Usage example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t dialog{ this, "dialog" };
+				state_t show_err{ this, "err" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					dialog
+						.on_enter( [this] { m_display.clear(); } )
+						.event( [this]( const user_input & msg ) {
+								try_handle_input( msg );
+								if( some_error() ) {
+									m_error = error_description();
+									this >>= show_err;
+								}
+							} )
+						...; // Other handlers.
+					show_err
+						.on_enter( [this] { m_display.show( m_error ); } )
+						.time_limit( std::chrono::seconds{2}, dialog );
+				}
+				...
+			private :
+				display m_display;
+				std::string m_error;
+				...
+			};
+		 * \endcode
 		 */
 		state_t &
 		time_limit(
@@ -1206,6 +1240,104 @@ class SO_5_TYPE state_t final
 		 * \brief Drop time limit for the state if defined.
 		 *
 		 * \note Do nothing if a time limit is not defined.
+		 *
+		 * \note This method can be useful if there is need to refine state
+		 * defined in the parent class:
+		 * \code
+			class parent : public so_5::agent_t
+			{
+			protected :
+				state_t dialog{ this, "dialog" };
+				state_t show_err{ this, "err" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					dialog
+						.on_enter( [this] { m_display.clear(); } )
+						.event( [this]( const user_input & msg ) {
+								try_handle_input( msg );
+								if( some_error() ) {
+									m_error = error_description();
+									this >>= show_err;
+								}
+							} )
+						...; // Other handlers.
+					show_err
+						.on_enter( [this] { m_display.show( m_error ); } )
+						.time_limit( std::chrono::seconds{2}, dialog );
+				}
+				...
+			protected :
+				display m_display;
+				std::string m_error;
+				...
+			};
+			class child : public parent
+			{
+			public :
+				virtual void so_define_agent() override
+				{
+					parent::so_define_agent();
+
+					show_err
+						// Switching from show_err to dialog must be done
+						// only by pressing "cancel" or "ok" buttons.
+						// Automatic switching after 2s must be disabled.
+						.drop_time_limit()
+						.just_switch_to< key_cancel >( dialog )
+						.just_switch_to< key_on >( dialog );
+				}
+				...
+			};
+		 * \endcode
+		 *
+		 * \note This method can be called when agents is already in that
+		 * state. Automatic switching will be disabled. To reenable automatic
+		 * switching time_limit() method must be called again (but effect will
+		 * be only after reentering into that state):
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t dialog{ this, "dialog" };
+				state_t show_err{ this, "err" };
+				...
+			public :
+				virtual void so_define_agent() override
+				{
+					dialog
+						.on_enter( [this] { m_display.clear(); } )
+						.event( [this]( const user_input & msg ) {
+								try_handle_input( msg );
+								if( some_error() ) {
+									m_error = error_description();
+									this >>= show_err;
+								}
+							} )
+						...; // Other handlers.
+					show_err
+						.on_enter( [this] { m_display.show( m_error ); } )
+						// By default state will be switched after 2s.
+						.time_limit( std::chrono::seconds{2}, dialog )
+						.event< key_pause >( [this] {
+								// Disable automatic switching.
+								show_err.drop_time_limit();
+							} )
+						.event< key_continue >( [this] {
+								// Automatic switching is reenabled.
+								// But it will take effect only on next enter
+								// into this state.
+								show_err.time_limit( std::chrono::seconds{2}, dialog );
+								...
+							} );
+				}
+				...
+			private :
+				display m_display;
+				std::string m_error;
+				...
+			};
+		 * \endcode
 		 */
 		state_t &
 		drop_time_limit();
