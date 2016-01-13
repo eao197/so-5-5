@@ -357,6 +357,18 @@ state_t::time_limit(
 	drop_time_limit();
 	m_time_limit.reset( new time_limit_t{ timeout, state_to_switch } );
 
+	// If this state is active then new time limit must be activated.
+	if( is_active() )
+		so_5::details::do_with_rollback_on_exception(
+			[&] {
+				m_time_limit->set_up_limit_for_agent( *m_target_agent, *this );
+			},
+			[&] {
+				// Time limit must be dropped because it is not activated
+				// for the current state.
+				drop_time_limit();
+			} );
+
 	return *this;
 }
 

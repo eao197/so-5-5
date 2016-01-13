@@ -1248,6 +1248,10 @@ class SO_5_TYPE state_t final
 				...
 			};
 		 * \endcode
+		 *
+		 * \note If S.time_limit() is called when S is active state then
+		 * time_limit for that state will be reset and time for the state S
+		 * will be counted from zero.
 		 */
 		state_t &
 		time_limit(
@@ -1315,8 +1319,7 @@ class SO_5_TYPE state_t final
 		 *
 		 * \note This method can be called when agents is already in that
 		 * state. Automatic switching will be disabled. To reenable automatic
-		 * switching time_limit() method must be called again (but effect will
-		 * be only after reentering into that state):
+		 * switching time_limit() method must be called again:
 		 * \code
 			class demo : public so_5::agent_t
 			{
@@ -1346,8 +1349,6 @@ class SO_5_TYPE state_t final
 							} )
 						.event< key_continue >( [this] {
 								// Automatic switching is reenabled.
-								// But it will take effect only on next enter
-								// into this state.
 								show_err.time_limit( std::chrono::seconds{2}, dialog );
 								...
 							} );
