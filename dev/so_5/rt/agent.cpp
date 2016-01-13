@@ -514,7 +514,7 @@ agent_t::so_is_active_state( const state_t & state_to_check ) const
 
 	auto e = begin(path) + m_current_state_ptr->nested_level() + 1;
 
-	return e != find( begin(path), e, &state_to_check );
+	return e != std::find( begin(path), e, &state_to_check );
 }
 
 const std::string &

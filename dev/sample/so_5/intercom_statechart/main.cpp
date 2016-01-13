@@ -543,11 +543,11 @@ so_5::mbox_t create_intercom( so_5::environment_t & env )
 void demo()
 {
 	// A SObjectizer instance.
-	so_5::wrapped_env_t sobj{
+	so_5::wrapped_env_t sobj/*{
 		[]( so_5::environment_t & ) {},
 		[]( so_5::environment_params_t & params ) {
-//			params.message_delivery_tracer( so_5::msg_tracing::std_clog_tracer() );
-		} };
+			params.message_delivery_tracer( so_5::msg_tracing::std_clog_tracer() );
+		} }*/;
 
 	auto intercom = create_intercom( sobj.environment() );
 
