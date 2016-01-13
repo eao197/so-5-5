@@ -354,6 +354,48 @@ class SO_5_TYPE state_t final
 		is_active() const;
 
 		/*!
+		 * \since v.5.5.15
+		 * \brief Clear state history.
+		 *
+		 * \note Clears the history for this state only. History for any
+		 * substates remains intact. For example:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t A{ this, "A", deep_history };
+				state_t B{ initial_substate_of{ A }, "B", shallow_history };
+				state_t C{ initial_substate_of{ B }, "C" };
+				state_t D{ substate_of{ B }, "D" };
+				state_t E{ this, "E" };
+				...
+				void some_event()
+				{
+					this >>= A; // The current state is "A.B.C"
+					            // Because B is initial substate of A, and
+					            // C is initial substate of B.
+					this >>= D; // The current state is "A.B.D".
+					this >>= E; // The current state is "E".
+					this >>= A; // The current state is "A.B.D" because deep history of A.
+					this >>= E;
+					A.clear_history();
+					this >>= A; // The current state is "A.B.D" because:
+					            // B is the initial substate of A and B has shallow history;
+									// D is the last active substate of B.
+				}
+			};
+		 * \endcode
+		 *
+		 *
+		 * \attention This method is not thread safe. Be careful calling
+		 * this method from outside of agent's working thread.
+		 */
+		void
+		clear_history()
+			{
+				m_last_active_substate = nullptr;
+			}
+
+		/*!
 		 * \since v.5.5.1
 		 * \brief Helper for subscription of event handler in this state.
 		 *
