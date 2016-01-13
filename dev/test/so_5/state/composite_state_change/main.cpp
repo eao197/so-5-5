@@ -7,6 +7,7 @@
 #include <so_5/all.hpp>
 
 #include <various_helpers_1/time_limited_execution.hpp>
+#include <various_helpers_1/ensure.hpp>
 
 class a_test_t final : public so_5::agent_t
 {
@@ -32,10 +33,29 @@ public :
 	virtual void
 	so_evt_start() override
 	{
-		if( !(st_child_1_1_1 == so_current_state()) )
-			throw std::runtime_error( "unexpected current state, expected: " +
-					st_child_1_1.query_name() + ", actual: " +
-					so_current_state().query_name() );
+		ensure( st_child_1_1_1 == so_current_state(),
+			"unexpected current state, expected: " +
+			st_child_1_1.query_name() + ", actual: " +
+			so_current_state().query_name() );
+		ensure( so_is_active_state( st_child_1_1_1 ) &&
+				st_child_1_1_1.is_active(),
+				"state st_child_1_1_1 is expected to be active" );
+		ensure( so_is_active_state( st_child_1_1 ) &&
+				st_child_1_1.is_active(),
+				"state st_child_1_1 is expected to be active" );
+		ensure( so_is_active_state( st_top_1 ) &&
+				st_top_1.is_active(),
+				"state st_top_1 is expected to be active" );
+
+		ensure( !so_is_active_state( st_top_2 ) &&
+				!st_top_2.is_active(),
+				"state st_top_2 is expected not to be active" );
+		ensure( !so_is_active_state( st_child_1_1_3 ) &&
+				!st_child_1_1_3.is_active(),
+				"state st_child_1_1_3 is expected not to be active" );
+		ensure( !so_is_active_state( st_child_2_2 ) &&
+				!st_child_2_2.is_active(),
+				"state st_child_2_2 is expected not to be active" );
 
 		try
 		{

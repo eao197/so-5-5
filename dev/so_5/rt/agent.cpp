@@ -19,6 +19,7 @@
 
 #include <so_5/h/spinlocks.hpp>
 
+#include <algorithm>
 #include <sstream>
 #include <cstdlib>
 
@@ -493,6 +494,16 @@ agent_t::so_evt_finish()
 	// Default implementation do nothing.
 }
 
+bool
+agent_t::so_is_active_state( const state_t & state_to_check ) const
+{
+	state_t::path_t path;
+	m_current_state_ptr->fill_path( path );
+
+	auto e = begin(path) + m_current_state_ptr->nested_level() + 1;
+
+	return e != find( begin(path), e, &state_to_check );
+}
 
 const std::string &
 agent_t::so_coop_name() const
@@ -1146,8 +1157,8 @@ void
 agent_t::do_state_switch(
 	const state_t & state_to_be_set )
 {
-	std::array< const state_t *, state_t::max_deep > old_path;
-	std::array< const state_t *, state_t::max_deep > new_path;
+	state_t::path_t old_path;
+	state_t::path_t new_path;
 
 	m_current_state_ptr->fill_path( old_path );
 	state_to_be_set.fill_path( new_path );

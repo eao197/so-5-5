@@ -22,7 +22,7 @@ struct key_digit
 class console final : public so_5::agent_t
 {
 	state_t
-		dialog{ this, "dialog", state_t::history_t::deep },
+		dialog{ this, "dialog", deep_history },
 
 			wait_activity{
 					initial_substate_of{ dialog }, "wait_activity" },
@@ -147,10 +147,6 @@ private :
 
 	void dialog_on_cancel( mhood_t< key_cancel > )
 	{
-		m_apartment_number.clear();
-		m_user_secret_code.clear();
-		m_service_code.clear();
-
 		this >>= wait_activity;
 	}
 
@@ -161,6 +157,10 @@ private :
 
 	void wait_activity_on_enter()
 	{
+		m_apartment_number.clear();
+		m_user_secret_code.clear();
+		m_service_code.clear();
+
 		m_display.clear();
 	}
 

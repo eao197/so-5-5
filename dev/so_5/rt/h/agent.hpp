@@ -826,6 +826,44 @@ class SO_5_TYPE agent_t
 			return *m_current_state_ptr;
 		}
 
+		/*!
+		 * \since v.5.5.15
+		 * \brief Is a state activated?
+		 *
+		 * \note Since v.5.5.15 a state can have substates. For example
+		 * state A can have substates B and C. If B is the current state
+		 * then so_current_state() will return a reference to B. But
+		 * state A is active too because it is a superstate for B.
+		 * Method so_is_active_state(A) will return \a true in that case:
+		 * \code
+			class demo : public so_5::agent_t
+			{
+				state_t A{ this, "A" };
+				state_t B{ initial_substate_of{ A }, "B" };
+				state_t C{ substate_of{ A }, "C" };
+				...
+				void some_event()
+				{
+					this >>= C;
+
+					assert( C == so_current_state() );
+					assert( !( A == so_current_state() ) );
+					assert( so_is_active_state(A) );
+					...
+				}
+			};
+		 * \endcode
+		 *
+		 * \attention This method is not thread safe. Be careful calling
+		 * this method from outside of agent's working thread.
+		 *
+		 * \return \a true if state \a state_to_check is the current state
+		 * or if the current state is a substate of \a state_to_check.
+		 *
+		 */
+		bool
+		so_is_active_state( const state_t & state_to_check ) const;
+
 		//! Name of the agent's cooperation.
 		/*!
 		 * \note It is safe to use this method when agent is working inside 
@@ -2420,6 +2458,12 @@ subscription_bind_t::create_subscription_for_states(
 /*
  * Implementation of template methods of state_t class.
  */
+inline bool
+state_t::is_active() const
+{
+	return m_target_agent->so_is_active_state( *this );
+}
+
 template< typename... ARGS >
 const state_t &
 state_t::event( ARGS&&... args ) const

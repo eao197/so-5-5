@@ -172,6 +172,17 @@ class SO_5_TYPE state_t final
 
 		/*!
 		 * \since v.5.5.15
+		 * \brief A type for representation of state's path.
+		 *
+		 * \note Path contains pointer to the state itself (always the
+		 * last item in the path) and pointers to all superstates.
+		 * If state has no superstate the path will contains just one
+		 * pointer to the state itself.
+		 */
+		using path_t = std::array< const state_t *, max_deep >;
+
+		/*!
+		 * \since v.5.5.15
 		 * \brief Type of function to be called on enter to the state.
 		 *
 		 * \attention Handler must be noexcept function.
@@ -331,6 +342,16 @@ class SO_5_TYPE state_t final
 		 */
 		void
 		activate() const;
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Is this state or any of its substates activated?
+		 *
+		 * \note See so_5::agent_t::so_is_active_state() for more details.
+		 * This method is just a thin wrapper around agent_t::so_is_active_state().
+		 */
+		bool
+		is_active() const;
 
 		/*!
 		 * \since v.5.5.1
@@ -1516,7 +1537,7 @@ class SO_5_TYPE state_t final
 		 * state to this state.
 		 */
 		void
-		fill_path( std::array< const state_t *, max_deep > & path ) const
+		fill_path( path_t & path ) const
 			{
 				path[ m_nested_level ] = this;
 				if( m_parent_state )
