@@ -49,6 +49,14 @@ inline void clear_display(
 
 } // namespace intercom_messages
 
+// An agent for controlling inactivity time.
+//
+// Listen the same user-activity messages as controller agent and reschedules
+// delayed message after each of them. This delayed message tells the
+// controller to change state from active to inactive.
+//
+// Please note: this agent switches from inactive to active state by the
+// signal from controller agent.
 class inactivity_watcher final : public so_5::agent_t
 {
 	state_t inactive{ this, "inactive" };
@@ -99,6 +107,10 @@ private :
 	}
 };
 
+// An agent for imitation of keyboard's light equipment.
+//
+// Switching from off to on states and back is done by listening
+// activated and deactivate signals.
 class keyboard_lights final : public so_5::agent_t
 {
 	state_t off{ this, "off" };
@@ -124,6 +136,10 @@ public :
 	}
 };
 
+// An agent for imitation of intercom's display.
+//
+// Switching from off to on states and back is done by listening
+// activated and deactivate signals.
 class display final : public so_5::agent_t
 {
 	state_t off{ this, "off" };
@@ -153,6 +169,9 @@ public :
 	}
 };
 
+// An agent for imitation of call to an apartment.
+//
+// Just changes a message on display for every 1.5s.
 class ringer final : public so_5::agent_t
 {
 	state_t
@@ -214,8 +233,14 @@ private :
 	std::string m_number;
 };
 
+// Main agent of intercom example.
+// Imitates intercom's controller.
+//
+// Receives a messages from user and perform various actions.
+//
 class controller final : public so_5::agent_t
 {
+	// States of agent's statechart.
 	state_t
 		inactive{ this, "inactive" },
 		active{ this, "active" },
@@ -275,6 +300,7 @@ public :
 		,	m_apartments( make_apartment_info() )
 		,	m_actual_service_code( "12345" )
 	{
+		// Setting up statechart.
 		inactive
 			.transfer_to_state< key_digit >( m_intercom_mbox, active )
 			.transfer_to_state< key_grid >( m_intercom_mbox, active )
@@ -344,24 +370,33 @@ public :
 
 	virtual void so_evt_start() override
 	{
+		// Agent starts in the default state. Switch to the appropriate one.
 		this >>= inactive;
 	}
 
 private :
+	// Limitations for various pieces of user input.
 	static const std::size_t max_apartment_number_size = 3u;
 	static const std::size_t max_secret_code_size = 4u;
 	static const std::size_t service_code_size = 5u;
 
+	// Common mbox for all intercom's parts.
 	const so_5::mbox_t m_intercom_mbox;
+	// Information about apartments and their secret codes.
 	const std::vector< apartment_info > m_apartments;
 
+	// Accumutator for apartment number.
 	std::string m_apartment_number;
 
+	// Accumutator for user's secret code.
 	std::string m_user_secret_code;
 
+	// Accumutator for service code.
 	std::string m_service_code;
+	// Service code value for this intercom instance.
 	const std::string m_actual_service_code;
 
+	// Helper method for generation of apartments' information.
 	static std::vector< apartment_info > make_apartment_info()
 	{
 		std::vector< apartment_info > result;
@@ -383,6 +418,8 @@ private :
 
 	void active_on_enter()
 	{
+		// Special signal must be send on enter to active state.
+		// This signal will activate other parts of intercom.
 		so_5::send< intercom_messages::activated >( m_intercom_mbox );
 	}
 
@@ -398,6 +435,8 @@ private :
 
 	void apartment_number_on_enter()
 	{
+		// Old value of accumulator must be dropped to allow to accumulate new
+		// one.
 		m_apartment_number.clear();
 	}
 
@@ -448,11 +487,15 @@ private :
 
 	void user_code_apartment_number_on_enter()
 	{
+		// Old value of accumulator must be dropped to allow to accumulate new
+		// one.
 		m_apartment_number.clear();
 	}
 
 	void user_code_secret_on_enter()
 	{
+		// Old value of accumulator must be dropped to allow to accumulate new
+		// one.
 		m_user_secret_code.clear();
 		intercom_messages::clear_display( m_intercom_mbox );
 	}
@@ -496,6 +539,8 @@ private :
 
 	void service_code_on_enter()
 	{
+		// Old value of accumulator must be dropped to allow to accumulate new
+		// one.
 		m_service_code.clear();
 	}
 
@@ -524,6 +569,7 @@ private :
 	}
 };
 
+// Helper for creation of coop with intercom's agents.
 so_5::mbox_t create_intercom( so_5::environment_t & env )
 {
 	so_5::mbox_t intercom_mbox;

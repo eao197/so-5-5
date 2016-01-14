@@ -109,7 +109,7 @@ public :
 
 	virtual void so_evt_start() override
 	{
-		// Agent starts in default state. Change it to the appropriate one.
+		// Agent starts in the default state. Switch to the appropriate one.
 		this >>= dialog;
 	}
 
