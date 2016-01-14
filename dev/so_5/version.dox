@@ -2,6 +2,8 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_15 5.5.15 "Cerro Paroma"
+
 \section so_5__5_14 5.5.14 "Nevado de Antisana"
 
 	Unification of event handler formats for method-style and lambda-style

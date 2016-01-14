@@ -194,4 +194,12 @@
  * \example so_5/producer_consumer_mchain/main.cpp
  */
 
+/*!
+ * \example so_5/intercom_statechart/main.cpp
+ */
+
+/*!
+ * \example so_5/state_deep_history/main.cpp
+ */
+
 // vim:ft=cpp.doxygen
