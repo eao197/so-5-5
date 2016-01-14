@@ -19,8 +19,10 @@ struct key_digit
 	char m_value;
 };
 
+// Main agent.
 class console final : public so_5::agent_t
 {
+	// States of agent's statechart.
 	state_t
 		dialog{ this, "dialog", deep_history },
 
@@ -58,6 +60,7 @@ class console final : public so_5::agent_t
 public :
 	console( context_t ctx ) :	so_5::agent_t{ ctx }
 	{
+		// Setting up statechart.
 		dialog
 			.event( &console::dialog_on_grid )
 			.event( &console::dialog_on_cancel );
@@ -106,6 +109,7 @@ public :
 
 	virtual void so_evt_start() override
 	{
+		// Agent starts in default state. Change it to the appropriate one.
 		this >>= dialog;
 	}
 
@@ -130,23 +134,34 @@ private :
 		}
 	};
 
+	// Limitations for various pieces of user input.
 	static const std::size_t apartment_number_size = 3u;
 	static const std::size_t secret_code_size = 4u;
 	static const std::size_t service_code_size = 5u;
 
+	// Accumutator for apartment number.
 	std::string m_apartment_number;
 
+	// Accumutator for user's secret code.
 	std::string m_user_secret_code;
 
+	// Accumutator for service code.
 	std::string m_service_code;
 
+	// Message to be displayed in show_error state.
 	std::string m_error_message;
+	// Message to be displayed in operation_completed state.
 	std::string m_op_result_message;
 
+	// Display imitator.
 	display m_display;
 
 	void dialog_on_cancel( mhood_t< key_cancel > )
 	{
+		// key_cancel always leads to wait_activity state.
+		// We must switch to wait_activity but not to dialog state
+		// because dialog has history and switch to dialog state will
+		// lead to restoration of last active dialog's substate.
 		this >>= wait_activity;
 	}
 
@@ -157,6 +172,10 @@ private :
 
 	void wait_activity_on_enter()
 	{
+		// We can enter in that state only on the very first enter into dialog
+		// state (because wait_activity is the initial substate). Or after
+		// completion of some operator. Or after cancelation of any operation.
+		// Because of that all accumulators can be cleared here.
 		m_apartment_number.clear();
 		m_user_secret_code.clear();
 		m_service_code.clear();
@@ -166,6 +185,7 @@ private :
 
 	void apartment_number_on_enter()
 	{
+		// Show the current value of accumulator on reentry into this state.
 		if( !m_apartment_number.empty() )
 			m_display.show( m_apartment_number );
 	}
@@ -203,6 +223,7 @@ private :
 
 	void user_code_apartment_number_on_enter()
 	{
+		// Show the current value of accumulator on reentry into this state.
 		if( !m_apartment_number.empty() )
 			m_display.show( m_apartment_number );
 	}
@@ -226,6 +247,7 @@ private :
 
 	void user_code_secret_on_enter()
 	{
+		// Show the current value of accumulator on reentry into this state.
 		if( !m_user_secret_code.empty() )
 			m_display.show( std::string( m_user_secret_code.size(), '*' ) );
 	}
@@ -267,6 +289,7 @@ private :
 
 	void service_code_on_enter()
 	{
+		// Show the current value of accumulator on reentry into this state.
 		if( !m_service_code.empty() )
 			m_display.show( std::string( m_service_code.size(), '#' ) );
 	}
@@ -331,6 +354,7 @@ private :
 	}
 };
 
+// Helper for creation of coop with console agent.
 so_5::mbox_t create_console( so_5::environment_t & env )
 {
 	so_5::mbox_t console_mbox;
