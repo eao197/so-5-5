@@ -58,8 +58,8 @@ public :
 	}
 
 private :
-	const state_t st_free{ this, "free" };
-	const state_t st_taken{ this, "taken" };
+	state_t st_free{ this };
+	state_t st_taken{ this };
 };
 
 class a_philosopher_t : public so_5::agent_t
