@@ -195,6 +195,10 @@
  */
 
 /*!
+ * \example so_5/blinking_led/main.cpp
+ */
+
+/*!
  * \example so_5/intercom_statechart/main.cpp
  */
 
