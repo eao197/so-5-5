@@ -54,6 +54,7 @@ MxxRu::Cpp::composite_target {
 	example[ 'wrapped_env_demo_2' ]
 	example[ 'producer_consumer_mchain' ]
 
+	example[ 'blinking_led' ]
 	example[ 'intercom_statechart' ]
 	example[ 'state_deep_history' ]
 }
