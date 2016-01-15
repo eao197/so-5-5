@@ -34,10 +34,10 @@ struct msg_taken : public so_5::signal_t {};
 
 struct msg_put : public so_5::signal_t {};
 
-class fork final : public so_5::agent_t
+class fork_t final : public so_5::agent_t
 {
 public :
-	fork( context_t ctx ) : so_5::agent_t( ctx )
+	fork_t( context_t ctx ) : so_5::agent_t( ctx )
    {
 		this >>= st_free;
 
@@ -59,13 +59,13 @@ private :
 	state_t st_taken{ this };
 };
 
-class philosopher final : public so_5::agent_t
+class philosopher_t final : public so_5::agent_t
 {
 	struct msg_stop_thinking : public so_5::signal_t {};
 	struct msg_stop_eating : public so_5::signal_t {};
 
 public :
-	philosopher(
+	philosopher_t(
 		context_t ctx,
 		std::string name,
 		so_5::mbox_t left_fork,
@@ -153,10 +153,10 @@ void init( so_5::environment_t & env )
 
 		std::vector< so_5::agent_t * > forks( count, nullptr );
 		for( std::size_t i = 0; i != count; ++i )
-			forks[ i ] = coop.make_agent< fork >();
+			forks[ i ] = coop.make_agent< fork_t >();
 
 		for( std::size_t i = 0; i != count; ++i )
-			coop.make_agent< philosopher >(
+			coop.make_agent< philosopher_t >(
 					std::to_string( i ),
 					forks[ i ]->so_direct_mbox(),
 					forks[ (i + 1) % count ]->so_direct_mbox() );
