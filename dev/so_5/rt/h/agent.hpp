@@ -2194,7 +2194,7 @@ class SO_5_TYPE agent_t
 		 * exception.
 		 */
 		void
-		return_to_default_state_if_possible();
+		return_to_default_state_if_possible() SO_5_NOEXCEPT;
 };
 
 /*!

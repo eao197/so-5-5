@@ -952,8 +952,6 @@ agent_t::demand_handler_on_finish(
 
 		try
 		{
-			// Since v.5.5.15 agent should be returned in default state.
-			d.m_receiver->return_to_default_state_if_possible();
 			d.m_receiver->so_evt_finish();
 		}
 		catch( const std::exception & x )
@@ -961,6 +959,9 @@ agent_t::demand_handler_on_finish(
 			impl::process_unhandled_exception(
 					working_thread_id, x, *(d.m_receiver) );
 		}
+
+		// Since v.5.5.15 agent should be returned in default state.
+		d.m_receiver->return_to_default_state_if_possible();
 	}
 
 	// Cooperation should receive notification about agent deregistration.
@@ -1218,7 +1219,7 @@ agent_t::do_state_switch(
 }
 
 void
-agent_t::return_to_default_state_if_possible()
+agent_t::return_to_default_state_if_possible() SO_5_NOEXCEPT
 {
 	if( !( st_default == so_current_state() ||
 			awaiting_deregistration_state == so_current_state() ) )
