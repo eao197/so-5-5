@@ -2179,6 +2179,22 @@ class SO_5_TYPE agent_t
 		do_state_switch(
 			//! New state to be set as the current state.
 			const state_t & state_to_be_set );
+
+		/*!
+		 * \since v.5.5.15
+		 * \brief Return agent to the default state.
+		 *
+		 * \note This method is called just before invocation of
+		 * so_evt_finish() to return agent to the default state.
+		 * This return will initiate invocation of on_exit handlers
+		 * for all active states of the agent.
+		 *
+		 * \attention State switch is not performed is agent is already
+		 * in default state or if it waits deregistration after unhandled
+		 * exception.
+		 */
+		void
+		return_to_default_state_if_possible();
 };
 
 /*!

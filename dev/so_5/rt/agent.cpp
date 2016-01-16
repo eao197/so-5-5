@@ -952,6 +952,8 @@ agent_t::demand_handler_on_finish(
 
 		try
 		{
+			// Since v.5.5.15 agent should be returned in default state.
+			d.m_receiver->return_to_default_state_if_possible();
 			d.m_receiver->so_evt_finish();
 		}
 		catch( const std::exception & x )
@@ -1213,6 +1215,18 @@ agent_t::do_state_switch(
 	// Now the current state for the agent can be changed.
 	m_current_state_ptr = &state_to_be_set;
 	m_current_state_ptr->update_history_in_parent_states();
+}
+
+void
+agent_t::return_to_default_state_if_possible()
+{
+	if( !( st_default == so_current_state() ||
+			awaiting_deregistration_state == so_current_state() ) )
+	{
+		// The agent must be returned to the default state.
+		// All on_exit handlers must be called at this point.
+		so_change_state( st_default );
+	}
 }
 
 } /* namespace so_5 */
