@@ -23,7 +23,6 @@ public :
 		this >>= off;
 
 		off
-			.on_enter( [this]{ m_timer.release(); } )
 			.just_switch_to< turn >( blinking );
 
 		blinking
@@ -31,6 +30,7 @@ public :
 				m_timer = so_5::send_periodic< timer >(
 					*this, std::chrono::seconds::zero(), std::chrono::seconds{1} );
 				} )
+			.on_exit( [this]{ m_timer.release(); } )
 			.just_switch_to< turn >( off );
 
 		blink_on
