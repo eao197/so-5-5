@@ -1,6 +1,8 @@
 add_subdirectory(change_state)
 add_subdirectory(composite_state_change)
 add_subdirectory(enter_exit_handlers)
+add_subdirectory(on_exit_on_dereg_1)
+add_subdirectory(on_exit_on_dereg_2)
 add_subdirectory(nesting_deep)
 add_subdirectory(parent_state_handler)
 add_subdirectory(suppress_event)
