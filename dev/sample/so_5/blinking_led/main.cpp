@@ -1,5 +1,6 @@
 /*
- * An example of using composite agent state and on_enter/on_exit handlers.
+ * An example of using composite agent state, on_enter/on_exit handlers and
+ * time_limit for states.
  */
 #include <iostream>
 
@@ -7,46 +8,29 @@
 
 class blinking_led final : public so_5::agent_t
 {
-	state_t
-		off{ this, "off" },
-		blinking{ this, "blinking" },
-			blink_on{ initial_substate_of{ blinking }, "on" },
-			blink_off{ substate_of{ blinking }, "off" };
-
-	struct timer : public so_5::signal_t {};
+	state_t off{ this }, blinking{ this },
+		blink_on{ initial_substate_of{ blinking } },
+		blink_off{ substate_of{ blinking } };
 
 public :
-	struct turn : public so_5::signal_t {};
+	struct turn_on_off : public so_5::signal_t {};
 
 	blinking_led( context_t ctx ) : so_5::agent_t{ ctx }
 	{
 		this >>= off;
 
-		off
-			.just_switch_to< turn >( blinking );
+		off.just_switch_to< turn_on_off >( blinking );
 
-		blinking
-			.on_enter( [this] {
-				m_timer = so_5::send_periodic< timer >(
-					*this, std::chrono::seconds::zero(), std::chrono::seconds{1} );
-				} )
-			.on_exit( [this]{ m_timer.release(); } )
-			.just_switch_to< turn >( off );
+		blinking.just_switch_to< turn_on_off >( off );
 
 		blink_on
-			.on_enter( [this]{ led_on(); } )
-			.on_exit( [this]{ led_off(); } )
-			.just_switch_to< timer >( blink_off );
+			.on_enter( []{ std::cout << "ON" << std::endl; } )
+			.on_exit( []{ std::cout << "off" << std::endl; } )
+			.time_limit( std::chrono::milliseconds{1250}, blink_off );
 
 		blink_off
-			.just_switch_to< timer >( blink_on );
+			.time_limit( std::chrono::milliseconds{750}, blink_on );
 	}
-
-private :
-	so_5::timer_id_t m_timer;
-
-	void led_on() { std::cout << "ON" << std::endl; }
-	void led_off() { std::cout << "off" << std::endl; }
 };
 
 int main()
@@ -65,15 +49,15 @@ int main()
 			};
 
 			std::cout << "Turn blinking on for 10s" << std::endl;
-			so_5::send< blinking_led::turn >( m );
+			so_5::send< blinking_led::turn_on_off >( m );
 			pause( 10 );
 
 			std::cout << "Turn blinking off for 5s" << std::endl;
-			so_5::send< blinking_led::turn >( m );
+			so_5::send< blinking_led::turn_on_off >( m );
 			pause( 5 );
 
 			std::cout << "Turn blinking on for 5s" << std::endl;
-			so_5::send< blinking_led::turn >( m );
+			so_5::send< blinking_led::turn_on_off >( m );
 			pause( 5 );
 
 			std::cout << "Stopping..." << std::endl;
