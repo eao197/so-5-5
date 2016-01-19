@@ -34,10 +34,11 @@ namespace so_5
 // initial_substate_of
 //
 /*!
- * \since v.5.5.15
  * \brief Helper for marking initial substate of composite state.
+ * \since
+ * v.5.5.15
  *
- * \par Usage example:
+ * Usage example:
  * \code
 	class demo : public so_5::agent_t
 	{
@@ -63,10 +64,11 @@ struct initial_substate_of
 // substate_of
 //
 /*!
- * \since v.5.5.15
  * \brief Helper for marking a substate of composite state.
+ * \since
+ * v.5.5.15
  *
- * \par Usage example:
+ * Usage example:
  * \code
 	class demo : public so_5::agent_t
 	{
