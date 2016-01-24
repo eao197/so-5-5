@@ -17,6 +17,8 @@ Supported platforms: Linux, Windows, FreeBSD, MacOs.
 Building
 ========
 
+[![Join the chat at https://gitter.im/masterspline/SObjectizer](https://badges.gitter.im/masterspline/SObjectizer.svg)](https://gitter.im/masterspline/SObjectizer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 on Linux:
 ```
   git clone https://github.com/masterspline/SObjectizer.git so
