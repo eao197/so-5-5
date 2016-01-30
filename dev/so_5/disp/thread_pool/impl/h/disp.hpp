@@ -109,6 +109,7 @@ class agent_queue_t
 
 				++m_size;
 
+//FIXME: this operation can be performed after unlocking of m_lock.
 				if( was_empty )
 					m_disp_queue.schedule( this );
 			}
