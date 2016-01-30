@@ -94,6 +94,28 @@ class mpmc_ptr_queue_t
 				return nullptr;
 			}
 
+		//! Get next active queue without waiting if there is no such queue.
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \return nullptr is the case of dispatcher shutdown.
+		 */
+		inline T *
+		try_pop()
+			{
+				std::lock_guard< so_5::disp::mpmc_queue_traits::lock_t > lock{ *m_lock };
+
+				if( !m_shutdown && !m_queue.empty() )
+					{
+						auto r = m_queue.front();
+						m_queue.pop_front();
+						return r;
+					}
+
+				return nullptr;
+			}
+
 		//! Schedule execution of demands from the queue.
 		void
 		schedule( T * queue )

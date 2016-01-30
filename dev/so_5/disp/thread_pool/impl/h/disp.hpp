@@ -129,13 +129,52 @@ class agent_queue_t
 				return *(m_head.m_next);
 			}
 
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief Queue emptyness indication.
+		 */
+		enum class queue_emptyness_t
+			{
+				empty,
+				not_empty
+			};
+
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief Indication of possibility of continuation of demands processing.
+		 */
+		enum class processing_continuation_t
+			{
+				//! Next demand can be processed.
+				enabled,
+				disabled
+			};
+
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief A result of erasing of the front demand from queue.
+		 */
+		struct pop_result_t
+			{
+				//! Can demands processing be continued?
+				processing_continuation_t m_continuation;
+				//! Is event queue empty?
+				queue_emptyness_t m_emptyness;
+			};
+
 		//! Remove the front demand.
 		/*!
-		 * \retval true queue not empty and next demand can be processed.
-		 * \retval false queue empty or
-		 * demands_processed >= m_max_demands_at_once
+		 * \note Return processing_continuation_t::disabled if
+		 * \a demands_processed exceeds m_max_demands_at_once or if
+		 * event queue is empty.
 		 */
-		bool
+		pop_result_t
 		pop(
 			//! Count of consequently processed demands from that queue.
 			std::size_t demands_processed )
@@ -143,29 +182,21 @@ class agent_queue_t
 				// Actual deletion of old head must be performed
 				// when m_lock will be released.
 				std::unique_ptr< demand_t > old_head;
-				bool schedule_queue = false;
 				{
 					std::lock_guard< spinlock_t > lock( m_lock );
 
 					old_head = remove_head();
 
-					if( m_head.m_next )
-					{
-						if( demands_processed < m_max_demands_at_once )
-							return true;
-						else
-							schedule_queue = true;
-					}
-					else
+					const auto emptyness = m_head.m_next ?
+							queue_emptyness_t::not_empty : queue_emptyness_t::empty;
+
+					if( queue_emptyness_t::empty == emptyness )
 						m_tail = &m_head;
+
+					return pop_result_t{
+							detect_continuation( emptyness, demands_processed ),
+							emptyness };
 				}
-
-				// Scheduling of the queue must be done when queue lock
-				// is unlocked.
-				if( schedule_queue )
-					m_disp_queue.schedule( this );
-
-				return false;
 			}
 
 		/*!
@@ -245,6 +276,18 @@ class agent_queue_t
 
 				return to_be_deleted;
 			}
+
+		//! Can processing be continued?
+		inline processing_continuation_t
+		detect_continuation(
+			queue_emptyness_t emptyness,
+			const std::size_t processed )
+			{
+				return queue_emptyness_t::not_empty == emptyness &&
+						processed < m_max_demands_at_once ? 
+						processing_continuation_t::enabled :
+						processing_continuation_t::disabled;
+			}
 	};
 
 //
@@ -303,27 +346,74 @@ class work_thread_t
 				while( nullptr !=
 						(agent_queue = m_disp_queue->pop( *m_condition )) )
 					{
-						process_queue( *agent_queue );
+						do_queue_processing( agent_queue );
 					}
 			}
 
-		//! Processing of demands from agent queue.
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief Starts processing of demands from the queue specified.
+		 *
+		 * Starts from \a current_queue. Processes up to enabled number
+		 * of events from that queue. Then if the queue is not empty
+		 * tries to find another non-empty queue. If there is no such queue
+		 * then continue processing of \a current_queue.
+		 */
 		void
+		do_queue_processing( agent_queue_t * current_queue )
+			{
+				do
+					{
+						const auto e = process_queue( *current_queue );
+
+						if( agent_queue_t::queue_emptyness_t::not_empty == e )
+							{
+								// We can continue processing of that queue if
+								// there is no more non-empty queues waiting.
+//FIXME: what is shutdown signal here?
+								auto another_queue = m_disp_queue->try_pop();
+								if( another_queue )
+									{
+										// There is another non-empty queue to be
+										// processed. So we must switch to it.
+										// But the old queue must rescheduled.
+										m_disp_queue->schedule( current_queue );
+										current_queue = another_queue;
+									}
+								// We will continue processing of that queue.
+							}
+						else
+							// Handling of the current queue should be stopped.
+							current_queue = nullptr;
+					}
+				while( current_queue != nullptr );
+			}
+
+
+		//! Processing of demands from agent queue.
+		agent_queue_t::queue_emptyness_t
 		process_queue( agent_queue_t & queue )
 			{
 				std::size_t demands_processed = 0;
-				bool need_continue = true;
+				agent_queue_t::pop_result_t pop_result;
 
-				while( need_continue )
+				do
 					{
 						auto & d = queue.front();
 
 						d.call_handler( m_thread_id );
 
 						++demands_processed;
-						need_continue = queue.pop( demands_processed );
+						pop_result = queue.pop( demands_processed );
 					}
+				while( agent_queue_t::processing_continuation_t::enabled ==
+						pop_result.m_continuation );
+
+				return pop_result.m_emptyness;
 			}
+
 	};
 
 //
