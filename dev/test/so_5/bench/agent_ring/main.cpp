@@ -276,8 +276,6 @@ create_disp_binder(
 	so_5::environment_t & env,
 	const cfg_t & cfg )
 	{
-		using namespace so_5::disp;
-
 		const auto t = cfg.m_dispatcher_type;
 		if( dispatcher_type_t::one_thread == t )
 		{
@@ -297,7 +295,7 @@ create_disp_binder(
 					[]{ return queue_traits::simple_lock_factory(); } );
 			return create_private_disp( env, "disp", disp_params )->binder(
 					[]( bind_params_t & p ) {
-						p.fifo( thread_pool::fifo_t::individual );
+						p.fifo( fifo_t::individual );
 					} );
 		}
 		else
