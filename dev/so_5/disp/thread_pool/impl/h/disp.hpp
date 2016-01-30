@@ -135,7 +135,7 @@ class agent_queue_t
 		 *
 		 * \brief Queue emptyness indication.
 		 */
-		enum class queue_emptyness_t
+		enum class emptyness_t
 			{
 				empty,
 				not_empty
@@ -165,7 +165,7 @@ class agent_queue_t
 				//! Can demands processing be continued?
 				processing_continuation_t m_continuation;
 				//! Is event queue empty?
-				queue_emptyness_t m_emptyness;
+				emptyness_t m_emptyness;
 			};
 
 		//! Remove the front demand.
@@ -188,9 +188,9 @@ class agent_queue_t
 					old_head = remove_head();
 
 					const auto emptyness = m_head.m_next ?
-							queue_emptyness_t::not_empty : queue_emptyness_t::empty;
+							emptyness_t::not_empty : emptyness_t::empty;
 
-					if( queue_emptyness_t::empty == emptyness )
+					if( emptyness_t::empty == emptyness )
 						m_tail = &m_head;
 
 					return pop_result_t{
@@ -280,10 +280,10 @@ class agent_queue_t
 		//! Can processing be continued?
 		inline processing_continuation_t
 		detect_continuation(
-			queue_emptyness_t emptyness,
+			emptyness_t emptyness,
 			const std::size_t processed )
 			{
-				return queue_emptyness_t::not_empty == emptyness &&
+				return emptyness_t::not_empty == emptyness &&
 						processed < m_max_demands_at_once ? 
 						processing_continuation_t::enabled :
 						processing_continuation_t::disabled;
@@ -368,7 +368,7 @@ class work_thread_t
 					{
 						const auto e = process_queue( *current_queue );
 
-						if( agent_queue_t::queue_emptyness_t::not_empty == e )
+						if( agent_queue_t::emptyness_t::not_empty == e )
 							{
 								// We can continue processing of that queue if
 								// there is no more non-empty queues waiting.
@@ -393,7 +393,7 @@ class work_thread_t
 
 
 		//! Processing of demands from agent queue.
-		agent_queue_t::queue_emptyness_t
+		agent_queue_t::emptyness_t
 		process_queue( agent_queue_t & queue )
 			{
 				std::size_t demands_processed = 0;
