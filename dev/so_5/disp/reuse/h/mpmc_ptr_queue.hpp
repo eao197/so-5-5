@@ -45,7 +45,6 @@ class mpmc_ptr_queue_t
 			so_5::disp::mpmc_queue_traits::lock_factory_t lock_factory,
 			std::size_t thread_count )
 			:	m_lock{ lock_factory() }
-			,	m_shutdown( false )
 			{
 				// Reserve some space for storing infos about waiting
 				// customer threads.
@@ -82,12 +81,19 @@ class mpmc_ptr_queue_t
 							{
 								auto r = m_queue.front();
 								m_queue.pop_front();
+
+								// There could be non-empty queue and sleeping workers...
+								try_wakeup_someone_if_possible();
+
 								return r;
 							}
 
 						m_waiting_customers.push_back( &condition );
 
 						condition.wait();
+						// If we are here then the current wakeup procedure is
+						// finished.
+						m_wakeup_in_progress = false;
 					}
 				while( true );
 
@@ -124,8 +130,7 @@ class mpmc_ptr_queue_t
 
 				m_queue.push_back( queue );
 
-				if( !m_waiting_customers.empty() )
-					pop_and_notify_one_waiting_customer();
+				try_wakeup_someone_if_possible();
 			}
 
 		so_5::disp::mpmc_queue_traits::condition_unique_ptr_t
@@ -139,10 +144,18 @@ class mpmc_ptr_queue_t
 		so_5::disp::mpmc_queue_traits::lock_unique_ptr_t m_lock;
 
 		//! Shutdown flag.
-		bool	m_shutdown;
+		bool	m_shutdown{ false };
 
 		//! Queue object.
 		std::deque< T * > m_queue;
+
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief Is some working thread is in wakeup process now.
+		 */
+		bool	m_wakeup_in_progress{ false };
 
 		//! Waiting threads.
 		std::vector< so_5::disp::mpmc_queue_traits::condition_t * > m_waiting_customers;
@@ -153,7 +166,24 @@ class mpmc_ptr_queue_t
 				auto & condition = *m_waiting_customers.back();
 				m_waiting_customers.pop_back();
 
+				m_wakeup_in_progress = true;
 				condition.notify();
+			}
+
+		/*!
+		 * \since
+		 * v.5.5.15.1
+		 *
+		 * \brief An attempt to wakeup another sleeping thread is this necessary
+		 * and possible.
+		 */
+		void
+		try_wakeup_someone_if_possible()
+			{
+				if( !m_queue.empty() &&
+						!m_waiting_customers.empty() &&
+						!m_wakeup_in_progress )
+					pop_and_notify_one_waiting_customer();
 			}
 	};
 
