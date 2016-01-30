@@ -100,16 +100,21 @@ class agent_queue_t
 				std::unique_ptr< demand_t > tail_demand{
 						new demand_t( std::move( demand ) ) };
 
-				std::lock_guard< spinlock_t > lock( m_lock );
+				bool was_empty;
 
-				bool was_empty = (nullptr == m_head.m_next);
+				{
+					std::lock_guard< spinlock_t > lock( m_lock );
 
-				m_tail->m_next = tail_demand.release();
-				m_tail = m_tail->m_next;
+					was_empty = (nullptr == m_head.m_next);
 
-				++m_size;
+					m_tail->m_next = tail_demand.release();
+					m_tail = m_tail->m_next;
 
-//FIXME: this operation can be performed after unlocking of m_lock.
+					++m_size;
+				}
+
+				// Scheduling of the queue must be done when queue lock
+				// is unlocked.
 				if( was_empty )
 					m_disp_queue.schedule( this );
 			}
@@ -138,6 +143,7 @@ class agent_queue_t
 				// Actual deletion of old head must be performed
 				// when m_lock will be released.
 				std::unique_ptr< demand_t > old_head;
+				bool schedule_queue = false;
 				{
 					std::lock_guard< spinlock_t > lock( m_lock );
 
@@ -148,11 +154,16 @@ class agent_queue_t
 						if( demands_processed < m_max_demands_at_once )
 							return true;
 						else
-							m_disp_queue.schedule( this );
+							schedule_queue = true;
 					}
 					else
 						m_tail = &m_head;
 				}
+
+				// Scheduling of the queue must be done when queue lock
+				// is unlocked.
+				if( schedule_queue )
+					m_disp_queue.schedule( this );
 
 				return false;
 			}
