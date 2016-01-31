@@ -100,7 +100,7 @@ class mpmc_ptr_queue_t
 				return nullptr;
 			}
 
-		//! Get next active queue without waiting if there is no such queue.
+		//! Switch the current non-empty queue to another one if it is possible.
 		/*!
 		 * \since
 		 * v.5.5.15.1
@@ -108,18 +108,27 @@ class mpmc_ptr_queue_t
 		 * \return nullptr is the case of dispatcher shutdown.
 		 */
 		inline T *
-		try_pop()
+		try_switch_to_another( T * current ) SO_5_NOEXCEPT
 			{
 				std::lock_guard< so_5::disp::mpmc_queue_traits::lock_t > lock{ *m_lock };
 
-				if( !m_shutdown && !m_queue.empty() )
+				if( m_shutdown )
+					return nullptr;
+
+				if( !m_queue.empty() )
 					{
 						auto r = m_queue.front();
 						m_queue.pop_front();
+
+						// Old non-empty queue must be stored for further processing.
+						// No need to wakup someone because the length of m_queue
+						// didn't changed.
+						m_queue.push_back( current );
+
 						return r;
 					}
 
-				return nullptr;
+				return current;
 			}
 
 		//! Schedule execution of demands from the queue.

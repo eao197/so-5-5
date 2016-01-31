@@ -372,17 +372,8 @@ class work_thread_t
 							{
 								// We can continue processing of that queue if
 								// there is no more non-empty queues waiting.
-//FIXME: what is shutdown signal here?
-								auto another_queue = m_disp_queue->try_pop();
-								if( another_queue )
-									{
-										// There is another non-empty queue to be
-										// processed. So we must switch to it.
-										// But the old queue must rescheduled.
-										m_disp_queue->schedule( current_queue );
-										current_queue = another_queue;
-									}
-								// We will continue processing of that queue.
+								current_queue = m_disp_queue->try_switch_to_another(
+										current_queue );
 							}
 						else
 							// Handling of the current queue should be stopped.
