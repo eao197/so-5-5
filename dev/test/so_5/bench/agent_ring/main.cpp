@@ -306,7 +306,7 @@ make_disp_params(
 	{
 		DISP_PARAMS disp_params;
 		using queue_params_t =
-			std::decay< decltype(disp_params.queue_params()) >::type;
+			typename std::decay< decltype(disp_params.queue_params()) >::type;
 
 		disp_params.tune_queue_params( [&]( queue_params_t & p ) {
 				if( queue_lock_type_t::simple == cfg.m_queue_lock_type )
