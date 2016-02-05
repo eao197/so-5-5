@@ -1,0 +1,26 @@
+if(NOT UNITTEST)
+    message(FATAL_ERROR "UNITTEST is not defined!")
+endif()
+
+if(NOT UNITTEST_SRCFILES)
+    set(UNITTEST_SRCFILES main.cpp)
+endif()
+
+include(${CMAKE_SOURCE_DIR}/cmake/target.cmake)
+
+set(SO_5_TEST_LAUNCHER )
+if (ANDROID)
+    list(APPEND SO_5_TEST_LAUNCHER ${ANDROID_NDK}/tools/adbrunner)
+    list(APPEND SO_5_TEST_LAUNCHER "--abi=${ANDROID_ABI}")
+    list(APPEND SO_5_TEST_LAUNCHER "--ld-library-path=$<TARGET_FILE_DIR:${SO_5_TARGET}>")
+    if (CMAKE_POSITION_INDEPENDENT_CODE)
+        list(APPEND SO_5_TEST_LAUNCHER "--pie")
+    else()
+        list(APPEND SO_5_TEST_LAUNCHER "--no-pie")
+    endif()
+    list(APPEND SO_5_TEST_LAUNCHER "--run-on-all-devices")
+endif()
+
+add_executable(${UNITTEST} ${UNITTEST_SRCFILES})
+target_link_libraries(${UNITTEST} ${SO_5_TARGET})
+add_test(NAME ${UNITTEST} COMMAND ${SO_5_TEST_LAUNCHER} ${UNITTEST})
