@@ -124,13 +124,15 @@ Building for Android
 --------------------
 
 Building for Android is possible via CrystaX NDK[5]. You need CrystaX NDK
-already installed in your system. CMake is used for building SObjectizer:
+v.10.4.0 or higher already installed in your system. CMake is used for building
+SObjectizer:
 
   svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.2 so-5.5.15.2
   cd so-5.5.15.2
   mkdir cmake_build
   cd cmake_build
-  cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=result -DCMAKE_TOOLCHAIN_FILE=/path/to/the/crystax-ndk/cmake/toolchain.cmake -DANDROID_ABI=arm64-v8a ../dev
+  export NDK=/path/to/the/crystax-ndk
+  cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=result -DCMAKE_TOOLCHAIN_FILE=$NDK/cmake/toolchain.cmake -DANDROID_ABI=arm64-v8a ../dev
   make
   make test
   make install
@@ -148,4 +150,4 @@ References
 [2] https://sourceforge.net/projects/mxxru/
 [3] http://www.cmake.org/
 [4] http://sourceforge.net/projects/mxxru/files/Mxx_ru%201.6/mxx_ru-1.6.4-r1.pdf/download
-[5] https://www.crystax.net/en/android/ndk
+[5] https://www.crystax.net/android/ndk 
