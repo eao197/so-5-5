@@ -96,7 +96,7 @@ test-$(1):
 
 .PHONY: install-$(1)
 install-$(1): build-$(1)
-	cd $$(call outdir,$(1))/build && $$(MAKE) install
+	$$(MAKE) --no-print-directory -C $$(call outdir,$(1)) install
 
 .PHONY: clean-$(1)
 clean-$(1):
