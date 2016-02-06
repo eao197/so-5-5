@@ -18,8 +18,13 @@ $(subst $(__space),$(__comma),$(1))
 endef
 
 # $1: ABI
-define outdir
-$(or $(strip $(OUTDIR)),$(MYDIR)/out)/$(1)
+define builddir
+$(or $(strip $(OUTDIR)),$(MYDIR)/out/$(1))/build
+endef
+
+# $1: ABI
+define installdir
+$(or $(strip $(OUTDIR)),$(MYDIR)/out/$(1))/install
 endef
 
 define abis
@@ -69,15 +74,15 @@ clean: $(addprefix clean-,$(call abis))
 
 define add-build-rule
 .PHONY: configure-$(1)
-configure-$(1): | $$(call outdir,$(1))/build
+configure-$(1): | $$(call builddir,$(1))
 	$$(if $$(strip $$(wildcard $$(NDK))),\
 		$$(eval override NDK := $$(wildcard $$(NDK))),\
 		$$(error NDK is not specified)\
 	)
-	$$(strip cd $$(call outdir,$(1))/build && \
+	$$(strip cd $$(call builddir,$(1)) && \
 		cmake \
 			-DBUILD_ALL=ON \
-			-DCMAKE_INSTALL_PREFIX=$$(call outdir,$(1))/install \
+			-DCMAKE_INSTALL_PREFIX=$$(call installdir,$(1)) \
 			-DCMAKE_TOOLCHAIN_FILE=$$(NDK)/cmake/toolchain.cmake \
 			-DANDROID_ABI=$(1) \
 			$$(TOPDIR)/dev \
@@ -85,25 +90,25 @@ configure-$(1): | $$(call outdir,$(1))/build
 
 .PHONY: build-$(1)
 build-$(1): configure-$(1)
-	+$$(MAKE) --no-print-directory -C $$(call outdir,$(1))/build $$(if $$(is-verbose),VERBOSE=1)
+	$$(MAKE) --no-print-directory -C $$(call builddir,$(1)) $$(if $$(is-verbose),VERBOSE=1)
 
 .PHONY: test-$(1)
 test-$(1):
-	$$(MAKE) --no-print-directory -C $$(call outdir,$(1))/build test ARGS="$$(strip \
+	$$(MAKE) --no-print-directory -C $$(call builddir,$(1)) test ARGS="$$(strip \
 		$$(if $$(is-verbose),-V) \
 		$$(foreach __t,$$(call commas-to-spaces,$$(TEST) $$(TESTS)),-R $$(__t)) \
 	)"
 
 .PHONY: install-$(1)
 install-$(1): build-$(1)
-	$$(MAKE) --no-print-directory -C $$(call outdir,$(1)) install
+	$$(MAKE) --no-print-directory -C $$(call builddir,$(1)) install
 
 .PHONY: clean-$(1)
 clean-$(1):
-	$$(if $$(wildcard $$(call outdir,$(1))),-rm -Rf $$(call outdir,$(1)))
-	$$(if $$(wildcard $$(dir $$(call outdir,$(1)))),@rmdir $$(dir $$(call outdir,$(1))) >/dev/null 2>&1 || true)
+	$$(if $$(wildcard $$(call builddir,$(1))),-rm -Rf $$(call builddir,$(1)))
+	$$(if $$(wildcard $$(dir $$(call builddir,$(1)))),@rmdir $$(dir $$(call builddir,$(1))) >/dev/null 2>&1 || true)
 
-$$(call outdir,$(1))/build:
+$$(call builddir,$(1)):
 	mkdir -p $$@
 endef
 
