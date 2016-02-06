@@ -89,7 +89,10 @@ build-$(1): configure-$(1)
 
 .PHONY: test-$(1)
 test-$(1):
-	cd $$(call outdir,$(1))/build && $$(MAKE) test $$(if $$(is-verbose),ARGS="-V")
+	cd $$(call outdir,$(1))/build && $$(MAKE) test ARGS="$$(strip \
+		$$(if $$(is-verbose),-V) \
+		$$(if $$(strip $$(TEST)),-R $$(TEST)) \
+	)"
 
 .PHONY: install-$(1)
 install-$(1): build-$(1)
