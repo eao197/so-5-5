@@ -85,13 +85,13 @@ configure-$(1): | $$(call outdir,$(1))/build
 
 .PHONY: build-$(1)
 build-$(1): configure-$(1)
-	cd $$(call outdir,$(1))/build && $$(MAKE) -j16 $$(if $$(is-verbose),VERBOSE=1)
+	+$$(MAKE) --no-print-directory -C $$(call outdir,$(1))/build $$(if $$(is-verbose),VERBOSE=1)
 
 .PHONY: test-$(1)
 test-$(1):
-	cd $$(call outdir,$(1))/build && $$(MAKE) test ARGS="$$(strip \
+	$$(MAKE) --no-print-directory -C $$(call outdir,$(1))/build test ARGS="$$(strip \
 		$$(if $$(is-verbose),-V) \
-		$$(if $$(strip $$(TEST)),-R $$(TEST)) \
+		$$(foreach __t,$$(call commas-to-spaces,$$(TEST) $$(TESTS)),-R $$(__t)) \
 	)"
 
 .PHONY: install-$(1)
