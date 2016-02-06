@@ -13,6 +13,9 @@ exported/checkedout from Subversion repository.
 There are two ways for building SObjectizer. The first one by using Mxx_ru[2]
 tool. The second one by using CMake[3].
 
+NOTE. Since v.5.5.15.2 there is a support of Android platform.  Building for
+Android is possible by CMake only. See the corresponding section below.
+
 Building via Mxx_ru
 ===================
 
@@ -117,6 +120,21 @@ If it necessary to build examples too, use BUILD_ALL in cmake invocation:
 
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 14 2015" ../dev
 
+Building for Android
+--------------------
+
+Building for Android is possible via CrystaX NDK[5]. You need CrystaX NDK
+already installed in your system. CMake is used for building SObjectizer:
+
+  svn export http://svn.code.sf.net/p/sobjectizer/repo/tags/so_5/5.5.15.2 so-5.5.15.2
+  cd so-5.5.15.2
+  mkdir cmake_build
+  cd cmake_build
+  cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=result -DCMAKE_TOOLCHAIN_FILE=/path/to/the/crystax-ndk/cmake/toolchain.cmake -DANDROID_ABI=arm64-v8a ../dev
+  make
+  make test
+  make install
+
 License
 =======
 
@@ -130,3 +148,4 @@ References
 [2] https://sourceforge.net/projects/mxxru/
 [3] http://www.cmake.org/
 [4] http://sourceforge.net/projects/mxxru/files/Mxx_ru%201.6/mxx_ru-1.6.4-r1.pdf/download
+[5] https://www.crystax.net/en/android/ndk
