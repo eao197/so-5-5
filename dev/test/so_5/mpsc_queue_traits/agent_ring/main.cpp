@@ -382,7 +382,7 @@ do_test()
 										setter->tune_env_params( params );
 									} );
 							},
-							25,
+							100,
 							"dispatcher: " + c.m_disp_name + ", lock: " + f.m_name );
 
 					std::cout << "--- DONE ---" << std::endl;
