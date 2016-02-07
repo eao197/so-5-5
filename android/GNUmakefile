@@ -50,7 +50,7 @@ endef
 #========================================================================================
 
 .PHONY: all
-all: build install
+all: build
 
 .PHONY: rebuild
 rebuild:
@@ -105,8 +105,12 @@ install-$(1): build-$(1)
 
 .PHONY: clean-$(1)
 clean-$(1):
-	$$(if $$(wildcard $$(call builddir,$(1))),-rm -Rf $$(call builddir,$(1)))
-	$$(if $$(wildcard $$(dir $$(call builddir,$(1)))),@rmdir $$(dir $$(call builddir,$(1))) >/dev/null 2>&1 || true)
+	$$(if $$(wildcard $$(call builddir,$(1))),rm -Rf $$(call builddir,$(1)))
+	@dir=$$(dir $$(call builddir,$(1))); \
+		while true; do \
+			rmdir $$$$dir >/dev/null 2>&1 || exit 0; \
+			dir=`dirname $$$$dir`; \
+		done
 
 $$(call builddir,$(1)):
 	mkdir -p $$@
