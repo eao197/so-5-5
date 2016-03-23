@@ -89,7 +89,6 @@ script:
 notifications:
   email:
     recipients:
-      - san@masterspline.net
       - eao197@gmail.com
 #    on_success: always
 #    on_failure: always
