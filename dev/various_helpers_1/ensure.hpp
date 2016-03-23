@@ -12,6 +12,8 @@
 
 #include <stdexcept>
 #include <string>
+#include <cstdlib>
+#include <iostream>
 
 /*!
  * \since v.1.0.2
@@ -52,7 +54,6 @@ ensure( bool p, const std::string & explanation_msg )
 	}
 
 /*!
- * \since v.1.0.2
  * \brief Ensure helper function which allows to throw an exception of
  * the specified type.
  *
@@ -65,11 +66,39 @@ ensure( bool p, const std::string & explanation_msg )
 		"demands_count(" + to_string( demands_count ) + ") must be less or "
 		"equal to max_demands(" + to_string( demands_count ) + ")" );
  * \endcode
+ *
+ * \since
+ * v.1.0.2
  */
 template< typename EXCEPTION, typename EXPLANATION >
 inline void
 ensure( bool p, EXPLANATION explanation_msg )
 	{
 		if( !p ) throw EXCEPTION( explanation_msg );
+	}
+
+/*!
+ * \brief A helper function which calls std::abort if some condition is not meet.
+ *
+ * \note Prints \a explanation_msg to std::cerr before calling std::abort().
+ *
+ * \par Usage sample:
+ * \code
+	ensure_or_die( demands_count <= max_demands, 
+		"demands_count(" + to_string( demands_count ) + ") must be less or "
+		"equal to max_demands(" + to_string( demands_count ) + ")" );
+ * \endcode
+ *
+ * \since
+ * v.1.0.3
+ */
+inline void
+ensure_or_die( bool p, const std::string & explanation_msg )
+	{
+		if( !p )
+			{
+				std::cerr << "ensure_or_die: '" << explanation_msg << "'" << std::endl;
+				std::abort();
+			}
 	}
 
