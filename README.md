@@ -1,4 +1,4 @@
-Travis CI [![Build Status](https://travis-ci.org/masterspline/SObjectizer.svg?branch=master)](https://travis-ci.org/masterspline/SObjectizer)
+Travis CI [![Build Status](https://travis-ci.org/eao197/so-5-5.svg?branch=master)](https://travis-ci.org/eao197/so-5-5)
 
 Coverity [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
 
@@ -12,14 +12,14 @@ agent-oriented style. Also it provides set of C++ classes for implementing
 agents, mailboxes for message exchange, different dispatcher types for running
 agents and working environment. 
 
-Supported platforms: Linux, Windows, FreeBSD, MacOs.
+Supported platforms: Linux, Windows, FreeBSD, MacOS X.
 
 Building
 ========
 
 on Linux:
 ```
-  git clone https://github.com/masterspline/SObjectizer.git so
+  git clone https://github.com/eao197/so-5-5.git so
   mkdir build
   cd build
   cmake -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../so/dev
@@ -31,7 +31,7 @@ on Windows:
 
 First install "git for Windows" from https://git-for-windows.github.io/ or https://git-scm.com/download/win and cmake from https://cmake.org/download/ and make it avalable in PATH. Next from developer console (where msbuild and compiler executable are avalable and other environment variables is set)
 ```
-  git clone https://github.com/masterspline/SObjectizer.git so
+  git clone https://github.com/eao197/so-5-5.git so
   mkdir build
   cd build
   cmake -DCMAKE_INSTALL_PREFIX=installed_files -DBUILD_ALL=ON -G "Visual Studio 12 2013" ../so/dev
