@@ -76,7 +76,7 @@ More information about tuning Mxx_ru for your needs you can find in the
 corresponding [documentation](https://sourceforge.net/projects/mxxru/files/Mxx_ru%201.6/mxx_ru-1.6.6.pdf).
 
 Building via CMake
-==================
+------------------
 
 NOTE. This way of building is not used by SObjectizer developers. But
 CMake-related files are in actual state, they maintained by SObjectizer Team
