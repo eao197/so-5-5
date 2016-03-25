@@ -32,15 +32,6 @@ void doubler_worker( so_5::mchain_t command_ch, so_5::mchain_t reply_ch )
 	close_retain_content( reply_ch );
 }
 
-// Helper class for call thread::join.
-class auto_joiner
-{
-	thread & m_what;
-public :
-	auto_joiner( thread & what ) : m_what{ what } {}
-	~auto_joiner() { m_what.join(); }
-};
-
 void demo()
 {
 	// A SObjectizer instance.
@@ -49,40 +40,42 @@ void demo()
 	// Strings to be sent to workers.
 	vector< string > strings{ "one", "two", "three", "four" };
 
+	// Thread objects for workers.
+	thread reverse_thread;
+	thread doubler_thread;
+	// Threads must be automatically joined (either normal return from
+	// demo() or in case of an exception).
+	auto thread_joiner = so_5::auto_join( reverse_thread, doubler_thread );
+
 	// Create workers.
 	
-	// First worker and its stuff.
+	// The first worker and its stuff.
+	// Chains for the first worker.
 	auto reverse_cmd_ch = create_mchain( sobj );
 	auto reverse_reply_ch = create_mchain( sobj );
-	thread reverse_thread{ reverse_worker, reverse_cmd_ch, reverse_reply_ch };
-	// Thread must be joined in case of unexpected exit (as result of
-	// exception for example).
-	auto_joiner reverse_thread_joiner{ reverse_thread };
 	// Command and reply chains must be closed automatically in case
 	// of unexpected exit (as result of exception for example).
-	auto reverse_chain_closer = so_5::auto_close_mchains(
-			// Content of mchain must be dropped in case of unxpected exit.
-			so_5::mchain_props::close_mode_t::drop_content,
+	// Content of mchain must be dropped in case of unxpected exit.
+	auto reverse_chain_closer = so_5::auto_close_drop_content(
 			reverse_cmd_ch, reverse_reply_ch );
+	// Launching thread for the first worker.
+	reverse_thread = thread{ reverse_worker, reverse_cmd_ch, reverse_reply_ch };
 	// Interator for reverse_worker tasks.
 	auto reverse_it = strings.begin();
 
-	// Second worker and its stuff.
+	// The second worker and its stuff.
 	auto doubler_cmd_ch = create_mchain( sobj );
 	auto doubler_reply_ch = create_mchain( sobj );
-	thread doubler_thread{ doubler_worker, doubler_cmd_ch, doubler_reply_ch };
-	// Thread must be joined in case of unexpected exit (as result of
-	// exception for example).
-	auto_joiner doubler_thread_joiner{ doubler_thread };
 	// Command and reply chains must be closed automatically in case
 	// of unexpected exit (as result of exception for example).
-	auto doubler_chain_closer = so_5::auto_close_mchains(
-			// Content of mchain must be dropped in case of unxpected exit.
-			so_5::mchain_props::close_mode_t::drop_content,
+	// Content of mchain must be dropped in case of unxpected exit.
+	auto doubler_chain_closer = so_5::auto_close_drop_content(
 			doubler_cmd_ch, doubler_reply_ch );
+	// Launching thread for the second worker.
+	doubler_thread = thread{ doubler_worker, doubler_cmd_ch, doubler_reply_ch };
 	// Interator for doubler_worker tasks.
 	auto doubler_it = strings.begin();
-	
+
 	// Send initial messages.
 	so_5::send< string >( reverse_cmd_ch, *(reverse_it++) );
 	so_5::send< string >( doubler_cmd_ch, *(doubler_it++) );
