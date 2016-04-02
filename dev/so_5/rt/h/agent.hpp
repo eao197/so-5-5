@@ -2221,6 +2221,15 @@ class lambda_as_filter_t : public delivery_filter_t
 			:	m_filter( std::forward< LAMBDA >( filter ) )
 			{}
 
+#if SO_5_HAVE_NOEXCEPT
+		virtual bool
+		check(
+			const agent_t &,
+			const message_t & msg ) const noexcept override
+			{
+				return m_filter( message_payload_type< MESSAGE >::payload_reference( msg ) );
+			}
+#else
 		virtual bool
 		check(
 			const agent_t & receiver,
@@ -2242,6 +2251,7 @@ class lambda_as_filter_t : public delivery_filter_t
 						} );
 					} );
 			}
+#endif
 	};
 
 } /* namespace delivery_filter_templates */
