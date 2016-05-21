@@ -40,6 +40,14 @@ matrix:
       env: CXX_COMPILER=g++-5 C_COMPILER=gcc-5 BUILD_TYPE='Release'
 
     - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6']
+      env: CXX_COMPILER=g++-6 C_COMPILER=gcc-6 BUILD_TYPE='Release'
+
+    - os: linux
       compiler: clang
       addons:
         apt:
