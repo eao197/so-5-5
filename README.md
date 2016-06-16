@@ -33,7 +33,7 @@ Install Ruby and then install Mxx_ru via RubyGems command:
 ```
   gem install Mxx_ru
 ```
-If you already have Mxx_ru installed please update to at least version 1.6.4:
+If you already have Mxx_ru installed please update to at least version 1.6.11:
 ```
   gem update Mxx_ru
 ```
@@ -49,12 +49,12 @@ Or to build SObjectizer with all tests and samples:
   cd so-5-5/dev
   ruby build_all.rb
 ```
-Please note that under Linux it could be necessary to define `LD_LIBRARY_PATH`
+Please note that under Linux and FreeBSD it could be necessary to define `LD_LIBRARY_PATH`
 environment variable. And the actual build command sequence under Linux could
 be as follows:
 ```
   cd so-5-5/dev
-  export LD_LIBRARY_PATH=.
+  export LD_LIBRARY_PATH=target/release
   ruby build_all.rb
 ```
 To build html-format documentation for SObjectizer the Doxygen tool is
