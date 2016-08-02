@@ -39,13 +39,13 @@ matrix:
           packages: ['g++-5']
       env: CXX_COMPILER=g++-5 C_COMPILER=gcc-5 BUILD_TYPE='Release'
 
-#    - os: linux
-#      compiler: gcc
-#      addons:
-#        apt:
-#          sources: ['ubuntu-toolchain-r-test']
-#          packages: ['g++-6']
-#      env: CXX_COMPILER=g++-6 C_COMPILER=gcc-6 BUILD_TYPE='Release'
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6']
+      env: CXX_COMPILER=g++-6 C_COMPILER=gcc-6 BUILD_TYPE='Release'
 
     - os: linux
       compiler: clang
@@ -71,11 +71,6 @@ matrix:
           packages: ['clang-3.7']
       env: CXX_COMPILER=clang++-3.7 C_COMPILER=clang-3.7 BUILD_TYPE='Release'
 
-#    - os: linux
-#      compiler: clang
-#      addons: *clang37
-#      env: COMPILER='ccache clang++-3.7' BUILD_TYPE='Debug'
-
     - os: linux 
       compiler: clang
       addons: &clang38
@@ -84,15 +79,18 @@ matrix:
           packages: ['clang-3.8']
       env: CXX_COMPILER=clang++-3.8 C_COMPILER=clang-3.8 BUILD_TYPE='Release'
 
-# Activate when we are allowed to use MacOS X
-#    - os: osx
-#      compiler: clang
-#      env: COMPILER=clang++
-
 install:
   - if [[ "${TRAVIS_OS_NAME}" == "osx" ]];
     then
       brew install cmake;
+    fi
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]];
+    then
+      CMAKE_URL="https://cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${PWD}/cmake/bin:${PATH}
+      cmake --version
     fi
 
 script:
