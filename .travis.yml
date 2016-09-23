@@ -82,7 +82,7 @@ matrix:
 install:
   - if [[ "${TRAVIS_OS_NAME}" == "osx" ]];
     then
-      brew install cmake;
+      cmake --version || brew install cmake;
     fi
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]];
