@@ -4,14 +4,22 @@
 
 \section so_5__5_18 5.5.18 "Nevado Pisco"
 
+	New behavior for delivery of delayed and periodic messages to overloaded
+	message chains. See \ref so_5_5_18__overloaded_mchains_and_timers for
+	details.
+
 	New messages so_5::stats::messages::distribution_started and
 	so_5::stats::messages::distribution_finished.
+	See also \ref so_5_5_18__new_msg_distrib_started_finished
+	for more details.
 
 	Support for global lock_factories.
 	Class so_5::queue_locks_defaults_manager_t and method
 	so_5::environment_params_t::queue_locks_defaults_manager().
+	See also \ref so_5_5_18__global_lock_factories for more details.
 
 	Nested state switch is explicitely disabled.
+	See \ref so_5_5_18__nested_state_switch for more details.
 
 	Work thread activity tracking.
 
