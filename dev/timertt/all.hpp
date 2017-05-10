@@ -35,20 +35,26 @@ namespace timertt
 {
 
 /*!
- * \since v.1.1.0
  * \brief Container for thread safety flags.
+ *
+ * \since
+ * v.1.1.0
  */
 struct thread_safety
 {
 	/*!
-	 * \since v.1.1.0
 	 * \brief Indicator for not-thread-safe implementation.
+	 *
+	 * \since
+	 * v.1.1.0
 	 */
 	struct unsafe {};
 
 	/*!
-	 * \since v.1.1.0
 	 * \brief Indicator for thread-safe implemetation.
+	 *
+	 * \since
+	 * v.1.1.0
 	 */
 	struct safe {};
 };
@@ -83,19 +89,23 @@ enum class timer_status : unsigned int
 } /* namespace details */
 
 /*!
- * \since v.1.1.0
  * \brief Container for thread-safety-specific type declarations.
  *
  * \note Will be specialized for every thread-safety case.
  *
  * \tparam THREAD_SAFETY must be thread_safety::unsafe or thread_safety::safe.
+ *
+ * \since
+ * v.1.1.0
  */
 template< typename THREAD_SAFETY >
 struct threading_traits {};
 
 /*!
- * \since v.1.1.0
  * \brief Specialization for not-thread-safe case.
+ *
+ * \since
+ * v.1.1.0
  */
 template<>
 struct threading_traits< thread_safety::unsafe >
@@ -108,8 +118,10 @@ struct threading_traits< thread_safety::unsafe >
 };
 
 /*!
- * \since v.1.1.0
  * \brief Specialization for thread-safe case.
+ *
+ * \since
+ * v.1.1.0
  */
 template<>
 struct threading_traits< thread_safety::safe >
@@ -395,8 +407,10 @@ using monotonic_clock_t = monotonic_clock;
 // timer_quantities
 //
 /*!
- * \since v.1.1.1
  * \brief Information about quantities of various timer types.
+ *
+ * \since
+ * v.1.1.1
  */
 struct timer_quantities
 {
@@ -417,8 +431,10 @@ namespace details
 // timer_kind
 //
 /*!
- * \since v.1.1.1
  * \brief Type of the timer (single-shot or periodic).
+ *
+ * \since
+ * v.1.1.1
  */
 enum class timer_kind
 {
@@ -433,7 +449,6 @@ enum class timer_kind
 //
 
 /*!
- * \since v.1.1.0
  * \brief A common part for all timer engines.
  *
  * Will be used by concrete engines for storing instances of
@@ -451,6 +466,9 @@ enum class timer_kind
  * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
+ *
+ * \since
+ * v.1.1.0
  */
 template<
 	typename THREAD_SAFETY,
@@ -471,8 +489,10 @@ public :
 	{}
 
 	/*!
-	 * \since v.1.1.1
 	 * \brief Get the quantities of timers of various types.
+	 *
+	 * \since
+	 * v.1.1.1
 	 */
 	timer_quantities
 	get_timer_quantities() const
@@ -488,15 +508,19 @@ protected :
 	ACTOR_EXCEPTION_HANDLER m_exception_handler;
 
 	/*!
-	 * \since v.1.1.1
 	 * \brief Quantities of timers of various types.
+	 *
+	 * \since
+	 * v.1.1.1
 	 */
 	timer_quantities m_timer_quantities;
 
 	/*!
-	 * \since v.1.1.1
 	 * \brief Helper method for increment the count of timers of
 	 * the specific type.
+	 *
+	 * \since
+	 * v.1.1.1
 	 */
 	void
 	inc_timer_count( timer_kind kind )
@@ -508,9 +532,11 @@ protected :
 	}
 
 	/*!
-	 * \since v.1.1.1
 	 * \brief Helper method for decrement the count of timers of
 	 * the specific type.
+	 *
+	 * \since
+	 * v.1.1.1
 	 */
 	void
 	dec_timer_count( timer_kind kind )
@@ -522,8 +548,10 @@ protected :
 	}
 
 	/*!
-	 * \since v.1.1.1
 	 * \brief Helper method for reseting quantities of timers to zero.
+	 *
+	 * \since
+	 * v.1.1.1
 	 */
 	void
 	reset_timer_count()
@@ -536,9 +564,11 @@ protected :
 // timer_wheel_engine_defaults
 //
 /*!
- * \since v.1.1.0
  * \brief Container for static method with default values for
  * timer_wheel engine.
+ *
+ * \since
+ * v.1.1.0
  */
 struct timer_wheel_engine_defaults
 {
@@ -851,8 +881,10 @@ private :
 		}
 
 		/*!
-		 * \since v.1.1.1
 		 * \brief Detect type of the timer (single-shot or periodic).
+		 *
+		 * \since
+		 * v.1.1.1
 		 */
 		timer_kind
 		kind() const
@@ -1164,7 +1196,6 @@ private :
 // timer_list_engine_defaults
 //
 /*!
- * \since v.1.1.0
  * \brief Container for static method with default values for
  * timer_list engine.
  *
@@ -1172,6 +1203,9 @@ private :
  * default parameter. Because of that this type is empty.
  * But it must be declared because of definition of
  * timer_list_engine::defaults_type.
+ *
+ * \since
+ * v.1.1.0
  */
 struct timer_list_engine_defaults
 {
@@ -1433,8 +1467,10 @@ private :
 		}
 
 		/*!
-		 * \since v.1.1.1
 		 * \brief Detect type of timer (single-shot or periodic).
+		 *
+		 * \since
+		 * v.1.1.1
 		 */
 		timer_kind
 		kind() const
@@ -1673,9 +1709,11 @@ private :
 // timer_heap_engine_defaults
 //
 /*!
- * \since v.1.1.0
  * \brief Container for static method with default values for
  * timer_heap engine.
+ *
+ * \since
+ * v.1.1.0
  */
 struct timer_heap_engine_defaults
 {
@@ -1976,8 +2014,10 @@ private :
 		}
 
 		/*!
-		 * \since v.1.1.1
 		 * \brief Detect type of timer (single-shot or periodic).
+		 *
+		 * \since
+		 * v.1.1.1
 		 */
 		timer_kind
 		kind() const
@@ -2155,9 +2195,11 @@ private :
 //
 
 /*!
- * \since v.1.1.0
  * \brief A mixin which must be used as base class for not-thread-safe
  * timer managers.
+ *
+ * \since
+ * v.1.1.0
  */
 struct thread_unsafe_manager_mixin
 {
@@ -2189,9 +2231,11 @@ struct thread_unsafe_manager_mixin
 // thread_safe_manager_mixin
 //
 /*!
- * \since v.1.1.0
  * \brief A mixin which must be used as base class for thread-safe
  * timer managers.
+ *
+ * \since
+ * v.1.1.0
  */
 struct thread_safe_manager_mixin
 {
@@ -2224,8 +2268,10 @@ struct thread_safe_manager_mixin
 //
 
 /*!
- * \since v.1.1.0
  * \brief A mixin which must be used as base class for timer threads.
+ *
+ * \since
+ * v.1.1.0
  */
 struct thread_mixin
 {
@@ -2280,29 +2326,37 @@ struct thread_mixin
 };
 
 /*!
- * \since v.1.1.0
  * \brief A type-container for types of engine-consumers.
+ *
+ * \since
+ * v.1.1.0
  */
 struct consumer_type
 {
 	/*!
-	 * \since v.1.1.0
 	 * \brief Indicator that an engine will be owned by timer manager.
+	 *
+	 * \since
+	 * v.1.1.0
 	 */
 	struct manager {};
 	/*!
-	 * \since v.1.1.0
 	 * \brief Indicator that an engine will be owned by timer thread.
+	 *
+	 * \since
+	 * v.1.1.0
 	 */
 	struct thread {};
 };
 
 /*!
- * \since v.1.1.0
  * \brief A selector of actual mixin type for timer manager or timer thread.
  *
  * \attention This type is empty because all actual content will be
  * defined in specializations.
+ *
+ * \since
+ * v.1.1.0
  */
 template< typename THREAD_SAFETY, typename CONSUMER >
 struct mixin_selector
@@ -2310,8 +2364,10 @@ struct mixin_selector
 };
 
 /*!
- * \since v.1.1.0
  * \brief A selector of actual mixin type for not-thread-safe timer manager.
+ *
+ * \since
+ * v.1.1.0
  */
 template<>
 struct mixin_selector< thread_safety::unsafe, consumer_type::manager >
@@ -2321,8 +2377,10 @@ struct mixin_selector< thread_safety::unsafe, consumer_type::manager >
 };
 
 /*!
- * \since v.1.1.0
  * \brief A selector of actual mixin type for thread-safe timer manager.
+ *
+ * \since
+ * v.1.1.0
  */
 template<>
 struct mixin_selector< thread_safety::safe, consumer_type::manager >
@@ -2332,8 +2390,10 @@ struct mixin_selector< thread_safety::safe, consumer_type::manager >
 };
 
 /*!
- * \since v.1.1.0
  * \brief A selector of actual mixin type for timer thread.
+ *
+ * \since
+ * v.1.1.0
  */
 template<>
 struct mixin_selector< thread_safety::safe, consumer_type::thread >
@@ -2347,13 +2407,15 @@ struct mixin_selector< thread_safety::safe, consumer_type::thread >
 //
 
 /*!
- * \since v.1.1.0
  * \brief A implementation of basic methods for timer managers and
  * timer threads.
  *
  * \tparam ENGINE actual type of engine to be used.
  * \tparam CONSUMER type of engine consumer (e.g. consumer_type::manager or
  * consumer_type::thread).
+ *
+ * \since
+ * v.1.1.0
  */
 template<
 	typename ENGINE,
@@ -2370,6 +2432,14 @@ class basic_methods_impl_mixin
 	using timer_holder = timer_object_holder< typename ENGINE::thread_safety >;
 
 public :
+	/*!
+	 * \brief A typedef for thread safety type from ENGINE.
+	 *
+	 * \since
+	 * v.1.1.2
+	 */
+	using thread_safety = typename ENGINE::thread_safety;
+
 	//! Constructor with all parameters.
 	template< typename... ARGS >
 	basic_methods_impl_mixin(
@@ -2507,11 +2577,13 @@ public :
 	}
 
 	/*!
-	 * \since v.1.1.1
 	 * \brief Count of timers of various types.
 	 *
 	 * \note This are quantities of all timers known to manager/thread.
 	 * Some of them can be already deactivated but not removed yet.
+	 *
+	 * \since
+	 * v.1.1.1
 	 */
 	timer_quantities
 	get_timer_quantities()
@@ -2519,6 +2591,20 @@ public :
 		typename mixin_type::lock_guard locker{ *this };
 
 		return m_engine.get_timer_quantities();
+	}
+
+	/*!
+	 * \brief Check for emptiness.
+	 *
+	 * \since
+	 * v.1.1.3
+	 */
+	bool
+	empty()
+	{
+		typename mixin_type::lock_guard locker{ *this };
+
+		return m_engine.empty();
 	}
 
 protected :
@@ -2531,10 +2617,12 @@ protected :
 //
 
 /*!
- * \since v.1.1.0
  * \brief Template-based implementation of timer manager.
  *
  * \tparam ENGINE actual type of engine to be used.
+ *
+ * \since
+ * v.1.1.0
  */
 template< typename ENGINE >
 class manager_impl_template
@@ -2620,10 +2708,12 @@ public :
 //
 
 /*!
- * \since v.1.1.0
  * \brief Template-based implementation of timer thread.
  *
  * \tparam ENGINE actual type of engine to be used.
+ *
+ * \since
+ * v.1.1.0
  */
 template< typename ENGINE >
 class thread_impl_template
@@ -2791,14 +2881,14 @@ class timer_wheel_thread_template
 	: public
 		details::thread_impl_template<
 				details::timer_wheel_engine<
-						thread_safety::safe,
+						::timertt::thread_safety::safe,
 						ERROR_LOGGER,
 						ACTOR_EXCEPTION_HANDLER > > 
 {
 	using base_type =
 			details::thread_impl_template<
 					details::timer_wheel_engine<
-							thread_safety::safe,
+							::timertt::thread_safety::safe,
 							ERROR_LOGGER,
 							ACTOR_EXCEPTION_HANDLER > >;
 
@@ -2859,7 +2949,6 @@ using timer_wheel_thread_t = timer_wheel_thread_template<
 // timer_wheel_manager_template
 //
 /*!
- * \since v.1.1.0
  * \brief A timer wheel manager template.
  *
  * \note Please see description of details::timer_wheel_engine for the details
@@ -2875,6 +2964,9 @@ using timer_wheel_thread_t = timer_wheel_thread_template<
  * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
+ *
+ * \since
+ * v.1.1.0
  */
 template<
 	typename THREAD_SAFETY,
@@ -2962,14 +3054,14 @@ class timer_list_thread_template
 	: public
 		details::thread_impl_template<
 				details::timer_list_engine<
-						thread_safety::safe,
+						::timertt::thread_safety::safe,
 						ERROR_LOGGER,
 						ACTOR_EXCEPTION_HANDLER > > 
 {
 	using base_type =
 			details::thread_impl_template<
 					details::timer_list_engine<
-							thread_safety::safe,
+							::timertt::thread_safety::safe,
 							ERROR_LOGGER,
 							ACTOR_EXCEPTION_HANDLER > >;
 
@@ -3003,7 +3095,6 @@ using timer_list_thread_t = timer_list_thread_template<
 // timer_list_manager_template
 //
 /*!
- * \since v.1.1.0
  * \brief A timer list thread template.
  *
  * \note Please see description of details::timer_list_engine for the
@@ -3019,6 +3110,9 @@ using timer_list_thread_t = timer_list_thread_template<
  * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
+ *
+ * \since
+ * v.1.1.0
  */
 template<
 	typename THREAD_SAFETY,
@@ -3078,7 +3172,7 @@ class timer_heap_thread_template
 	: public
 		details::thread_impl_template<
 				details::timer_heap_engine<
-						thread_safety::safe,
+						::timertt::thread_safety::safe,
 						ERROR_LOGGER,
 						ACTOR_EXCEPTION_HANDLER > > 
 {
@@ -3086,7 +3180,7 @@ class timer_heap_thread_template
 	using base_type =
 			details::thread_impl_template<
 					details::timer_heap_engine<
-							thread_safety::safe,
+							::timertt::thread_safety::safe,
 							ERROR_LOGGER,
 							ACTOR_EXCEPTION_HANDLER > >;
 
