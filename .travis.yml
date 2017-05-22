@@ -99,7 +99,7 @@ matrix:
           packages: ['g++-7']
       env: CXX_COMPILER=g++-7 C_COMPILER=gcc-7 BUILD_TYPE='Release'
 
-   - os: osx
+    - os: osx
       osx_image: xcode6.4
       compiler: clang
       env: CXX_COMPILER=clang++ C_COMPILER=clang BUILD_TYPE='Release'
