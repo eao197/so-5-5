@@ -16,6 +16,8 @@ Supported platforms: Linux, Windows, FreeBSD, MacOS X, Android
 Building
 ========
 
+[![Join the chat at https://gitter.im/masterspline/SObjectizer](https://badges.gitter.im/masterspline/SObjectizer.svg)](https://gitter.im/masterspline/SObjectizer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 There are two ways for building SObjectizer. The first one by using [Mxx_ru](https://sourceforge.net/projects/mxxru/)
 tool. The second one by using [CMake](http://www.cmake.org/).
 
