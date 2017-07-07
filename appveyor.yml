@@ -1,0 +1,36 @@
+image: Visual Studio 2015
+shallow_clone: true
+
+matrix:
+  fast_finish: true
+
+platform:
+  - x64
+  #- x86
+
+configuration:
+  - Release
+#  - Debug
+
+environment:
+  matrix:
+    - TOOLCHAIN: msvc14
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+    - TOOLCHAIN: msvc15
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+install:
+  set PATH=%PATH%;C:\cygwin\bin
+
+build_script:
+  # to eliminate garbage error messages
+  - del "c:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
+  - cmake --version
+  - call ci\config.bat %TOOLCHAIN% %PLATFORM%
+  - mkdir build
+  - cd build
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DCMAKE_C_COMPILER=cl.exe -DCMAKE_CXX_COMPILER=cl.exe -DBUILD_ALL=ON -DCMAKE_INSTALL_PREFIX=installed_files ../dev
+  - C:\cygwin\bin\make.exe -j3
+  - C:\cygwin\bin\make.exe install
+  - run_tests.bat
+  #- dumpbin /headers C:\projects\so-5-5\build\installed_files\bin\sample.so_5.coop_listener.exe
