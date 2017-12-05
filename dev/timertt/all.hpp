@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -27,6 +28,44 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
+	// Under VS++12 the alignment will always be 8 bytes.
+	#define TIMERTT_ALIGNAS_WORKAROUND(T) __declspec(align(8))
+
+	// VS++12 doesn't support noexcept keyword.
+	#define TIMERTT_NOEXCEPT
+#else
+	#define TIMERTT_ALIGNAS_WORKAROUND(T) alignas(T)
+	#define TIMERTT_NOEXCEPT noexcept
+#endif
+
+/*!
+ * \brief The current version of timertt.
+ *
+ * Please note that this macro was added only in version 1.2.1.
+ * It means that it is better to check presense of TIMERTT_VERSION and
+ * only then try to check its value:
+ * \code
+ * #include <timertt/all.hpp>
+ *
+ * #if defined(TIMERTT_VERSION)
+ * 	#if TIMERTT_VERSION > 1002002
+ * 	#endif
+ * #endif
+ * \endcode
+ *
+ * The value of TIMERTT_VERSION has YXXXZZZ format in decimal. For
+ * example: 1002001 or 1003014. 'Y' means the major version number
+ * (e.g. 1 for 1.2.1), 'XXX' means minor version number
+ * (e.g. 002 for 1.2.1) and 'ZZZ' means patch number
+ * (e.g. 001 for 1.2.1). It means that version 1.2.1 will be
+ * represented as 1002001 and 1.3.14 will be represented as 1003014.
+ *
+ * \since
+ * v.1.2.1
+ */
+#define TIMERTT_VERSION 1002002u
 
 /*!
  * \brief Top-level project's namespace.
@@ -93,12 +132,12 @@ enum class timer_status : unsigned int
  *
  * \note Will be specialized for every thread-safety case.
  *
- * \tparam THREAD_SAFETY must be thread_safety::unsafe or thread_safety::safe.
+ * \tparam Thread_Safety must be thread_safety::unsafe or thread_safety::safe.
  *
  * \since
  * v.1.1.0
  */
-template< typename THREAD_SAFETY >
+template< typename Thread_Safety >
 struct threading_traits {};
 
 /*!
@@ -140,14 +179,14 @@ struct threading_traits< thread_safety::safe >
 /*!
  * \brief Base type for timer demands.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator. Must be thread_safety::unsafe
+ * \tparam Thread_Safety Thread-safety indicator. Must be thread_safety::unsafe
  * or thread_safety::safe type.
  */
-template< typename THREAD_SAFETY >
+template< typename Thread_Safety >
 struct timer_object
 {
 	//! Reference counter for the demand.
-	typename threading_traits< THREAD_SAFETY >::reference_counter_type m_references;
+	typename threading_traits< Thread_Safety >::reference_counter_type m_references;
 
 	//! Deafault constructor.
 	inline timer_object()
@@ -176,14 +215,60 @@ struct timer_object
 };
 
 //
-// timer_t
+// scoped_timer_object_holder
 //
 /*!
- * \brief Base type for timer demands in multithreading mode.
+ * \brief A special wrapper to be used to hold an actual timer object which
+ * is not allocated dynamically.
  *
- * \note For compatibility with version 1.0.
+ * This class is a part of support for scoped timer objects. Every timer
+ * engine will define its own `scoped_timer_object` by using this
+ * template class. Something like:
+ * \code
+ * class some_engine
+ * {
+ * 	struct timer_type { ... };
+ * public :
+ * 	using scoped_timer_object = scoped_timer_object_holder<timer_type>;
+ * 	...
+ * };
+ * \endcode
+ *
+ * \par Some implementation details.
+ * Version 1.2.0 doesn't change way of working with actual timer objects.
+ * They are still reference countable. It means that when a scoped timer object
+ * is passed to engine's `activate` method a reference count will be
+ * incremented.  When this object is passed to `deactivate` method then
+ * reference counter will be decremented. If reference counter becomes zero
+ * then the timer object will be deallocated by calling `delete`.
+ * To prevent this scoped_timer_object_holder automatically incremented
+ * reference counter by 1 in the constructor. It means that the reference
+ * counter will not be zero (in normal scenarios).
+ *
+ * \note
+ * This type is not Copyable nor Moveable.
+ *
+ * \since
+ * v.1.2.0
  */
-typedef timer_object< thread_safety::safe > timer_t;
+template< typename Actual_Object >
+class scoped_timer_object_holder
+{
+	Actual_Object m_object;
+
+public :
+	scoped_timer_object_holder()
+	{
+		// Actual object must have yet another reference to prevent its deletion.
+		Actual_Object::increment_references( &m_object );
+	}
+
+	scoped_timer_object_holder( const scoped_timer_object_holder & ) = delete;
+	scoped_timer_object_holder( scoped_timer_object_holder && ) = delete;
+
+	Actual_Object *
+	ptr() { return &m_object; }
+};
 
 //
 // timer_object_holder
@@ -191,10 +276,10 @@ typedef timer_object< thread_safety::safe > timer_t;
 /*!
  * \brief An intrusive smart pointer to timer demand.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator. Must be thread_safety::unsafe
+ * \tparam Thread_Safety Thread-safety indicator. Must be thread_safety::unsafe
  * or thread_safety::safe type.
  */
-template< typename THREAD_SAFETY >
+template< typename Thread_Safety >
 class timer_object_holder
 {
 public :
@@ -206,7 +291,7 @@ public :
 		:	m_timer( nullptr )
 	{}
 	//! Constructor for a raw pointer.
-	inline timer_object_holder( timer_object< THREAD_SAFETY > * t )
+	inline timer_object_holder( timer_object< Thread_Safety > * t )
 		:	m_timer( t )
 	{
 		take_object();
@@ -223,6 +308,13 @@ public :
 	{
 		o.m_timer = nullptr;
 	}
+
+	//! Constructor for the case when timer object is a scoped timer.
+	template< typename Actual_Object >
+	inline timer_object_holder(
+		scoped_timer_object_holder<Actual_Object> & scoped )
+		:	timer_object_holder( scoped.ptr() )
+	{}
 
 	//! Destructor.
 	inline ~timer_object_holder()
@@ -282,7 +374,7 @@ public :
 	 * \name Access to object.
 	 * \{
 	 */
-	inline timer_object< THREAD_SAFETY > *
+	inline timer_object< Thread_Safety > *
 	get() const
 	{
 		return m_timer;
@@ -303,14 +395,14 @@ public :
 
 private :
 	//! Timer controlled by a smart pointer.
-	timer_object< THREAD_SAFETY > * m_timer;
+	timer_object< Thread_Safety > * m_timer;
 
 	//! Increment reference count to object if it's not null.
 	inline void
 	take_object()
 	{
 		if( m_timer )
-			timer_object< THREAD_SAFETY >::increment_references( m_timer );
+			timer_object< Thread_Safety >::increment_references( m_timer );
 	}
 
 	//! Decrement reference count to object and delete it if needed.
@@ -319,21 +411,12 @@ private :
 	{
 		if( m_timer )
 		{
-			timer_object< THREAD_SAFETY >::decrement_references( m_timer );
+			timer_object< Thread_Safety >::decrement_references( m_timer );
 			m_timer = nullptr;
 		}
 	}
 };
 
-//
-// timer_holder_t
-//
-/*!
- * \brief An intrusive smart pointer to timer demand in multithreading mode.
- *
- * \note For compatibility with version 1.0.
- */
-typedef timer_object_holder< thread_safety::safe > timer_holder_t;
 
 //
 // default_error_logger
@@ -378,17 +461,15 @@ struct default_actor_exception_handler
 };
 
 //
-// timer_action
+// default_timer_action_type
 //
 /*!
- * \brief Type of timer action.
+ * \brief Defaulf type of timer action.
+ *
+ * \since
+ * v.1.2.0
  */
-typedef std::function< void() > timer_action;
-
-/*!
- * \brief Alias for compatibility with previous versions.
- */
-using timer_action_t = timer_action;
+typedef std::function< void() > default_timer_action_type;
 
 //
 // monotonic_clock
@@ -397,11 +478,6 @@ using timer_action_t = timer_action;
  * \brief Type of clock used by all threads.
  */
 typedef std::chrono::steady_clock monotonic_clock;
-
-/*!
- * \brief Alias for compatibility with previous versions.
- */
-using monotonic_clock_t = monotonic_clock;
 
 //
 // timer_quantities
@@ -428,6 +504,143 @@ namespace details
 {
 
 //
+// buffer_allocated_object
+//
+/*!
+ * \brief A special storage to be used for holding non-default constructible
+ * objects which are created by demand.
+ *
+ * \note
+ * In C++17 std::optional can be used instead of this class.
+ *
+ * \since
+ * v.1.2.0
+ */
+template<typename T>
+class buffer_allocated_object
+{
+	TIMERTT_ALIGNAS_WORKAROUND(T) std::array<char, sizeof(T)> buffer_;
+	bool allocated_{ false };
+
+	void destroy_if_allocated()
+	{
+		if(allocated_)
+		{
+			get()->~T();
+			allocated_ = false;
+		}
+	}
+
+public :
+	using pointer = T*;
+	using element_type = T;
+	using reference = typename std::add_lvalue_reference<T>::type;
+
+	buffer_allocated_object() TIMERTT_NOEXCEPT = default;
+	buffer_allocated_object(const buffer_allocated_object &) = delete;
+	buffer_allocated_object(buffer_allocated_object &&) = delete;
+
+	~buffer_allocated_object()
+	{
+		destroy_if_allocated();
+	}
+
+	template<typename... Args>
+	void allocate(Args &&...args)
+	{
+		destroy_if_allocated();
+		new(buffer_.data()) T(std::forward<Args>(args)...);
+		allocated_ = true;
+	}
+
+	void destroy()
+	{
+		destroy_if_allocated();
+	}
+
+	operator bool() const TIMERTT_NOEXCEPT
+	{
+		return allocated_;
+	}
+
+	pointer get() const TIMERTT_NOEXCEPT
+	{
+		return reinterpret_cast<pointer>(const_cast<char *>(buffer_.data()));
+	}
+
+	pointer operator->() const TIMERTT_NOEXCEPT
+	{
+		return get();
+	}
+
+	reference operator*() const TIMERTT_NOEXCEPT
+	{
+		return *get();
+	}
+};
+
+//
+// timer_action_holder
+//
+/*!
+ * \brief A special storage for holding timer actions.
+ *
+ * If a timer action is represented by std::function<void()> then
+ * a simple std::function can be used for holding this timer action.
+ * But if a timer action is represented by some user type then
+ * we must use a internal buffer and should construct timer action
+ * instance inplace only when it is necessary.
+ *
+ * \since
+ * v.1.2.0
+ */
+template< typename Action_Type >
+class timer_action_holder
+{
+	buffer_allocated_object<Action_Type> m_action;
+
+public:
+	timer_action_holder() = default;
+	timer_action_holder( const timer_action_holder & ) = delete;
+	timer_action_holder( timer_action_holder && ) = delete;
+
+	void
+	assign( Action_Type && action )
+	{
+		m_action.allocate( std::move(action) );
+	}
+
+	void
+	exec() const
+	{
+		(*m_action)();
+	}
+};
+
+template<>
+class timer_action_holder< default_timer_action_type >
+{
+	default_timer_action_type m_action;
+
+public :
+	timer_action_holder() = default;
+	timer_action_holder( const timer_action_holder & ) = delete;
+	timer_action_holder( timer_action_holder && ) = delete;
+
+	void
+	assign( default_timer_action_type && action )
+	{
+		m_action = std::move(action);
+	}
+
+	void
+	exec() const
+	{
+		m_action();
+	}
+};
+
+//
 // timer_kind
 //
 /*!
@@ -452,18 +665,22 @@ enum class timer_kind
  * \brief A common part for all timer engines.
  *
  * Will be used by concrete engines for storing instances of
- * ERROR_LOGGER and ACTOR_EXCEPTION_HANDLER.
+ * Error_Logger and Actor_Exception_Handler.
  *
  * Also defines type \a thread_safety to be used later.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer handling. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  *
@@ -471,19 +688,23 @@ enum class timer_kind
  * v.1.1.0
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Thread_Safety,
+	typename Timer_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class engine_common
 {
 public :
 	//! Indicator of thread-safety.
-	using thread_safety = THREAD_SAFETY;
+	using thread_safety = Thread_Safety;
+
+	//! Alias for Timer_Action.
+	using timer_action = Timer_Action;
 
 	//! Initializing constructor.
 	engine_common(
-		ERROR_LOGGER error_logger,
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Error_Logger error_logger,
+		Actor_Exception_Handler exception_handler )
 		:	m_error_logger( error_logger )
 		,	m_exception_handler( exception_handler )
 	{}
@@ -502,10 +723,10 @@ public :
 
 protected :
 	//! Error logger.
-	ERROR_LOGGER m_error_logger;
+	Error_Logger m_error_logger;
 
 	//! Exception handler.
-	ACTOR_EXCEPTION_HANDLER m_exception_handler;
+	Actor_Exception_Handler m_exception_handler;
 
 	/*!
 	 * \brief Quantities of timers of various types.
@@ -611,32 +832,46 @@ struct timer_wheel_engine_defaults
  * list of elapsed timers. This allows to process millions of timer actor
  * per second.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer thread execution. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Thread_Safety,
+	typename Timer_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class timer_wheel_engine
 	:	public engine_common<
-			THREAD_SAFETY, ERROR_LOGGER, ACTOR_EXCEPTION_HANDLER >
+			Thread_Safety, Timer_Action, Error_Logger, Actor_Exception_Handler >
 {
 	//! An alias for base class.
 	using base_type = engine_common<
-			THREAD_SAFETY, ERROR_LOGGER, ACTOR_EXCEPTION_HANDLER >;
+			Thread_Safety, Timer_Action, Error_Logger, Actor_Exception_Handler >;
+
+	struct timer_type;
 
 public :
 	//! Type with default parameters for this engine.
-	typedef timer_wheel_engine_defaults defaults_type;
+	using defaults_type = timer_wheel_engine_defaults;
+
+	//! Alias for timer_action type.
+	using timer_action = typename base_type::timer_action;	
+
+	//! Alias for scoped timer object.
+	using scoped_timer_object =
+			scoped_timer_object_holder< timer_type >;
 
 	//! Constructor with all parameters.
 	timer_wheel_engine(
@@ -645,9 +880,9 @@ public :
 		//! Size of time step for the timer_wheel.
 		monotonic_clock::duration granularity,
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type( error_logger, exception_handler )
 		,	m_wheel_size( wheel_size )
 		,	m_granularity( granularity )
@@ -664,10 +899,10 @@ public :
 	}
 
 	//! Create timer to be activated later.
-	timer_object_holder< THREAD_SAFETY >
+	timer_object_holder< Thread_Safety >
 	allocate()
 	{
-		return timer_object_holder< THREAD_SAFETY >( new timer_type() );
+		return timer_object_holder< Thread_Safety >( new timer_type() );
 	}
 
 	//! Activate timer and schedule it for execution.
@@ -678,48 +913,34 @@ public :
 	 * \throw std::exception If timer thread is not started.
 	 * \throw std::exception If \a timer is already activated.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
-	 * \tparam DURATION_2 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
 	 */
-	template< class DURATION_1, class DURATION_2 >
+	template< class Duration_1, class Duration_2 >
 	bool
 	activate(
 		//! Timer to be activated.
-		timer_object_holder< THREAD_SAFETY > timer,
+		timer_object_holder< Thread_Safety > timer,
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Repetition period.
-		//! If <tt>DURATION_2::zero() == period</tt> then timer will be
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
 		//! single-shot.
-		DURATION_2 period,
+		Duration_2 period,
 		//! Action for the timer.
 		timer_action action )
 	{
 		auto * wheel_timer = timer.template cast_to< timer_type >();
 		ensure_timer_deactivated( wheel_timer );
 
-		wheel_timer->m_action = std::move(action);
+		wheel_timer->m_action.assign( std::move(action) );
 
 		// Timer must be taken under control.
-		timer_object< THREAD_SAFETY >::increment_references( wheel_timer );
+		timer_object< Thread_Safety >::increment_references( wheel_timer );
 		// It is an active timer now.
 		wheel_timer->m_status = timer_status::active;
 
-		// Calculate the demand position in the wheel.
-		set_position_in_the_wheel(
-				wheel_timer,
-				duration_to_ticks( pause ) );
-
-		// Special calculations for the periodic demand.
-		if( monotonic_clock::duration::zero() != period )
-			wheel_timer->m_period = duration_to_ticks( period );
-		else
-			wheel_timer->m_period = 0;
-
-		insert_demand_to_wheel( wheel_timer );
-
-		// Count of timers changed.
-		this->inc_timer_count( wheel_timer->kind() );
+		perform_insertion_info_wheel( wheel_timer, pause, period );
 
 		// If wheel was empty and this is the first timer added
 		// the value of timer_count must be exactly 1.
@@ -727,9 +948,89 @@ public :
 				this->m_timer_quantities.m_periodic_count;
 	}
 
+	/*!
+	 * \brief Perform an attempt to reschedule a timer.
+	 *
+	 * Before v.1.2.1 there was just one way to reschedule a timer:
+	 * method deactivate() must be called first and then method
+	 * activate() must be called for the same timer. This approach is
+	 * not fast because in the case of thread-safe engines it requires
+	 * two operations on a mutex.
+	 *
+	 * Since v.1.2.1 there is a reschedule() method which does deactivation
+	 * of a timer (if it is active) and then new activation of this timer.
+	 * All actions are performed by using just one operation on a mutex.
+	 *
+	 * \note
+	 * This operation can fail if the timer to be rescheduled is in processing.
+	 * Because of that it is recommended to use such operation for
+	 * timer_managers only. But even with timer_managers this operation
+	 * should be used with care.
+	 *
+	 * \attention
+	 * It move operator for a timer_action throws then timer will be
+	 * deactivated. The state for a timer_action itself will be unknown.
+	 * 
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is in processing right now.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.1
+	 */
+	template< class Duration_1, class Duration_2 >
+	bool
+	reschedule(
+		//! Timer to be rescheduled. Must be in activated or deactivated state.
+		timer_object_holder< Thread_Safety > timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Repetition period.
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
+		//! single-shot.
+		Duration_2 period,
+		//! Action for the timer.
+		timer_action action )
+	{
+		auto * wheel_timer = timer.template cast_to< timer_type >();
+		// If timer is deactivated the usual activation logic can be used.
+		if( timer_status::deactivated == wheel_timer->m_status )
+			return this->activate(
+					std::move(timer), pause, period, std::move(action) );
+		else if( timer_status::active != wheel_timer->m_status )
+		{
+			// Timer which is in processing now can't be reactivated.
+			throw std::runtime_error( "timer is in processing now, "
+					"it can't be rescheduled" );
+		}
+
+		// Timer must be removed from the wheel first.
+		this->remove_timer_from_wheel( wheel_timer );
+		this->dec_timer_count( wheel_timer->kind() );
+
+		// If this assigment throws then we must deactivate the timer.
+		try
+		{
+			wheel_timer->m_action.assign( std::move(action) );
+		}
+		catch(...)
+		{
+			wheel_timer->m_status = timer_status::deactivated;
+			timer_object< Thread_Safety >::decrement_references( wheel_timer );
+			// Exception must be rethrown;
+			throw;
+		}
+
+		this->perform_insertion_info_wheel( wheel_timer, pause, period );
+
+		return false;
+	}
+
 	//! Deactivate timer and remove it from the wheel.
 	void
-	deactivate( timer_object_holder< THREAD_SAFETY > timer )
+	deactivate( timer_object_holder< Thread_Safety > timer )
 	{
 		auto wheel_timer = timer.template cast_to< timer_type >();
 		if( timer_status::active == wheel_timer->m_status )
@@ -742,7 +1043,7 @@ public :
 
 			// Release timer object.
 			this->dec_timer_count( wheel_timer->kind() );
-			timer_object< THREAD_SAFETY >::decrement_references( wheel_timer );
+			timer_object< Thread_Safety >::decrement_references( wheel_timer );
 		}
 		else if( timer_status::wait_for_execution == wheel_timer->m_status )
 		{
@@ -757,11 +1058,11 @@ public :
 	/*!
 	 * \brief Build sublist of elapsed timers and process them all.
 	 */
-	template< typename UNIQUE_LOCK >
+	template< typename Unique_Lock >
 	void
 	process_expired_timers(
 		//! Object's lock.
-		UNIQUE_LOCK & lock )
+		Unique_Lock & lock )
 	{
 		/*
 		 * NOTE: It is possible that period between consequtive
@@ -839,7 +1140,7 @@ public :
 				timer = timer->m_next;
 
 				t->m_status = timer_status::deactivated;
-				timer_object< THREAD_SAFETY >::decrement_references( t );
+				timer_object< Thread_Safety >::decrement_references( t );
 			}
 		}
 
@@ -851,10 +1152,10 @@ public :
 
 private :
 	//! Type of wheel timer.
-	struct timer_type : public timer_object< THREAD_SAFETY >
+	struct timer_type : public timer_object< Thread_Safety >
 	{
 		//! Status of the timer.
-		typename threading_traits< THREAD_SAFETY >::status_holder_type m_status;
+		typename threading_traits< Thread_Safety >::status_holder_type m_status;
 
 		//! Position in the wheel.
 		unsigned int m_position = 0;
@@ -868,7 +1169,7 @@ private :
 		unsigned int m_period = 0;
 
 		//! Timer action.
-		timer_action m_action;
+		timer_action_holder< timer_action > m_action;
 
 		//! Previous demand in the list.
 		timer_type * m_prev = nullptr;
@@ -943,6 +1244,48 @@ private :
 	}
 
 	/*!
+	 * \brief Perform insertion of a timer into wheel data structure.
+	 *
+	 * This method added to remove the duplication of code in
+	 * activate() and reschedule() methods.
+	 *
+	 * \note
+	 * This method doesn't change reference count to timer object.
+	 *
+	 * \since
+	 * v.1.2.1
+	 */
+	template< class Duration_1, class Duration_2 >
+	void
+	perform_insertion_info_wheel(
+		//! Timer to be inserted.
+		timer_type * wheel_timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Repetition period.
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
+		//! single-shot.
+		Duration_2 period )
+	{
+		// Calculate the demand position in the wheel.
+		this->set_position_in_the_wheel(
+				wheel_timer,
+				duration_to_ticks( pause ) );
+
+		// Special calculations for the periodic demand.
+		if( monotonic_clock::duration::zero() != period )
+			wheel_timer->m_period = duration_to_ticks( period );
+		else
+			wheel_timer->m_period = 0;
+
+		// Timer now can be reinserted into the wheel.
+		this->insert_demand_to_wheel( wheel_timer );
+
+		// Count of timers changed.
+		this->inc_timer_count( wheel_timer->kind() );
+	}
+
+	/*!
 	 * \brief Converion of duration to number of time steps.
 	 *
 	 * \note This implementation performs rounding up for duration
@@ -953,13 +1296,13 @@ private :
 	 * after rounding up) the value 1 will be returned. E.g. timer
 	 * will be scheduled for the next time step.
 	 *
-	 * \tparam DURATION actual type for duration representation.
+	 * \tparam Duration actual type for duration representation.
 	 */
-	template< class DURATION >
+	template< class Duration >
 	unsigned int
 	duration_to_ticks(
 		//! Time duration to be converted in time steps count.
-		DURATION d ) const
+		Duration d ) const
 	{
 		auto d_units = 
 				std::chrono::duration_cast< monotonic_clock::duration >( d )
@@ -1049,10 +1392,10 @@ private :
 	 *
 	 * Object \a lock will be unlocked and then locked back.
 	 */
-	template< class UNIQUE_LOCK >
+	template< class Unique_Lock >
 	void
 	process_current_wheel_position(
-		UNIQUE_LOCK & lock )
+		Unique_Lock & lock )
 	{
 		timer_type * exec_list_head = make_exec_list();
 
@@ -1110,13 +1453,13 @@ private :
 	/*!
 	 * \brief Execute all active timers from the list.
 	 */
-	template< class UNIQUE_LOCK >
+	template< class Unique_Lock >
 	void
 	exec_actions(
 		//! Object lock.
 		//! This lock will be unlocked before execution of actions
 		//! and locked back after.
-		UNIQUE_LOCK & lock,
+		Unique_Lock & lock,
 		//! Head of execution list.
 		//! Cannot be nullptr.
 		timer_type * head )
@@ -1131,7 +1474,7 @@ private :
 				// just before execution. If timer is waiting for
 				// deregistration it must not be executed.
 				if( timer_status::wait_for_execution == head->m_status )
-					head->m_action();
+					head->m_action.exec();
 			}
 			catch( const std::exception & x )
 			{
@@ -1186,7 +1529,7 @@ private :
 				// Timer must be utilized.
 				t->m_status = timer_status::deactivated;
 				this->dec_timer_count( t->kind() );
-				timer_object< THREAD_SAFETY >::decrement_references( t );
+				timer_object< Thread_Safety >::decrement_references( t );
 			}
 		}
 	}
@@ -1214,6 +1557,7 @@ struct timer_list_engine_defaults
 //
 // timer_list_engine
 //
+
 /*!
  * \brief An engine for timer list mechanism.
  *
@@ -1242,46 +1586,61 @@ struct timer_list_engine_defaults
  * expensive. Timer thread based on timer_wheel or timer_heap is
  * more appropriate for that scenario.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer thread execution. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Thread_Safety,
+	typename Time_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class timer_list_engine
 	:	public engine_common<
-			THREAD_SAFETY, ERROR_LOGGER, ACTOR_EXCEPTION_HANDLER >
+			Thread_Safety, Time_Action, Error_Logger, Actor_Exception_Handler >
 {
 	//! An alias for base class.
 	using base_type = engine_common<
-			THREAD_SAFETY, ERROR_LOGGER, ACTOR_EXCEPTION_HANDLER >;
+			Thread_Safety, Time_Action, Error_Logger, Actor_Exception_Handler >;
+
+	// Forward declaration.
+	struct timer_type;
 
 public :
 	//! Type with default parameters for this engine.
 	typedef timer_list_engine_defaults defaults_type;
 
+	//! Alias for timer_action type.
+	using timer_action = typename base_type::timer_action;	
+
+	//! Alias for scoped timer object.
+	using scoped_timer_object =
+			scoped_timer_object_holder< timer_type >;
+
 	//! Default constructor.
 	timer_list_engine()
 		:	timer_list_engine(
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with all parameters.
 	timer_list_engine(
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type( error_logger, exception_handler )
 	{
 	}
@@ -1292,10 +1651,10 @@ public :
 	}
 
 	//! Create timer to be activated later.
-	timer_object_holder< THREAD_SAFETY >
+	timer_object_holder< Thread_Safety >
 	allocate()
 	{
-		return timer_object_holder< THREAD_SAFETY >( new timer_type() );
+		return timer_object_holder< Thread_Safety >( new timer_type() );
 	}
 
 	//! Activate timer and schedule it for execution.
@@ -1306,20 +1665,20 @@ public :
 	 * \throw std::exception If timer thread is not started.
 	 * \throw std::exception If \a timer is already activated.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
-	 * \tparam DURATION_2 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
 	 */
-	template< class DURATION_1, class DURATION_2 >
+	template< class Duration_1, class Duration_2 >
 	bool
 	activate(
 		//! Timer to be activated.
-		timer_object_holder< THREAD_SAFETY > timer,
+		timer_object_holder< Thread_Safety > timer,
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Repetition period.
-		//! If <tt>DURATION_2::zero() == period</tt> then timer will be
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
 		//! single-shot.
-		DURATION_2 period,
+		Duration_2 period,
 		//! Action for the timer.
 		timer_action action )
 	{
@@ -1327,13 +1686,13 @@ public :
 		ensure_timer_deactivated( list_timer );
 
 		// Timer object must be correctly (re)initialized.
-		list_timer->m_action = std::move( action );
+		list_timer->m_action.assign( std::move( action ) );
 		list_timer->m_when = monotonic_clock::now() + pause;
 		list_timer->m_period = std::chrono::duration_cast<
 				monotonic_clock::duration >( period );
 
 		// Timer must be taken under control.
-		timer_object< THREAD_SAFETY >::increment_references( list_timer );
+		timer_object< Thread_Safety >::increment_references( list_timer );
 		// It is an active timer now.
 		list_timer->m_status = timer_status::active;
 
@@ -1344,11 +1703,98 @@ public :
 		return list_timer == m_head;
 	}
 
+	/*!
+	 * \brief Perform an attempt to reschedule a timer.
+	 *
+	 * Before v.1.2.1 there was just one way to reschedule a timer:
+	 * method deactivate() must be called first and then method
+	 * activate() must be called for the same timer. This approach is
+	 * not fast because in the case of thread-safe engines it requires
+	 * two operations on a mutex.
+	 *
+	 * Since v.1.2.1 there is a reschedule() method which does deactivation
+	 * of a timer (if it is active) and then new activation of this timer.
+	 * All actions are performed by using just one operation on a mutex.
+	 *
+	 * \note
+	 * This operation can fail if the timer to be rescheduled is in processing.
+	 * Because of that it is recommended to use such operation for
+	 * timer_managers only. But even with timer_managers this operation
+	 * should be used with care.
+	 *
+	 * \attention
+	 * It move operator for a timer_action throws then timer will be
+	 * deactivated. The state for a timer_action itself will be unknown.
+	 * 
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is in processing right now.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.1
+	 */
+	template< class Duration_1, class Duration_2 >
+	bool
+	reschedule(
+		//! Timer to be rescheduled.
+		timer_object_holder< Thread_Safety > timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Repetition period.
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
+		//! single-shot.
+		Duration_2 period,
+		//! Action for the timer.
+		timer_action action )
+	{
+		auto list_timer = timer.template cast_to< timer_type >();
+		// If timer is deactivated the usual activation logic can be used.
+		if( timer_status::deactivated == list_timer->m_status )
+			return this->activate(
+					std::move(timer), pause, period, std::move(action) );
+		else if( timer_status::active != list_timer->m_status )
+		{
+			// Timer which is in processing now can't be reactivated.
+			throw std::runtime_error( "timer is in processing now, "
+					"it can't be rescheduled" );
+		}
+
+		// Timer must be removed from the list first.
+		this->remove_timer_from_list( list_timer );
+		this->dec_timer_count( list_timer->kind() );
+
+		// Timer object must be correctly (re)initialized.
+		// If this assigment throws then we must deactivate the timer.
+		try
+		{
+			list_timer->m_action.assign( std::move(action) );
+		}
+		catch(...)
+		{
+			list_timer->m_status = timer_status::deactivated;
+			timer_object< Thread_Safety >::decrement_references( list_timer );
+			// Exception must be rethrown;
+			throw;
+		}
+		list_timer->m_when = monotonic_clock::now() + pause;
+		list_timer->m_period = std::chrono::duration_cast<
+				monotonic_clock::duration >( period );
+
+		// Updated timer must be placed into the list.
+		this->insert_timer_to_list( list_timer );
+		// Count of timers in the list changed.
+		this->inc_timer_count( list_timer->kind() );
+
+		return list_timer == m_head;
+	}
+
 	//! Deactivate timer and remove it from the list.
 	void
 	deactivate(
 		//! Timer to be deactivated.
-		timer_object_holder< THREAD_SAFETY > timer )
+		timer_object_holder< Thread_Safety > timer )
 	{
 		auto list_timer = timer.template cast_to< timer_type >();
 		if( timer_status::active == list_timer->m_status )
@@ -1362,7 +1808,7 @@ public :
 			list_timer->m_status = timer_status::deactivated;
 
 			// Release timer object.
-			timer_object< THREAD_SAFETY >::decrement_references( list_timer );
+			timer_object< Thread_Safety >::decrement_references( list_timer );
 		}
 		else if( timer_status::wait_for_execution == list_timer->m_status )
 		{
@@ -1379,11 +1825,11 @@ public :
 	 *
 	 * Object is unlocked and then locked back.
 	 */
-	template< typename UNIQUE_LOCK >
+	template< typename Unique_Lock >
 	void
 	process_expired_timers(
 		//! Object's lock.
-		UNIQUE_LOCK & lock )
+		Unique_Lock & lock )
 	{
 		timer_type * exec_list_head = make_exec_list();
 
@@ -1429,7 +1875,7 @@ public :
 			m_head = m_head->m_next;
 
 			t->m_status = timer_status::deactivated;
-			timer_object< THREAD_SAFETY >::decrement_references( t );
+			timer_object< Thread_Safety >::decrement_references( t );
 		}
 
 		// There are no more timers in the list.
@@ -1439,10 +1885,10 @@ public :
 
 private :
 	//! Type of list timer.
-	struct timer_type : public timer_object< THREAD_SAFETY >
+	struct timer_type : public timer_object< Thread_Safety >
 	{
 		//! Status of the timer.
-		typename threading_traits< THREAD_SAFETY >::status_holder_type m_status;
+		typename threading_traits< Thread_Safety >::status_holder_type m_status;
 
 		//! Time of execution for this timer.
 		monotonic_clock::time_point m_when;
@@ -1454,7 +1900,7 @@ private :
 		monotonic_clock::duration m_period;
 
 		//! Timer action.
-		timer_action m_action;
+		timer_action_holder< timer_action > m_action;
 
 		//! Previous demand in the list.
 		timer_type * m_prev = nullptr;
@@ -1625,13 +2071,13 @@ private :
 	 *
 	 * Object is unlocked and locked back after sublist processing.
 	 */
-	template< class UNIQUE_LOCK >
+	template< class Unique_Lock >
 	void
 	exec_actions(
 		//! Object lock.
 		//! This lock will be unlocked before execution of actions
 		//! and locked back after.
-		UNIQUE_LOCK & lock,
+		Unique_Lock & lock,
 		//! Head of execution list.
 		//! Cannot be nullptr.
 		timer_type * head )
@@ -1646,7 +2092,7 @@ private :
 				// just before execution. If timer is waiting for
 				// deregistration it must not be executed.
 				if( timer_status::wait_for_execution == head->m_status )
-					head->m_action();
+					head->m_action.exec();
 			}
 			catch( const std::exception & x )
 			{
@@ -1699,7 +2145,7 @@ private :
 				// Timer must be utilized.
 				this->dec_timer_count( t->kind() );
 				t->m_status = timer_status::deactivated;
-				timer_object< THREAD_SAFETY >::decrement_references( t );
+				timer_object< Thread_Safety >::decrement_references( t );
 			}
 		}
 	}
@@ -1748,41 +2194,56 @@ struct timer_heap_engine_defaults
  * efficient activation and deactivation procedures (unlike timer_list
  * thread).
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer thread execution. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Thread_Safety,
+	typename Timer_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class timer_heap_engine
 	:	public engine_common<
-			THREAD_SAFETY, ERROR_LOGGER, ACTOR_EXCEPTION_HANDLER >
+			Thread_Safety, Timer_Action, Error_Logger, Actor_Exception_Handler >
 {
 	//! An alias for base class.
 	using base_type = engine_common<
-			THREAD_SAFETY, ERROR_LOGGER, ACTOR_EXCEPTION_HANDLER >;
+			Thread_Safety, Timer_Action, Error_Logger, Actor_Exception_Handler >;
+
+	// Forward declaration.
+	struct timer_type;
 
 public :
 	//! Type with default parameters for this engine.
 	typedef timer_heap_engine_defaults defaults_type;
+
+	//! Alias for timer_action type.
+	using timer_action = typename base_type::timer_action;	
+
+	//! Alias for scoped timer object.
+	using scoped_timer_object =
+			scoped_timer_object_holder< timer_type >;
 
 	//! Constructor with all parameters.
 	timer_heap_engine(
 		//! An initial size for heap array.
 		std::size_t initial_heap_capacity,
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type( error_logger, exception_handler )
 	{
 		m_heap.reserve( initial_heap_capacity );
@@ -1794,10 +2255,10 @@ public :
 	}
 
 	//! Create timer to be activated later.
-	timer_object_holder< THREAD_SAFETY >
+	timer_object_holder< Thread_Safety >
 	allocate()
 	{
-		return timer_object_holder< THREAD_SAFETY >( new timer_type() );
+		return timer_object_holder< Thread_Safety >( new timer_type() );
 	}
 
 	//! Activate timer and schedule it for execution.
@@ -1808,20 +2269,20 @@ public :
 	 * \throw std::exception If timer thread is not started.
 	 * \throw std::exception If \a timer is already activated.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
-	 * \tparam DURATION_2 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
 	 */
-	template< class DURATION_1, class DURATION_2 >
+	template< class Duration_1, class Duration_2 >
 	bool
 	activate(
 		//! Timer to be activated.
-		timer_object_holder< THREAD_SAFETY > timer,
+		timer_object_holder< Thread_Safety > timer,
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Repetition period.
-		//! If <tt>DURATION_2::zero() == period</tt> then timer will be
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
 		//! single-shot.
-		DURATION_2 period,
+		Duration_2 period,
 		//! Action for the timer.
 		timer_action action )
 	{
@@ -1829,13 +2290,104 @@ public :
 		ensure_timer_deactivated( heap_timer );
 
 		// Timer object must be correctly (re)initialized.
-		heap_timer->m_action = std::move( action );
+		heap_timer->m_action.assign( std::move( action ) );
 		heap_timer->m_when = monotonic_clock::now() + pause;
 		heap_timer->m_period = std::chrono::duration_cast<
 				monotonic_clock::duration >( period );
 
 		// Timer must be taken under control.
-		timer_object< THREAD_SAFETY >::increment_references( heap_timer );
+		timer_object< Thread_Safety >::increment_references( heap_timer );
+
+		// Timer will be marked as active during insertion into
+		// heap structure.
+		heap_add( heap_timer );
+
+		// Count of timers must be incremented.
+		this->inc_timer_count( heap_timer->kind() );
+
+		return heap_timer == heap_head();
+	}
+
+	/*!
+	 * \brief Perform an attempt to reschedule a timer.
+	 *
+	 * Before v.1.2.1 there was just one way to reschedule a timer:
+	 * method deactivate() must be called first and then method
+	 * activate() must be called for the same timer. This approach is
+	 * not fast because in the case of thread-safe engines it requires
+	 * two operations on a mutex.
+	 *
+	 * Since v.1.2.1 there is a reschedule() method which does deactivation
+	 * of a timer (if it is active) and then new activation of this timer.
+	 * All actions are performed by using just one operation on a mutex.
+	 *
+	 * \note
+	 * This operation can fail if the timer to be rescheduled is in processing.
+	 * Because of that it is recommended to use such operation for
+	 * timer_managers only. But even with timer_managers this operation
+	 * should be used with care.
+	 *
+	 * \attention
+	 * It move operator for a timer_action throws then timer will be
+	 * deactivated. The state for a timer_action itself will be unknown.
+	 * 
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is in processing right now.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.1
+	 */
+	template< class Duration_1, class Duration_2 >
+	bool
+	reschedule(
+		//! Timer to be rescheduled.
+		timer_object_holder< Thread_Safety > timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Repetition period.
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
+		//! single-shot.
+		Duration_2 period,
+		//! Action for the timer.
+		timer_action action )
+	{
+		auto heap_timer = timer.template cast_to< timer_type >();
+		// If timer is deactivated the usual activation logic can be used.
+		if( heap_timer->deactivated() )
+			return this->activate(
+					std::move(timer), pause, period, std::move(action) );
+		else if( heap_timer == m_timer_in_processing )
+		{
+			// Timer which is in processing now can't be reactivated.
+			throw std::runtime_error( "timer is in processing now, "
+					"it can't be rescheduled" );
+		}
+
+		// Timer must be removed from heap first.
+		heap_remove( heap_timer );
+		// Count of timers changed.
+		this->dec_timer_count( heap_timer->kind() );
+
+		// Timer object must be correctly (re)initialized.
+		// If this assigment throws then we must deactivate the timer.
+		try
+		{
+			heap_timer->m_action.assign( std::move(action) );
+		}
+		catch(...)
+		{
+			heap_timer->deactivate();
+			timer_object< Thread_Safety >::decrement_references( heap_timer );
+			// Exception must be rethrown;
+			throw;
+		}
+
+		heap_timer->m_when = monotonic_clock::now() + pause;
+		heap_timer->m_period = std::chrono::duration_cast<
+				monotonic_clock::duration >( period );
 
 		// Timer will be marked as active during insertion into
 		// heap structure.
@@ -1851,7 +2403,7 @@ public :
 	void
 	deactivate(
 		//! Timer to be deactivated.
-		timer_object_holder< THREAD_SAFETY > timer )
+		timer_object_holder< Thread_Safety > timer )
 	{
 		auto heap_timer = timer.template cast_to< timer_type >();
 		if( !heap_timer->deactivated() )
@@ -1870,7 +2422,7 @@ public :
 				heap_timer->deactivate();
 
 				// Release timer object.
-				timer_object< THREAD_SAFETY >::decrement_references( heap_timer );
+				timer_object< Thread_Safety >::decrement_references( heap_timer );
 			}
 			else
 			{
@@ -1891,11 +2443,11 @@ public :
 	 * \note \a lock unlocked and then locked back for every
 	 * timer action execution.
 	 */
-	template< typename UNIQUE_LOCK >
+	template< typename Unique_Lock >
 	void
 	process_expired_timers(
 		//! Object's lock.
-		UNIQUE_LOCK & lock )
+		Unique_Lock & lock )
 	{
 		// Process timers in loop until there are elapsed timers.
 		const auto now = monotonic_clock::now();
@@ -1915,7 +2467,7 @@ public :
 				this->dec_timer_count( m_timer_in_processing->kind() );
 
 				m_timer_in_processing->deactivate();
-				timer_object< THREAD_SAFETY >::decrement_references(
+				timer_object< Thread_Safety >::decrement_references(
 						m_timer_in_processing );
 			}
 			else
@@ -1959,7 +2511,7 @@ public :
 		for( auto t : m_heap )
 		{
 			t->deactivate();
-			timer_object< THREAD_SAFETY >::decrement_references( t );
+			timer_object< Thread_Safety >::decrement_references( t );
 		}
 
 		this->reset_timer_count();
@@ -1968,7 +2520,7 @@ public :
 
 private :
 	//! Type of heap timer.
-	struct timer_type : public timer_object< THREAD_SAFETY >
+	struct timer_type : public timer_object< Thread_Safety >
 	{
 		//! A special value which means that timer is deactivated.
 		/*!
@@ -1987,7 +2539,7 @@ private :
 		monotonic_clock::duration m_period;
 
 		//! Timer action.
-		timer_action m_action;
+		timer_action_holder< timer_action > m_action;
 
 		//! Position in the heap-array.
 		std::size_t m_position = deactivation_indicator;
@@ -2053,19 +2605,19 @@ private :
 	}
 
 	//! Execute the current timer.
-	template< class UNIQUE_LOCK >
+	template< class Unique_Lock >
 	void
 	execute_timer_in_processing(
 		//! Object lock.
 		//! This lock will be unlocked before execution of actions
 		//! and locked back after.
-		UNIQUE_LOCK & lock )
+		Unique_Lock & lock )
 	{
 		lock.unlock();
 
 		try
 		{
-			m_timer_in_processing->m_action();
+			m_timer_in_processing->m_action.exec();
 		}
 		catch( const std::exception & x )
 		{
@@ -2358,7 +2910,7 @@ struct consumer_type
  * \since
  * v.1.1.0
  */
-template< typename THREAD_SAFETY, typename CONSUMER >
+template< typename Thread_Safety, typename Consumer >
 struct mixin_selector
 {
 };
@@ -2410,41 +2962,51 @@ struct mixin_selector< thread_safety::safe, consumer_type::thread >
  * \brief A implementation of basic methods for timer managers and
  * timer threads.
  *
- * \tparam ENGINE actual type of engine to be used.
- * \tparam CONSUMER type of engine consumer (e.g. consumer_type::manager or
+ * \tparam Engine actual type of engine to be used.
+ * \tparam Consumer type of engine consumer (e.g. consumer_type::manager or
  * consumer_type::thread).
  *
  * \since
  * v.1.1.0
  */
 template<
-	typename ENGINE,
-	typename CONSUMER >
+	typename Engine,
+	typename Consumer >
 class basic_methods_impl_mixin
-	:	protected mixin_selector< typename ENGINE::thread_safety, CONSUMER >::type
-	,	public ENGINE::defaults_type
+	:	protected mixin_selector< typename Engine::thread_safety, Consumer >::type
+	,	public Engine::defaults_type
 {
 	//! Shorthand for actual mixin type.
 	using mixin_type = typename mixin_selector<
-			typename ENGINE::thread_safety, CONSUMER >::type;
-
-	//! Shorthand for timer objects' smart pointer.
-	using timer_holder = timer_object_holder< typename ENGINE::thread_safety >;
+			typename Engine::thread_safety, Consumer >::type;
 
 public :
 	/*!
-	 * \brief A typedef for thread safety type from ENGINE.
+	 * \brief A typedef for thread safety type from Engine.
 	 *
 	 * \since
 	 * v.1.1.2
 	 */
-	using thread_safety = typename ENGINE::thread_safety;
+	using thread_safety = typename Engine::thread_safety;
+
+	//! An alias for timer_action type.
+	using timer_action = typename Engine::timer_action;
+
+	//! An alias for scoped timer objects.
+	using scoped_timer_object = typename Engine::scoped_timer_object;
+
+	//! Shorthand for timer objects' smart pointer.
+	/*!
+	 * \note
+	 * Since v.1.2.1 it is a public type name.
+	 */
+	using timer_holder = timer_object_holder< typename Engine::thread_safety >;
 
 	//! Constructor with all parameters.
-	template< typename... ARGS >
+	template< typename... Args >
 	basic_methods_impl_mixin(
-		ARGS && ... args )
-		:	m_engine( std::forward< ARGS >(args)... )
+		Args && ... args )
+		:	m_engine( std::forward< Args >(args)... )
 	{
 	}
 
@@ -2465,15 +3027,15 @@ public :
 	 * \throw std::exception If timer thread is not started.
 	 * \throw std::exception If \a timer is already activated.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
 	 */
-	template< class DURATION_1 >
+	template< class Duration_1 >
 	void
 	activate(
 		//! Timer to be activated.
 		timer_holder timer,
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Action for the timer.
 		timer_action action )
 	{
@@ -2484,6 +3046,81 @@ public :
 				std::move( action ) );
 	}
 
+	/*!
+	 * \brief Perform an attempt to reschedule a timer.
+	 *
+	 * Before v.1.2.1 there was just one way to reschedule a timer:
+	 * method deactivate() must be called first and then method
+	 * activate() must be called for the same timer. This approach is
+	 * not fast because in the case of thread-safe engines it requires
+	 * two operations on a mutex.
+	 *
+	 * Since v.1.2.1 there is a reschedule() method which does deactivation
+	 * of a timer (if it is active) and then new activation of this timer.
+	 * All actions are performed by using just one operation on a mutex.
+	 *
+	 * \note
+	 * This operation can fail if the timer to be rescheduled is in processing.
+	 * Because of that it is recommended to use such operation for
+	 * timer_managers only. But even with timer_managers this operation
+	 * should be used with care.
+	 *
+	 * \attention
+	 * It move operator for a timer_action throws then timer will be
+	 * deactivated. The state for a timer_action itself will be unknown.
+	 * 
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is in processing right now.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.1
+	 */
+	template< class Duration_1 >
+	void
+	reschedule(
+		//! Timer to be rescheduled.
+		timer_holder timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Action for the timer.
+		timer_action action )
+	{
+		reschedule(
+				std::move( timer ),
+				pause,
+				monotonic_clock::duration::zero(),
+				std::move( action ) );
+	}
+
+	//! Activate a scoped timer and schedule it for execution.
+	/*!
+	 *
+	 * \note
+	 * A proper lifetime of this timer must be controlled by user.
+	 *
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is already activated.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.0
+	 */
+	template< class Duration_1 >
+	void
+	activate(
+		//! Timer to be activated.
+		scoped_timer_object & timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Action for the timer.
+		timer_action action )
+	{
+		this->activate( timer_holder{timer}, pause, action );
+	}
+
 	//! Activate timer and schedule it for execution.
 	/*!
 	 * There is no need to preallocate timer object. It will
@@ -2491,13 +3128,13 @@ public :
 	 *
 	 * \throw std::exception If timer thread is not started.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
 	 */
-	template< class DURATION_1 >
+	template< class Duration_1 >
 	void
 	activate(
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Action for the timer.
 		timer_action action )
 	{
@@ -2514,20 +3151,20 @@ public :
 	 * \throw std::exception If timer thread is not started.
 	 * \throw std::exception If \a timer is already activated.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
-	 * \tparam DURATION_2 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
 	 */
-	template< class DURATION_1, class DURATION_2 >
+	template< class Duration_1, class Duration_2 >
 	void
 	activate(
 		//! Timer to be activated.
 		timer_holder timer,
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Repetition period.
-		//! If <tt>DURATION_2::zero() == period</tt> then timer will be
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
 		//! single-shot.
-		DURATION_2 period,
+		Duration_2 period,
 		//! Action for the timer.
 		timer_action action )
 	{
@@ -2540,6 +3177,93 @@ public :
 			this->notify();
 	}
 
+	/*!
+	 * \brief Perform an attempt to reschedule a timer.
+	 *
+	 * Before v.1.2.1 there was just one way to reschedule a timer:
+	 * method deactivate() must be called first and then method
+	 * activate() must be called for the same timer. This approach is
+	 * not fast because in the case of thread-safe engines it requires
+	 * two operations on a mutex.
+	 *
+	 * Since v.1.2.1 there is a reschedule() method which does deactivation
+	 * of a timer (if it is active) and then new activation of this timer.
+	 * All actions are performed by using just one operation on a mutex.
+	 *
+	 * \note
+	 * This operation can fail if the timer to be rescheduled is in processing.
+	 * Because of that it is recommended to use such operation for
+	 * timer_managers only. But even with timer_managers this operation
+	 * should be used with care.
+	 *
+	 * \attention
+	 * It move operator for a timer_action throws then timer will be
+	 * deactivated. The state for a timer_action itself will be unknown.
+	 * 
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is in processing right now.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.1
+	 */
+	template< class Duration_1, class Duration_2 >
+	void
+	reschedule(
+		//! Timer to be activated.
+		timer_holder timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Repetition period.
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
+		//! single-shot.
+		Duration_2 period,
+		//! Action for the timer.
+		timer_action action )
+	{
+		typename mixin_type::lock_guard locker{ *this };
+
+		this->ensure_started();
+
+		if( m_engine.reschedule(
+				std::move( timer ), pause, period, std::move( action ) ) )
+			this->notify();
+	}
+
+	//! Activate a scoped timer and schedule it for execution.
+	/*!
+	 *
+	 * \note
+	 * A proper lifetime of this timer must be controlled by user.
+	 *
+	 * \throw std::exception If timer thread is not started.
+	 * \throw std::exception If \a timer is already activated.
+	 *
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
+	 *
+	 * \since
+	 * v.1.2.0
+	 */
+	template< class Duration_1, class Duration_2 >
+	void
+	activate(
+		//! Timer to be activated.
+		scoped_timer_object & timer,
+		//! Pause for timer execution.
+		Duration_1 pause,
+		//! Repetition period.
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
+		//! single-shot.
+		Duration_2 period,
+		//! Action for the timer.
+		timer_action action )
+	{
+		this->activate( timer_holder{timer}, pause, period, std::move(action) );
+	}
+
 	//! Activate timer and schedule it for execution.
 	/*!
 	 * There is no need to preallocate timer object. It will
@@ -2547,18 +3271,18 @@ public :
 	 *
 	 * \throw std::exception If timer thread is not started.
 	 *
-	 * \tparam DURATION_1 actual type which represents time duration.
-	 * \tparam DURATION_2 actual type which represents time duration.
+	 * \tparam Duration_1 actual type which represents time duration.
+	 * \tparam Duration_2 actual type which represents time duration.
 	 */
-	template< class DURATION_1, class DURATION_2 >
+	template< class Duration_1, class Duration_2 >
 	void
 	activate(
 		//! Pause for timer execution.
-		DURATION_1 pause,
+		Duration_1 pause,
 		//! Repetition period.
-		//! If <tt>DURATION_2::zero() == period</tt> then timer will be
+		//! If <tt>Duration_2::zero() == period</tt> then timer will be
 		//! single-shot.
-		DURATION_2 period,
+		Duration_2 period,
 		//! Action for the timer.
 		timer_action action )
 	{
@@ -2574,6 +3298,19 @@ public :
 		typename mixin_type::lock_guard locker{ *this };
 
 		m_engine.deactivate( timer );
+	}
+
+	//! Deactivate timer and remove it from the list.
+	/*!
+	 * \since
+	 * v.1.2.0
+	 */
+	void
+	deactivate(
+		//! Timer to be deactivated.
+		scoped_timer_object & timer )
+	{
+		this->deactivate( timer_holder{timer} );
 	}
 
 	/*!
@@ -2609,7 +3346,7 @@ public :
 
 protected :
 	//! Actual timer engine instance.
-	ENGINE m_engine;
+	Engine m_engine;
 };
 
 //
@@ -2619,26 +3356,26 @@ protected :
 /*!
  * \brief Template-based implementation of timer manager.
  *
- * \tparam ENGINE actual type of engine to be used.
+ * \tparam Engine actual type of engine to be used.
  *
  * \since
  * v.1.1.0
  */
-template< typename ENGINE >
+template< typename Engine >
 class manager_impl_template
-	:	public basic_methods_impl_mixin< ENGINE, consumer_type::manager > 
+	:	public basic_methods_impl_mixin< Engine, consumer_type::manager > 
 {
 	//! Shorthand for base type.
 	using base_type = basic_methods_impl_mixin<
-			ENGINE,
+			Engine,
 			consumer_type::manager >;
 
 public :
 	//! Constructor with all parameters.
-	template< typename... ARGS >
+	template< typename... Args >
 	manager_impl_template(
-		ARGS && ... args )
-		:	base_type( std::forward< ARGS >(args)... )
+		Args && ... args )
+		:	base_type( std::forward< Args >(args)... )
 	{
 	}
 
@@ -2680,13 +3417,13 @@ public :
 	 * \return actual sleeping time if there is at least one timer.
 	 * Or \a default_timeout if there is no any timers.
 	 *
-	 * \tparam DURATION type for \a default_timeout
+	 * \tparam Duration type for \a default_timeout
 	 */
-	template< typename DURATION >
+	template< typename Duration >
 	monotonic_clock::duration
 	timeout_before_nearest_timer(
 		//! Default timeout value which will be used if there is no any timers.
-		DURATION default_timeout )
+		Duration default_timeout )
 	{
 		auto r = this->nearest_time_point();
 		if( std::get<0>( r ) )
@@ -2710,26 +3447,26 @@ public :
 /*!
  * \brief Template-based implementation of timer thread.
  *
- * \tparam ENGINE actual type of engine to be used.
+ * \tparam Engine actual type of engine to be used.
  *
  * \since
  * v.1.1.0
  */
-template< typename ENGINE >
+template< typename Engine >
 class thread_impl_template
-	:	public basic_methods_impl_mixin< ENGINE, consumer_type::thread > 
+	:	public basic_methods_impl_mixin< Engine, consumer_type::thread > 
 {
 	//! Shorthand for base type.
 	using base_type = basic_methods_impl_mixin<
-			ENGINE,
+			Engine,
 			consumer_type::thread >;
 
 public :
 	//! Constructor with all parameters.
-	template< typename... ARGS >
+	template< typename... Args >
 	thread_impl_template(
-		ARGS && ... args )
-		:	base_type( std::forward< ARGS >(args)... )
+		Args && ... args )
+		:	base_type( std::forward< Args >(args)... )
 	{
 	}
 
@@ -2866,31 +3603,38 @@ protected :
  * Please see description of details::timer_wheel_engine for the details
  * of the timer wheel mechanism.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer thread execution. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Timer_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class timer_wheel_thread_template
 	: public
 		details::thread_impl_template<
 				details::timer_wheel_engine<
 						::timertt::thread_safety::safe,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > > 
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > > 
 {
 	using base_type =
 			details::thread_impl_template<
 					details::timer_wheel_engine<
 							::timertt::thread_safety::safe,
-							ERROR_LOGGER,
-							ACTOR_EXCEPTION_HANDLER > >;
+							Timer_Action,
+							Error_Logger,
+							Actor_Exception_Handler > >;
 
 public :
 	//! Default constructor.
@@ -2898,8 +3642,8 @@ public :
 		:	timer_wheel_thread_template(
 				base_type::default_wheel_size(),
 				base_type::default_granularity(),
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with wheel size and granularity parameters.
@@ -2911,8 +3655,8 @@ public :
 		:	timer_wheel_thread_template(
 				wheel_size,
 				granularity,
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with all parameters.
@@ -2922,9 +3666,9 @@ public :
 		//! Size of time step for the timer_wheel.
 		monotonic_clock::duration granularity,
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type(
 				wheel_size,
 				granularity,
@@ -2934,34 +3678,27 @@ public :
 };
 
 //
-// timer_wheel_thread_t
-//
-
-//! An alias for default timer_wheel thread implementation.
-/*!
- * \note For compatibility with previous version.
- */
-using timer_wheel_thread_t = timer_wheel_thread_template<
-		default_error_logger,
-		default_actor_exception_handler >;
-
-//
 // timer_wheel_manager_template
 //
+
 /*!
  * \brief A timer wheel manager template.
  *
  * \note Please see description of details::timer_wheel_engine for the details
  * of the timer wheel mechanism.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer handling. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  *
@@ -2969,24 +3706,27 @@ using timer_wheel_thread_t = timer_wheel_thread_template<
  * v.1.1.0
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER = default_error_logger,
-	typename ACTOR_EXCEPTION_HANDLER = default_actor_exception_handler >
+	typename Thread_Safety,
+	typename Timer_Action = default_timer_action_type,
+	typename Error_Logger = default_error_logger,
+	typename Actor_Exception_Handler = default_actor_exception_handler >
 class timer_wheel_manager_template
 	: public
 		details::manager_impl_template<
 				details::timer_wheel_engine<
-						THREAD_SAFETY,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > > 
+						Thread_Safety,
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > > 
 {
 	//! Shorthand for base type.
 	using base_type = 
 			details::manager_impl_template<
 					details::timer_wheel_engine<
-							THREAD_SAFETY,
-							ERROR_LOGGER,
-							ACTOR_EXCEPTION_HANDLER > >;
+							Thread_Safety,
+							Timer_Action,
+							Error_Logger,
+							Actor_Exception_Handler > >;
 
 public :
 	//! Default constructor.
@@ -2994,8 +3734,8 @@ public :
 		:	timer_wheel_manager_template(
 				base_type::default_wheel_size(),
 				base_type::default_granularity(),
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with wheel size and granularity parameters.
@@ -3007,8 +3747,8 @@ public :
 		:	timer_wheel_manager_template(
 				wheel_size,
 				granularity,
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with all parameters.
@@ -3018,9 +3758,9 @@ public :
 		//! Size of time step for the timer_wheel.
 		monotonic_clock::duration granularity,
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type(
 				wheel_size,
 				granularity,
@@ -3028,6 +3768,22 @@ public :
 				exception_handler )
 	{}
 };
+
+//
+// default_timer_wheel_thread
+//
+/*!
+ * \brief Alias for timer_wheel_thread_template with the default
+ * parameters.
+ *
+ * \since
+ * v.1.2.0
+ */
+using default_timer_wheel_thread =
+		timer_wheel_thread_template<
+				default_timer_action_type,
+				default_error_logger,
+				default_actor_exception_handler >;
 
 //
 // timer_list_thread_template
@@ -3039,31 +3795,38 @@ public :
  * \note Please see description of details::timer_list_engine for the
  * details of this timer mechanism.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer thread execution. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Timer_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class timer_list_thread_template
 	: public
 		details::thread_impl_template<
 				details::timer_list_engine<
 						::timertt::thread_safety::safe,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > > 
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > > 
 {
 	using base_type =
 			details::thread_impl_template<
 					details::timer_list_engine<
 							::timertt::thread_safety::safe,
-							ERROR_LOGGER,
-							ACTOR_EXCEPTION_HANDLER > >;
+							Timer_Action,
+							Error_Logger,
+							Actor_Exception_Handler > >;
 
 public :
 	//! Default constructor.
@@ -3072,42 +3835,51 @@ public :
 
 	//! Constructor with all parameters.
 	timer_list_thread_template(
-		ERROR_LOGGER error_logger,
-		ACTOR_EXCEPTION_HANDLER actor_exception_handler )
+		Error_Logger error_logger,
+		Actor_Exception_Handler actor_exception_handler )
 		:	base_type( error_logger, actor_exception_handler )
 	{
 	}
 };
 
 //
-// timer_list_thread_t
+// default_timer_list_thread
 //
-
-//! An alias for default timer_list thread implementation.
 /*!
- * \note For compatibility with previous versions.
+ * \brief Alias for timer_list_thread_template with the default
+ * parameters.
+ *
+ * \since
+ * v.1.2.0
  */
-using timer_list_thread_t = timer_list_thread_template<
-		default_error_logger,
-		default_actor_exception_handler >;
+using default_timer_list_thread =
+		timer_list_thread_template<
+				default_timer_action_type,
+				default_error_logger,
+				default_actor_exception_handler >;
 
 //
 // timer_list_manager_template
 //
+
 /*!
  * \brief A timer list thread template.
  *
  * \note Please see description of details::timer_list_engine for the
  * details of this timer mechanism.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer handling. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  *
@@ -3115,23 +3887,26 @@ using timer_list_thread_t = timer_list_thread_template<
  * v.1.1.0
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER = default_error_logger,
-	typename ACTOR_EXCEPTION_HANDLER = default_actor_exception_handler >
+	typename Thread_Safety,
+	typename Timer_Action = default_timer_action_type,
+	typename Error_Logger = default_error_logger,
+	typename Actor_Exception_Handler = default_actor_exception_handler >
 class timer_list_manager_template
 	: public
 		details::manager_impl_template<
 				details::timer_list_engine<
-						THREAD_SAFETY,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > > 
+						Thread_Safety,
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > > 
 {
 	using base_type =
 			details::manager_impl_template<
 					details::timer_list_engine<
-							THREAD_SAFETY,
-							ERROR_LOGGER,
-							ACTOR_EXCEPTION_HANDLER > >;
+							Thread_Safety,
+							Timer_Action,
+							Error_Logger,
+							Actor_Exception_Handler > >;
 
 public :
 	//! Default constructor.
@@ -3140,8 +3915,8 @@ public :
 
 	//! Constructor with all parameters.
 	timer_list_manager_template(
-		ERROR_LOGGER error_logger,
-		ACTOR_EXCEPTION_HANDLER actor_exception_handler )
+		Error_Logger error_logger,
+		Actor_Exception_Handler actor_exception_handler )
 		:	base_type( error_logger, actor_exception_handler )
 	{
 	}
@@ -3157,32 +3932,39 @@ public :
  * \note Please see description of details::timer_heap_engine for the
  * details about this timer mechanism.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Error_Logger type of logger for errors detected during
  * timer thread execution. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename ERROR_LOGGER,
-	typename ACTOR_EXCEPTION_HANDLER >
+	typename Timer_Action,
+	typename Error_Logger,
+	typename Actor_Exception_Handler >
 class timer_heap_thread_template
 	: public
 		details::thread_impl_template<
 				details::timer_heap_engine<
 						::timertt::thread_safety::safe,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > > 
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > > 
 {
 	//! Shorthand for base type.
 	using base_type =
 			details::thread_impl_template<
 					details::timer_heap_engine<
 							::timertt::thread_safety::safe,
-							ERROR_LOGGER,
-							ACTOR_EXCEPTION_HANDLER > >;
+							Timer_Action,
+							Error_Logger,
+							Actor_Exception_Handler > >;
 
 public :
 	//! Default constructor.
@@ -3193,8 +3975,8 @@ public :
 	timer_heap_thread_template()
 		:	timer_heap_thread_template(
 				base_type::default_initial_heap_capacity(),
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor to specify initial capacity of heap-array.
@@ -3203,8 +3985,8 @@ public :
 		std::size_t initial_heap_capacity )
 		:	timer_heap_thread_template(
 				initial_heap_capacity,
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with all parameters.
@@ -3212,9 +3994,9 @@ public :
 		//! An initial size for heap array.
 		std::size_t initial_heap_capacity,
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type(
 				initial_heap_capacity,
 				error_logger,
@@ -3223,56 +4005,68 @@ public :
 };
 
 //
-// timer_heap_thread_t
+// default_timer_heap_thread
 //
-
-//! An alias for default timer_list thread implementation.
 /*!
- * \note For compatibility with previous versions.
+ * \brief Alias for timer_heap_thread_template with the default
+ * parameters.
+ *
+ * \since
+ * v.1.2.0
  */
-using timer_heap_thread_t = timer_heap_thread_template<
-		default_error_logger,
-		default_actor_exception_handler >;
+using default_timer_heap_thread =
+		timer_heap_thread_template<
+				default_timer_action_type,
+				default_error_logger,
+				default_actor_exception_handler >;
 
 //
 // timer_heap_manager_template
 //
+
 /*!
  * \brief A timer heap manager template.
  *
  * \note Please see description of details::timer_heap_engine for the
  * details about this timer mechanism.
  *
- * \tparam THREAD_SAFETY Thread-safety indicator.
+ * \tparam Thread_Safety Thread-safety indicator.
  * Must be timertt::thread_safety::unsafe or timertt::thread_safety::safe.
  *
- * \tparam ERROR_LOGGER type of logger for errors detected during
+ * \tparam Timer_Action type of functor to perform an user-defined
+ * action when timer expires. This must be Moveable and MoveConstructible
+ * type.
+ *
+ * \tparam Error_Logger type of logger for errors detected during
  * timer handling. Interface for error logger is defined
  * by default_error_logger class.
  *
- * \tparam ACTOR_EXCEPTION_HANDLER type of handler for dealing with
+ * \tparam Actor_Exception_Handler type of handler for dealing with
  * exceptions thrown from timer actors. Interface for exception handler
  * is defined by default_actor_exception_handler.
  */
 template<
-	typename THREAD_SAFETY,
-	typename ERROR_LOGGER = default_error_logger,
-	typename ACTOR_EXCEPTION_HANDLER = default_actor_exception_handler >
+	typename Thread_Safety,
+	typename Timer_Action = default_timer_action_type,
+	typename Error_Logger = default_error_logger,
+	typename Actor_Exception_Handler = default_actor_exception_handler >
 class timer_heap_manager_template
 	: public
 		details::manager_impl_template<
 				details::timer_heap_engine<
-						THREAD_SAFETY,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > > 
+						Thread_Safety,
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > > 
 {
 	//! Shorthand for base type.
 	using base_type =
 		details::manager_impl_template<
 				details::timer_heap_engine<
-						THREAD_SAFETY,
-						ERROR_LOGGER,
-						ACTOR_EXCEPTION_HANDLER > >;
+						Thread_Safety,
+						Timer_Action,
+						Error_Logger,
+						Actor_Exception_Handler > >;
 
 public :
 	//! Default constructor.
@@ -3283,8 +4077,8 @@ public :
 	timer_heap_manager_template()
 		:	timer_heap_manager_template(
 				base_type::default_initial_heap_capacity(),
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor to specify initial capacity of heap-array.
@@ -3293,8 +4087,8 @@ public :
 		std::size_t initial_heap_capacity )
 		:	timer_heap_manager_template(
 				initial_heap_capacity,
-				ERROR_LOGGER(),
-				ACTOR_EXCEPTION_HANDLER() )
+				Error_Logger(),
+				Actor_Exception_Handler() )
 	{}
 
 	//! Constructor with all parameters.
@@ -3302,9 +4096,9 @@ public :
 		//! An initial size for heap array.
 		std::size_t initial_heap_capacity,
 		//! An error logger for timer thread.
-		ERROR_LOGGER error_logger,
+		Error_Logger error_logger,
 		//! An actor exception handler for timer thread.
-		ACTOR_EXCEPTION_HANDLER exception_handler )
+		Actor_Exception_Handler exception_handler )
 		:	base_type(
 				initial_heap_capacity,
 				error_logger,
