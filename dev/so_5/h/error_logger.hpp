@@ -31,13 +31,13 @@ namespace so_5
  */
 class SO_5_TYPE error_logger_t
 	{
+	public :
 		error_logger_t( const error_logger_t & ) = delete;
 		error_logger_t &
 		operator=( error_logger_t & ) = delete;
 
-	public :
-		error_logger_t();
-		virtual ~error_logger_t();
+		error_logger_t() = default;
+		virtual ~error_logger_t() = default;
 
 		//! A method for logging message.
 		/*!

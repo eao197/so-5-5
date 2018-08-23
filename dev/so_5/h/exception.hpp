@@ -39,17 +39,20 @@ class SO_5_TYPE exception_t : public std::runtime_error
 		exception_t(
 			const std::string & error_descr,
 			int error_code );
-		exception_t( const exception_t & );
-		exception_t( exception_t && );
+		exception_t( const exception_t & ) = default;
+		exception_t( exception_t && ) SO_5_NOEXCEPT = default;
 
-		virtual ~exception_t();
+		virtual ~exception_t() = default;
 
 		exception_t &
 		operator=( exception_t o );
 
 		//! Error code getter.
 		int
-		error_code() const;
+		error_code() const
+		{
+			return m_error_code;
+		}
 
 		static void
 		raise(
@@ -62,6 +65,16 @@ class SO_5_TYPE exception_t : public std::runtime_error
 		//! Error code.
 		int m_error_code;
 };
+
+
+inline so_5::exception_t::exception_t(
+	const std::string & error_descr,
+	int error_code )
+	:
+		base_type_t( error_descr ),
+		m_error_code( error_code )
+{
+}
 
 #if defined( SO_5_MSVC )
 	#pragma warning(pop)
