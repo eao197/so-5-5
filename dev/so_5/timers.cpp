@@ -23,101 +23,9 @@
 namespace so_5
 {
 
-//
-// timer_t
-//
-timer_t::~timer_t() SO_5_NOEXCEPT
-	{}
-
-//
-// timer_id_t
-//
-timer_id_t::timer_id_t() SO_5_NOEXCEPT
-	{}
-
-timer_id_t::timer_id_t(
-	so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT
-	:	m_timer( std::move( timer ) )
-	{}
-
-timer_id_t::timer_id_t(
-	const timer_id_t & o ) SO_5_NOEXCEPT
-	:	m_timer( o.m_timer )
-	{}
-
-timer_id_t::timer_id_t(
-	timer_id_t && o ) SO_5_NOEXCEPT
-	:	m_timer( std::move( o.m_timer ) )
-	{}
-
-timer_id_t::~timer_id_t() SO_5_NOEXCEPT
-	{}
-
-timer_id_t &
-timer_id_t::operator=( const timer_id_t & o ) SO_5_NOEXCEPT
-	{
-		timer_id_t t( o );
-		t.swap( *this );
-		return *this;
-	}
-
-timer_id_t &
-timer_id_t::operator=( timer_id_t && o ) SO_5_NOEXCEPT
-	{
-		timer_id_t t( std::move( o ) );
-		t.swap( *this );
-		return *this;
-	}
-
-void
-timer_id_t::swap( timer_id_t & o ) SO_5_NOEXCEPT
-	{
-		m_timer.swap( o.m_timer );
-	}
-
-bool
-timer_id_t::is_active() const SO_5_NOEXCEPT
-	{
-		return ( m_timer && m_timer->is_active() );
-	}
-
-void
-timer_id_t::release() SO_5_NOEXCEPT
-	{
-		if( m_timer )
-			m_timer->release();
-	}
-
-//
-// timer_thread_t
-//
-
-timer_thread_t::timer_thread_t()
-	{}
-
-timer_thread_t::~timer_thread_t()
-	{}
-
-//
-// timer_manager_t::elapsed_timers_collector_t
-//
-timer_manager_t::elapsed_timers_collector_t::elapsed_timers_collector_t()
-	{}
-
-timer_manager_t::elapsed_timers_collector_t::~elapsed_timers_collector_t()
-	{}
-
-//
-// timer_manager_t
-//
-
-timer_manager_t::timer_manager_t()
-	{}
-
-timer_manager_t::~timer_manager_t()
-	{}
-
 namespace timers_details
+{
+namespace
 {
 
 //
@@ -573,6 +481,7 @@ using timer_list_manager_t = timertt::timer_list_manager_template<
  * \}
  */
 
+}
 } /* namespace timers_details */
 
 SO_5_FUNC timer_thread_unique_ptr_t

@@ -34,6 +34,7 @@ class SO_5_TYPE atomic_refcounted_t
 		atomic_refcounted_t(
 			const atomic_refcounted_t & );
 
+
 		/*! Disabled. */
 		atomic_refcounted_t &
 		operator = (
@@ -44,13 +45,15 @@ class SO_5_TYPE atomic_refcounted_t
 		/*!
 		 * Sets reference counter to 0.
 		 */
-		atomic_refcounted_t() SO_5_NOEXCEPT;
+		atomic_refcounted_t() SO_5_NOEXCEPT
+			: m_ref_counter(0)
+		{}
 
 		//! Destructor.
 		/*!
 		 * Do nothing.
 		 */
-		~atomic_refcounted_t() SO_5_NOEXCEPT;
+		~atomic_refcounted_t() SO_5_NOEXCEPT = default;
 
 		//! Increments reference count.
 		inline void

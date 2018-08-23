@@ -26,12 +26,10 @@ unset(CURRENT_FILE_DIR)
 set(SO_5_SRC exception.cpp
 	exception.cpp
 	current_thread_id.cpp
-	atomic_refcounted.cpp
 	error_logger.cpp
 	timers.cpp
 	msg_tracing.cpp
 	wrapped_env.cpp
-	stop_guard.cpp
 	rt/message.cpp
 	rt/message_limit.cpp
 	rt/mbox.cpp

@@ -36,15 +36,6 @@ namespace so_5
 {
 
 //
-// error_logger_t
-//
-error_logger_t::error_logger_t()
-	{}
-
-error_logger_t::~error_logger_t()
-	{}
-
-//
 // stderr_logger_t
 //
 /*!
@@ -56,8 +47,7 @@ error_logger_t::~error_logger_t()
 class stderr_logger_t : public error_logger_t
 	{
 	public :
-		stderr_logger_t()
-			{}
+		stderr_logger_t() = default;
 
 		virtual void
 		log(
