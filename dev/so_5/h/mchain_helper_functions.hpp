@@ -278,9 +278,8 @@ class auto_closer_t
 			{}
 
 		auto_closer_t( auto_closer_t && o )
-			:	m_close_mode{ o.m_close_mode }
 			{
-				m_chains.swap( o.m_chains );
+				swap( *this, o );
 			}
 
 		~auto_closer_t()
