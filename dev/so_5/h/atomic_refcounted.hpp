@@ -30,17 +30,17 @@ namespace so_5
 */
 class SO_5_TYPE atomic_refcounted_t
 {
+	public:
 		/*! Disabled. */
 		atomic_refcounted_t(
-			const atomic_refcounted_t & );
+			const atomic_refcounted_t & ) = delete;
 
 
 		/*! Disabled. */
 		atomic_refcounted_t &
 		operator = (
-			const atomic_refcounted_t & );
+			const atomic_refcounted_t & ) = delete;
 
-	public:
 		//! Default constructor.
 		/*!
 		 * Sets reference counter to 0.
@@ -177,9 +177,7 @@ class intrusive_ptr_t
 		void
 		swap( intrusive_ptr_t & o ) SO_5_NOEXCEPT
 		{
-			T * t = m_obj;
-			m_obj = o.m_obj;
-			o.m_obj = t;
+			std::swap( m_obj, o.m_obj );
 		}
 
 		/*!
@@ -252,24 +250,22 @@ class intrusive_ptr_t
 		{
 			T * p1 = get();
 			T * p2 = o.get();
-			if( p1 == nullptr && p2 == nullptr )
-				return true;
-			if( p1 != nullptr && p2 != nullptr )
+
+			if ( p1 != nullptr && p2 != nullptr )
 				return (*p1) == (*p2);
-			return false;
+			else
+				return ( p1 == p2 );
 		}
 
 		bool operator<( const intrusive_ptr_t & o ) const
 		{
 			T * p1 = get();
 			T * p2 = o.get();
-			if( p1 == nullptr && p2 == nullptr )
-				return false;
+
 			if( p1 != nullptr && p2 != nullptr )
 				return (*p1) < (*p2);
-			if( p1 == nullptr && p2 != nullptr )
-				return true;
-			return false;
+			else
+				return p1 < p2;
 		}
 		/*!
 		 * \}

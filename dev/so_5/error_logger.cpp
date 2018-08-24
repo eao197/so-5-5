@@ -85,7 +85,7 @@ stderr_logger_t::log(
 				<< " (" << file << ":" << line
 				<< ")\n";
 
-		cerr << total_message.str();
+		cerr << total_message.rdbuf();
 	}
 
 //
@@ -94,7 +94,7 @@ stderr_logger_t::log(
 SO_5_FUNC error_logger_shptr_t
 create_stderr_logger()
 	{
-		return error_logger_shptr_t( new stderr_logger_t() );
+		return std::make_shared< stderr_logger_t >();
 	}
 
 } /* namespace so_5 */
