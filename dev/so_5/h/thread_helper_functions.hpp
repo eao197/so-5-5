@@ -14,6 +14,8 @@
 #include <array>
 #include <thread>
 
+#include <so_5/h/compiler_features.hpp>
+
 namespace so_5 {
 
 namespace thread_auto_join_details {
@@ -46,7 +48,7 @@ class auto_joiner_t
 		auto_joiner_t( auto_joiner_t && o )
 			{
 				nullify();
-				m_threads.swap( o.m_threads );
+				swap(*this, o);
 			}
 
 		~auto_joiner_t()

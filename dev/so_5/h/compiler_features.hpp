@@ -45,6 +45,13 @@
 
 #endif
 
+#if defined(_M_X64) || defined(_M_AMD64) || defined(__amd64__) || defined(__amd64)
+	#define SO_5_ARCH_X64 1
+#elif defined(_M_IX86) || defined(__i386__) || defined(__i386)
+	#define SO_5_ARCH_X32 1
+#endif
+
+
 #if defined( __clang__ )
 	#define SO_5_CLANG
 #endif

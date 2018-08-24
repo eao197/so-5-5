@@ -61,7 +61,7 @@ create_mchain( environment_t & env )
 inline mchain_t
 create_mchain( wrapped_env_t & sobj )
 	{
-		return sobj.environment().create_mchain( so_5::make_unlimited_mchain_params() );
+		return create_mchain(sobj.environment());
 	}
 
 /*!
@@ -278,9 +278,8 @@ class auto_closer_t
 			{}
 
 		auto_closer_t( auto_closer_t && o )
-			:	m_close_mode{ o.m_close_mode }
 			{
-				m_chains.swap( o.m_chains );
+				swap( *this, o );
 			}
 
 		~auto_closer_t()

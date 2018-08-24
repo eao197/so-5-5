@@ -295,17 +295,18 @@ state_t::operator == ( const state_t & state ) const
 std::string
 state_t::query_name() const
 {
-	auto getter = [this]() -> std::string {
-		if( m_state_name.empty() )
-			return create_anonymous_state_name( m_target_agent, this );
-		else
-			return m_state_name;
-	};
+	std::string state_name = ( m_state_name.empty() )
+		? create_anonymous_state_name( m_target_agent, this )
+		: m_state_name;
 
-	if( m_parent_state )
-		return m_parent_state->query_name() + "." + getter();
-	else
-		return getter();
+	if ( !m_parent_state )
+		return std::move( state_name );
+
+	std::string res = m_parent_state->query_name();
+	res.reserve(res.size() + state_name.size() + 2);
+	res += ".";
+	res += state_name;
+	return std::move(res);
 }
 
 namespace {
@@ -351,10 +352,8 @@ state_t::is_target( const agent_t * agent ) const
 {
 	if( m_target_agent )
 		return m_target_agent == agent;
-	else if( this == &awaiting_deregistration_state )
-		return true;
-	else
-		return false;
+
+	return ( this == &awaiting_deregistration_state );
 }
 
 void
