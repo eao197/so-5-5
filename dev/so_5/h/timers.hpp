@@ -49,7 +49,7 @@ class SO_5_TYPE timer_t
 		friend class intrusive_ptr_t< timer_t >;
 
 	public :
-		virtual ~timer_t() SO_5_NOEXCEPT;
+		virtual ~timer_t() SO_5_NOEXCEPT = default;
 
 		//! Is this timer event is active?
 		virtual bool
@@ -73,17 +73,20 @@ class SO_5_TYPE timer_id_t
 	{
 	public :
 		//! Default constructor.
-		timer_id_t() SO_5_NOEXCEPT;
+		timer_id_t() SO_5_NOEXCEPT = default;
 		//! Initializing constructor.
 		timer_id_t(
-			so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT;
+			so_5::intrusive_ptr_t< timer_t > && timer ) SO_5_NOEXCEPT
+			: m_timer( std::move( timer ) )
+		{}
+
 		//! Copy constructor.
 		timer_id_t(
-			const timer_id_t & o ) SO_5_NOEXCEPT;
+			const timer_id_t & o ) SO_5_NOEXCEPT = default;
 		//! Move constructor.
 		timer_id_t(
-			timer_id_t && o ) SO_5_NOEXCEPT;
-		~timer_id_t() SO_5_NOEXCEPT;
+			timer_id_t && o ) SO_5_NOEXCEPT = default;
+		~timer_id_t() SO_5_NOEXCEPT = default;
 
 		//! Copy operator.
 		timer_id_t &
@@ -108,6 +111,39 @@ class SO_5_TYPE timer_id_t
 		//! Actual timer.
 		so_5::intrusive_ptr_t< timer_t > m_timer;
 	};
+
+inline timer_id_t &
+timer_id_t::operator=( const timer_id_t & o ) SO_5_NOEXCEPT
+	{
+		timer_id_t( o ).swap(*this);
+		return *this;
+	}
+
+inline timer_id_t &
+timer_id_t::operator=( timer_id_t && o ) SO_5_NOEXCEPT
+	{
+		timer_id_t( std::move( o ) ).swap( *this );
+		return *this;
+	}
+
+inline void
+timer_id_t::swap( timer_id_t & o ) SO_5_NOEXCEPT
+	{
+		m_timer.swap( o.m_timer );
+	}
+
+inline bool
+timer_id_t::is_active() const SO_5_NOEXCEPT
+	{
+		return ( m_timer && m_timer->is_active() );
+	}
+
+inline void
+timer_id_t::release() SO_5_NOEXCEPT
+	{
+		if( m_timer )
+			m_timer->release();
+	}
 
 namespace timer_thread
 {
@@ -163,8 +199,8 @@ class SO_5_TYPE timer_thread_t
 		operator=( const timer_thread_t & ) = delete;
 
 	public:
-		timer_thread_t();
-		virtual ~timer_thread_t();
+		timer_thread_t() = default;
+		virtual ~timer_thread_t() = default;
 
 		//! Launch timer.
 		virtual void
@@ -450,8 +486,8 @@ class SO_5_TYPE timer_manager_t
 				operator=( const elapsed_timers_collector_t & ) = delete;
 
 			public :
-				elapsed_timers_collector_t();
-				virtual ~elapsed_timers_collector_t();
+				elapsed_timers_collector_t() = default;
+				virtual ~elapsed_timers_collector_t() = default;
 
 				//! Accept and store info about elapsed timer.
 				virtual void
@@ -464,8 +500,8 @@ class SO_5_TYPE timer_manager_t
 					message_ref_t msg ) = 0;
 			};
 
-		timer_manager_t();
-		virtual ~timer_manager_t();
+		timer_manager_t() = default;
+		virtual ~timer_manager_t() = default;
 
 		//! Translation of expired timers into message sends.
 		virtual void

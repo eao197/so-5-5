@@ -38,6 +38,20 @@ class yield_backoff_t
 			}
 	};
 
+class pause_backoff_t
+	{
+	public :
+		inline void
+		operator()()
+			{
+				#if defined( _MSC_VER )
+					_mm_pause();
+				#elif defined(__GNUC__)
+					asm ("pause");
+				#endif
+			}
+	};
+
 //
 // spinlock_t
 //
@@ -56,7 +70,7 @@ class spinlock_t
 	public :
 		spinlock_t()
 			{
-				m_flag.clear( std::memory_order_release );
+				m_flag.store( false, std::memory_order_relaxed );
 			}
 		spinlock_t( const spinlock_t & ) = delete;
 		spinlock_t( spinlock_t && ) = delete;
@@ -69,26 +83,30 @@ class spinlock_t
 		lock()
 			{
 				Backoff backoff;
-				while( m_flag.test_and_set( std::memory_order_acquire ) )
-					backoff();
+
+				do {
+					// ease cache invalidation (see TATAS)
+					while ( m_flag.load( std::memory_order_relaxed ) )
+						backoff();
+				} while( m_flag.exchange( true, std::memory_order_acquire ) );
 			}
 
 		//! Unlock object.
 		void
 		unlock()
 			{
-				m_flag.clear( std::memory_order_release );
+				m_flag.store( false, std::memory_order_release );
 			}
 
 	private :
 		//! Atomic flag which is used as actual lock.
-		std::atomic_flag m_flag;
+		std::atomic_bool m_flag;
 	};
 
 //
 // default_spinlock_t
 //
-typedef spinlock_t< yield_backoff_t > default_spinlock_t;
+typedef spinlock_t< pause_backoff_t > default_spinlock_t;
 
 //
 // rw_spinlock_t
