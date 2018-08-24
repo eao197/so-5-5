@@ -23,8 +23,6 @@
 namespace so_5
 {
 
-namespace timers_details
-{
 namespace
 {
 
@@ -40,7 +38,7 @@ namespace
  * \note
  * Since v.5.5.19 this template can be used with timer_thread and
  * with timer_manager.
- * 
+ *
  * \tparam Timer A type of timertt-based thread/manager which implements timers.
  */
 template< class Timer >
@@ -138,7 +136,7 @@ class timer_action_for_timer_thread_t
  * v.5.5.0
  *
  * \brief An actual implementation of timer thread.
- * 
+ *
  * \tparam Timer_Thread A type of timertt-based thread which implements timers.
  */
 template< class Timer_Thread >
@@ -148,7 +146,7 @@ class actual_thread_t : public timer_thread_t
 
 	public :
 		//! Initializing constructor.
-		actual_thread_t(
+		explicit actual_thread_t(
 			//! Real timer thread.
 			std::unique_ptr< Timer_Thread > thread )
 			:	m_thread( std::move( thread ) )
@@ -256,7 +254,7 @@ class timer_action_for_timer_manager_t
 //
 /*!
  * \brief An actual implementation of timer_manager.
- * 
+ *
  * \tparam Timer_Manager A type of timertt-based manager which implements timers.
  *
  * \since
@@ -481,19 +479,16 @@ using timer_list_manager_t = timertt::timer_list_manager_template<
  * \}
  */
 
-}
-} /* namespace timers_details */
+} /* timers_details */
 
 SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_wheel_thread(
 	error_logger_shptr_t logger )
 	{
-		using timertt_thread_t = timers_details::timer_wheel_thread_t;
-
 		return create_timer_wheel_thread(
-				logger,
-				timertt_thread_t::default_wheel_size(),
-				timertt_thread_t::default_granularity() );
+				std::move( logger ),
+				timer_wheel_thread_t::default_wheel_size(),
+				timer_wheel_thread_t::default_granularity() );
 	}
 
 SO_5_FUNC timer_thread_unique_ptr_t
@@ -502,29 +497,24 @@ create_timer_wheel_thread(
 	unsigned int wheel_size,
 	std::chrono::steady_clock::duration granuality )
 	{
-		using timertt_thread_t = timers_details::timer_wheel_thread_t;
-		using namespace timers_details;
-
-		std::unique_ptr< timertt_thread_t > thread(
-				new timertt_thread_t(
+		std::unique_ptr< timer_wheel_thread_t > thread(
+				new timer_wheel_thread_t(
 						wheel_size,
 						granuality,
 						create_error_logger_for_timertt( logger ),
 						create_exception_handler_for_timertt_thread( logger ) ) );
 
 		return timer_thread_unique_ptr_t(
-				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
+				new actual_thread_t< timer_wheel_thread_t >( std::move( thread ) ) );
 	}
 
 SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_heap_thread(
 	error_logger_shptr_t logger )
 	{
-		using timertt_thread_t = timers_details::timer_heap_thread_t;
-
 		return create_timer_heap_thread(
-				logger,
-				timertt_thread_t::default_initial_heap_capacity() );
+				std::move( logger ),
+				timer_heap_thread_t::default_initial_heap_capacity() );
 	}
 
 SO_5_FUNC timer_thread_unique_ptr_t
@@ -532,33 +522,27 @@ create_timer_heap_thread(
 	error_logger_shptr_t logger,
 	std::size_t initial_heap_capacity )
 	{
-		using timertt_thread_t = timers_details::timer_heap_thread_t;
-		using namespace timers_details;
-
-		std::unique_ptr< timertt_thread_t > thread(
-				new timertt_thread_t(
+		std::unique_ptr< timer_heap_thread_t > thread(
+				new timer_heap_thread_t(
 						initial_heap_capacity,
 						create_error_logger_for_timertt( logger ),
 						create_exception_handler_for_timertt_thread( logger ) ) );
 
 		return timer_thread_unique_ptr_t(
-				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
+				new actual_thread_t< timer_heap_thread_t >( std::move( thread ) ) );
 	}
 
 SO_5_FUNC timer_thread_unique_ptr_t
 create_timer_list_thread(
 	error_logger_shptr_t logger )
 	{
-		using timertt_thread_t = timers_details::timer_list_thread_t;
-		using namespace timers_details;
-
-		std::unique_ptr< timertt_thread_t > thread(
-				new timertt_thread_t(
+		std::unique_ptr< timer_list_thread_t > thread(
+				new timer_list_thread_t(
 						create_error_logger_for_timertt( logger ),
 						create_exception_handler_for_timertt_thread( logger ) ) );
 
 		return timer_thread_unique_ptr_t(
-				new actual_thread_t< timertt_thread_t >( std::move( thread ) ) );
+				new actual_thread_t< timer_list_thread_t >( std::move( thread ) ) );
 	}
 
 SO_5_FUNC timer_manager_unique_ptr_t
@@ -567,13 +551,11 @@ create_timer_wheel_manager(
 	outliving_reference_t<
 			timer_manager_t::elapsed_timers_collector_t > collector )
 	{
-		using timertt_manager_t = timers_details::timer_wheel_manager_t;
-
 		return create_timer_wheel_manager(
-				logger,
-				std::move(collector),
-				timertt_manager_t::default_wheel_size(),
-				timertt_manager_t::default_granularity() );
+				std::move( logger ),
+				collector,
+				timer_wheel_manager_t::default_wheel_size(),
+				timer_wheel_manager_t::default_granularity() );
 	}
 
 SO_5_FUNC timer_manager_unique_ptr_t
@@ -584,16 +566,13 @@ create_timer_wheel_manager(
 	unsigned int wheel_size,
 	std::chrono::steady_clock::duration granuality )
 	{
-		using timertt_manager_t = timers_details::timer_wheel_manager_t;
-		using namespace timers_details;
-
-		auto manager = stdcpp::make_unique< timertt_manager_t >(
+		auto manager = stdcpp::make_unique< timer_wheel_manager_t >(
 				wheel_size,
 				granuality,
 				create_error_logger_for_timertt( logger ),
 				create_exception_handler_for_timertt_manager( logger ) );
 
-		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
+		return stdcpp::make_unique< actual_manager_t< timer_wheel_manager_t > >(
 						std::move( manager ),
 						std::move( collector ) );
 	}
@@ -604,12 +583,10 @@ create_timer_heap_manager(
 	outliving_reference_t<
 			timer_manager_t::elapsed_timers_collector_t > collector )
 	{
-		using timertt_manager_t = timers_details::timer_heap_manager_t;
-
 		return create_timer_heap_manager(
-				logger,
-				std::move(collector),
-				timertt_manager_t::default_initial_heap_capacity() );
+				std::move( logger ),
+				collector,
+				timer_heap_manager_t::default_initial_heap_capacity() );
 	}
 
 SO_5_FUNC timer_manager_unique_ptr_t
@@ -619,15 +596,12 @@ create_timer_heap_manager(
 			timer_manager_t::elapsed_timers_collector_t > collector,
 	std::size_t initial_heap_capacity )
 	{
-		using timertt_manager_t = timers_details::timer_heap_manager_t;
-		using namespace timers_details;
-
-		auto manager = stdcpp::make_unique< timertt_manager_t >(
+		auto manager = stdcpp::make_unique< timer_heap_manager_t >(
 				initial_heap_capacity,
 				create_error_logger_for_timertt( logger ),
 				create_exception_handler_for_timertt_manager( logger ) );
 
-		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
+		return stdcpp::make_unique< actual_manager_t< timer_heap_manager_t > >(
 				std::move( manager ),
 				std::move( collector ) );
 	}
@@ -638,14 +612,11 @@ create_timer_list_manager(
 	outliving_reference_t<
 			timer_manager_t::elapsed_timers_collector_t > collector )
 	{
-		using timertt_manager_t = timers_details::timer_list_manager_t;
-		using namespace timers_details;
-
-		auto manager = stdcpp::make_unique< timertt_manager_t >(
+		auto manager = stdcpp::make_unique< timer_list_manager_t >(
 				create_error_logger_for_timertt( logger ),
 				create_exception_handler_for_timertt_manager( logger ) );
 
-		return stdcpp::make_unique< actual_manager_t< timertt_manager_t > >(
+		return stdcpp::make_unique< actual_manager_t< timer_list_manager_t > >(
 				std::move( manager ),
 				std::move( collector ) );
 	}
