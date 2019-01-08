@@ -127,11 +127,6 @@ matrix:
       env: CXX_COMPILER=g++-8 C_COMPILER=gcc-8 BUILD_TYPE='Release'
 
     - os: osx
-      osx_image: xcode6.4
-      compiler: clang
-      env: CXX_COMPILER=clang++ C_COMPILER=clang BUILD_TYPE='Release'
-
-    - os: osx
       osx_image: xcode7.3
       compiler: clang
       env: CXX_COMPILER=clang++ C_COMPILER=clang BUILD_TYPE='Release'
