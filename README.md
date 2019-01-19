@@ -1,5 +1,5 @@
 Travis CI [![Build Status](https://travis-ci.org/eao197/so-5-5.svg?branch=master)](https://travis-ci.org/eao197/so-5-5)
-
+Appveyor [![Build status](https://ci.appveyor.com/api/projects/status/kcc527qpu12s262t?svg=true)](https://ci.appveyor.com/project/masterspline/so-5-5)
 Coverity [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786)
 
 This is an experimental SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.
