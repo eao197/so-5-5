@@ -1,11 +1,8 @@
 Travis CI [![Build Status](https://travis-ci.org/eao197/so-5-5.svg?branch=master)](https://travis-ci.org/eao197/so-5-5)
 
-[comment]: <> (Coverity [![Coverity Scan Build Status](https://scan.coverity.com/projects/4786/badge.svg)](https://scan.coverity.com/projects/4786))
-
 **NOTE!** *This is an experimental SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.*
 
-What is SObjectizer?
-====================
+# What is SObjectizer?
 
 SObjectizer is one of a few cross-platform and OpenSource "actor frameworks"
 for C++.  But SObjectizer supports not only Actor Model, but also
@@ -18,8 +15,7 @@ which interact with each other through asynchronous messages. It handles
 message dispatching and provides a working context for message processing. And
 allows to tune those things by supplying various ready-to-use dispatchers.
 
-What distinguishes SObjectizer?
-===============================
+# What distinguishes SObjectizer?
 
 **Maturity**. SObjectizer is based on ideas that have been put forward in
 1995-2000. And SObjectizer itself is being developed since 2002. SObjectizer-5
@@ -38,11 +34,9 @@ information in the project's Wiki.
 **Free**. SObjectizer is distributed under BSD-3-CLAUSE license, so it can be used
 in development of proprietary commercial software for free.
 
-Show me the code!
-=================
+# Show me the code!
 
-HelloWorld example
-------------------
+## HelloWorld example
 
 This is a classical example "Hello, World" expressed by using SObjectizer's
 agents:
@@ -52,30 +46,29 @@ agents:
 
 class hello_actor final : public so_5::agent_t {
 public:
-	using so_5::agent_t::agent_t;
+   using so_5::agent_t::agent_t;
 
-	void so_evt_start() override {
-		std::cout << "Hello, World!" << std::endl;
-		// Finish work of example.
-		so_deregister_agent_coop_normally();
-	}
+   void so_evt_start() override {
+      std::cout << "Hello, World!" << std::endl;
+      // Finish work of example.
+      so_deregister_agent_coop_normally();
+   }
 };
 
 int main() {
-	// Launch SObjectizer.
-	so_5::launch([](so_5::environment_t & env) {
-			// Add a hello_actor instance in a new cooperation.
-			env.introduce_coop([](so_5::coop_t & coop) {
-					coop.make_agent<hello_actor>();
-				});
-		});
+   // Launch SObjectizer.
+   so_5::launch([](so_5::environment_t & env) {
+         // Add a hello_actor instance in a new cooperation.
+         env.introduce_coop([](so_5::coop_t & coop) {
+               coop.make_agent<hello_actor>();
+            });
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
-Ping-Pong example
------------------
+## Ping-Pong example
 
 Let's look at more interesting example with two agents and message exchange
 between them. It is another famous example for actor frameworks, "Ping-Pong":
@@ -84,72 +77,72 @@ between them. It is another famous example for actor frameworks, "Ping-Pong":
 #include <so_5/all.hpp>
 
 struct ping {
-	int counter_;
+   int counter_;
 };
 
 struct pong {
-	int counter_;
+   int counter_;
 };
 
 class pinger final : public so_5::agent_t {
-	so_5::mbox_t ponger_;
+   so_5::mbox_t ponger_;
 
-	void on_pong(mhood_t<pong> cmd) {
-		if(cmd->counter_ > 0)
-			so_5::send<ping>(ponger_, cmd->counter_ - 1);
-		else
-			so_deregister_agent_coop_normally();
-	}
+   void on_pong(mhood_t<pong> cmd) {
+      if(cmd->counter_ > 0)
+         so_5::send<ping>(ponger_, cmd->counter_ - 1);
+      else
+         so_deregister_agent_coop_normally();
+   }
 
 public:
-	pinger(context_t ctx) : so_5::agent_t{std::move(ctx)} {}
+   pinger(context_t ctx) : so_5::agent_t{std::move(ctx)} {}
 
-	void set_ponger(const so_5::mbox_t mbox) { ponger_ = mbox; }
+   void set_ponger(const so_5::mbox_t mbox) { ponger_ = mbox; }
 
-	void so_define_agent() override {
-		so_subscribe_self().event( &pinger::on_pong );
-	}
+   void so_define_agent() override {
+      so_subscribe_self().event( &pinger::on_pong );
+   }
 
-	void so_evt_start() override {
-		so_5::send<ping>(ponger_, 1000);
-	}
+   void so_evt_start() override {
+      so_5::send<ping>(ponger_, 1000);
+   }
 };
 
 class ponger final : public so_5::agent_t {
-	const so_5::mbox_t pinger_;
-	int pings_received_{};
+   const so_5::mbox_t pinger_;
+   int pings_received_{};
 
 public:
-	ponger(context_t ctx, so_5::mbox_t pinger)
-		:	so_5::agent_t{std::move(ctx)}
-		,	pinger_{std::move(pinger)}
-	{}
+   ponger(context_t ctx, so_5::mbox_t pinger)
+      :  so_5::agent_t{std::move(ctx)}
+      ,  pinger_{std::move(pinger)}
+   {}
 
-	void so_define_agent() override {
-		so_subscribe_self().event(
-			[this](mhood_t<ping> cmd) {
-				++pings_received_;
-				so_5::send<pong>(pinger_, cmd->counter_);
-			});
-	}
+   void so_define_agent() override {
+      so_subscribe_self().event(
+         [this](mhood_t<ping> cmd) {
+            ++pings_received_;
+            so_5::send<pong>(pinger_, cmd->counter_);
+         });
+   }
 
-	void so_evt_finish() override {
-		std::cout << "pings received: " << pings_received_ << std::endl;
-	}
+   void so_evt_finish() override {
+      std::cout << "pings received: " << pings_received_ << std::endl;
+   }
 };
 
 int main() {
-	so_5::launch([](so_5::environment_t & env) {
-			env.introduce_coop([](so_5::coop_t & coop) {
-					auto pinger_actor = coop.make_agent<pinger>();
-					auto ponger_actor = coop.make_agent<ponger>(
-							pinger_actor->so_direct_mbox());
+   so_5::launch([](so_5::environment_t & env) {
+         env.introduce_coop([](so_5::coop_t & coop) {
+               auto pinger_actor = coop.make_agent<pinger>();
+               auto ponger_actor = coop.make_agent<ponger>(
+                     pinger_actor->so_direct_mbox());
 
-					pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
-				});
-		});
+               pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
+            });
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
@@ -160,24 +153,23 @@ It is very simple. Just use an appropriate dispatcher:
 
 ```cpp
 int main() {
-	so_5::launch([](so_5::environment_t & env) {
-			env.introduce_coop(
-				so_5::disp::active_obj::create_private_disp(env)->binder(),
-				[](so_5::coop_t & coop) {
-					auto pinger_actor = coop.make_agent<pinger>();
-					auto ponger_actor = coop.make_agent<ponger>(
-							pinger_actor->so_direct_mbox());
+   so_5::launch([](so_5::environment_t & env) {
+         env.introduce_coop(
+            so_5::disp::active_obj::create_private_disp(env)->binder(),
+            [](so_5::coop_t & coop) {
+               auto pinger_actor = coop.make_agent<pinger>();
+               auto ponger_actor = coop.make_agent<ponger>(
+                     pinger_actor->so_direct_mbox());
 
-					pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
-				});
-		});
+               pinger_actor->set_ponger(ponger_actor->so_direct_mbox());
+            });
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
-Pub/Sub example
----------------
+## Pub/Sub example
 
 SObjectizer supports Pub/Sub model via multi-producer/multi-consumer message
 boxes. A message sent to that message box will be received by all subscribers
@@ -189,79 +181,78 @@ of that message type:
 using namespace std::literals;
 
 struct acquired_value {
-	std::chrono::steady_clock::time_point acquired_at_;
-	int value_;
+   std::chrono::steady_clock::time_point acquired_at_;
+   int value_;
 };
 
 class producer final : public so_5::agent_t {
-	const so_5::mbox_t board_;
-	so_5::timer_id_t timer_;
-	int counter_{};
+   const so_5::mbox_t board_;
+   so_5::timer_id_t timer_;
+   int counter_{};
 
-	struct acquisition_time final : public so_5::signal_t {};
+   struct acquisition_time final : public so_5::signal_t {};
 
-	void on_timer(mhood_t<acquisition_time>) {
-		// Publish the next value for all consumers.
-		so_5::send<acquired_value>(
-				board_, std::chrono::steady_clock::now(), ++counter_);
-	}
+   void on_timer(mhood_t<acquisition_time>) {
+      // Publish the next value for all consumers.
+      so_5::send<acquired_value>(
+            board_, std::chrono::steady_clock::now(), ++counter_);
+   }
 
 public:
-	producer(context_t ctx, so_5::mbox_t board)
-		:	so_5::agent_t{std::move(ctx)}
-		,	board_{std::move(board)}
-	{}
+   producer(context_t ctx, so_5::mbox_t board)
+      :  so_5::agent_t{std::move(ctx)}
+      ,  board_{std::move(board)}
+   {}
 
-	void so_define_agent() override {
-		so_subscribe_self().event(&producer::on_timer);
-	}
+   void so_define_agent() override {
+      so_subscribe_self().event(&producer::on_timer);
+   }
 
-	void so_evt_start() override {
-		// Agent will periodically recive acquisition_time signal
-		// without initial delay and with period of 750ms.
-		timer_ = so_5::send_periodic<acquisition_time>(*this, 0ms, 750ms);
-	}
+   void so_evt_start() override {
+      // Agent will periodically recive acquisition_time signal
+      // without initial delay and with period of 750ms.
+      timer_ = so_5::send_periodic<acquisition_time>(*this, 0ms, 750ms);
+   }
 };
 
 class consumer final : public so_5::agent_t {
-	const so_5::mbox_t board_;
-	const std::string name_;
+   const so_5::mbox_t board_;
+   const std::string name_;
 
-	void on_value(mhood_t<acquired_value> cmd) {
-		std::cout << name_ << ": " << cmd->value_ << std::endl;
-	}
+   void on_value(mhood_t<acquired_value> cmd) {
+      std::cout << name_ << ": " << cmd->value_ << std::endl;
+   }
 
 public:
-	consumer(context_t ctx, so_5::mbox_t board, std::string name)
-		:	so_5::agent_t{std::move(ctx)}
-		,	board_{std::move(board)}
-		,	name_{std::move(name)}
-	{}
+   consumer(context_t ctx, so_5::mbox_t board, std::string name)
+      :  so_5::agent_t{std::move(ctx)}
+      ,  board_{std::move(board)}
+      ,  name_{std::move(name)}
+   {}
 
-	void so_define_agent() override {
-		so_subscribe(board_).event(&consumer::on_value);
-	}
+   void so_define_agent() override {
+      so_subscribe(board_).event(&consumer::on_value);
+   }
 };
 
 int main() {
-	so_5::launch([](so_5::environment_t & env) {
-			auto board = env.create_mbox();
-			env.introduce_coop([board](so_5::coop_t & coop) {
-					coop.make_agent<producer>(board);
-					coop.make_agent<consumer>(board, "first"s);
-					coop.make_agent<consumer>(board, "second"s);
-				});
+   so_5::launch([](so_5::environment_t & env) {
+         auto board = env.create_mbox();
+         env.introduce_coop([board](so_5::coop_t & coop) {
+               coop.make_agent<producer>(board);
+               coop.make_agent<consumer>(board, "first"s);
+               coop.make_agent<consumer>(board, "second"s);
+            });
 
-			std::this_thread::sleep_for(std::chrono::seconds(4));
-			env.stop();
-		});
+         std::this_thread::sleep_for(std::chrono::seconds(4));
+         env.stop();
+      });
 
-	return 0;
+   return 0;
 }
 ```
 
-BlinkingLed example
--------------------
+## BlinkingLed example
 
 All agents in SObjectizer are finite-state machines. Almost all functionality
 of hierarchical finite-states machines (HSM) are supported: child states and
@@ -276,65 +267,64 @@ This is a very simple example that demonstrates an agent that is HSM:
 using namespace std::literals;
 
 class blinking_led final : public so_5::agent_t {
-	state_t off{ this }, blinking{ this },
-		blink_on{ initial_substate_of{ blinking } },
-		blink_off{ substate_of{ blinking } };
+   state_t off{ this }, blinking{ this },
+      blink_on{ initial_substate_of{ blinking } },
+      blink_off{ substate_of{ blinking } };
 
 public :
-	struct turn_on_off : public so_5::signal_t {};
+   struct turn_on_off : public so_5::signal_t {};
 
-	blinking_led(context_t ctx) : so_5::agent_t{std::move(ctx)} {
-		this >>= off;
+   blinking_led(context_t ctx) : so_5::agent_t{std::move(ctx)} {
+      this >>= off;
 
-		off.just_switch_to<turn_on_off>(blinking);
+      off.just_switch_to<turn_on_off>(blinking);
 
-		blinking.just_switch_to<turn_on_off>(off);
+      blinking.just_switch_to<turn_on_off>(off);
 
-		blink_on
-			.on_enter([]{ std::cout << "ON" << std::endl; })
-			.on_exit([]{ std::cout << "off" << std::endl; })
-			.time_limit(1250ms, blink_off);
+      blink_on
+         .on_enter([]{ std::cout << "ON" << std::endl; })
+         .on_exit([]{ std::cout << "off" << std::endl; })
+         .time_limit(1250ms, blink_off);
 
-		blink_off
-			.time_limit(750ms, blink_on);
-	}
+      blink_off
+         .time_limit(750ms, blink_on);
+   }
 };
 
 int main()
 {
-	so_5::launch([](so_5::environment_t & env) {
-		so_5::mbox_t m;
-		env.introduce_coop([&](so_5::coop_t & coop) {
-				auto led = coop.make_agent< blinking_led >();
-				m = led->so_direct_mbox();
-			});
+   so_5::launch([](so_5::environment_t & env) {
+      so_5::mbox_t m;
+      env.introduce_coop([&](so_5::coop_t & coop) {
+            auto led = coop.make_agent< blinking_led >();
+            m = led->so_direct_mbox();
+         });
 
-		const auto pause = [](auto duration) {
-			std::this_thread::sleep_for(duration);
-		};
+      const auto pause = [](auto duration) {
+         std::this_thread::sleep_for(duration);
+      };
 
-		std::cout << "Turn blinking on for 10s" << std::endl;
-		so_5::send<blinking_led::turn_on_off>(m);
-		pause(10s);
+      std::cout << "Turn blinking on for 10s" << std::endl;
+      so_5::send<blinking_led::turn_on_off>(m);
+      pause(10s);
 
-		std::cout << "Turn blinking off for 5s" << std::endl;
-		so_5::send<blinking_led::turn_on_off>(m);
-		pause(5s);
+      std::cout << "Turn blinking off for 5s" << std::endl;
+      so_5::send<blinking_led::turn_on_off>(m);
+      pause(5s);
 
-		std::cout << "Turn blinking on for 5s" << std::endl;
-		so_5::send<blinking_led::turn_on_off>(m);
-		pause(5s);
+      std::cout << "Turn blinking on for 5s" << std::endl;
+      so_5::send<blinking_led::turn_on_off>(m);
+      pause(5s);
 
-		std::cout << "Stopping..." << std::endl;
-		env.stop();
-	} );
+      std::cout << "Stopping..." << std::endl;
+      env.stop();
+   } );
 
-	return 0;
+   return 0;
 }
 ```
 
-CSP-like Ping-Pong example
---------------------------
+## CSP-like Ping-Pong example
 
 SObjectizer allows to write concurrent applications even without agents inside.
 Only plain threads and CSP-like channels can be used.
@@ -346,73 +336,70 @@ main() is not exception-safe):
 #include <so_5/all.hpp>
 
 struct ping {
-	int counter_;
+   int counter_;
 };
 
 struct pong {
-	int counter_;
+   int counter_;
 };
 
 void pinger_proc(so_5::mchain_t self_ch, so_5::mchain_t ping_ch) {
-	so_5::send<ping>(ping_ch, 1000);
+   so_5::send<ping>(ping_ch, 1000);
 
-	// Read all message until channel will be closed.
-	so_5::receive( so_5::from(self_ch),
-		[&](so_5::mhood_t<pong> cmd) {
-			if(cmd->counter_ > 0)
-				so_5::send<ping>(ping_ch, cmd->counter_ - 1);
-			else {
-				// Channels have to be closed to break `receive` calls.
-				so_5::close_drop_content(self_ch);
-				so_5::close_drop_content(ping_ch);
-			}
-		});
+   // Read all message until channel will be closed.
+   so_5::receive( so_5::from(self_ch),
+      [&](so_5::mhood_t<pong> cmd) {
+         if(cmd->counter_ > 0)
+            so_5::send<ping>(ping_ch, cmd->counter_ - 1);
+         else {
+            // Channels have to be closed to break `receive` calls.
+            so_5::close_drop_content(self_ch);
+            so_5::close_drop_content(ping_ch);
+         }
+      });
 }
 
 void ponger_proc(so_5::mchain_t self_ch, so_5::mchain_t pong_ch) {
-	int pings_received{};
+   int pings_received{};
 
-	// Read all message until channel will be closed.
-	so_5::receive( so_5::from(self_ch),
-		[&](so_5::mhood_t<ping> cmd) {
-			++pings_received;
-			so_5::send<pong>(pong_ch, cmd->counter_);
-		});
+   // Read all message until channel will be closed.
+   so_5::receive( so_5::from(self_ch),
+      [&](so_5::mhood_t<ping> cmd) {
+         ++pings_received;
+         so_5::send<pong>(pong_ch, cmd->counter_);
+      });
 
-	std::cout << "pings received: " << pings_received << std::endl;
+   std::cout << "pings received: " << pings_received << std::endl;
 }
 
 int main() {
-	so_5::wrapped_env_t sobj;
+   so_5::wrapped_env_t sobj;
 
-	auto pinger_ch = so_5::create_mchain(sobj);
-	auto ponger_ch = so_5::create_mchain(sobj);
+   auto pinger_ch = so_5::create_mchain(sobj);
+   auto ponger_ch = so_5::create_mchain(sobj);
 
-	std::thread pinger{pinger_proc, pinger_ch, ponger_ch};
-	std::thread ponger{ponger_proc, ponger_ch, pinger_ch};
+   std::thread pinger{pinger_proc, pinger_ch, ponger_ch};
+   std::thread ponger{ponger_proc, ponger_ch, pinger_ch};
 
-	ponger.join();
-	pinger.join();
+   ponger.join();
+   pinger.join();
 
-	return 0;
+   return 0;
 }
 ```
 
-Want to know more?
-------------------
+## Want to know more?
 
 More information about SObjectizer can be found in the corresponding section of
 the [project's Wiki](https://sourceforge.net/p/sobjectizer/wiki/Basics/)
 
-Limitations
-===========
+# Limitations
 
 SObjectizer is an in-process message dispatching framework. It doesn't support
 distributed applications just out of box. But external tools and libraries can
 be used in that case. Please take a look at our [mosquitto_transport experiment](https://bitbucket.org/sobjectizerteam/mosquitto_transport-0.6).
 
-Obtaining and building
-======================
+# Obtaining and building
 
 SObjectizer can be downloaded from [SourceForge](https://sourceforge.net/projects/sobjectizer/files/sobjectizer/SObjectizer%20Core%20v.5.5/) or this repository can be cloned.
 
@@ -425,8 +412,7 @@ Android is possible by CMake only. See the corresponding section below.
 SObjectizer can also be installed and used via vcpkg and Conan dependency
 managers. See the appropriate sections below.
 
-Building via Mxx_ru
-===================
+## Building via Mxx_ru
 
 NOTE. This is a standard way for building SObjectizer. This way is used in
 SObjectizer development process.
@@ -518,8 +504,7 @@ export MXX_RU_CPP_TOOLSET="clang_linux compiler_name=clang++-3.5 linker_name=cla
 More information about tuning Mxx_ru for your needs you can find in the
 corresponding [documentation](http://sourceforge.net/projects/mxxru/files/Mxx_ru%201.6/mxx_ru-1.6.4-r1.pdf/download).
 
-Building via CMake
-==================
+## Building via CMake
 
 NOTE. This way of building is not used by SObjectizer developers. But
 CMake-related files are in actual state, they maintained by SObjectizer Team
@@ -589,13 +574,11 @@ Since v.5.5.24 SObjectizer provides sobjectizer-config.cmake files.
 These files are automatically installed into <target>/lib/cmake/sobjectizer
 subfolder. It allows to use SObjectizer via CMake's find_package command.
 
-Building for Android
---------------------
+## Building for Android
 
 Building for Android is possible via a rather fresh Android NDK or [CrystaX NDK](https://www.crystax.net/android/ndk).
 
-Building with Android NDK
-~~~~~~~~~~~~~~~~~~~~~~~~~
+### Building with Android NDK
 
 You need Android SDK and Android NDK installed in your system. As well as an
 appropriate version of CMake. You have also need properly set environment
@@ -607,19 +590,18 @@ cd so-5.5.24
 mkdir cmake_build
 cd cmake_build
 cmake -DBUILD_ALL -DCMAKE_INSTALL_PREFIX=target -DCMAKE_BUILD_TYPE=Release \
-	  -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
-	  -G Ninja \
-	  -DANDROID_ABI=arm64-v8a \
-	  -DANDROID_NDK=${ANDROID_NDK} \
-	  -DANDROID_NATIVE_API_LEVEL=23 \
-	  -DANDROID_TOOLCHAIN=clang \
-	  ../dev
+     -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+     -G Ninja \
+     -DANDROID_ABI=arm64-v8a \
+     -DANDROID_NDK=${ANDROID_NDK} \
+     -DANDROID_NATIVE_API_LEVEL=23 \
+     -DANDROID_TOOLCHAIN=clang \
+     ../dev
 cmake --build . --config=Release
 cmake --build . --config=Release --target install
 ```
 
-Building with CrystaX NDK
-~~~~~~~~~~~~~~~~~~~~~~~~~
+### Building with CrystaX NDK
 
 You need CrystaX NDK v.10.4.0 or higher already installed in your system. CMake
 is used for building SObjectizer:
@@ -636,11 +618,9 @@ make test
 make install
 ```
 
-Using C++ Dependency Managers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Using C++ Dependency Managers
 
-Using via vcpkg
----------------
+### Using via vcpkg
 
 To use SObjectizer via [vcpkg](https://github.com/Microsoft/vcpkg) it is necessary to do the following steps.
 
@@ -657,11 +637,9 @@ find_package(sobjectizer CONFIG REQUIRED)
 target_link_libraries(your_target sobjectizer::SharedLib) # or sobjectizer::StaticLib
 ```
 
-Using via Conan
----------------
+### Using via Conan
 
-Installing SObjectizer And Adding It To conanfile.txt
-`````````````````````````````````````````````````````
+#### Installing SObjectizer And Adding It To conanfile.txt
 
 To use SObjectizer via Conan it is necessary to do the following steps:
 
@@ -691,8 +669,7 @@ Install dependencies for your project:
 conan install SOME_PATH --build=missing
 ```
 
-Adding SObjectizer To Your CMakeLists.txt
-`````````````````````````````````````````
+#### Adding SObjectizer To Your CMakeLists.txt
 
 Please note that SObjectizer should be added to your `CMakeLists.txt` via `find_package` command:
 
