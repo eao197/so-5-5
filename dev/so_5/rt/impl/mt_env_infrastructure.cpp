@@ -11,6 +11,7 @@
  */
 
 #include <so_5/rt/impl/h/mt_env_infrastructure.hpp>
+#include <so_5/rt/impl/h/internal_env_iface.hpp>
 
 #include <so_5/rt/impl/h/run_stage.hpp>
 
@@ -314,7 +315,8 @@ mt_env_infrastructure_t::run_user_supplied_init_and_wait_for_stop(
 		so_5::details::do_with_rollback_on_exception(
 			[this, &init_fn]
 			{
-				init_fn();
+				so_5::impl::wrap_init_fn_call( std::move(init_fn) );
+
 				m_coop_repo.wait_for_start_deregistration();
 			},
 			[this]

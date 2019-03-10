@@ -221,6 +221,25 @@ process_unhandled_exception(
 		}
 	}
 
+void
+process_unhandled_unknown_exception(
+	current_thread_id_t working_thread_id,
+	agent_t & a_exception_producer ) SO_5_NOEXCEPT
+	{
+		details::invoke_noexcept_code( [&] {
+			// Just call process_unhandled_exception with dummy exception object.
+			exception_t dummy{
+					"an exception of unknown type is caught",
+					rc_unknown_exception_type
+			};
+
+			process_unhandled_exception(
+					working_thread_id,
+					dummy,
+					a_exception_producer );
+		} );
+	}
+
 } /* namespace impl */
 
 } /* namespace so_5 */

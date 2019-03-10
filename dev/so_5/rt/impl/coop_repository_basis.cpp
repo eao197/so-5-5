@@ -367,6 +367,12 @@ coop_repository_basis_t::register_coop(
 			rc_coop_define_agent_failed,
 			ex.what() );
 	}
+	catch( ... ) // Since v.5.5.24.3
+	{
+		SO_5_THROW_EXCEPTION(
+			rc_coop_define_agent_failed,
+			"unknown exception is caught" );
+	}
 
 	do_coop_reg_notification_if_necessary(
 		coop_ref->query_coop_name(),
