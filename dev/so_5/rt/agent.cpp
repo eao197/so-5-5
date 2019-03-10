@@ -1119,6 +1119,11 @@ agent_t::demand_handler_on_start(
 		impl::process_unhandled_exception(
 				working_thread_id, x, *(d.m_receiver) );
 	}
+	catch( ... ) // Since v.5.5.24.3
+	{
+		impl::process_unhandled_unknown_exception(
+				working_thread_id, *(d.m_receiver) );
+	}
 }
 
 void
@@ -1156,6 +1161,11 @@ agent_t::demand_handler_on_finish(
 		{
 			impl::process_unhandled_exception(
 					working_thread_id, x, *(d.m_receiver) );
+		}
+		catch( ... ) // Since v.5.5.24.3
+		{
+			impl::process_unhandled_unknown_exception(
+					working_thread_id, *(d.m_receiver) );
 		}
 
 		// Since v.5.5.15 agent should be returned in default state.
@@ -1248,6 +1258,11 @@ agent_t::process_message(
 	{
 		impl::process_unhandled_exception(
 				working_thread_id, x, *(d.m_receiver) );
+	}
+	catch( ... ) // Since v.5.5.24.3
+	{
+		impl::process_unhandled_unknown_exception(
+				working_thread_id, *(d.m_receiver) );
 	}
 }
 
