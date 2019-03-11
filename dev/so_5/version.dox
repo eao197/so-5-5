@@ -2,6 +2,45 @@
 
 \page so_5__version so_5: Version History
 
+\section so_5__5_24_3 5.5.24.3 "El Misti"
+
+	Exception-related restrictions are somewhat relaxed.
+
+	Until v.5.5.24.3 SObjectizer expected only exceptions which are
+	derived from std::exception class. That means that if an user
+	write an event-handler in the form:
+\code
+void some_agent::on_some_message(mhood_t<msg> cmd) {
+	if(!is_valid(*cmd))
+		throw "Invalid message";
+	...
+}
+\endcode
+	such event-handler will crash the whole application.
+
+	Since v.5.5.24.3 SObjectizer uses "catch(...)" handler for exceptions
+	which are thrown from:
+
+	- init-function passed to so_5::launch() or to the constructor of
+	so_5::wrapped_env_t;
+	- so_5::agent_t::so_evt_start() method;
+	- so_5::agent_t::so_evt_finish() method;
+	- an event-handlers for ordinary messages.
+
+	Please note that there are still some places where only exceptions
+	derived from std::exception class can be thrown:
+
+	- custom mbox implementations;
+	- custom dispatcher;
+	- coop's registration and deregistration handlers (please note that
+	throwing an exception from those handlers could be prohibited in v.5.6);
+	- and other places where an user provides some code for customization
+	of SObjectizer logic.
+
+\section so_5__5_24_2 5.5.24.2 "El Misti"
+
+	Just a bugfix release.
+
 \section so_5__5_24_1 5.5.24.1 "El Misti"
 
 	Flags -fvisibitity=hidden and -fvisibility-inlines-hidden are now
