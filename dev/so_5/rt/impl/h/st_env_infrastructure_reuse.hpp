@@ -382,7 +382,7 @@ class default_disp_impl_t final
 		set_data_sources_name_base(
 			const std::string & name ) override
 			{
-				m_data_source.set_data_sources_name_base( name );
+				m_data_source.get().set_data_sources_name_base( name );
 			}
 
 		Activity_Tracker &
@@ -399,7 +399,7 @@ class default_disp_impl_t final
 		 * \since
 		 * v.5.5.19
 		 */
-		class disp_data_source_t final : public stats::manually_registered_source_t
+		class disp_data_source_t final : public stats::source_t
 			{
 				//! Dispatcher to work with.
 				outliving_reference_t< default_disp_impl_t > m_dispatcher;
@@ -451,7 +451,8 @@ class default_disp_impl_t final
 			};
 
 		//! Data source for speading run-time stats.
-		disp_data_source_t m_data_source;
+		stats::manually_registered_source_holder_t< disp_data_source_t >
+				m_data_source;
 
 		//! Activity tracker.
 		outliving_reference_t< Activity_Tracker > m_activity_tracker;
