@@ -167,16 +167,16 @@ class auto_registered_source_holder_t
 				m_repo.get().add( m_ds );
 			}
 
-		~auto_registered_source_holder_t() noexcept
+		~auto_registered_source_holder_t() SO_5_NOEXCEPT
 			{
 				m_repo.get().remove( m_ds );
 			}
 
 		Data_Source &
-		get() noexcept { return m_ds; }
+		get() SO_5_NOEXCEPT { return m_ds; }
 
 		const Data_Source &
-		get() const noexcept { return m_ds; }
+		get() const SO_5_NOEXCEPT { return m_ds; }
 
 	private :
 		//! Repository for data source.
@@ -214,7 +214,7 @@ class manually_registered_source_holder_t
 			:	m_ds{ std::forward<Args>(args)... }
 			{}
 
-		~manually_registered_source_holder_t() noexcept
+		~manually_registered_source_holder_t() SO_5_NOEXCEPT
 			{
 				if( m_repo )
 					stop();
@@ -228,17 +228,17 @@ class manually_registered_source_holder_t
 			}
 
 		void
-		stop() noexcept
+		stop() SO_5_NOEXCEPT
 			{
 				m_repo->remove( m_ds );
 				m_repo = nullptr;
 			}
 
 		Data_Source &
-		get() noexcept { return m_ds; }
+		get() SO_5_NOEXCEPT { return m_ds; }
 
 		const Data_Source &
-		get() const noexcept { return m_ds; }
+		get() const SO_5_NOEXCEPT { return m_ds; }
 
 	private :
 		//! Repository for data source.
