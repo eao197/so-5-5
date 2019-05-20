@@ -67,49 +67,6 @@ repository_t::source_list_next(
 		return what.m_next;
 	}
 
-//
-// auto_registered_source_t
-//
-auto_registered_source_t::auto_registered_source_t(
-	outliving_reference_t< repository_t > repo )
-	:	m_repo( repo )
-	{
-		m_repo.get().add( *this );
-	}
-
-auto_registered_source_t::~auto_registered_source_t() SO_5_NOEXCEPT
-	{
-		m_repo.get().remove( *this );
-	}
-
-//
-// manually_registered_source_t
-//
-manually_registered_source_t::manually_registered_source_t()
-	:	m_repo{ nullptr }
-	{}
-
-manually_registered_source_t::~manually_registered_source_t() SO_5_NOEXCEPT
-	{
-		if( m_repo )
-			stop();
-	}
-
-void
-manually_registered_source_t::start(
-	outliving_reference_t< repository_t > repo )
-	{
-		repo.get().add( *this );
-		m_repo = &(repo.get());
-	}
-
-void
-manually_registered_source_t::stop()
-	{
-		m_repo->remove( *this );
-		m_repo = nullptr;
-	}
-
 } /* namespace stats */
 
 } /* namespace so_5 */

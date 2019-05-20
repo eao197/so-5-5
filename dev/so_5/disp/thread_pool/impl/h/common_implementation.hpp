@@ -250,7 +250,7 @@ class dispatcher_t
 		set_data_sources_name_base(
 			const std::string & name_base ) override
 			{
-				m_data_source.set_data_sources_name_base(
+				m_data_source.get().set_data_sources_name_base(
 						Adaptations::dispatcher_type_name(),
 						name_base,
 						this );
@@ -333,7 +333,8 @@ class dispatcher_t
 		 *
 		 * \brief Data source for the run-time monitoring.
 		 */
-		tp_stats::data_source_t m_data_source;
+		stats::manually_registered_source_holder_t< tp_stats::data_source_t >
+				m_data_source;
 
 		//! Creation event queue for an agent with individual FIFO.
 		event_queue_t *
@@ -347,7 +348,7 @@ class dispatcher_t
 						agent.get(),
 						agent_data_t{
 								queue,
-								m_data_source.prefix(),
+								m_data_source.get().prefix(),
 								agent.get() } );
 
 				return queue.get();
@@ -370,7 +371,7 @@ class dispatcher_t
 							cooperation_data_t(
 									make_new_agent_queue( params ),
 									1,
-									m_data_source.prefix(),
+									m_data_source.get().prefix(),
 									agent->so_coop_name() ) )
 							.first;
 				else

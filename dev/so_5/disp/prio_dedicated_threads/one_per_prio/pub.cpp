@@ -157,7 +157,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		set_data_sources_name_base(
 			const std::string & name_base ) override
 			{
-				m_data_source.set_data_sources_name_base( name_base );
+				m_data_source.get().set_data_sources_name_base( name_base );
 			}
 
 		virtual event_queue_t *
@@ -187,7 +187,7 @@ class dispatcher_template_t : public actual_disp_iface_t
 		 * \since
 		 * v.5.5.8
 		 */
-		class disp_data_source_t : public stats::manually_registered_source_t
+		class disp_data_source_t : public stats::source_t
 			{
 				//! Dispatcher to work with.
 				dispatcher_template_t & m_dispatcher;
@@ -267,7 +267,8 @@ class dispatcher_template_t : public actual_disp_iface_t
 			};
 
 		//! Data source for run-time monitoring.
-		disp_data_source_t m_data_source;
+		stats::manually_registered_source_holder_t< disp_data_source_t >
+				m_data_source;
 
 		//! Working threads for every priority.
 		std::vector< std::unique_ptr< Work_Thread > > m_threads;
