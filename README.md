@@ -1,6 +1,8 @@
 Travis CI [![Build Status](https://travis-ci.org/eao197/so-5-5.svg?branch=master)](https://travis-ci.org/eao197/so-5-5)
 
-**NOTE!** *This is an experimental SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.*
+**NOTE!** The further development of SObjectizer is moved to [BitBucket](https://bitbucket.org/sobjectizerteam/sobjectizer) with a new official mirror on [GitHub](https://github.com/Stiffstream/sobjectizer).
+
+~~**NOTE!** *This is an experimental SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.*~~
 
 # What is SObjectizer?
 
