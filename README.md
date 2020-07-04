@@ -1,6 +1,6 @@
 Travis CI [![Build Status](https://travis-ci.org/eao197/so-5-5.svg?branch=master)](https://travis-ci.org/eao197/so-5-5)
 
-**NOTE!** The further development of SObjectizer is moved to [BitBucket](https://bitbucket.org/sobjectizerteam/sobjectizer) with a new official mirror on [GitHub](https://github.com/Stiffstream/sobjectizer).
+**NOTE!** The further development of SObjectizer is moved to [GitHub](https://github.com/Stiffstream/sobjectizer).
 
 ~~**NOTE!** *This is an experimental SObjectizer https://sourceforge.net/p/sobjectizer/ repository mirror.*~~
 
@@ -399,7 +399,7 @@ the [project's Wiki](https://sourceforge.net/p/sobjectizer/wiki/Basics/)
 
 SObjectizer is an in-process message dispatching framework. It doesn't support
 distributed applications just out of box. But external tools and libraries can
-be used in that case. Please take a look at our [mosquitto_transport experiment](https://bitbucket.org/sobjectizerteam/mosquitto_transport-0.6).
+be used in that case. Please take a look at our [mosquitto_transport experiment](https://github.com/Stiffstream/mosquitto_transport).
 
 # Obtaining and building
 
